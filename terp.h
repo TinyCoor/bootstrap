@@ -215,16 +215,16 @@ namespace cfg {
 	};
 
 	struct operand_encoding_t {
-		operand_types type;
-		uint8_t index;
-		uint64_t value;
+		operand_types type =operand_types::register_integer;
+		uint8_t index = 0;
+		uint64_t value = 0;
 	};
 
 	struct instruction_t {
-		op_codes op;
+		op_codes op =op_codes::nop;
 		op_sizes size = op_sizes::none;
-		uint8_t operands_count;
-		operand_encoding_t operand[4];
+		uint8_t operands_count = 0;
+		operand_encoding_t operands[4];
 	};
 
 	struct debug_information_t {
@@ -238,25 +238,29 @@ namespace cfg {
 	public:
 		explicit terp(uint32_t heap_size);
 		virtual ~terp();
-
+		void dump_state();
 		bool initialize(result& r);
 		uint64_t pop();
 		void push(uint64_t value);
 
 		size_t heap_size() const;
 		size_t heap_size_in_qwords() const;
-
 		bool step(result& r);
-
 		const register_file_t& register_file() const;
 
-		size_t encode_instruction(result& r,
-								uint64_t address,
-								instruction_t instruction);
+		size_t encode_instruction(result& r, uint64_t address, instruction_t instruction);
 
 		void dump_heap(uint64_t address, size_t size = 256);
 	protected:
 		size_t decode_instruction(result& r, instruction_t& inst);
+		size_t align(uint64_t addr, size_t size);
+		bool set_target_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t value);
+		bool set_target_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, double value);
+		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t& value) const;
+		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, double& value) const;
+
+	private:
+
 	private:
 		uint32_t heap_size_ = 0;
 		uint64_t* heap_ = nullptr;

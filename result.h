@@ -44,7 +44,7 @@ public:
 
 
 private:
-	bool succeed_ = false;
+	bool succeed_ = true;
 	result_message_list messages_ {};
 };
 }

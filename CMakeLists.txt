@@ -64,6 +64,7 @@ add_custom_command(TARGET all-unit-tests
 add_executable(bootstrap main.cpp
         result.h
         result_message.h
+        formatter.cpp
         terp.cpp)
 target_link_libraries(bootstrap PUBLIC
         fmt

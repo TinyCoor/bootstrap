@@ -151,8 +151,8 @@ namespace cfg {
 		uint64_t sr;
 	};
 
-	enum class opcodes : uint16_t {
-		nop =0,
+	enum class op_codes : uint16_t {
+		nop = 1,
 		load,
 		store,
 		move,
@@ -196,23 +196,33 @@ namespace cfg {
 		debug,
 	};
 
-	enum class register_types : uint8_t {
-		register_integer,
+	enum class op_sizes : uint8_t {
+		none,
+		byte,
+		word,
+		dword,
+		qword,
+	};
+
+	enum class operand_types : uint8_t {
+		register_integer = 1,
 		register_floating_point,
 		register_pc,
 		register_sp,
 		register_flags,
 		register_status,
+		constant,
 	};
 
 	struct operand_encoding_t {
-		register_types source_type;
-		uint8_t source_index;
+		operand_types type;
+		uint8_t index;
 		uint64_t value;
 	};
 
 	struct instruction_t {
-		opcodes op;
+		op_codes op;
+		op_sizes size = op_sizes::none;
 		uint8_t operands_count;
 		operand_encoding_t operand[4];
 	};
@@ -236,9 +246,17 @@ namespace cfg {
 		size_t heap_size() const;
 		size_t heap_size_in_qwords() const;
 
-		const register_file_t& register_file() const;
-	protected:
+		bool step(result& r);
 
+		const register_file_t& register_file() const;
+
+		size_t encode_instruction(result& r,
+								uint64_t address,
+								instruction_t instruction);
+
+		void dump_heap(uint64_t address, size_t size = 256);
+	protected:
+		size_t decode_instruction(result& r, instruction_t& inst);
 	private:
 		uint32_t heap_size_ = 0;
 		uint64_t* heap_ = nullptr;

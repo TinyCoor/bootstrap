@@ -1,0 +1,130 @@
+/// cfg interpreter, which consume cfg IR
+///
+/// register-based machine
+///
+/// register file
+/// general purpose data or address
+/// I0- I63: integer
+///
+/// data only
+/// f0-f63: float point registers(double precision)
+///
+/// stack pointer: sp (like register)
+/// program counter: pc (read only)
+/// flags:  fr (definite read)
+/// status: sr ()
+///
+///
+/// instructions
+/// ------------------------------------------------------
+/// load(.b|.w|.dw|.qw)
+///                  ^ default
+/// .b = 8 bit
+/// .w = 16 bit
+/// .dw = 32 bit
+/// .qw = 64 bit
+///
+/// non-used bit are zero extended
+///
+/// store(.b|.w|.dw|.qw)
+///
+/// non-used bit are zero extended
+///
+/// address mode:
+/// 	{target-register}, [{source-register}]
+///		"				", [{source-register}, offset-constant]
+///		"				", [{source-register}, {offset-register}]
+///		"				", {source-register}, post increment constant++
+///		"				", {source-register}, post increment register++
+///		"				", {source-register}, ++pre increment constant
+///		"				", {source-register}, ++pre increment register
+///		"				", {source-register}, post decrement constant--
+///		"				", {source-register}, post decrement register--
+///		"				", {source-register}, --pre decrement constant
+///		"				", {source-register}, --pre decrement register
+///
+/// copy {source-register}, {target-register}, {length-constant}
+/// copy {source-register}, {target-register}, {length-register}
+///
+/// fill constant, {target-register}, {length-constant}
+/// fill constant, {target-register}, {length-register}
+///
+///	fill {source-register}, {target-register}, {length-constant}
+/// fill {source-register}, {target-register}, {length-register}
+///
+///
+/// register/constant
+/// ---------------------------------------------------------------
+/// move(.b|.w|.dw|.qw)	{source-constant}, {target-register}
+///						{source-register}, {target-register}
+/// move.b #$06 r3
+/// move r3 r6
+///
+/// stack
+/// ---------------------------------------------------------------
+/// push(.b|.w|.dw|.qw)
+/// pop(.b|.w|.dw|.qw)
+///
+/// sp register behaves line rxx register
+///
+/// ALU
+/// ---------------------------------------------------------------
+/// size applicable to all {.b|.w|.dw|.qw}
+/// add
+/// addc
+///
+/// sub
+/// subc
+///
+/// mul
+/// div
+/// mod
+///
+/// shr
+/// shl
+/// ror
+/// rol
+///
+/// not
+/// and
+/// or
+/// xor
+///
+/// bis(bit set)
+/// bic(bit clear)
+/// test
+///
+/// cmp (compare register to register or register to constant
+///
+/// branch/conditional execution
+/// -----------------------------------------------
+/// bz  (branch if  zero)
+/// bnz	(branch if  zero)
+///
+/// tbz (test & branch if not set)
+/// tbnz(test & branch if set)
+///
+///
+/// bne
+/// beq
+/// bae
+/// ba
+/// ble
+/// bl
+/// bo
+/// bcc
+/// bcs
+///
+/// jsr	- equivalent to call (encode tail call
+///			push current pc + 1
+///         jmp to address
+///
+/// ret - jump to address on stack
+/// jmp
+///		- absolute constant jmp $0xffffff
+///     - indirect register jmp [r14]
+///     - direct jmp r14
+///
+/// nop
+///
+///

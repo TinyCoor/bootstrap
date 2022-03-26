@@ -1,0 +1,51 @@
+//
+// Created by 12132 on 2022/3/26.
+//
+
+#ifndef BOOTSTRAP__RESULT_H_
+#define BOOTSTRAP__RESULT_H_
+#include "result_message.h"
+#include <string>
+namespace cfg{
+class result{
+public:
+	result() =default;
+	inline void fail() { succeed_ = false;}
+	inline void succeed() { succeed_ = true;}
+	inline void add_message(const std::string& code, const std::string& message) {
+		messages_.emplace_back(code, message, std::string(), result_message::types::info);
+	}
+	inline void add_message(const std::string& code, const std::string& message, bool error) {
+		messages_.emplace_back(code, message, std::string(),
+	   	error ?  result_message::types::error :  result_message::types::info);
+	}
+
+	inline void add_message(const std::string& code, const std::string& message, const std::string& details, bool error) {
+		messages_.emplace_back(code, message, details, 	error ?  result_message::types::error :  result_message::types::info);
+	}
+
+	inline bool is_failed() const { return !succeed_;}
+	inline const result_message_list& messages() const { return messages_;}
+	inline bool has_code(const std::string& code) const {
+		for (const auto& msg : messages_) {
+			if (msg.code() == code)
+				return true;
+		}
+		return false;
+	}
+
+	inline const result_message* find_code(const std::string& code) const{
+		for (auto it =messages_.begin(); it != messages_.end(); ++it ) {
+			if ((*it).code() == code)
+				return &(*it);
+		}
+		return nullptr;
+	}
+
+
+private:
+	bool succeed_ = false;
+	result_message_list messages_ {};
+};
+}
+#endif //BOOTSTRAP__RESULT_H_

@@ -3,11 +3,11 @@
 //
 
 #include "formatter.h"
-#include <fmt/format.h>
+#include "extern/fmt/include/fmt/format.h"
 #include <sstream>
-namespace cfg{
+namespace gfx {
 
-std::string cfg::formatter::dump_to_string(const void *data, size_t size) {
+std::string gfx::formatter::Hex(const void *data, size_t size) {
 	auto *buf = (unsigned char *)data;
 	std::stringstream stream;
 	for (size_t i = 0u; i < size; i += 16u) {

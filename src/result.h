@@ -6,7 +6,7 @@
 #define BOOTSTRAP__RESULT_H_
 #include "result_message.h"
 #include <string>
-namespace cfg{
+namespace gfx {
 class result{
 public:
 	result() =default;

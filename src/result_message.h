@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 
-namespace cfg{
+namespace gfx {
 
 class result_message{
 public:

@@ -61,11 +61,14 @@ add_custom_command(TARGET all-unit-tests
         COMMAND ctest -C $<CONFIGURATION> --output-on-failure
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-add_executable(bootstrap main.cpp
-        result.h
-        result_message.h
-        formatter.cpp
-        terp.cpp)
+add_executable(bootstrap src/main.cpp
+        src/result.h
+        src/result_message.h
+        src/formatter.cpp
+        src/instruction_emitter.cpp
+        src/instruction.h
+        src/disassemble.cpp
+        src/terp.cpp)
 target_link_libraries(bootstrap PUBLIC
         fmt
         )

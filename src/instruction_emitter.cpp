@@ -35,9 +35,9 @@ void instruction_emitter::add_int_register_to_register(op_sizes size, uint8_t ta
 													   uint8_t rhs_index)
 {
 	instruction_t add_op;
-	add_op.op = op_codes::rts;
+	add_op.op = op_codes::add;
 	add_op.size= size;
-	add_op.operands_count =3;
+	add_op.operands_count = 3;
 	add_op.operands[1].index = target_index;
 	add_op.operands[1].type = operand_types::register_integer;
 	add_op.operands[1].index = lhs_index;
@@ -228,19 +228,101 @@ void instruction_emitter::inc(op_sizes size, uint8_t index) {
 	inc_op.operands[0].type = operand_types::register_integer;
 	inst_.emplace_back(inc_op);
 }
+
 void instruction_emitter::store_with_offset_from_register(uint8_t source_index, uint8_t target_index, uint64_t offset)
 {
-
+	instruction_t store_op;
+	store_op.op = op_codes::store;
+	store_op.size = op_sizes::qword;
+	store_op.operands_count = 3;
+	store_op.operands[0].type = operand_types::register_integer;
+	store_op.operands[0].index = source_index;
+	store_op.operands[1].type = operand_types::register_integer;
+	store_op.operands[1].index = target_index;
+	store_op.operands[2].type = operand_types::constant_integer;
+	store_op.operands[2].value.u64 = offset;
+	inst_.push_back(store_op);
 }
 void instruction_emitter::divide_int_register_to_register(op_sizes size, uint8_t target_index,
 	uint8_t lhs_index, uint8_t rhs_index)
 {
-
+	instruction_t div_op;
+	div_op.op = op_codes::div;
+	div_op.size = size;
+	div_op.operands_count = 3;
+	div_op.operands[0].index = target_index;
+	div_op.operands[0].type = operand_types::register_integer;
+	div_op.operands[1].index = lhs_index;
+	div_op.operands[1].type = operand_types::register_integer;
+	div_op.operands[2].index = rhs_index;
+	div_op.operands[2].type = operand_types::register_integer;
+	inst_.push_back(div_op);
 }
 
 void instruction_emitter::subtract_int_register_to_register(op_sizes size, uint8_t target_index,
 	uint8_t lhs_index, uint8_t rhs_index)
 {
-
+	instruction_t sub_op;
+	sub_op.op = op_codes::sub;
+	sub_op.size = size;
+	sub_op.operands_count = 3;
+	sub_op.operands[0].index = target_index;
+	sub_op.operands[0].type = operand_types::register_integer;
+	sub_op.operands[1].index = lhs_index;
+	sub_op.operands[1].type = operand_types::register_integer;
+	sub_op.operands[2].index = rhs_index;
+	sub_op.operands[2].type = operand_types::register_integer;
+	inst_.push_back(sub_op);
 }
+
+void instruction_emitter::subtract_int_constant_from_register(op_sizes size, uint8_t target_index,
+		uint8_t lhs_index, uint64_t rhs_value)
+{
+	instruction_t sub_op;
+	sub_op.op = op_codes::sub;
+	sub_op.operands_count = 1;
+	sub_op.size = size;
+	sub_op.operands_count = 3;
+	sub_op.operands[0].index = target_index;
+	sub_op.operands[0].type = operand_types::register_integer;
+	sub_op.operands[1].index = lhs_index;
+	sub_op.operands[1].type = operand_types::register_integer;
+	sub_op.operands[2].value.u64 = rhs_value;
+	sub_op.operands[2].type = operand_types::constant_integer;
+	inst_.push_back(sub_op);
+}
+
+void instruction_emitter::compare_int_register_to_constant(op_sizes sizes, uint8_t index, uint64_t value)
+{
+	instruction_t compare_op;
+	compare_op.op = op_codes::cmp;
+	compare_op.size = sizes;
+	compare_op.operands_count = 2;
+	compare_op.operands[0].type = operand_types::register_integer;
+	compare_op.operands[0].index = index;
+	compare_op.operands[1].type = operand_types::constant_integer;
+	compare_op.operands[1].value.u64 =value;
+	inst_.push_back(compare_op);
+}
+
+void instruction_emitter::branch_if_equal(uint64_t address) {
+	instruction_t branch_op;
+	branch_op.op = op_codes::beq;
+	branch_op.size = op_sizes::qword;
+	branch_op.operands_count = 1;
+	branch_op.operands[0].type = operand_types::constant_integer;
+	branch_op.operands[0].value.u64 = address;
+	inst_.push_back(branch_op);
+}
+
+void instruction_emitter::branch_if_not_equal(uint64_t address) {
+	instruction_t branch_op;
+	branch_op.op = op_codes::bne;
+	branch_op.size = op_sizes::qword;
+	branch_op.operands_count = 1;
+	branch_op.operands[0].type = operand_types::constant_integer;
+	branch_op.operands[0].value.u64 = address;
+	inst_.push_back(branch_op);
+}
+
 }

@@ -40,9 +40,9 @@ void terp::reset() {
 	exited_ = false;
 }
 
-void terp::dump_state() {
-	fmt::print("cfg interpreter state: -----------------------------------------------\n");
-	for (int index = 0; index < 16 ; ++index) {
+void terp::dump_state(uint8_t count) {
+	fmt::print("\n-------------------------------------------------------------\n");
+	for (int index = 0; index < count ; ++index) {
 		fmt::print("I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x}\n",
 			index, registers_.i[index],
 			index + 1, registers_.i[index + 1],
@@ -50,9 +50,8 @@ void terp::dump_state() {
 			index + 3, registers_.i[index + 3]);
 		index += 4;
 	}
-
-	fmt::print("-----------------------------------------------------------\n");
-	for (int index = 0; index < 16 ; ++index) {
+	fmt::print("-------------------------------------------------------------\n");
+	for (int index = 0; index < count ; ++index) {
 		fmt::print("F{:02}=${:08x} | F{:02}=${:08x} | F{:02}=${:08x} | F{:02}=${:08x}\n",
 				   index, static_cast<uint64_t >(registers_.f[index]),
 				   index + 1, static_cast<uint64_t >(registers_.f[index + 1]),
@@ -209,19 +208,8 @@ bool terp::step(result &r) {
 			uint64_t value = *qword_ptr(address);
 			if (!set_target_operand_value(r, inst, 0, value))
 				return false;
-			break;
-		}
-		case op_codes::inc: {
-			registers_.i[inst.operands[0].index]++;
-			break;
-		}
-		case op_codes::dec: {
-			registers_.i[inst.operands[0].index]--;
-			break;
-		}
-		case op_codes::copy:{}break;
-		case op_codes ::fill:{}break;
-		case op_codes::store:{
+		}break;
+		case op_codes::store: {
 			uint64_t value;
 			if (!get_operand_value(r, inst, 0, value))
 				return false;
@@ -237,6 +225,21 @@ bool terp::step(result &r) {
 			}
 			*qword_ptr(address) = value;
 		}break;
+		case op_codes::inc: {
+			registers_.i[inst.operands[0].index]++;
+			break;
+		}
+		case op_codes::dec: {
+			registers_.i[inst.operands[0].index]--;
+			break;
+		}
+		case op_codes::copy:{
+
+		}break;
+		case op_codes ::fill:{
+
+		}break;
+
 		case op_codes::move: {
 			uint64_t source_value;
 			if (!get_operand_value(r, inst, 0, source_value)) {
@@ -352,31 +355,89 @@ bool terp::step(result &r) {
 		case op_codes::test:{
 			break;
 		}
-		case op_codes::cmp:{
-			break;
-		}
+		case op_codes::cmp: {
+			uint64_t lhs_value, rhs_value;
+			if (!get_operand_value(r, inst, 0, lhs_value))
+				return false;
+			if (!get_operand_value(r, inst, 1, rhs_value))
+				return false;
+			uint64_t result = lhs_value - rhs_value;
+			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::overflow, rhs_value > lhs_value);
+
+		}break;
 		case op_codes::bz:{
+			registers_.flags(register_file_t::zero, false);
+			uint64_t value, address;
+			if (!get_operand_value(r, inst, 0, value))
+				return false;
+			if (!get_operand_value(r, inst, 1, address))
+				return false;
+			if (value == 0){
+				registers_.pc = address;
+			}
+
+		}break;
+		case op_codes::bnz: {
+			registers_.flags(register_file_t::zero, false);
+			uint64_t value, address;
+			if (!get_operand_value(r, inst, 0, value))
+				return false;
+			if (!get_operand_value(r, inst, 1, address))
+				return false;
+			if (value != 0) {
+				registers_.pc = address;
+			}
+		}break;
+		case op_codes::tbz: {
+			registers_.flags(register_file_t::zero, false);
+			uint64_t value, mask, address;
+			if (!get_operand_value(r, inst, 0, value))
+				return false;
+			if (!get_operand_value(r, inst, 1, mask))
+				return false;
+			if (!get_operand_value(r, inst, 2, address))
+				return false;
+			if ((value & mask) == 0) {
+				registers_.pc = address;
+			}
+
+		} break;
+		case op_codes::tbnz: {
+			registers_.flags(register_file_t::zero, false);
+			uint64_t value, mask, address;
+			if (!get_operand_value(r, inst, 0, value))
+				return false;
+			if (!get_operand_value(r, inst, 1, mask))
+				return false;
+			if (!get_operand_value(r, inst, 2, address))
+				return false;
+			if ((value & mask) != 0) {
+				registers_.pc = address;
+			}
+		}break;
+		case op_codes::bne: {
+			uint64_t address;
+			if (!get_operand_value(r, inst, 0, address))
+				return false;
+			if (registers_.flags(register_file_t::flags_t::zero) == 0){
+				// registers_.flags(register_file_t::zero, false);
+				registers_.pc = address;
+			}
+		}break;
+		case op_codes::beq: {
+			uint64_t address;
+			if (!get_operand_value(r, inst, 0, address))
+				return false;
+			if (registers_.flags(register_file_t::flags_t::zero) != 0){
+				registers_.flags(register_file_t::zero, false);
+				registers_.pc = address;
+			}
+		} break;
+		case op_codes::bae: {
 			break;
 		}
-		case op_codes::bnz:{
-			break;
-		}
-		case op_codes::tbz:{
-			break;
-		}
-		case op_codes::tbnz:{
-			break;
-		}
-		case op_codes::bne:{
-			break;
-		}
-		case op_codes::beq:{
-			break;
-		}
-		case op_codes::bae:{
-			break;
-		}
-		case op_codes::ba:{
+		case op_codes::ba: {
 			break;
 		}
 		case op_codes::ble:{
@@ -395,16 +456,26 @@ bool terp::step(result &r) {
 
 		}break;
 		case op_codes::jsr: {
-
+			push(registers_.pc);
+			uint64_t address;
+			if (!get_operand_value(r, inst, 0, address))
+				return false;
+			registers_.pc = address;
 		}break;
 		case op_codes::rts: {
+			uint64_t address = pop();
+			registers_.pc = address;
+		}break;
+		case op_codes::jmp: {
+			uint64_t address;
+			if (!get_operand_value(r, inst, 0, address))
+				return false;
+			registers_.pc = address;
+		}break;
+		case op_codes::meta: {
 
 		}break;
-		case op_codes::jmp:{
-		}break;
-		case op_codes::meta:{
-		}break;
-		case op_codes::debug:{
+		case op_codes::debug: {
 
 		}break;
 		case op_codes::exit: {
@@ -453,7 +524,7 @@ bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t opera
 			break;
 		}
 		case operand_types::register_sp: {value = registers_.sp;break;}
-		case operand_types::register_pc: {value = registers_.pc;break;}
+		case operand_types::register_pc:  {value = registers_.pc;break;}
 		case operand_types::register_flags: {value = registers_.fr;break;}
 		case operand_types::register_status: {value = registers_.sr;break;}
 		case operand_types::increment_constant_pre:

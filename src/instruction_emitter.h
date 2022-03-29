@@ -23,13 +23,38 @@ public:
 
 	void exit();
 
+	/// dec r0
 	void dec(op_sizes size, uint8_t index);
 
+	/// inc r0
 	void inc(op_sizes size, uint8_t index);
 
-	void add_int_register_to_register(op_sizes size, uint8_t target_index,
-		uint8_t lhs_index, uint8_t rhs_index);
+	void compare_int_register_to_constant(op_sizes sizes, uint8_t index, uint64_t value);
 
+	void branch_if_equal(uint64_t address);
+
+	void branch_if_not_equal(uint64_t address);
+
+	///  add target_register src1_register src2_register
+	///
+	void add_int_register_to_register(op_sizes size, uint8_t target_index, uint8_t lhs_index, uint8_t rhs_index);
+
+	///  div target_register src1_register src2_register
+	///
+	void divide_int_register_to_register(op_sizes size, uint8_t target_index,uint8_t lhs_index, uint8_t rhs_index);
+
+	///  mul target_register src1_register src2_register
+	///
+	void multiply_int_register_to_register(op_sizes size, uint8_t target_index, uint8_t lhs_index, uint8_t rhs_index);
+
+	///  sub target_register src1_register src2_register
+	///
+	void subtract_int_register_to_register(op_sizes size, uint8_t target_index, uint8_t lhs_index, uint8_t rhs_index);
+
+	void subtract_int_constant_from_register(op_sizes size, uint8_t target_index, uint8_t lhs_index, uint64_t rhs_value);
+
+	/// load target_register  source_register offset
+	/// load r0 sp #$8
 	void load_with_offset_to_register(uint8_t source_index, uint8_t target_index, uint64_t offset);
 
 	void move_int_constant_to_register(op_sizes size, uint64_t value, uint8_t index);
@@ -38,14 +63,8 @@ public:
 
 	void store_register_to_stack_offset(uint8_t source_index, uint64_t offset);
 
+	/// store
 	void store_with_offset_from_register(uint8_t source_index, uint8_t target_index, uint64_t offset);
-
-	void divide_int_register_to_register(op_sizes size, uint8_t target_index,uint8_t lhs_index, uint8_t rhs_index);
-
-	void multiply_int_register_to_register(op_sizes size, uint8_t target_index, uint8_t lhs_index, uint8_t rhs_index);
-
-	void subtract_int_register_to_register(op_sizes size, uint8_t target_index,
-		uint8_t lhs_index, uint8_t rhs_index);
 
 	void jump_direct(uint64_t address);
 
@@ -59,12 +78,14 @@ public:
 
 	void pop_int_register(op_sizes size, uint8_t index);
 
+	/// push
 	void push_int_register(op_sizes size, uint8_t index);
 
+	/// push
 	void push_int_constant( op_sizes size, uint64_t value);
 private:
-	std::vector<instruction_t> inst_{};
 	uint64_t start_address_ = 0;
+	std::vector<instruction_t> inst_{};
 };
 }
 #endif //BOOTSTRAP__INSTRUCTION_EMITTER_H_

@@ -14,11 +14,12 @@ namespace gfx {
 	class terp {
 	public:
 		explicit terp(size_t heap_size);
+
 		virtual ~terp();
 
 		void reset();
 
-		void dump_state();
+		void dump_state(uint8_t count =64);
 
 		bool initialize(result& r);
 
@@ -27,7 +28,7 @@ namespace gfx {
 		void push(uint64_t value);
 
 		bool step(result& r);
-		bool has_exited() const{return exited_;};
+		inline bool has_exited() const { return exited_;};
 
 		size_t encode_instruction(result& r, uint64_t address, instruction_t instruction);
 

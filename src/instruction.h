@@ -9,6 +9,22 @@
 namespace gfx {
 
 struct register_file_t {
+	enum flags_t : uint64_t {
+		zero     = 0b0000000000000000000000000000000000000000000000000000000000000001,
+		carry    = 0b0000000000000000000000000000000000000000000000000000000000000010,
+		overflow = 0b0000000000000000000000000000000000000000000000000000000000000100,
+	};
+
+	bool flags(flags_t f) const {
+		return (fr & f) != 0;
+	}
+
+	void flags(flags_t f, bool value) {
+		if (value)
+			fr |= f;
+		else
+			fr &= ~f;
+	}
 	uint64_t i[64];
 	double f[64];
 	uint64_t pc;
@@ -149,7 +165,7 @@ struct instruction_t {
 	}
 
 	void patch_branch_address(uint64_t address) {
-		operands[0].value.u64 = address;
+		operands[0].value.u64 = align(address, sizeof(uint64_t));
 	}
 
 	op_codes op = op_codes::nop;

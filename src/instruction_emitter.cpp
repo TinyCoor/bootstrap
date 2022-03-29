@@ -199,8 +199,8 @@ void instruction_emitter::load_with_offset_to_register(uint8_t source_index, uin
 
 bool instruction_emitter::encode(result &r, terp &terp) {
 	size_t offset = 0;
-	for (const auto& inst : inst_ ) {
-		auto inst_size = terp.encode_instruction(r, start_address_ + offset, inst);
+	for (auto& inst : inst_ ) {
+		auto inst_size = inst.encode(r, terp.heap(), start_address_ + offset);
 		if (inst_size == 0){
 			return false;
 		}

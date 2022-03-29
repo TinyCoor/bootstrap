@@ -41,7 +41,10 @@ void terp::reset() {
 }
 
 void terp::dump_state(uint8_t count) {
-	fmt::print("\n-------------------------------------------------------------\n");
+	fmt::print("-------------------------------------------------------------\n");
+	fmt::print("PC =${:08x} | SP =${:08x} | FR =${:08x} | SR =${:08x}\n",
+			   registers_.pc, registers_.sp, registers_.fr, registers_.sr);
+	fmt::print("-------------------------------------------------------------\n");
 	for (int index = 0; index < count ; ++index) {
 		fmt::print("I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x}\n",
 			index, registers_.i[index],
@@ -59,134 +62,12 @@ void terp::dump_state(uint8_t count) {
 				   index + 3, static_cast<uint64_t >(registers_.f[index + 3]));
 		index += 4;
 	}
-	fmt::print("-------------------------------------------------------------\n");
-	fmt::print("PC =${:08x} | SP =${:08x} | FR =${:08x} | SR =${:08x}\n\n",
-			   registers_.pc, registers_.sp, registers_.fr, registers_.sr);
-}
 
-size_t terp::encode_instruction(result& r, uint64_t address, instruction_t instruction)
-{
-	if (address % 8 != 0) {
-		r.add_message("B003", "Instruction must encoded on 8-byte boundaries.", true);
-		return 0;
-	}
-	uint8_t size = 5;
-
-	auto* op_ptr = word_ptr(address + 1);
-	*op_ptr = static_cast<uint16_t>(instruction.op);
-
-	auto encoding_ptr = byte_ptr(address);
-	*(encoding_ptr + 3) = static_cast<uint8_t>(instruction.size);
-	*(encoding_ptr + 4) = instruction.operands_count;
-
-	auto offset = 5u;
-	for (size_t i = 0u; i < instruction.operands_count ; ++i) {
-		*(encoding_ptr + offset) = static_cast<uint8_t>(instruction.operands[i].type);
-		++offset;
-		++size;
-
-		*(encoding_ptr + offset) = instruction.operands[i].index;
-		++offset;
-		++size;
-		switch (instruction.operands[i].type) {
-			case operand_types::register_sp:
-			case operand_types::register_pc:
-			case operand_types::register_flags:
-			case operand_types::register_status:
-			case operand_types::register_integer:
-			case operand_types::increment_register_pre:
-			case operand_types::decrement_register_pre:
-			case operand_types::register_floating_point:
-			case operand_types::increment_register_post:
-			case operand_types::decrement_register_post: break;
-			case operand_types::increment_constant_pre:
-			case operand_types::increment_constant_post:
-			case operand_types::decrement_constant_pre:
-			case operand_types::decrement_constant_post:
-			case operand_types::constant_integer: {
-				uint64_t *constant_value_ptr = reinterpret_cast<uint64_t *>(encoding_ptr + offset);
-				*constant_value_ptr = instruction.operands[i].value.u64;
-				offset += sizeof(uint64_t);
-				size += sizeof(uint64_t);
-				break;
-			}
-			case operand_types::constant_float: {
-				double *constant_value_ptr = reinterpret_cast<double *>(encoding_ptr + offset);
-				*constant_value_ptr = instruction.operands[i].value.d64;
-				offset += sizeof(double);
-				size += sizeof(double);
-				break;
-			}
-		}
-	}
-
-	if (size < 8)
-		size = 8;
-
-	size = static_cast<uint8_t>(align(size, sizeof(uint64_t)));
-	*encoding_ptr = size;
-
-	return size;
-}
-
-size_t terp::decode_instruction(result& r, uint64_t address, instruction_t &inst) {
-	if (address % 8 != 0) {
-		r.add_message("B003", "Instruction must encoded on 8-byte boundaries.", true);
-		return 0;
-	}
-
-	uint16_t *op_ptr = word_ptr(address + 1);
-	inst.op = static_cast<op_codes>(*op_ptr);
-
-	uint8_t* encoding_ptr = byte_ptr(address);
-	uint8_t size = *encoding_ptr;
-	inst.size = static_cast<op_sizes>(static_cast<uint8_t>(*(encoding_ptr + 3)));
-	inst.operands_count = static_cast<uint8_t>(*(encoding_ptr + 4));
-
-	size_t offset = 5u;
-	for (size_t i = 0u; i < inst.operands_count ; ++i) {
-		inst.operands[i].type = static_cast<operand_types>(*(encoding_ptr + offset));
-		++offset;
-
-		inst.operands[i].index = *(encoding_ptr + offset);
-		++offset;
-
-		switch (inst.operands[i].type) {
-			case operand_types::register_sp:
-			case operand_types::register_pc:
-			case operand_types::register_flags:
-			case operand_types::register_status:
-			case operand_types::register_integer:
-			case operand_types::increment_register_pre:
-			case operand_types::decrement_register_pre:
-			case operand_types::increment_register_post:
-			case operand_types::decrement_register_post:
-			case operand_types::register_floating_point: break;
-			case operand_types::increment_constant_pre:
-			case operand_types::decrement_constant_pre:
-			case operand_types::increment_constant_post:
-			case operand_types::decrement_constant_post:
-			case operand_types::constant_integer: {
-				uint64_t *constant_value_ptr = reinterpret_cast<uint64_t *>(encoding_ptr + offset);
-				inst.operands[i].value.u64 = *constant_value_ptr;
-				offset += sizeof(uint64_t);
-				break;
-			}
-			case operand_types::constant_float: {
-				double *constant_value_ptr = reinterpret_cast<double *>(encoding_ptr + offset);
-				inst.operands[i].value.d64 = *constant_value_ptr;
-				offset += sizeof(double);
-				break;
-			}
-		}
-	}
-
-	return size;
 }
 
 bool terp::step(result &r) {
 	instruction_t inst{};
-	auto size = decode_instruction(r, registers_.pc, inst);
+	auto size = inst.decode(r, heap_, registers_.pc);
 	if (size == 0) {
 		return false;
 	}
@@ -227,12 +108,12 @@ bool terp::step(result &r) {
 		}break;
 		case op_codes::inc: {
 			registers_.i[inst.operands[0].index]++;
-			break;
-		}
+
+		}break;
 		case op_codes::dec: {
 			registers_.i[inst.operands[0].index]--;
-			break;
-		}
+
+		}break;
 		case op_codes::copy:{
 
 		}break;
@@ -658,7 +539,7 @@ std::string terp::disassemble(result &r, uint64_t address) {
 	std::stringstream stream;
 	while (true) {
 		instruction_t inst;
-		auto inst_size = decode_instruction(r, address, inst);
+		auto inst_size = inst.decode(r, heap_, address);
 		if (inst_size == 0)
 			break;
 

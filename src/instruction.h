@@ -6,6 +6,7 @@
 #define BOOTSTRAP__INSTRUCTION_H_
 #include <cstdint>
 #include <string>
+#include "result.h"
 namespace gfx {
 
 struct register_file_t {
@@ -126,7 +127,6 @@ struct debug_information_t {
 	std::string source_file;
 };
 
-
 struct instruction_t {
 	size_t align(uint64_t value, size_t size) const {
 		auto offset = value % size;
@@ -166,6 +166,127 @@ struct instruction_t {
 
 	void patch_branch_address(uint64_t address) {
 		operands[0].value.u64 = align(address, sizeof(uint64_t));
+	}
+
+	size_t encode(result& r, uint8_t* heap, uint64_t address)
+	{
+		if (address % 8 != 0) {
+			r.add_message("B003", "Instruction must encoded on 8-byte boundaries.", true);
+			return 0;
+		}
+		uint8_t encoding_size = 5;
+
+		auto* op_ptr = reinterpret_cast<uint16_t*>(heap + address + 1);
+		*op_ptr = static_cast<uint16_t>(op);
+
+		auto encoding_ptr = heap + address;
+		*(encoding_ptr + 3) = static_cast<uint8_t>(size);
+		*(encoding_ptr + 4) = operands_count;
+
+		auto offset = 5u;
+		for (size_t i = 0u; i < operands_count ; ++i) {
+			*(encoding_ptr + offset) = static_cast<uint8_t>(operands[i].type);
+			++offset;
+			++encoding_size;
+
+			*(encoding_ptr + offset) = operands[i].index;
+			++offset;
+			++encoding_size;
+			switch (operands[i].type) {
+				case operand_types::register_sp:
+				case operand_types::register_pc:
+				case operand_types::register_flags:
+				case operand_types::register_status:
+				case operand_types::register_integer:
+				case operand_types::increment_register_pre:
+				case operand_types::decrement_register_pre:
+				case operand_types::register_floating_point:
+				case operand_types::increment_register_post:
+				case operand_types::decrement_register_post: break;
+				case operand_types::increment_constant_pre:
+				case operand_types::increment_constant_post:
+				case operand_types::decrement_constant_pre:
+				case operand_types::decrement_constant_post:
+				case operand_types::constant_integer: {
+					uint64_t *constant_value_ptr = reinterpret_cast<uint64_t *>(encoding_ptr + offset);
+					*constant_value_ptr = operands[i].value.u64;
+					offset += sizeof(uint64_t);
+					encoding_size += sizeof(uint64_t);
+					break;
+				}
+				case operand_types::constant_float: {
+					double *constant_value_ptr = reinterpret_cast<double *>(encoding_ptr + offset);
+					*constant_value_ptr = operands[i].value.d64;
+					offset += sizeof(double);
+					encoding_size += sizeof(double);
+					break;
+				}
+			}
+		}
+
+		if (encoding_size < 8)
+			encoding_size = 8;
+
+		encoding_size = static_cast<uint8_t>(align(encoding_size, sizeof(uint64_t)));
+		*encoding_ptr = encoding_size;
+
+		return encoding_size;
+	}
+
+	size_t decode(result& r, uint8_t* heap, uint64_t address) {
+		if (address % 8 != 0) {
+			r.add_message("B003", "Instruction must encoded on 8-byte boundaries.", true);
+			return 0;
+		}
+
+		uint16_t *op_ptr = reinterpret_cast<uint16_t*>(heap + address + 1);
+		op = static_cast<op_codes>(*op_ptr);
+
+		uint8_t* encoding_ptr = heap + address;
+		uint8_t encoding_size = *encoding_ptr;
+		size = static_cast<op_sizes>(static_cast<uint8_t>(*(encoding_ptr + 3)));
+		operands_count = static_cast<uint8_t>(*(encoding_ptr + 4));
+
+		size_t offset = 5u;
+		for (size_t i = 0u; i < operands_count ; ++i) {
+			operands[i].type = static_cast<operand_types>(*(encoding_ptr + offset));
+			++offset;
+
+			operands[i].index = *(encoding_ptr + offset);
+			++offset;
+
+			switch (operands[i].type) {
+				case operand_types::register_sp:
+				case operand_types::register_pc:
+				case operand_types::register_flags:
+				case operand_types::register_status:
+				case operand_types::register_integer:
+				case operand_types::increment_register_pre:
+				case operand_types::decrement_register_pre:
+				case operand_types::increment_register_post:
+				case operand_types::decrement_register_post:
+				case operand_types::register_floating_point:
+					break;
+				case operand_types::increment_constant_pre:
+				case operand_types::decrement_constant_pre:
+				case operand_types::increment_constant_post:
+				case operand_types::decrement_constant_post:
+				case operand_types::constant_integer: {
+					uint64_t *constant_value_ptr = reinterpret_cast<uint64_t *>(encoding_ptr + offset);
+					operands[i].value.u64 = *constant_value_ptr;
+					offset += sizeof(uint64_t);
+					break;
+				}
+				case operand_types::constant_float: {
+					double *constant_value_ptr = reinterpret_cast<double *>(encoding_ptr + offset);
+					operands[i].value.d64 = *constant_value_ptr;
+					offset += sizeof(double);
+					break;
+				}
+			}
+		}
+
+		return encoding_size;
 	}
 
 	op_codes op = op_codes::nop;

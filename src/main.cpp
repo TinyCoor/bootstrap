@@ -4,7 +4,7 @@
 #include <chrono>
 #include <functional>
 
-using test_function_callable = std::function<int(gfx::result&, gfx::terp&)>;
+using test_function_callable = std::function<bool(gfx::result&, gfx::terp&)>;
 
 void print_results(gfx::result& r) {
 	fmt::print("result message :{}\n", !r.is_failed());
@@ -16,7 +16,17 @@ void print_results(gfx::result& r) {
 	}
 }
 
-static int test_fibonacci(gfx::result& r, gfx::terp& terp) {
+static bool run_terp(gfx::result& r, gfx::terp& terp)
+{
+	while (!terp.has_exited()) {
+		if (!terp.step(r)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+static bool test_fibonacci(gfx::result& r, gfx::terp& terp) {
 	gfx::instruction_emitter bootstrap_emitter(0);
 	bootstrap_emitter.jump_direct(0);
 
@@ -59,19 +69,14 @@ static int test_fibonacci(gfx::result& r, gfx::terp& terp) {
 	bootstrap_emitter.encode(r, terp);
 	fn_fibonacci.encode(r, terp);
 	main_emitter.encode(r, terp);
-
-	fmt::print("Disassembly:\n{}\n", terp.disassemble(r, 0));
-	while (!terp.has_exited()) {
-		if (!terp.step(r)) {
-			print_results(r);
-			return 1;
-		}
+	auto result =run_terp(r, terp);
+	if (terp.register_file().i[0] != 1){
+		r.add_message("T001", "fn_fibonacci should end with 0 or 1.", true);
 	}
-//	terp.dump_state(4);
-	return 0;
+	return result;
 }
 
-static int test_square(gfx::result& r, gfx::terp& terp)
+static bool test_square(gfx::result& r, gfx::terp& terp)
 {
 	gfx::instruction_emitter bootstrap_emitter(0);
 	bootstrap_emitter.jump_direct(0);
@@ -95,25 +100,12 @@ static int test_square(gfx::result& r, gfx::terp& terp)
 	bootstrap_emitter.encode(r, terp);
 	fn_square_emitter.encode(r, terp);
 	main_emitter.encode(r, terp);
-
-	if (r.is_failed()) {
-		print_results(r);
-		return 1;
+	if(r.is_failed()){
+		return false;
 	}
-
-//	 terp.dump_heap(0);
-//	 fmt::print("Disassembly:\n{}\n", terp.disassemble(r, 0));
-
-	while (!terp.has_exited()) {
-		if (!terp.step(r)) {
-			print_results(r);
-			return 1;
-		}
-	}
-//	terp.dump_state();
-	return 0;
+	auto res = run_terp(r, terp);
+	return res;
 }
-
 
 static int time_test_function(gfx::result& r, gfx::terp& terp ,
 							  const std::string& title,
@@ -122,12 +114,16 @@ static int time_test_function(gfx::result& r, gfx::terp& terp ,
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
 	terp.reset();
-
 	auto rc = test_function(r, terp);
+
 
 	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	fmt::print("function: {} {}\n", title, !rc ? "SUCCESS" : "FAILED" );
+	fmt::print("function: {} {}\n", title, rc ? "SUCCESS" : "FAILED" );
+	if(!rc || r.is_failed()){
+		print_results(r);
+	}
+
 	fmt::print("execution time: {}\n\n",duration);
 
 	return rc;
@@ -146,7 +142,7 @@ int main() {
 
 	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	fmt::print("execution time (in us): {}\n\n", duration);
+	fmt::print("execution time (in us): {}\n", duration);
 
 	time_test_function(r, terp, "test_square" ,test_square);
 	time_test_function(r, terp, "test_fibonacci", test_fibonacci);

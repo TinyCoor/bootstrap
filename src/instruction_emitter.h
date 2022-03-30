@@ -31,6 +31,8 @@ public:
 
 	void compare_int_register_to_constant(op_sizes sizes, uint8_t index, uint64_t value);
 
+	void compare_int_register_to_register(op_sizes size, uint8_t lhs_index, uint8_t rhs_index);
+
 	void branch_if_equal(uint64_t address);
 
 	void branch_if_not_equal(uint64_t address);
@@ -41,7 +43,7 @@ public:
 
 	///  div target_register src1_register src2_register
 	///
-	void divide_int_register_to_register(op_sizes size, uint8_t target_index,uint8_t lhs_index, uint8_t rhs_index);
+	void divide_int_register_to_register(op_sizes size, uint8_t target_index, uint8_t lhs_index, uint8_t rhs_index);
 
 	///  mul target_register src1_register src2_register
 	///

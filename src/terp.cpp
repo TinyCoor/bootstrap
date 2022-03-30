@@ -10,9 +10,21 @@
 
 namespace gfx {
 
-terp::terp(size_t heap_size) : heap_size_(heap_size)
+static inline uint64_t rotl(uint64_t n, uint8_t c)
 {
+	const unsigned int mask = (CHAR_BIT *sizeof(n) -1);
+	c &= mask;
+	return (n << c) | (n >>( (-c) & mask) );
 }
+
+static inline uint64_t rotr(uint64_t n, uint8_t c)
+{
+	const unsigned int mask = (CHAR_BIT *sizeof(n) -1);
+	c &= mask;
+	return (n >> c) | (n << ( (-c) & mask) );
+}
+
+terp::terp(size_t heap_size) : heap_size_(heap_size) {}
 
 terp::~terp() {
 	if (heap_) {
@@ -98,6 +110,7 @@ bool terp::step(result &r) {
 			uint64_t address;
 			if (!get_operand_value(r, inst, 1, address))
 				return false;
+
 			if (inst.operands_count > 2) {
 				uint64_t offset;
 				if (!get_operand_value(r, inst, 2, offset))
@@ -108,17 +121,55 @@ bool terp::step(result &r) {
 		}break;
 		case op_codes::inc: {
 			registers_.i[inst.operands[0].index]++;
-
 		}break;
 		case op_codes::dec: {
 			registers_.i[inst.operands[0].index]--;
 
 		}break;
 		case op_codes::copy:{
+			uint64_t source_address, target_address;
+			if (!get_operand_value(r, inst, 0, source_address))
+				return false;
+			if (!get_operand_value(r, inst, 0, target_address))
+				return false;
+			uint64_t  length ;
+			if (!get_operand_value(r, inst, 2, length))
+				return false;
+			memcpy(heap_ + target_address, heap_ + source_address, length * op_size_in_bytes(inst.size));
 
 		}break;
 		case op_codes ::fill:{
+			uint64_t value;
+			if (!get_operand_value(r, inst, 0, value))
+				return false;
 
+			uint64_t address;
+			if (!get_operand_value(r, inst, 1, address))
+				return false;
+
+			uint64_t  length ;
+			if (!get_operand_value(r, inst, 2, length))
+				return false;
+
+			length *= op_size_in_bytes(inst.size);
+
+			switch (inst.size) {
+				case op_sizes::byte:
+					memset(heap_ + address, static_cast<uint8_t>(value), length);
+					break;
+				case op_sizes::word:
+					memset(heap_ + address, static_cast<uint16_t>(value), length);
+					break;
+				case op_sizes::dword:
+					memset(heap_ + address, static_cast<uint32_t>(value), length);
+					break;
+				case op_sizes::qword:length *= sizeof(uint64_t);
+					memset(heap_ + address, value, length);
+					break;
+				default:
+					//// error
+					break;
+			}
 		}break;
 
 		case op_codes::move: {
@@ -201,41 +252,112 @@ bool terp::step(result &r) {
 				return false;
 		}break;
 		case op_codes::neg:{
-
+			uint64_t value;
+			if (!get_operand_value(r, inst, 1, value))
+				return false;
+			int64_t negate_res = -static_cast<int64_t>(value);
+			if (!set_target_operand_value(r, inst, 0, static_cast<uint64_t>(negate_res)))
+				return false;
 		}break;
 		case op_codes::shl:{
-			break;
-		}
-		case op_codes::shr:{
-			break;
-		}
+			uint64_t lhs_value, rhs_value;
+			if (!get_operand_value(r, inst, 1, lhs_value))
+				return false;
+			if (!get_operand_value(r, inst, 2, rhs_value))
+				return false;
+			if (!set_target_operand_value(r, inst, 0, lhs_value << rhs_value))
+				return false;
+		}break;
+		case op_codes::shr: {
+			uint64_t lhs_value, rhs_value;
+			if (!get_operand_value(r, inst, 1, lhs_value))
+				return false;
+			if (!get_operand_value(r, inst, 2, rhs_value))
+				return false;
+			if (!set_target_operand_value(r, inst, 0, lhs_value >> rhs_value))
+				return false;
+		}break;
 		case op_codes::rol:{
-			break;
-		}
+			uint64_t lhs_value, rhs_value;
+			if (!get_operand_value(r, inst, 1, lhs_value))
+				return false;
+			if (!get_operand_value(r, inst, 2, rhs_value))
+				return false;
+			uint64_t left_rotate_value =rotl(lhs_value, static_cast<uint8_t>(rhs_value));
+			if (!set_target_operand_value(r, inst, 0, left_rotate_value))
+				return false;
+		}break;
 		case op_codes::ror:{
-			break;
-		}
+			uint64_t lhs_value, rhs_value;
+			if (!get_operand_value(r, inst, 1, lhs_value))
+				return false;
+			if (!get_operand_value(r, inst, 2, rhs_value))
+				return false;
+			uint64_t right_rotate_value = rotr(lhs_value, static_cast<uint8_t>(rhs_value));
+			if (!set_target_operand_value(r, inst, 0, right_rotate_value))
+				return false;
+		}break;
 		case op_codes::and_op:{
-			break;
-		}
+			uint64_t lhs_value, rhs_value;
+			if (!get_operand_value(r, inst, 1, lhs_value))
+				return false;
+			if (!get_operand_value(r, inst, 2, rhs_value))
+				return false;
+			if (!set_target_operand_value(r, inst, 0, lhs_value & rhs_value))
+				return false;
+		} break;
 		case op_codes::or_op:{
-			break;
-		}
-		case op_codes::xor_op:{
-			break;
-		}
+			uint64_t lhs_value, rhs_value;
+			if (!get_operand_value(r, inst, 1, lhs_value))
+				return false;
+			if (!get_operand_value(r, inst, 2, rhs_value))
+				return false;
+			if (!set_target_operand_value(r, inst, 0, lhs_value | rhs_value))
+				return false;
+		} break;
+		case op_codes::xor_op: {
+			uint64_t lhs_value, rhs_value;
+			if (!get_operand_value(r, inst, 1, lhs_value))
+				return false;
+			if (!get_operand_value(r, inst, 2, rhs_value))
+				return false;
+			if (!set_target_operand_value(r, inst, 0, lhs_value ^ rhs_value))
+				return false;
+		} break;
 		case op_codes::not_op:{
-			break;
-		}
+			uint64_t value;
+			if (!get_operand_value(r, inst, 1, value))
+				return false;
+			uint64_t not_res = ~value;
+			if (!set_target_operand_value(r, inst, 0, not_res))
+				return false;
+		}break;
 		case op_codes::bis:{
-			break;
-		}
+			uint64_t value, bit_number;
+			if (!get_operand_value(r, inst, 1, value))
+				return false;
+			if (!get_operand_value(r, inst, 2, bit_number))
+				return false;
+			if (!set_target_operand_value(r, inst, 0, value | (2^bit_number)))
+				return false;
+		}break;
 		case op_codes::bic:{
-			break;
-		}
+			uint64_t value, bit_number;
+			if (!get_operand_value(r, inst, 1, value))
+				return false;
+			if (!get_operand_value(r, inst, 2, bit_number))
+				return false;
+			if (!set_target_operand_value(r, inst, 0, value | ~(2 ^ bit_number)))
+				return false;
+		}break;
 		case op_codes::test:{
-			break;
-		}
+			uint64_t value, mask;
+			if (!get_operand_value(r, inst, 1, value))
+				return false;
+			if (!get_operand_value(r, inst, 2, mask))
+				return false;
+			registers_.flags(register_file_t::zero, (value & mask) != 0);
+		}break;
 		case op_codes::cmp: {
 			uint64_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 0, lhs_value))
@@ -315,10 +437,10 @@ bool terp::step(result &r) {
 				registers_.pc = address;
 			}
 		} break;
-		case op_codes::bae: {
+		case op_codes::bg: {
 			break;
 		}
-		case op_codes::ba: {
+		case op_codes::bge: {
 			break;
 		}
 		case op_codes::ble:{
@@ -327,16 +449,10 @@ bool terp::step(result &r) {
 		case op_codes::bl: {
 			break;
 		}
-		case op_codes::bo: {
-			break;
-		}
-		case op_codes::bcc: {
-			break;
-		}
-		case op_codes::bcs: {
 
-		}break;
 		case op_codes::jsr: {
+			registers_.flags(register_file_t::zero, false);
+
 			push(registers_.pc);
 			uint64_t address;
 			if (!get_operand_value(r, inst, 0, address))
@@ -348,6 +464,7 @@ bool terp::step(result &r) {
 			registers_.pc = address;
 		}break;
 		case op_codes::jmp: {
+			registers_.flags(register_file_t::zero, false);
 			uint64_t address;
 			if (!get_operand_value(r, inst, 0, address))
 				return false;
@@ -383,11 +500,6 @@ void terp::push(uint64_t value) {
 void terp::dump_heap(uint64_t offset, size_t size) {
 	auto pMemory = formatter::Hex((void*)(heap_ + offset), size);
 	fmt::print("{}\n",pMemory);
-}
-
-size_t terp::align(uint64_t addr, size_t size) {
-	auto offset = addr % size;
-	return offset ? addr + (size - offset) : addr;
 }
 
 bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t& value) const {
@@ -551,7 +663,7 @@ std::string terp::disassemble(result &r, uint64_t address) {
 
 		address += inst_size;
 	}
-	return stream.str();
+	return std::move(stream.str());
 }
 
 std::string terp::disassemble(const instruction_t &inst) const {
@@ -638,7 +750,7 @@ std::string terp::disassemble(const instruction_t &inst) const {
 	} else {
 		stream << "UNKNOWN";
 	}
-	return stream.str();
+	return std::move(stream.str());
 }
 
 }

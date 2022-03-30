@@ -9,10 +9,7 @@ using test_function_callable = std::function<bool(gfx::result&, gfx::terp&)>;
 void print_results(gfx::result& r) {
 	fmt::print("result message :{}\n", !r.is_failed());
 	for (const auto &msg : r.messages()) {
-		fmt::print("\t{} code: {} | message:{}\n",
-				   msg.is_error() ? "ERROR": "",
-				   msg.code(),
-				   msg.message());
+		fmt::print("\t|{}|{}{}\n", msg.code(), msg.is_error() ? "ERROR": "", msg.message());
 	}
 }
 
@@ -104,31 +101,34 @@ static bool test_square(gfx::result& r, gfx::terp& terp)
 		return false;
 	}
 	auto res = run_terp(r, terp);
+	if (terp.register_file().i[5] != 81) {
+		r.add_message("T001", "test_square register 5 should 81", true);
+	}
+	if (terp.register_file().i[6] != 25) {
+		r.add_message("T001", "test_square register 6 should 25", true);
+	}
 	return res;
 }
 
-static int time_test_function(gfx::result& r, gfx::terp& terp ,
-							  const std::string& title,
+static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string& title,
 							  const test_function_callable& test_function)
 {
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
 	terp.reset();
 	auto rc = test_function(r, terp);
-
-
+	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, 0));
 	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 	fmt::print("function: {} {}\n", title, rc ? "SUCCESS" : "FAILED" );
+
 	if(!rc || r.is_failed()){
 		print_results(r);
 	}
 
-	fmt::print("execution time: {}\n\n",duration);
+	fmt::print("execution time: {}\n",duration);
 
 	return rc;
 }
-
 
 int main() {
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();

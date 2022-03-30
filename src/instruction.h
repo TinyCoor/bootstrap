@@ -7,6 +7,10 @@
 #include <cstdint>
 #include <string>
 #include "result.h"
+
+const uint8_t INSTRUCTION_PRE_LENGTH  = 4;
+const uint8_t MAX_REGISTER  = 64;
+
 namespace gfx {
 
 struct register_file_t {
@@ -26,15 +30,15 @@ struct register_file_t {
 		else
 			fr &= ~f;
 	}
-	uint64_t i[64];
-	double f[64];
+	uint64_t i[MAX_REGISTER];
+	double f[MAX_REGISTER];
 	uint64_t pc;
 	uint64_t sp;
 	uint64_t fr;
 	uint64_t sr;
 };
 
-enum class op_codes : uint16_t {
+enum class op_codes : uint8_t {
 	nop = 1,
 	load,
 	store,
@@ -69,13 +73,10 @@ enum class op_codes : uint16_t {
 	tbnz,
 	bne,
 	beq,
-	bae,
-	ba,
-	ble,
+	bg,
+	bge,
 	bl,
-	bo,
-	bcc,
-	bcs,
+	ble,
 	jsr,
 	rts,
 	jmp,
@@ -127,6 +128,9 @@ struct debug_information_t {
 	std::string source_file;
 };
 
+/// todo separate instruction by operand count
+/// unary instruction
+/// binary instruction
 struct instruction_t {
 	size_t align(uint64_t value, size_t size) const {
 		auto offset = value % size;
@@ -134,7 +138,7 @@ struct instruction_t {
 	}
 
 	size_t encoding_size() const {
-		size_t size = 5;
+		size_t size = INSTRUCTION_PRE_LENGTH;
 
 		for (size_t i = 0; i < operands_count; i++) {
 			size += 2;
@@ -156,9 +160,6 @@ struct instruction_t {
 			}
 		}
 
-		if (size < 8)
-			size = 8;
-
 		size = static_cast<uint8_t>(align(size, sizeof(uint64_t)));
 
 		return size;
@@ -174,16 +175,14 @@ struct instruction_t {
 			r.add_message("B003", "Instruction must encoded on 8-byte boundaries.", true);
 			return 0;
 		}
-		uint8_t encoding_size = 5;
-
-		auto* op_ptr = reinterpret_cast<uint16_t*>(heap + address + 1);
-		*op_ptr = static_cast<uint16_t>(op);
+		uint8_t encoding_size = INSTRUCTION_PRE_LENGTH;
+		size_t offset = 4u;
 
 		auto encoding_ptr = heap + address;
-		*(encoding_ptr + 3) = static_cast<uint8_t>(size);
-		*(encoding_ptr + 4) = operands_count;
+		*(encoding_ptr + 1) = static_cast<uint8_t>(op);
+		*(encoding_ptr + 2) = static_cast<uint8_t>(size);
+		*(encoding_ptr + 3) = operands_count;
 
-		auto offset = 5u;
 		for (size_t i = 0u; i < operands_count ; ++i) {
 			*(encoding_ptr + offset) = static_cast<uint8_t>(operands[i].type);
 			++offset;
@@ -193,16 +192,6 @@ struct instruction_t {
 			++offset;
 			++encoding_size;
 			switch (operands[i].type) {
-				case operand_types::register_sp:
-				case operand_types::register_pc:
-				case operand_types::register_flags:
-				case operand_types::register_status:
-				case operand_types::register_integer:
-				case operand_types::increment_register_pre:
-				case operand_types::decrement_register_pre:
-				case operand_types::register_floating_point:
-				case operand_types::increment_register_post:
-				case operand_types::decrement_register_post: break;
 				case operand_types::increment_constant_pre:
 				case operand_types::increment_constant_post:
 				case operand_types::decrement_constant_pre:
@@ -221,11 +210,11 @@ struct instruction_t {
 					encoding_size += sizeof(double);
 					break;
 				}
+				default:{
+					break;
+				}
 			}
 		}
-
-		if (encoding_size < 8)
-			encoding_size = 8;
 
 		encoding_size = static_cast<uint8_t>(align(encoding_size, sizeof(uint64_t)));
 		*encoding_ptr = encoding_size;
@@ -239,15 +228,13 @@ struct instruction_t {
 			return 0;
 		}
 
-		uint16_t *op_ptr = reinterpret_cast<uint16_t*>(heap + address + 1);
-		op = static_cast<op_codes>(*op_ptr);
-
 		uint8_t* encoding_ptr = heap + address;
 		uint8_t encoding_size = *encoding_ptr;
-		size = static_cast<op_sizes>(static_cast<uint8_t>(*(encoding_ptr + 3)));
-		operands_count = static_cast<uint8_t>(*(encoding_ptr + 4));
+		op = static_cast<op_codes>(*(encoding_ptr +1));
+		size = static_cast<op_sizes>(static_cast<uint8_t>(*(encoding_ptr + 2)));
+		operands_count = static_cast<uint8_t>(*(encoding_ptr + 3));
 
-		size_t offset = 5u;
+		size_t offset = INSTRUCTION_PRE_LENGTH;
 		for (size_t i = 0u; i < operands_count ; ++i) {
 			operands[i].type = static_cast<operand_types>(*(encoding_ptr + offset));
 			++offset;
@@ -256,17 +243,6 @@ struct instruction_t {
 			++offset;
 
 			switch (operands[i].type) {
-				case operand_types::register_sp:
-				case operand_types::register_pc:
-				case operand_types::register_flags:
-				case operand_types::register_status:
-				case operand_types::register_integer:
-				case operand_types::increment_register_pre:
-				case operand_types::decrement_register_pre:
-				case operand_types::increment_register_post:
-				case operand_types::decrement_register_post:
-				case operand_types::register_floating_point:
-					break;
 				case operand_types::increment_constant_pre:
 				case operand_types::decrement_constant_pre:
 				case operand_types::increment_constant_post:
@@ -281,6 +257,9 @@ struct instruction_t {
 					double *constant_value_ptr = reinterpret_cast<double *>(encoding_ptr + offset);
 					operands[i].value.d64 = *constant_value_ptr;
 					offset += sizeof(double);
+					break;
+				}
+				default:{
 					break;
 				}
 			}

@@ -305,6 +305,18 @@ void instruction_emitter::compare_int_register_to_constant(op_sizes sizes, uint8
 	inst_.push_back(compare_op);
 }
 
+void instruction_emitter::compare_int_register_to_register(op_sizes size, uint8_t lhs_index, uint8_t rhs_index) {
+	instruction_t compare_op;
+	compare_op.op = op_codes::cmp;
+	compare_op.size = size;
+	compare_op.operands_count = 2;
+	compare_op.operands[0].type = operand_types::register_integer;
+	compare_op.operands[0].index = lhs_index;
+	compare_op.operands[1].type = operand_types::constant_integer;
+	compare_op.operands[1].index= rhs_index;
+	inst_.push_back(compare_op);
+}
+
 void instruction_emitter::branch_if_equal(uint64_t address) {
 	instruction_t branch_op;
 	branch_op.op = op_codes::beq;
@@ -324,5 +336,6 @@ void instruction_emitter::branch_if_not_equal(uint64_t address) {
 	branch_op.operands[0].value.u64 = address;
 	inst_.push_back(branch_op);
 }
+
 
 }

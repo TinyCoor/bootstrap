@@ -1,8 +1,12 @@
 #include "terp.h"
-#include "extern/fmt/include/fmt/format.h"
 #include "instruction_emitter.h"
+#include <fmt/format.h>
 #include <chrono>
 #include <functional>
+#include "alpha_compiler.h"
+
+static constexpr size_t heap_size = (1024 * 1024) * 32;
+
 
 using test_function_callable = std::function<bool(gfx::result&, gfx::terp&)>;
 
@@ -116,7 +120,7 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 	terp.reset();
 	auto rc = test_function(r, terp);
-	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, 0));
+	// fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, 0));
 	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 	fmt::print("function: {} {}\n", title, rc ? "SUCCESS" : "FAILED" );
@@ -125,12 +129,12 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 		print_results(r);
 	}
 
-	fmt::print("execution time: {}\n",duration);
+	fmt::print("execution time: {}\n\n",duration);
 
 	return rc;
 }
 
-int main() {
+static int terp_test() {
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 	gfx::terp terp((1024 * 1024) * 32);
 	gfx::result r;
@@ -142,9 +146,45 @@ int main() {
 
 	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	fmt::print("execution time (in us): {}\n", duration);
+	fmt::print("execution time (in us): {}\n\n", duration);
 
 	time_test_function(r, terp, "test_square" ,test_square);
 	time_test_function(r, terp, "test_fibonacci", test_fibonacci);
 	return 0;
+}
+
+static int compiler_tests() {
+	gfx::alpha_compiler compiler(heap_size);
+	gfx::result r;
+	if (!compiler.initialize(r)) {
+		print_results(r);
+		return 1;
+	}
+
+	std::string source(R"("// this is a test comment"
+					   "// fibonacci sequence in basecode-alpha"
+					   ""
+					   "foo := $ff * 2;"
+					   ""
+					   "fib := fn(n:u64):u64 {"
+					   "    if n == 0 || n == 1"
+					   "        n;"
+					   "    else\n"
+					   "        fib((n - 1) + fib(n - 2));"
+					   "}"
+					   ""
+					   "main := fn():u64 {"
+					   "    fib(100);"
+					   "}")");
+	if (!compiler.compile(r, gfx::parser_input_t(source))) {
+		print_results(r);
+		return 1;
+	}
+
+	return 0;
+}
+
+int main() {
+	return compiler_tests();
+	//return terp_tests();
 }

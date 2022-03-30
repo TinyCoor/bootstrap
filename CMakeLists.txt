@@ -68,6 +68,11 @@ add_executable(bootstrap src/main.cpp
         src/instruction_emitter.cpp
         src/instruction.h
         src/disassemble.cpp
+        src/parser.cpp
+        src/symbol_table.cpp
+        src/alpha_parser.cpp
+        src/alpha_compiler.cpp
+        src/evaluator.cpp
         src/terp.cpp)
 target_link_libraries(bootstrap PUBLIC
         fmt

@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/3/26.
 //
 
-#ifndef BOOTSTRAP__TERP_H_
-#define BOOTSTRAP__TERP_H_
+#ifndef TERP_H_
+#define TERP_H_
 #include <cstdint>
 #include <string>
 #include "result.h"
@@ -21,9 +21,15 @@ namespace gfx {
 
 		bool initialize(result& r);
 
-		const register_file_t& register_file() const{return registers_;}
+		const register_file_t& register_file() const
+		{
+			return registers_;
+		}
 
-		uint8_t* heap() const { return heap_;}
+		uint8_t* heap() const
+		{
+			return heap_;
+		}
 
 		uint64_t pop();
 
@@ -31,7 +37,10 @@ namespace gfx {
 
 		bool step(result& r);
 
-		inline bool has_exited() const { return exited_;};
+		inline bool has_exited() const
+		{
+			return exited_;
+		}
 
 		void dump_heap(uint64_t offset, size_t size = 256);
 
@@ -50,7 +59,8 @@ namespace gfx {
 
 		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, double& value) const;
 
-		inline  uint8_t  op_size_in_bytes(op_sizes size) const{
+		inline uint8_t op_size_in_bytes(op_sizes size) const
+		{
 			switch (size) {
 				case op_sizes::none:  return 0;
 				case op_sizes::byte:  return 1;
@@ -63,7 +73,10 @@ namespace gfx {
 		}
 
 	private:
-		inline uint64_t* qword_ptr(uint64_t address) const { return reinterpret_cast<uint64_t*>(heap_ + address);}
+		inline uint64_t* qword_ptr(uint64_t address) const
+		{
+			return reinterpret_cast<uint64_t*>(heap_ + address);
+		}
 	private:
 		inline static std::map<op_codes, std::string> s_op_code_names = {
 			{op_codes::nop,    "NOP"},  {op_codes::load,   "LOAD"}, {op_codes::store,  "STORE"},
@@ -89,4 +102,4 @@ namespace gfx {
 	};
 }
 
-#endif //BOOTSTRAP__TERP_H_
+#endif // TERP_H_

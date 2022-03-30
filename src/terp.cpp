@@ -4,7 +4,7 @@
 
 #include "terp.h"
 #include "formatter.h"
-#include "extern/fmt/include/fmt/format.h"
+#include <fmt/format.h>
 #include <sstream>
 #include <iomanip>
 
@@ -338,7 +338,8 @@ bool terp::step(result &r) {
 				return false;
 			if (!get_operand_value(r, inst, 2, bit_number))
 				return false;
-			if (!set_target_operand_value(r, inst, 0, value | (2^bit_number)))
+			uint64_t masked_value =static_cast<uint64_t > (1 << bit_number);
+			if (!set_target_operand_value(r, inst, 0, value | masked_value))
 				return false;
 		}break;
 		case op_codes::bic:{
@@ -347,7 +348,8 @@ bool terp::step(result &r) {
 				return false;
 			if (!get_operand_value(r, inst, 2, bit_number))
 				return false;
-			if (!set_target_operand_value(r, inst, 0, value | ~(2 ^ bit_number)))
+			uint64_t masked_value = static_cast<uint64_t>(~(1 << bit_number));
+			if (!set_target_operand_value(r, inst, 0, value & masked_value))
 				return false;
 		}break;
 		case op_codes::test:{
@@ -438,6 +440,7 @@ bool terp::step(result &r) {
 			}
 		} break;
 		case op_codes::bg: {
+
 			break;
 		}
 		case op_codes::bge: {

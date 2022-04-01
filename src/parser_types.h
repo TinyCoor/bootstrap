@@ -152,6 +152,7 @@ struct radix_numeric_literal_t {
 		inconvertible
 	};
 
+	/// todo use c++ parse it
 	conversion_result parse(uint32_t &out) const {
 		const char *s = value.c_str();
 		char *end;

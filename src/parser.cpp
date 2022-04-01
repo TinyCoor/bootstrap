@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <regex>
 namespace gfx{
-operator_dict parser::_operators = {
+operator_dict parser::operators_ = {
 	{
 		"~",
 		{
@@ -285,105 +285,108 @@ operator_dict parser::_operators = {
 	},
 };
 
-void parser::error(
-	const std::string& code,
-	const std::string& message) {
+void parser::error(const std::string& code,const std::string& message)
+{
 	std::stringstream stream;
 	stream << "\n";
-	auto start_line = std::max<int32_t>(0, static_cast<int32_t>(_line) - 4);
-	auto stop_line = std::min<int32_t>(
-		static_cast<int32_t>(_input.source_lines.size()),
-		_line + 4);
-	for (int32_t i = start_line; i < stop_line; i++) {
-		if (i == static_cast<int32_t>(_line - 1)) {
+	auto startline_ = std::max<int32_t>(0, static_cast<int32_t>(line_) - 4);
+	auto stopline_ = std::min<int32_t>(
+		static_cast<int32_t>(input_.source_lines.size()), line_ + 4);
+	for (int32_t i = startline_; i < stopline_; i++) {
+		if (i == static_cast<int32_t>(line_ - 1)) {
 			stream << fmt::format("{:04d}: ", i + 1)
-				   << _input.source_lines[i] << "\n"
-				   << std::setw(_column + 8)
+				   << input_.source_lines[i] << "\n"
+				   << std::setw(column_ + 8)
 				   << "^ " << message;
 		} else {
 			stream << fmt::format("{:04d}: ", i + 1)
-				   << _input.source_lines[i];
+				   << input_.source_lines[i];
 		}
 
-		if (i < static_cast<int32_t>(stop_line - 1))
+		if (i < static_cast<int32_t>(stopline_ - 1))
 			stream << "\n";
 	}
 
-	_result.add_message(code, stream.str(), true);
+	result_.add_message(code, stream.str(), true);
 }
 
 char* parser::set_token() {
-	if (_index > _input.length() - 1) {
-		_token = nullptr;
+	if (index_ > input_.length() - 1) {
+		token_ = nullptr;
 	} else {
-		_column++;
-		_token = &_input.source[_index];
+		column_++;
+		token_ = &input_.source[index_];
 	}
-	return _token;
+	return token_;
 }
 
 bool parser::has_operand() {
-	return !_operand_stack.empty();
+	return !operand_stack_.empty();
 }
 
 bool parser::has_operator() {
-	return !_operator_stack.empty();
+	return !operator_stack_.empty();
 }
 
 void parser::clear_stacks() {
-	_operator_stack.clear();
+	operator_stack_.clear();
 
-	while (!_position_stack.empty())
-		_position_stack.pop();
+	while (!position_stack_.empty()){
+		position_stack_.pop();
+	}
 
-	while (!_operand_stack.empty())
-		_operand_stack.pop();
+	while (!operand_stack_.empty()){
+		operand_stack_.pop();
+	}
+
 }
 
 void parser::pop_position() {
-	if (_position_stack.empty())
+	if (position_stack_.empty()){
 		return;
+	}
 
-	auto pos = _position_stack.top();
-	_line = pos.line;
-	_index = pos.index;
-	_column = pos.column;
-	if (_index < _input.length())
-		_token = &_input.source[_index];
-	else
-		_token = nullptr;
-	_position_stack.pop();
+	auto pos = position_stack_.top();
+	line_ = pos.line;
+	index_ = pos.index;
+	column_ = pos.column;
+	if (index_ < input_.length()){
+		token_ = &input_.source[index_];
+	} else {
+		token_ = nullptr;
+	}
+
+	position_stack_.pop();
 }
 
-void parser::push_position() {
-	_position_stack.push(scanner_pos_t {
-		_line,
-		static_cast<uint32_t>(std::min(_index, _input.length())),
-		_column});
+void parser::push_position()
+{
+	position_stack_.push(scanner_pos_t {line_, static_cast<uint32_t>(std::min(index_, input_.length())), column_});
 }
 
-void parser::increment_line() {
-	_column = 1;
-	_line++;
+void parser::increment_line()
+{
+	column_ = 1;
+	line_++;
 }
 
-char* parser::current_token() {
-	if (_token == nullptr) {
+char* parser::current_token()
+{
+	if (token_ == nullptr) {
 		set_token();
-		if (_token == nullptr)
+		if (token_ == nullptr)
 			move_to_next_token();
 	}
-	return _token;
+	return token_;
 }
 
-void parser::register_operator(
-	const std::string& key,
-	const operator_t& op) {
-	_operators.insert(std::make_pair(key, op));
+void parser::register_operator(const std::string& key, const operator_t& op)
+{
+	operators_.insert(std::make_pair(key, op));
 }
 
 char* parser::move_to_next_token() {
-	_index++;
+	index_++;
 	return set_token();
 }
 
@@ -399,10 +402,10 @@ void parser::consume_white_space() {
 }
 
 size_t parser::forget_top_position() {
-	if (_position_stack.empty())
-		return _index;
-	auto pos = _position_stack.top();
-	_position_stack.pop();
+	if (position_stack_.empty())
+		return index_;
+	auto pos = position_stack_.top();
+	position_stack_.pop();
 	return pos.index;
 }
 
@@ -415,15 +418,15 @@ void parser::consume_tokens(int count) {
 }
 
 ast_node_shared_ptr parser::pop_operand() {
-	if (_operand_stack.empty())
+	if (operand_stack_.empty())
 		return nullptr;
-	auto top = _operand_stack.top();
-	_operand_stack.pop();
+	auto top = operand_stack_.top();
+	operand_stack_.pop();
 	return top;
 }
 
 const result& parser::result() const {
-	return _result;
+	return result_;
 }
 
 ast_node_shared_ptr parser::parse_number() {
@@ -511,27 +514,27 @@ ast_node_shared_ptr parser::parse_number() {
 }
 
 void parser::reset(const parser_input_t& input) {
-	_line = 1;
-	_index = 0;
-	_column = 1;
-	_result = {};
-	_input = input;
-	_token = nullptr;
+	line_ = 1;
+	index_ = 0;
+	column_ = 1;
+	result_ = {};
+	input_ = input;
+	token_ = nullptr;
 	clear_stacks();
 }
 
 operator_t* parser::pop_operator() {
-	if (_operator_stack.empty())
+	if (operator_stack_.empty())
 		return nullptr;
-	auto top = _operator_stack.front();
-	_operator_stack.erase(_operator_stack.begin());
+	auto top = operator_stack_.front();
+	operator_stack_.erase(operator_stack_.begin());
 	return top;
 }
 
 operator_t* parser::peek_operator() {
-	if (_operator_stack.empty())
+	if (operator_stack_.empty())
 		return nullptr;
-	return _operator_stack.front();
+	return operator_stack_.front();
 }
 
 operator_t* parser::parse_operator() {
@@ -542,7 +545,7 @@ operator_t* parser::parse_operator() {
 	push_position();
 
 	std::vector<operator_t*> candidates;
-	for (auto it = _operators.begin(); it != _operators.end(); ++it)
+	for (auto it = operators_.begin(); it != operators_.end(); ++it)
 		candidates.push_back(&it->second);
 
 	size_t index = 0;
@@ -576,7 +579,7 @@ operator_t* parser::parse_operator() {
 	}
 
 	if (!candidates.empty()
-		&&   candidates.size() < _operators.size()) {
+		&&   candidates.size() < operators_.size()) {
 		auto top_op = peek_operator();
 		auto top_operand = peek_operand();
 		auto top_is_binary_op = top_op != nullptr && (top_op->type & operator_t::op_type::binary) != 0;
@@ -584,9 +587,9 @@ operator_t* parser::parse_operator() {
 		for (auto candidate : candidates) {
 			if (candidate->symbol == "-") {
 				if (top_operand == nullptr || top_is_binary_op)
-					op = &_operators["`"];
+					op = &operators_["`"];
 				else
-					op = &_operators["-"];
+					op = &operators_["-"];
 				break;
 			}
 		}
@@ -601,10 +604,10 @@ operator_t* parser::parse_operator() {
 }
 
 ast_node_shared_ptr parser::peek_operand() {
-	if (_operand_stack.empty())
+	if (operand_stack_.empty())
 		return nullptr;
 
-	return _operand_stack.top();
+	return operand_stack_.top();
 }
 
 ast_node_shared_ptr parser::parse_comment() {
@@ -682,7 +685,7 @@ ast_node_shared_ptr parser::parse_identifier() {
 }
 
 void parser::push_operator(operator_t* op) {
-	_operator_stack.insert(_operator_stack.begin(), op);
+	operator_stack_.insert(operator_stack_.begin(), op);
 }
 
 ast_node_shared_ptr parser::parse_expression() {
@@ -698,7 +701,7 @@ ast_node_shared_ptr parser::parse_expression() {
 		push_position();
 
 		auto op = parse_operator();
-		if (_result.is_failed())
+		if (result_.is_failed())
 			return nullptr;
 
 		if (op != nullptr) {
@@ -726,7 +729,7 @@ ast_node_shared_ptr parser::parse_expression() {
 			} else if (op->symbol == ")") {
 				while (has_operator()) {
 					op = pop_operator();
-					if (op == &_operators["("]) {
+					if (op == &operators_["("]) {
 						auto subexpression = create_ast_node(ast_node_t::tokens::expression);
 						subexpression->children.push_back(pop_operand());
 						push_operand(subexpression);
@@ -768,9 +771,9 @@ ast_node_shared_ptr parser::parse_expression() {
 				break;
 			}
 			if (top != nullptr) {
-				if (((top->type & operator_t::op_type::unary) != 0 && _operand_stack.size() >= 1)
-					||  ((top->type & operator_t::op_type::binary) != 0 && _operand_stack.size() >= 2)) {
-					if (!operator_stack_has(&_operators["("]))
+				if (((top->type & operator_t::op_type::unary) != 0 && operand_stack_.size() >= 1)
+					||  ((top->type & operator_t::op_type::binary) != 0 && operand_stack_.size() >= 2)) {
+					if (!operator_stack_has(&operators_["("]))
 						break;
 				}
 			}
@@ -785,16 +788,16 @@ ast_node_shared_ptr parser::parse_expression() {
 		}
 
 		auto start_pos = forget_top_position();
-		if (start_pos == _index)
+		if (start_pos == index_)
 			return nullptr;
 	}
 
 	while (has_operator()) {
 		auto op = pop_operator();
 
-		if (op == &_operators["("]) {
+		if (op == &operators_["("]) {
 			error("P008", "unbalanced left parentheses");
-		} else if (op == &_operators[")"]) {
+		} else if (op == &operators_[")"]) {
 			error("P008", "unbalanced right parentheses");
 		}
 
@@ -935,10 +938,7 @@ ast_node_shared_ptr parser::parse_assignment() {
 }
 
 bool parser::operator_stack_has(operator_t* op) {
-	return std::find(
-		_operator_stack.begin(),
-		_operator_stack.end(),
-		op) != _operator_stack.end();
+	return std::find(operator_stack_.begin(), operator_stack_.end(), op) != operator_stack_.end();
 }
 
 ast_node_shared_ptr parser::parse_semicolon_literal() {
@@ -1015,14 +1015,14 @@ void parser::symbol_table(class symbol_table* value) {
 }
 
 void parser::push_operand(const ast_node_shared_ptr& node) {
-	_operand_stack.push(node);
+	operand_stack_.push(node);
 }
 
 ast_node_shared_ptr parser::create_ast_node(ast_node_t::tokens type) {
 	auto node = std::make_shared<ast_node_t>();
 	node->token = type;
-	node->line = _line;
-	node->column = _column;
+	node->line = line_;
+	node->column = column_;
 	return node;
 }
 

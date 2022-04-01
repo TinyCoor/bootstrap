@@ -41,7 +41,7 @@ bool terp::initialize(result& r) {
 }
 
 void terp::reset() {
-	registers_.pc = 0;
+	registers_.pc = program_start;
 	registers_.fr = 0;
 	registers_.sr = 0;
 	registers_.sp = heap_size_;
@@ -77,6 +77,7 @@ void terp::dump_state(uint8_t count) {
 
 }
 
+/// todo move to a function table
 bool terp::step(result &r) {
 	instruction_t inst{};
 	auto size = inst.decode(r, heap_, registers_.pc);
@@ -193,6 +194,10 @@ bool terp::step(result &r) {
 			if (!set_target_operand_value(r, inst, 0, value)){
 				return false;
 			}
+		}break;
+		case op_codes::dup: {
+			push(peek());
+
 		}break;
 		case op_codes::add:{
 			uint64_t lhs, rhs;
@@ -372,7 +377,6 @@ bool terp::step(result &r) {
 
 		}break;
 		case op_codes::bz:{
-			registers_.flags(register_file_t::zero, false);
 			uint64_t value, address;
 			if (!get_operand_value(r, inst, 0, value))
 				return false;
@@ -384,7 +388,6 @@ bool terp::step(result &r) {
 
 		}break;
 		case op_codes::bnz: {
-			registers_.flags(register_file_t::zero, false);
 			uint64_t value, address;
 			if (!get_operand_value(r, inst, 0, value))
 				return false;
@@ -395,7 +398,6 @@ bool terp::step(result &r) {
 			}
 		}break;
 		case op_codes::tbz: {
-			registers_.flags(register_file_t::zero, false);
 			uint64_t value, mask, address;
 			if (!get_operand_value(r, inst, 0, value))
 				return false;
@@ -409,7 +411,6 @@ bool terp::step(result &r) {
 
 		} break;
 		case op_codes::tbnz: {
-			registers_.flags(register_file_t::zero, false);
 			uint64_t value, mask, address;
 			if (!get_operand_value(r, inst, 0, value))
 				return false;
@@ -454,8 +455,6 @@ bool terp::step(result &r) {
 		}
 
 		case op_codes::jsr: {
-			registers_.flags(register_file_t::zero, false);
-
 			push(registers_.pc);
 			uint64_t address;
 			if (!get_operand_value(r, inst, 0, address))
@@ -467,18 +466,37 @@ bool terp::step(result &r) {
 			registers_.pc = address;
 		}break;
 		case op_codes::jmp: {
-			registers_.flags(register_file_t::zero, false);
 			uint64_t address;
 			if (!get_operand_value(r, inst, 0, address))
 				return false;
 			registers_.pc = address;
 		}break;
+		case op_codes::swi:{
+			uint64_t index;
+			if (!get_operand_value(r, inst, 0, index))
+				return false;
+			size_t swi_offset = sizeof(uint64_t) * index;
+			uint64_t swi_address = *qword_ptr(swi_offset);
+			if (swi_address != 0) {
+				/// TODO 恢复现场
+				push(registers_.pc);
+				registers_.pc = swi_address;
+			}
+		}break;
+		case op_codes::trap:{
+			uint64_t index;
+			if (!get_operand_value(r, inst, 0, index))
+				return false;
+			auto it = traps_.find(static_cast<uint8_t>(index));
+			if (it== traps_.end()){
+				break;
+			}
+			it->second(this);
+		}break;
 		case op_codes::meta: {
 
 		}break;
-		case op_codes::debug: {
 
-		}break;
 		case op_codes::exit: {
 			exited_ = true;
 			break;
@@ -531,25 +549,6 @@ bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t opera
 		case operand_types::constant_float: {value = static_cast<uint64_t>(inst.operands[operand_index].value.d64);break;}
 	}
 
-	// XXX: need to implement zero extend
-	switch (inst.size) {
-		case op_sizes::byte:
-			break;
-		case op_sizes::word:
-			break;
-		case op_sizes::dword:
-			break;
-		case op_sizes::qword:
-			break;
-		default: {
-			r.add_message(
-				"B005",
-				"unsupported size of 'none' for operand.",
-				true);
-			return false;
-		}
-	}
-
 	return true;
 }
 
@@ -595,23 +594,33 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 		case operand_types::decrement_register_post:
 		case operand_types::register_integer: {
 			registers_.i[inst.operands[operand_index].index] = value;
+			registers_.flags(register_file_t::flags_t::zero, value == 0);
 			return true;
 		}
-		case operand_types::register_floating_point: {registers_.f[inst.operands[operand_index].index] = value;break;}
-		case operand_types::register_sp: {registers_.sp = value;break;}
-		case operand_types::register_pc: {registers_.pc = value;break;}
-		case operand_types::register_flags: {registers_.fr = value;break;}
-		case operand_types::register_status: {registers_.sr = value;break;}
+		case operand_types::register_floating_point: {
+			registers_.f[inst.operands[operand_index].index] = value;
+			registers_.flags(register_file_t::flags_t::zero, value == 0);
+			break;
+		}
+		case operand_types::register_sp: {
+			registers_.sp = value;break;
+		}
+		case operand_types::register_pc: {
+			registers_.pc = value;break;
+		}
+		case operand_types::register_flags: {
+			registers_.fr = value;break;
+		}
+		case operand_types::register_status: {
+			registers_.sr = value;break;
+		}
 		case operand_types::constant_float:
 		case operand_types::constant_integer:
 		case operand_types::increment_constant_pre:
 		case operand_types::decrement_constant_pre:
 		case operand_types::increment_constant_post:
 		case operand_types::decrement_constant_post: {
-			r.add_message(
-				"B006",
-				"constant cannot be a target operand type.",
-				true);
+			r.add_message( "B006","constant cannot be a target operand type.", true);
 			break;
 		}
 	}
@@ -625,24 +634,36 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 		case operand_types::increment_register_post:
 		case operand_types::decrement_register_post:
 		case operand_types::register_integer: {
-			registers_.i[inst.operands[operand_index].index] = value;
-			return true;
+			uint64_t integer_value = static_cast<uint64_t>(value);
+			registers_.i[inst.operands[operand_index].index] = integer_value;
+			registers_.flags(register_file_t::flags_t::zero, integer_value == 0);
+			break;
 		}
-		case operand_types::register_floating_point: {registers_.f[inst.operands[operand_index].index] = value;break;}
-		case operand_types::register_sp: { registers_.sp = value;break;}
-		case operand_types::register_pc: { registers_.pc = value;break;}
-		case operand_types::register_flags: { registers_.fr = value;break;}
-		case operand_types::register_status: { registers_.sr = value;break;}
+		case operand_types::register_floating_point: {
+			registers_.f[inst.operands[operand_index].index] = value;
+			break;
+		}
+		case operand_types::register_sp: {
+			registers_.sp = value;
+			break;
+		}
+		case operand_types::register_pc: {
+			registers_.pc = value;
+			break;
+		}
+		case operand_types::register_flags: {
+			registers_.fr = value;break;
+		}
+		case operand_types::register_status: {
+			registers_.sr = value;break;
+		}
 		case operand_types::constant_float:
 		case operand_types::constant_integer:
 		case operand_types::increment_constant_pre:
 		case operand_types::decrement_constant_pre:
 		case operand_types::increment_constant_post:
 		case operand_types::decrement_constant_post: {
-			r.add_message(
-				"B006",
-				"constant cannot be a target operand type.",
-				true);
+			r.add_message("B006", "constant cannot be a target operand type.", true);
 			break;
 		}
 	}
@@ -754,6 +775,26 @@ std::string terp::disassemble(const instruction_t &inst) const {
 		stream << "UNKNOWN";
 	}
 	return std::move(stream.str());
+}
+
+void terp::register_trap(uint8_t index, const terp::trap_callable &callable)
+{
+	traps_.insert(std::make_pair(index, callable));
+}
+
+void terp::remove_trap(uint8_t index) {
+	traps_.erase(index);
+}
+
+uint64_t terp::peek() const
+{
+	uint64_t value = *qword_ptr(registers_.sp);
+	return value;
+}
+
+void terp::swi(uint8_t index, uint64_t address) {
+	size_t swi_address = sizeof(uint64_t) * index;
+	*qword_ptr(swi_address) = address;
 }
 
 }

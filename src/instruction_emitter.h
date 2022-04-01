@@ -12,14 +12,29 @@ class instruction_emitter {
 public:
 	explicit instruction_emitter(uint64_t address): start_address_(address) {}
 	size_t size() const;
-	uint64_t end_address() const { return start_address_ + size();};
-	uint64_t start_address() const { return start_address_; }
-	inline instruction_t& operator[](size_t index) { return inst_[index];};
+	uint64_t end_address() const
+	{
+		return start_address_ + size();
+	}
+
+	uint64_t start_address() const
+	{
+		return start_address_;
+	}
+
+	inline instruction_t& operator[](size_t index)
+	{
+		return inst_[index];
+	};
 	bool encode(result& r, terp& terp);
 
 	void rts();
 
+	void dup();
+
 	void nop();
+
+	void trap(uint8_t index);
 
 	void exit();
 
@@ -57,16 +72,16 @@ public:
 
 	/// load target_register  source_register offset
 	/// load r0 sp #$8
-	void load_with_offset_to_register(uint8_t source_index, uint8_t target_index, uint64_t offset);
+	void load_with_offset_to_register(op_sizes size ,uint8_t source_index, uint8_t target_index, uint64_t offset);
 
 	void move_int_constant_to_register(op_sizes size, uint64_t value, uint8_t index);
 
-	void load_stack_offset_to_register(uint8_t target_index, uint64_t offset);
+	void load_stack_offset_to_register(op_sizes size, uint8_t target_index, uint64_t offset);
 
-	void store_register_to_stack_offset(uint8_t source_index, uint64_t offset);
+	void store_register_to_stack_offset(op_sizes size, uint8_t source_index, uint64_t offset);
 
 	/// store
-	void store_with_offset_from_register(uint8_t source_index, uint8_t target_index, uint64_t offset);
+	void store_with_offset_from_register(op_sizes size, uint8_t source_index, uint8_t target_index, uint64_t offset);
 
 	void jump_direct(uint64_t address);
 

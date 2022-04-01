@@ -41,6 +41,6 @@ namespace gfx {
 		alpha_parser parser_ {};
 		class symbol_table symbol_table_ {};
 	};
-};
+}
 
 #endif // ALPHA_COMPILER_H_

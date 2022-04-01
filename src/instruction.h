@@ -43,10 +43,11 @@ enum class op_codes : uint8_t {
 	load,
 	store,
 	move,
-	push,
 	copy,
 	fill,
+	push,
 	pop,
+	dup,
 	add,
 	sub,
 	inc,
@@ -80,8 +81,9 @@ enum class op_codes : uint8_t {
 	jsr,
 	rts,
 	jmp,
+	swi,
+	trap,
 	meta,
-	debug,
 	exit,
 };
 
@@ -132,12 +134,14 @@ struct debug_information_t {
 /// unary instruction
 /// binary instruction
 struct instruction_t {
-	size_t align(uint64_t value, size_t size) const {
+	size_t align(uint64_t value, size_t size) const
+	{
 		auto offset = value % size;
 		return offset ? value + (size - offset) : value;
 	}
 
-	size_t encoding_size() const {
+	size_t encoding_size() const
+	{
 		size_t size = INSTRUCTION_PRE_LENGTH;
 
 		for (size_t i = 0; i < operands_count; i++) {
@@ -165,7 +169,8 @@ struct instruction_t {
 		return size;
 	}
 
-	void patch_branch_address(uint64_t address) {
+	void patch_branch_address(uint64_t address)
+	{
 		operands[0].value.u64 = align(address, sizeof(uint64_t));
 	}
 
@@ -222,7 +227,8 @@ struct instruction_t {
 		return encoding_size;
 	}
 
-	size_t decode(result& r, uint8_t* heap, uint64_t address) {
+	size_t decode(result& r, uint8_t* heap, uint64_t address)
+	{
 		if (address % 8 != 0) {
 			r.add_message("B003", "Instruction must encoded on 8-byte boundaries.", true);
 			return 0;

@@ -9,17 +9,12 @@ namespace gfx{
 evaluator::evaluator(alpha_compiler* compiler) : compiler_(compiler) {
 }
 
-void evaluator::error(
-	result& result,
-	const std::string& code,
-	const std::string& message) {
+void evaluator::error(result& result, const std::string& code, const std::string& message) {
 	result.add_message(code, message, true);
 	result.fail();
 }
 
-bool evaluator::transform_program(
-	result& result,
-	const ast_node_shared_ptr& node) {
+bool evaluator::transform_program(result& result, const ast_node_shared_ptr& node) {
 	if (node == nullptr)
 		return false;
 
@@ -62,9 +57,8 @@ bool evaluator::transform_program(
 	return !result.is_failed();
 }
 
-bool evaluator::evaluate_program(
-	result& result,
-	const ast_node_shared_ptr& program_node) {
+bool evaluator::evaluate_program(result& result, const ast_node_shared_ptr& program_node)
+{
 	if (compiler_ == nullptr) {
 		return false;
 	}
@@ -83,9 +77,8 @@ bool evaluator::evaluate_program(
 	return !result.is_failed();
 }
 
-variant_t evaluator::evaluate(
-	result& result,
-	const ast_node_shared_ptr& node) {
+variant_t evaluator::evaluate(result& result, const ast_node_shared_ptr& node)
+{
 	if (node == nullptr)
 		return {};
 
@@ -330,9 +323,7 @@ variant_t evaluator::evaluate(
 	return {};
 }
 
-bool evaluator::transform_identifier_node(
-	result& result,
-	const ast_node_shared_ptr& node) {
+bool evaluator::transform_identifier_node(result& result, const ast_node_shared_ptr& node) {
 	if (node == nullptr)
 		return false;
 
@@ -346,9 +337,7 @@ bool evaluator::transform_identifier_node(
 			break;
 		default:
 			error(
-				result,
-				"E004",
-				"unknown assembler state; this should not happen");
+				result,"E004", "unknown assembler state; this should not happen");
 			break;
 	}
 

@@ -45,9 +45,7 @@ protected: // shunting yard
 	void push_operand(const ast_node_shared_ptr &node);
 
 protected: // core
-	void error(
-		const std::string &code,
-		const std::string &message);
+	void error(const std::string &code, const std::string &message);
 
 	char *set_token();
 
@@ -61,12 +59,11 @@ protected: // core
 
 	char *current_token();
 
-	void register_operator(
-		const std::string &key,
-		const operator_t &op);
+	void register_operator(const std::string &key, const operator_t &op);
 
-	bool is_failed() const {
-		return _result.is_failed();
+	bool is_failed() const
+	{
+		return result_.is_failed();
 	}
 
 	char *move_to_next_token();
@@ -75,14 +72,16 @@ protected: // core
 
 	size_t forget_top_position();
 
-	inline uint32_t line() const {
-		return _line;
+	inline uint32_t line() const
+	{
+		return line_;
 	}
 
 	void consume_tokens(int count);
 
-	inline uint32_t column() const {
-		return _column;
+	inline uint32_t column() const
+	{
+		return column_;
 	}
 
 	void reset(const parser_input_t &input);
@@ -136,17 +135,17 @@ private:
 		[&]() { return parse_uninitialized(); },
 	};
 
-	static operator_dict _operators;
+	static operator_dict operators_;
 
-	size_t _index{};
-	uint32_t _line{};
-	uint32_t _column{};
-	char *_token = nullptr;
-	parser_input_t _input{};
-	class result _result;
-	std::vector<operator_t *> _operator_stack;
-	std::stack<scanner_pos_t> _position_stack;
-	std::stack<ast_node_shared_ptr> _operand_stack;
+	size_t index_{};
+	uint32_t line_{};
+	uint32_t column_{};
+	char * token_ = nullptr;
+	parser_input_t input_{};
+	class result result_;
+	std::vector<operator_t *> operator_stack_;
+	std::stack<scanner_pos_t> position_stack_;
+	std::stack<ast_node_shared_ptr> operand_stack_;
 	class symbol_table *_symbol_table = nullptr;
 };
 

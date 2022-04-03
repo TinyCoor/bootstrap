@@ -24,7 +24,9 @@ static inline uint64_t rotr(uint64_t n, uint8_t c)
 	return (n >> c) | (n << ( (-c) & mask) );
 }
 
-terp::terp(size_t heap_size) : heap_size_(heap_size) {}
+terp::terp(size_t heap_size) : heap_size_(heap_size), inst_cache_(this)
+{
+}
 
 terp::~terp() {
 	if (heap_) {
@@ -51,6 +53,9 @@ void terp::reset()
 		registers_.i[i] = 0;
 		registers_.f[i] = 0.0;
 	}
+
+	inst_cache_.reset();
+
 	exited_ = false;
 }
 
@@ -83,10 +88,11 @@ void terp::dump_state(uint8_t count) {
 bool terp::step(result &r)
 {
 	instruction_t inst{};
-	auto size = inst.decode(r, heap_, registers_.pc);
-	if (size == 0) {
+	auto size = inst_cache_.fetch(r, inst);
+	if(size == 0) {
 		return false;
 	}
+
 	registers_.pc += size;
 
 	switch (inst.op) {
@@ -684,8 +690,9 @@ std::string terp::disassemble(result &r, uint64_t address)
 {
 	std::stringstream stream;
 	while (true) {
-		instruction_t inst;
-		auto inst_size = inst.decode(r, heap_, address);
+		instruction_t inst{};
+
+		auto inst_size = inst_cache_.fetch_at(r, inst, address);
 		if (inst_size == 0)
 			break;
 

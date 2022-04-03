@@ -4,11 +4,13 @@
 
 #ifndef TERP_H_
 #define TERP_H_
+#include "result.h"
+#include "instruction.h"
+#include "instruction_cache.h"
 #include <cstdint>
 #include <string>
 #include <functional>
-#include "result.h"
-#include "instruction.h"
+
 #include <map>
 
 namespace gfx {
@@ -117,6 +119,7 @@ namespace gfx {
 		uint32_t heap_size_ = 0;
 		uint8_t * heap_ = nullptr;
 		register_file_t registers_{};
+		instruction_cache inst_cache_;
 		std::map<uint8_t, trap_callable> traps_{};
 
 	};

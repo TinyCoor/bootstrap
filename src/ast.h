@@ -8,6 +8,7 @@
 #include "token.h"
 #include <memory>
 #include <vector>
+#include <stack>
 
 namespace gfx {
 
@@ -52,7 +53,14 @@ public:
 
 	virtual ~ast_builder();
 
+	ast_node_shared_ptr pop_scope();
+
+	ast_node_shared_ptr current_scope() const;
+
+	ast_node_shared_ptr push_scope(const ast_node_shared_ptr& node);
+
 private:
+	std::stack<ast_node_shared_ptr> scope_stack_{};
 };
 
 }

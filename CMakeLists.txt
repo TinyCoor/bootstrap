@@ -84,6 +84,7 @@ add_executable(bootstrap
         src/parser.cpp
         src/symbol_table.cpp
         src/compiler.cpp
+        src/instruction_cache.cpp
         src/lexer.cpp
         src/ast.cpp
         src/token.cpp

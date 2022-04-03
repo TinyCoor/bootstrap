@@ -125,7 +125,7 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 	terp.reset();
 	auto rc = test_function(r, terp);
-	// fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
+	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
 	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 	fmt::print("function: {} {}\n", title, rc ? "SUCCESS" : "FAILED" );
@@ -140,11 +140,12 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 }
 
 static int terp_test() {
+
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 	gfx::terp terp((1024 * 1024) * 32);
 	terp.register_trap(1, [](gfx::terp* t){
 		auto value = t->pop();
-		fmt::print("terp 1 value = {}\n", value);
+		// fmt::print("terp 1 value = {}\n", value);
 	  return 0;
 	});
 	gfx::result r;
@@ -217,9 +218,9 @@ static int compiler_tests() {
 
 int main() {
 	int result =0;
-	result = compiler_tests();
-	if (result != 0) return result;
+//	result = compiler_tests();
+//	if (result != 0) return result;
 
-	// result = terp_test();
+	 result = terp_test();
 	return result;
 }

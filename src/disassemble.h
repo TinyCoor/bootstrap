@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/3/28.
 //
 
-#ifndef BOOTSTRAP__DISASSEMBLE_H_
-#define BOOTSTRAP__DISASSEMBLE_H_
+#ifndef DISASSEMBLE_H_
+#define DISASSEMBLE_H_
 #include <string>
 #include "result.h"
 #include "instruction.h"
@@ -16,4 +16,4 @@ public:
 
 }
 
-#endif //BOOTSTRAP__DISASSEMBLE_H_
+#endif // DISASSEMBLE_H_

@@ -35,6 +35,15 @@ void instruction_emitter::rts()
 	inst_.emplace_back(rts_op);
 }
 
+void instruction_emitter::swi(uint8_t index) {
+	instruction_t swi_op;
+	swi_op.op = op_codes::swi;
+	swi_op.operands_count =1;
+	swi_op.operands[0].type = operand_types::constant_integer;
+	swi_op.operands[0].value.u64 = index;
+	inst_.emplace_back(swi_op);
+}
+
 void instruction_emitter::trap(uint8_t index)
 {
 	instruction_t trap_op;
@@ -52,8 +61,8 @@ void instruction_emitter::exit()
 	inst_.emplace_back(exit_op);
 }
 
-void instruction_emitter::add_int_register_to_register(op_sizes size, uint8_t target_index, uint8_t lhs_index,
-	uint8_t rhs_index)
+void instruction_emitter::add_int_register_to_register(op_sizes size, uint8_t target_index,
+	uint8_t lhs_index, uint8_t rhs_index)
 {
 	instruction_t add_op;
 	add_op.op = op_codes::add;
@@ -370,5 +379,6 @@ void instruction_emitter::branch_if_not_equal(uint64_t address)
 	branch_op.operands[0].value.u64 = address;
 	inst_.push_back(branch_op);
 }
+
 
 }

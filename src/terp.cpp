@@ -34,13 +34,15 @@ terp::~terp() {
 	}
 }
 
-bool terp::initialize(result& r) {
+bool terp::initialize(result& r)
+{
 	heap_ = new uint8_t[heap_size_];
 	reset();
 	return !r.is_failed();
 }
 
-void terp::reset() {
+void terp::reset()
+{
 	registers_.pc = program_start;
 	registers_.fr = 0;
 	registers_.sr = 0;
@@ -78,7 +80,8 @@ void terp::dump_state(uint8_t count) {
 }
 
 /// todo move to a function table
-bool terp::step(result &r) {
+bool terp::step(result &r)
+{
 	instruction_t inst{};
 	auto size = inst.decode(r, heap_, registers_.pc);
 	if (size == 0) {
@@ -507,23 +510,27 @@ bool terp::step(result &r) {
 	return !r.is_failed();
 }
 
-uint64_t terp::pop() {
+uint64_t terp::pop()
+{
 	uint64_t value = *qword_ptr(registers_.sp);
 	registers_.sp += sizeof(uint64_t);
 	return value;
 }
 
-void terp::push(uint64_t value) {
+void terp::push(uint64_t value)
+{
 	registers_.sp -= sizeof(uint64_t);
 	*qword_ptr(registers_.sp) = value;
 }
 
-void terp::dump_heap(uint64_t offset, size_t size) {
+void terp::dump_heap(uint64_t offset, size_t size)
+{
 	auto pMemory = formatter::Hex((void*)(heap_ + offset), size);
 	fmt::print("{}\n",pMemory);
 }
 
-bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t& value) const {
+bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t& value) const
+{
 	switch (inst.operands[operand_index].type) {
 		case operand_types::increment_register_pre:
 		case operand_types::decrement_register_pre:
@@ -552,7 +559,8 @@ bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t opera
 	return true;
 }
 
-bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, double& value) const {
+bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, double& value) const
+{
 	switch (inst.operands[operand_index].type) {
 		case operand_types::increment_register_pre:
 		case operand_types::increment_register_post:
@@ -586,7 +594,8 @@ bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t opera
 	return true;
 }
 
-bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index, uint64_t value) {
+bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index, uint64_t value)
+{
 	switch (inst.operands[operand_index].type) {
 		case operand_types::increment_register_pre:
 		case operand_types::decrement_register_pre:
@@ -671,7 +680,8 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 	return false;
 }
 
-std::string terp::disassemble(result &r, uint64_t address) {
+std::string terp::disassemble(result &r, uint64_t address)
+{
 	std::stringstream stream;
 	while (true) {
 		instruction_t inst;
@@ -690,7 +700,8 @@ std::string terp::disassemble(result &r, uint64_t address) {
 	return std::move(stream.str());
 }
 
-std::string terp::disassemble(const instruction_t &inst) const {
+std::string terp::disassemble(const instruction_t &inst) const
+{
 	std::stringstream stream;
 	auto it = s_op_code_names.find(inst.op);
 	if (it != s_op_code_names.end()) {
@@ -782,7 +793,8 @@ void terp::register_trap(uint8_t index, const terp::trap_callable &callable)
 	traps_.insert(std::make_pair(index, callable));
 }
 
-void terp::remove_trap(uint8_t index) {
+void terp::remove_trap(uint8_t index)
+{
 	traps_.erase(index);
 }
 
@@ -792,7 +804,8 @@ uint64_t terp::peek() const
 	return value;
 }
 
-void terp::swi(uint8_t index, uint64_t address) {
+void terp::swi(uint8_t index, uint64_t address)
+{
 	size_t swi_address = sizeof(uint64_t) * index;
 	*qword_ptr(swi_address) = address;
 }

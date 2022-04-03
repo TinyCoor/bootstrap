@@ -2,12 +2,14 @@
 // Created by 12132 on 2022/3/30.
 //
 
-#ifndef BOOTSTRAP__SYMBOL_TABLE_H_
-#define BOOTSTRAP__SYMBOL_TABLE_H_
+#ifndef SYMBOL_TABLE_H_
+#define SYMBOL_TABLE_H_
 #include "result.h"
-#include "parser_types.h"
+#include "ast.h"
 
 namespace gfx {
+
+using symbol_dict = std::map<std::string, ast_node_shared_ptr>;
 class symbol_table {
 public:
 	symbol_table() =default;
@@ -15,16 +17,6 @@ public:
 	void put(const std::string& name, const ast_node_shared_ptr& value);
 
 	void clear();
-
-	bool missing_is_error() const
-	{
-		return missing_is_error_;
-	}
-
-	void missing_is_error(bool flag)
-	{
-		missing_is_error_ = flag;
-	}
 
 	void remove(const std::string& name);
 
@@ -41,9 +33,8 @@ public:
 
 private:
 	symbol_dict symbols_;
-	bool missing_is_error_ = true;
 
 };
 }
 
-#endif //BOOTSTRAP__SYMBOL_TABLE_H_
+#endif // SYMBOL_TABLE_H_

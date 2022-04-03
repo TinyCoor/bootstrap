@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/3/26.
 //
 
-#ifndef BOOTSTRAP_FORMATTER_H_
-#define BOOTSTRAP_FORMATTER_H_
+#ifndef FORMATTER_H_
+#define FORMATTER_H_
 #include <string>
 namespace gfx {
 
@@ -13,4 +13,4 @@ public:
 };
 }
 
-#endif //BOOTSTRAP_FORMATTER_H_
+#endif // FORMATTER_H_

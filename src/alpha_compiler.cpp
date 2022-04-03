@@ -3,10 +3,11 @@
 //
 
 #include "alpha_compiler.h"
+#include "lexer.h"
+#include <fmt/format.h>
 namespace gfx {
 alpha_compiler::alpha_compiler(size_t heap_size)
-	: 	terp_(heap_size),
-		evaluator_(this)
+	: 	terp_(heap_size)
 {
 
 }
@@ -18,28 +19,24 @@ bool alpha_compiler::initialize(result& r) {
 	return terp_.initialize(r);
 }
 
-bool alpha_compiler::compile(result& r, const parser_input_t& input) {
+bool alpha_compiler::compile(result& r, std::istream& input) {
 	compile_stream(r, input);
 	return !r.is_failed();
 }
 
-bool alpha_compiler::compile_stream(result& r, const parser_input_t& input) {
-	auto program_node = parser_.parse(input);
-	auto parser_result = parser_.result();
-	if (parser_result.is_failed()) {
-		for (const auto& msg : parser_result.messages())
-			r.add_message(msg.code(), msg.message(), msg.details(), msg.is_error());
-		return false;
+bool alpha_compiler::compile_stream(result& r,std::istream& input) {
+	lexer alpha_lexer(input);
+	token_t token;
+	while (alpha_lexer.next(token)) {
+		fmt::print("token.type = {}\n", token.name());
+		fmt::print("token.value = {}\n", token.value);
+		if (token.is_numeric())
+			fmt::print("token.radix = {}\n", token.radix);
+		fmt::print("token.line = {}\n", token.line);
+		fmt::print("token.column = {}\n\n", token.column);
 	}
-
-	if (program_node == nullptr)
-		return !r.is_failed();
-
-	if (!evaluator_.evaluate_program(r, program_node)) {
-
-	}
-
-	return !r.is_failed();
+	return true;
 }
+
 
 }

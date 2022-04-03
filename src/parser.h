@@ -5,7 +5,7 @@
 #ifndef PARSER_H_
 #define PARSER_H_
 #include "result.h"
-#include "parser_types.h"
+#include "ast.h"
 #include <map>
 #include <stack>
 #include <string>
@@ -17,136 +17,12 @@ class parser {
 public:
 	parser() = default;
 
-	symbol_table *symbol_table();
-
-	const result &result() const;
-
-	void symbol_table(class symbol_table *value);
-
-	ast_node_shared_ptr parse_expression(const parser_input_t &input);
-
-	virtual ast_node_shared_ptr parse(const parser_input_t &input) = 0;
-
-protected: // shunting yard
-	bool has_operand();
-
-	bool has_operator();
-
-	operator_t *pop_operator();
-
-	operator_t *peek_operator();
-
-	ast_node_shared_ptr pop_operand();
-
-	ast_node_shared_ptr peek_operand();
-
-	void push_operator(operator_t *op);
-
-	void push_operand(const ast_node_shared_ptr &node);
-
-protected: // core
-	void error(const std::string &code, const std::string &message);
-
-	char *set_token();
-
-	void clear_stacks();
-
-	void pop_position();
-
-	void push_position();
-
-	void increment_line();
-
-	char *current_token();
-
-	void register_operator(const std::string &key, const operator_t &op);
-
-	bool is_failed() const
-	{
-		return result_.is_failed();
+	const result &result() const{
+		return result_;
 	}
-
-	char *move_to_next_token();
-
-	void consume_white_space();
-
-	size_t forget_top_position();
-
-	inline uint32_t line() const
-	{
-		return line_;
-	}
-
-	void consume_tokens(int count);
-
-	inline uint32_t column() const
-	{
-		return column_;
-	}
-
-	void reset(const parser_input_t &input);
-
-	ast_node_shared_ptr create_ast_node(ast_node_t::tokens type);
-
-protected: // parsers
-	operator_t *parse_operator();
-
-	ast_node_shared_ptr parse_number();
-
-	ast_node_shared_ptr parse_comment();
-
-	ast_node_shared_ptr parse_assignment();
-
-	ast_node_shared_ptr parse_expression();
-
-	ast_node_shared_ptr parse_identifier();
-
-	ast_node_shared_ptr parse_null_literal();
-
-	ast_node_shared_ptr parse_uninitialized();
-
-	ast_node_shared_ptr parse_string_literal();
-
-	ast_node_shared_ptr parse_boolean_literal();
-
-	ast_node_shared_ptr parse_character_literal();
-
-	ast_node_shared_ptr parse_semicolon_literal();
 
 private:
-	bool operator_stack_has(operator_t *op);
-
-	bool match_literal(const std::string &literal);
-
-	std::vector<operator_t *> find_matching_operators(
-		std::vector<operator_t *> candidates,
-		char token,
-		size_t index);
-
-private:
-	const std::vector<std::function<ast_node_shared_ptr()>> _terminals = {
-		[&]() { return parse_number(); },
-		[&]() { return parse_comment(); },
-		[&]() { return parse_null_literal(); },
-		[&]() { return parse_boolean_literal(); },
-		[&]() { return parse_identifier(); },
-		[&]() { return parse_string_literal(); },
-		[&]() { return parse_character_literal(); },
-		[&]() { return parse_uninitialized(); },
-	};
-
-	static operator_dict operators_;
-
-	size_t index_{};
-	uint32_t line_{};
-	uint32_t column_{};
-	char * token_ = nullptr;
-	parser_input_t input_{};
 	class result result_;
-	std::vector<operator_t *> operator_stack_;
-	std::stack<scanner_pos_t> position_stack_;
-	std::stack<ast_node_shared_ptr> operand_stack_;
-	class symbol_table *_symbol_table = nullptr;
 };
 
 }

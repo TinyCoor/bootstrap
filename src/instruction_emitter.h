@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/3/28.
 //
 
-#ifndef BOOTSTRAP__INSTRUCTION_EMITTER_H_
-#define BOOTSTRAP__INSTRUCTION_EMITTER_H_
+#ifndef INSTRUCTION_EMITTER_H_
+#define INSTRUCTION_EMITTER_H_
 #include "instruction.h"
 #include "terp.h"
 #include <vector>
@@ -31,6 +31,8 @@ public:
 	void rts();
 
 	void dup();
+
+	void swi(uint8_t index);
 
 	void nop();
 
@@ -85,13 +87,13 @@ public:
 
 	void jump_direct(uint64_t address);
 
+	void jump_subroutine_direct(uint64_t address);
+
 	void push_float_constant( double value);
 
 	void pop_float_register(uint8_t index);
 
 	void jump_subroutine_indirect(uint8_t index);
-
-	void jump_subroutine_direct(uint64_t address);
 
 	void pop_int_register(op_sizes size, uint8_t index);
 
@@ -105,4 +107,4 @@ private:
 	std::vector<instruction_t> inst_{};
 };
 }
-#endif //BOOTSTRAP__INSTRUCTION_EMITTER_H_
+#endif // INSTRUCTION_EMITTER_H_

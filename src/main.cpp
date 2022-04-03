@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <chrono>
 #include <functional>
+#include <sstream>
 #include "alpha_compiler.h"
 
 static constexpr size_t heap_size = (1024 * 1024) * 32;
@@ -124,7 +125,7 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 	terp.reset();
 	auto rc = test_function(r, terp);
-	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
+	// fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
 	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 	fmt::print("function: {} {}\n", title, rc ? "SUCCESS" : "FAILED" );
@@ -144,6 +145,7 @@ static int terp_test() {
 	terp.register_trap(1, [](gfx::terp* t){
 		auto value = t->pop();
 		fmt::print("terp 1 value = {}\n", value);
+	  return 0;
 	});
 	gfx::result r;
 	if (!terp.initialize(r)) {
@@ -169,22 +171,27 @@ static int compiler_tests() {
 		return 1;
 	}
 
-	std::string source(R"("// this is a test comment"
-					   "// fibonacci sequence in basecode-alpha"
-					   ""
-					   "foo := $ff * 2;"
-					   ""
-					   "fib := fn(n:u64):u64 {"
-					   "    if n == 0 || n == 1"
-					   "        n;"
-					   "    else\n"
-					   "        fib((n - 1) + fib(n - 2));"
-					   "}"
-					   ""
-					   "main := fn():u64 {"
-					   "    fib(100);"
-					   "}")");
-	if (!compiler.compile(r, gfx::parser_input_t(source))) {
+	std::stringstream source(R"(// this is a test comment
+					   // fibonacci sequence in basecode-alpha
+					  @entry_point main;
+						truth:bool := true;
+						lies:bool := false;
+						char:u8 := 'A';
+						name:string := "this is a test string literal";
+						name_ptr:*u8 := address_of(name);
+						name_ptr := null;
+
+					   fib := fn(n:u64):u64 {
+					      if n == 0 || n == 1
+					           n;
+					       else"
+					          fib((n - 1) + fib(n - 2));
+					   }
+
+					   main := fn():u64 {
+					       fib(100);
+					   })");
+	if (!compiler.compile(r, source)) {
 		print_results(r);
 		return 1;
 	}
@@ -193,7 +200,10 @@ static int compiler_tests() {
 }
 
 int main() {
-	terp_test();
-	return compiler_tests();
-	//return terp_tests();
+	int result =0;
+	result = compiler_tests();
+	if (result != 0) return result;
+
+	result = terp_test();
+	return result;
 }

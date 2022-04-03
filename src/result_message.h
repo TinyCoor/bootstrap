@@ -9,9 +9,9 @@
 
 namespace gfx {
 
-class result_message{
+class result_message {
 public:
-	enum types{
+	enum types {
 		info,
 		error,
 		data,
@@ -22,11 +22,11 @@ public:
 		: type_(type), code_(code), message_(message), details_(details)
 	{}
 
-	inline types type() const {return type_;}
-	inline bool is_error() const {return type_== types::error;}
-	inline const std::string& code() const {return code_;}
-	inline const std::string& details() const {return details_;}
-	inline const std::string& message() const {return message_;}
+	inline types type() const { return type_;}
+	inline bool is_error() const { return type_== types::error; }
+	inline const std::string& code() const { return code_; }
+	inline const std::string& details() const { return details_; }
+	inline const std::string& message() const { return message_; }
 
 private:
 	types type_;
@@ -35,7 +35,7 @@ private:
 	std::string details_{};
 };
 
-using result_message_list =  std::vector<result_message> ;
+using result_message_list = std::vector<result_message> ;
 
 }
 

@@ -3,7 +3,7 @@
 //
 
 #include "instruction_cache.h"
-#include "terp.h"
+#include "src/vm/terp.h"
 namespace gfx {
 
 instruction_cache::instruction_cache(terp *terp) : terp_(terp)

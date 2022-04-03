@@ -22,6 +22,7 @@ public:
 		return start_address_;
 	}
 
+	size_t index() const{ return inst_.size() -1;}
 	inline instruction_t& operator[](size_t index)
 	{
 		return inst_[index];
@@ -88,6 +89,8 @@ public:
 	void jump_direct(uint64_t address);
 
 	void jump_subroutine_direct(uint64_t address);
+
+	void jump_subroutine_pc_relative(op_sizes size, operand_types offset_type, uint64_t offset);
 
 	void push_float_constant( double value);
 

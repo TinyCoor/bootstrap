@@ -5,8 +5,7 @@
 #ifndef ALPHA_COMPILER_H_
 #define ALPHA_COMPILER_H_
 
-#include <cstdint>
-#include "terp.h"
+#include "src/vm/terp.h"
 #include "parser.h"
 #include "symbol_table.h"
 

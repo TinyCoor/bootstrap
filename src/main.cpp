@@ -1,5 +1,5 @@
-#include "terp.h"
-#include "instruction_emitter.h"
+#include "src/vm/terp.h"
+#include "src/vm/instruction_emitter.h"
 #include <fmt/format.h>
 #include <chrono>
 #include <functional>
@@ -52,11 +52,19 @@ static bool test_fibonacci(gfx::result& r, gfx::terp& terp) {
 	fn_fibonacci.subtract_int_constant_from_register(gfx::op_sizes::dword, 1, 0, 1);
 	fn_fibonacci.subtract_int_constant_from_register(gfx::op_sizes::dword, 2, 0, 2);
 	fn_fibonacci.push_int_register(gfx::op_sizes::dword, 2);
-	fn_fibonacci.jump_subroutine_direct(fn_fibonacci.start_address());
+	fn_fibonacci.jump_subroutine_pc_relative(
+		gfx::op_sizes::byte,
+		gfx::operand_types::constant_offset_negative,
+		fn_fibonacci.end_address() - fn_fibonacci.start_address());
+	// fn_fibonacci.jump_subroutine_direct(fn_fibonacci.start_address());
 	fn_fibonacci.pop_int_register(gfx::op_sizes::dword, 2);
 	fn_fibonacci.add_int_register_to_register(gfx::op_sizes::dword, 1, 1, 2);
 	fn_fibonacci.push_int_register(gfx::op_sizes::dword, 1);
-	fn_fibonacci.jump_subroutine_direct(fn_fibonacci.start_address());
+	fn_fibonacci.jump_subroutine_pc_relative(
+		gfx::op_sizes::byte,
+		gfx::operand_types::constant_offset_negative,
+		fn_fibonacci.end_address() - fn_fibonacci.start_address());
+	// fn_fibonacci.jump_subroutine_direct(fn_fibonacci.start_address());
 	fn_fibonacci.pop_int_register(gfx::op_sizes::dword, 1);
 	fn_fibonacci.store_register_to_stack_offset(gfx::op_sizes::dword, 1, 8);
 	fn_fibonacci.rts();
@@ -145,8 +153,7 @@ static int terp_test() {
 	gfx::terp terp((1024 * 1024) * 32);
 	terp.register_trap(1, [](gfx::terp* t){
 		auto value = t->pop();
-		// fmt::print("terp 1 value = {}\n", value);
-	  return 0;
+		fmt::print("terp 1 value = {}\n", value);
 	});
 	gfx::result r;
 	if (!terp.initialize(r)) {

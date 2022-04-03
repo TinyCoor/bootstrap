@@ -38,6 +38,7 @@ void instruction_emitter::rts()
 void instruction_emitter::swi(uint8_t index) {
 	instruction_t swi_op;
 	swi_op.op = op_codes::swi;
+	swi_op.size = op_sizes::byte;
 	swi_op.operands_count =1;
 	swi_op.operands[0].type = operand_types::constant_integer;
 	swi_op.operands[0].value.u64 = index;
@@ -48,6 +49,7 @@ void instruction_emitter::trap(uint8_t index)
 {
 	instruction_t trap_op;
 	trap_op.op = op_codes::trap;
+	trap_op.size = op_sizes::byte;
 	trap_op.operands_count = 1;
 	trap_op.operands[0].type = operand_types::constant_integer;
 	trap_op.operands[0].value.u64 = index;
@@ -159,6 +161,7 @@ void instruction_emitter::jump_direct(uint64_t address)
 {
 	instruction_t jmp_op;
 	jmp_op.op = op_codes::jmp;
+	jmp_op.size = op_sizes::qword;
 	jmp_op.operands_count = 1;
 	jmp_op.operands[0].type = operand_types::constant_integer;
 	jmp_op.operands[0].value.u64 = address;
@@ -180,6 +183,7 @@ void instruction_emitter::jump_subroutine_direct(uint64_t address)
 {
 	instruction_t jsr_op;
 	jsr_op.op = op_codes::jsr;
+	jsr_op.size = op_sizes::qword;
 	jsr_op.operands_count = 1;
 	jsr_op.operands[0].type = operand_types::constant_integer;
 	jsr_op.operands[0].value.u64 = address;
@@ -364,6 +368,7 @@ void instruction_emitter::branch_if_equal(uint64_t address)
 {
 	instruction_t branch_op;
 	branch_op.op = op_codes::beq;
+	branch_op.size = op_sizes::qword;
 	branch_op.operands_count = 1;
 	branch_op.operands[0].type = operand_types::constant_integer;
 	branch_op.operands[0].value.u64 = address;
@@ -374,10 +379,26 @@ void instruction_emitter::branch_if_not_equal(uint64_t address)
 {
 	instruction_t branch_op;
 	branch_op.op = op_codes::bne;
+	branch_op.size = op_sizes::qword;
 	branch_op.operands_count = 1;
 	branch_op.operands[0].type = operand_types::constant_integer;
 	branch_op.operands[0].value.u64 = address;
 	inst_.push_back(branch_op);
+}
+
+void instruction_emitter::jump_subroutine_pc_relative(
+	op_sizes size,
+	operand_types offset_type,
+	uint64_t offset) {
+	instruction_t jsr_op;
+	jsr_op.op = op_codes::jsr;
+	jsr_op.size = size;
+	jsr_op.operands_count = 2;
+	jsr_op.operands[0].type = operand_types::register_pc;
+	jsr_op.operands[0].index = 0;
+	jsr_op.operands[1].type = offset_type;
+	jsr_op.operands[1].value.u64 = offset;
+	inst_.push_back(jsr_op);
 }
 
 

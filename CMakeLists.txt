@@ -68,27 +68,28 @@ set(BOOTSTRAP_SRC
         src/compiler.cpp
         src/lexer.cpp
         src/token.cpp
-        src/terp.cpp
-        src/instruction_emitter.cpp
-        src/formatter.cpp
+        src/vm/terp.cpp
+        src/vm/instruction_emitter.cpp
+        src/common/formatter.cpp
         )
 
 add_executable(bootstrap
         src/main.cpp
         src/result.h
         src/result_message.h
-        src/formatter.cpp
-        src/instruction_emitter.cpp
-        src/instruction.h
+        src/common/formatter.cpp
+        src/vm/instruction_emitter.cpp
+        src/vm/instruction.h
         src/disassemble.cpp
         src/parser.cpp
         src/symbol_table.cpp
         src/compiler.cpp
-        src/instruction_cache.cpp
+        src/vm/instruction_cache.cpp
+        src/vm/instruction.cpp
         src/lexer.cpp
         src/ast.cpp
         src/token.cpp
-        src/terp.cpp)
+        src/vm/terp.cpp)
 target_link_libraries(bootstrap PUBLIC
         fmt
         )

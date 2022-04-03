@@ -3,8 +3,8 @@
 //
 
 #include "terp.h"
-#include "formatter.h"
-#include <fmt/format.h>
+#include "src/common/formatter.h"
+#include "extern/fmt/include/fmt/format.h"
 #include <sstream>
 #include <iomanip>
 
@@ -468,6 +468,22 @@ bool terp::step(result &r)
 			uint64_t address;
 			if (!get_operand_value(r, inst, 0, address))
 				return false;
+			if (!get_operand_value(r, inst, 0, address))
+				return false;
+
+			if (inst.operands_count == 2) {
+				uint64_t offset;
+
+				if (!get_operand_value(r, inst, 1, offset))
+					return false;
+				switch (inst.operands[1].type) {
+					case operand_types::constant_offset_positive: address += offset + size;
+						break;
+					case operand_types::constant_offset_negative: address -= offset + size;
+						break;
+					default: break;
+				}
+			}
 			registers_.pc = address;
 		}break;
 		case op_codes::rts: {
@@ -476,6 +492,7 @@ bool terp::step(result &r)
 		}break;
 		case op_codes::jmp: {
 			uint64_t address;
+
 			if (!get_operand_value(r, inst, 0, address))
 				return false;
 			registers_.pc = address;
@@ -558,6 +575,8 @@ bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t opera
 		case operand_types::decrement_constant_pre:
 		case operand_types::increment_constant_post:
 		case operand_types::decrement_constant_post:
+		case operand_types::constant_offset_negative:
+		case operand_types::constant_offset_positive:
 		case operand_types::constant_integer: {value = inst.operands[operand_index].value.u64;break;}
 		case operand_types::constant_float: {value = static_cast<uint64_t>(inst.operands[operand_index].value.d64);break;}
 	}
@@ -591,6 +610,8 @@ bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t opera
 		case operand_types::decrement_constant_pre:
 		case operand_types::increment_constant_post:
 		case operand_types::decrement_constant_post:
+		case operand_types::constant_offset_positive:
+		case operand_types::constant_offset_negative:
 		case operand_types::constant_integer:
 			value = inst.operands[operand_index].value.u64;
 		case operand_types::constant_float:
@@ -631,6 +652,8 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 		}
 		case operand_types::constant_float:
 		case operand_types::constant_integer:
+		case operand_types::constant_offset_positive:
+		case operand_types::constant_offset_negative:
 		case operand_types::increment_constant_pre:
 		case operand_types::decrement_constant_pre:
 		case operand_types::increment_constant_post:
@@ -677,6 +700,8 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 		case operand_types::increment_constant_pre:
 		case operand_types::decrement_constant_pre:
 		case operand_types::increment_constant_post:
+		case operand_types::constant_offset_negative:
+		case operand_types::constant_offset_positive:
 		case operand_types::decrement_constant_post: {
 			r.add_message("B006", "constant cannot be a target operand type.", true);
 			break;

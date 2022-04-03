@@ -738,82 +738,93 @@ std::string terp::disassemble(const instruction_t &inst) const
 	auto it = s_op_code_names.find(inst.op);
 	if (it != s_op_code_names.end()) {
 		std::stringstream mnemonic;
+
+		std::string format_spec;
 		mnemonic <<  it->second;
 		switch (inst.size) {
 			case op_sizes::byte:
 				mnemonic << ".B";
+				format_spec = "#${:02X}";
 				break;
 			case op_sizes::word:
 				mnemonic << ".W";
+				format_spec = "#${:04X}";
 				break;
 			case op_sizes::dword:
 				mnemonic << ".DW";
+				format_spec = "#${:08X}";
 				break;
 			case op_sizes::qword:
 				mnemonic << ".QW";
+				format_spec = "#${:016X}";
 				break;
 			default: {
 				break;
 			}
 		}
-
 		stream << std::left << std::setw(10) << mnemonic.str();
-
+		std::stringstream operands_stream;
 		for (size_t i = 0; i < inst.operands_count; i++) {
 			if (i > 0 && i < inst.operands_count) {
-				stream << ", ";
+				operands_stream << ", ";
 			}
 			switch (inst.operands[i].type) {
 				case operand_types::register_integer:
-					stream << "I" << std::to_string(inst.operands[i].index);
+					operands_stream << "I" << std::to_string(inst.operands[i].index);
 					break;
 				case operand_types::register_floating_point:
-					stream << "F" << std::to_string(inst.operands[i].index);
+					operands_stream << "F" << std::to_string(inst.operands[i].index);
 					break;
 				case operand_types::register_sp:
-					stream << "SP";
+					operands_stream << "SP";
 					break;
 				case operand_types::register_pc:
-					stream << "PC";
+					operands_stream << "PC";
 					break;
 				case operand_types::register_flags:
-					stream << "FR";
+					operands_stream << "FR";
 					break;
 				case operand_types::register_status:
-					stream << "SR";
+					operands_stream << "SR";
 					break;
 				case operand_types::constant_integer:
-					stream << fmt::format("#${:08X}", inst.operands[i].value.u64);
+				case operand_types::constant_offset_positive:
+					operands_stream << fmt::format(fmt::runtime(format_spec), inst.operands[i].value.u64);
 					break;
 				case operand_types::constant_float:
-					stream << fmt::format("#${:08X}", static_cast<uint64_t>(inst.operands[i].value.d64));
+					operands_stream << fmt::format(fmt::runtime(format_spec), static_cast<uint64_t>(inst.operands[i].value.d64));
+					break;
+				case operand_types::constant_offset_negative:
+					format_spec = "-" + format_spec;
+					operands_stream << fmt::format(fmt::runtime(format_spec), inst.operands[i].value.u64);
 					break;
 				case operand_types::increment_constant_pre:
-					stream << "++" << std::to_string(inst.operands[i].value.u64);
+					operands_stream << "++" << std::to_string(inst.operands[i].value.u64);
 					break;
 				case operand_types::increment_constant_post:
-					stream << std::to_string(inst.operands[i].value.u64) << "++";
+					operands_stream << std::to_string(inst.operands[i].value.u64) << "++";
 					break;
 				case operand_types::increment_register_pre:
-					stream << "++" << "I" << std::to_string(inst.operands[i].index);
+					operands_stream << "++" << "I" << std::to_string(inst.operands[i].index);
 					break;
 				case operand_types::increment_register_post:
-					stream << "I" << std::to_string(inst.operands[i].index) << "++";
+					operands_stream << "I" << std::to_string(inst.operands[i].index) << "++";
 					break;
 				case operand_types::decrement_constant_pre:
-					stream << "--" << std::to_string(inst.operands[i].value.u64);
+					operands_stream << "--" << std::to_string(inst.operands[i].value.u64);
 					break;
 				case operand_types::decrement_constant_post:
-					stream << std::to_string(inst.operands[i].value.u64) << "--";
+					operands_stream << std::to_string(inst.operands[i].value.u64) << "--";
 					break;
 				case operand_types::decrement_register_pre:
-					stream << "--" << "I" << std::to_string(inst.operands[i].index);
+					operands_stream << "--" << "I" << std::to_string(inst.operands[i].index);
 					break;
 				case operand_types::decrement_register_post:
-					stream << "I" << std::to_string(inst.operands[i].index) << "--";
+					operands_stream << "I" << std::to_string(inst.operands[i].index) << "--";
 					break;
 			}
 		}
+		stream << std::left << std::setw(24) << operands_stream.str();
 	} else {
 		stream << "UNKNOWN";
 	}

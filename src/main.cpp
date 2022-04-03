@@ -4,7 +4,7 @@
 #include <chrono>
 #include <functional>
 #include <sstream>
-#include "alpha_compiler.h"
+#include "compiler.h"
 
 static constexpr size_t heap_size = (1024 * 1024) * 32;
 
@@ -164,37 +164,53 @@ static int terp_test() {
 }
 
 static int compiler_tests() {
-	gfx::alpha_compiler compiler(heap_size);
+	gfx::compiler compiler(heap_size);
 	gfx::result r;
 	if (!compiler.initialize(r)) {
 		print_results(r);
 		return 1;
 	}
 
-	std::stringstream source(R"(// this is a test comment
-					   // fibonacci sequence in basecode-alpha
-					  @entry_point main;
-						truth:bool := true;
-						lies:bool := false;
-						char:u8 := 'A';
-						name:string := "this is a test string literal";
-						name_ptr:*u8 := address_of(name);
-						name_ptr := null;
+	std::stringstream source(
+		"// this is a test comment\n"
+		"// fibonacci sequence in basecode-alpha\n"
+		"\n"
+		"@entry_point main;\n"
+		"\n"
+		"truth:bool := true;\n"
+		"lies:bool := false;\n"
+		"char:u8 := 'A';\n"
+		"name:string := \"this is a test string literal\";\n"
+		"name_ptr:*u8 := address_of(name);\n"
+		"name_ptr := null;\n"
+		"dx:u32 := 467;\n"
+		"vx:f64 := 3.145;\n"
+		"vy:f64 := 1.112233;\n"
+		"\n"
+		"foo:u16 := $ff * 2;\n"
+		"\n"
+		"fib := fn(n:u64):u64 {\n"
+		"    if n == 0 || n == 1 {\n"
+		"        n;\n"
+		"    } else {\n"
+		"        fib((n - 1) + fib(n - 2));\n"
+		"    };\n"
+		"};\n"
+		"\n"
+		"main := fn():u64 {\n"
+		"    fib(100);\n"
+		"};");
 
-					   fib := fn(n:u64):u64 {
-					      if n == 0 || n == 1
-					           n;
-					       else"
-					          fib((n - 1) + fib(n - 2));
-					   }
+	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
-					   main := fn():u64 {
-					       fib(100);
-					   })");
 	if (!compiler.compile(r, source)) {
 		print_results(r);
 		return 1;
 	}
+
+	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+	fmt::print("compile time (in us): {}\n\n", duration);
 
 	return 0;
 }
@@ -204,6 +220,6 @@ int main() {
 	result = compiler_tests();
 	if (result != 0) return result;
 
-	result = terp_test();
+	// result = terp_test();
 	return result;
 }

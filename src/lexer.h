@@ -152,6 +152,7 @@ private:
 
 	char read(bool skip_whitespace = true);
 
+	bool match_literal(const std::string& literal);
 private:
 	static std::multimap<char, lexer_case_callable> s_cases;
 	uint32_t line_ = 0;
@@ -161,7 +162,6 @@ private:
 	std::istream::pos_type mark_;
 	std::set<std::istream::pos_type> line_breaks_ {};
 
-	bool match_literal(const std::string& literal);
 };
 
 }

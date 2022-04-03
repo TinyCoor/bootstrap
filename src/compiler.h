@@ -7,15 +7,15 @@
 
 #include <cstdint>
 #include "terp.h"
-#include "alpha_parser.h"
+#include "parser.h"
 #include "symbol_table.h"
 
 namespace gfx {
-	class alpha_compiler {
+	class compiler {
 	public:
-		explicit alpha_compiler(size_t heap_size);
+		explicit compiler(size_t heap_size);
 
-		virtual ~alpha_compiler();
+		virtual ~compiler();
 
 		inline uint64_t address() const
 		{
@@ -36,7 +36,7 @@ namespace gfx {
 	private:
 		terp terp_;
 		uint64_t address_;
-		alpha_parser parser_ {};
+		parser parser_ {};
 		class symbol_table symbol_table_ {};
 	};
 }

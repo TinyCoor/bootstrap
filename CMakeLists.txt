@@ -65,7 +65,7 @@ set(BOOTSTRAP_SRC
         src/parser.cpp
         src/symbol_table.cpp
         src/alpha_parser.cpp
-        src/alpha_compiler.cpp
+        src/compiler.cpp
         src/lexer.cpp
         src/token.cpp
         src/terp.cpp
@@ -83,8 +83,7 @@ add_executable(bootstrap
         src/disassemble.cpp
         src/parser.cpp
         src/symbol_table.cpp
-        src/alpha_parser.cpp
-        src/alpha_compiler.cpp
+        src/compiler.cpp
         src/lexer.cpp
         src/ast.cpp
         src/token.cpp

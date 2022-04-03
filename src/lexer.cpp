@@ -188,6 +188,7 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{'d', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'e', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'f', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
+
 };
 
 lexer::lexer(std::istream& source) : source_(source) {
@@ -247,8 +248,10 @@ bool lexer::next(token_t& token) {
 
 	auto case_range = s_cases.equal_range(ch);
 	for (auto it = case_range.first; it != case_range.second; ++it) {
+		token.radix = 10;
 		token.line = line_;
 		token.column = column_;
+		token.number_type = number_types_t::none;
 		if (it->second(this, token))
 			return true;
 		restore_position();
@@ -720,7 +723,7 @@ bool lexer::empty_literal(token_t& token) {
 bool lexer::number_literal(token_t& token) {
 	std::stringstream stream;
 	token.type = token_types_t::number_literal;
-
+	token.number_type= number_types_t::integer;
 	auto ch = read();
 	if (ch == '$') {
 		token.radix = 16;
@@ -754,10 +757,13 @@ bool lexer::number_literal(token_t& token) {
 			stream << ch;
 		}
 	} else {
-		const std::string valid = "0123456789_";
+		const std::string valid = "0123456789_.";
 		while (valid.find_first_of(ch) != std::string::npos) {
-			if (ch != '_')
+			if (ch!='_') {
+				if (ch=='.')
+					token.number_type = number_types_t::floating_point;
 				stream << ch;
+			}
 			ch = read();
 		}
 	}
@@ -949,6 +955,7 @@ bool lexer::match_literal(const std::string& literal) {
 			return false;
 		ch = read(false);
 	}
+	rewind_one_char();
 	return true;
 }
 

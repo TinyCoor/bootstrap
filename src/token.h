@@ -72,7 +72,7 @@ enum class token_types_t {
 	end_of_file
 };
 
-static inline std::map<token_types_t, std::string> s_type_to_name = {
+static inline std::map<token_types_t, std::string_view> s_type_to_name = {
 	{token_types_t::unknown,                "unknown"},
 	{token_types_t::left_square_bracket,    "left_square_bracket"},
 	{token_types_t::right_square_bracket,   "right_square_bracket"},
@@ -142,6 +142,12 @@ enum class conversion_result {
 	inconvertible
 };
 
+enum class number_types_t {
+	none,
+	integer,
+	floating_point,
+};
+
 struct token_t {
 	bool as_bool() const;
 
@@ -159,6 +165,7 @@ struct token_t {
 	uint8_t radix = 10;
 	uint32_t line = 0;
 	uint32_t column = 0;
+	number_types_t number_type = number_types_t::none;
 };
 }
 

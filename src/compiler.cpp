@@ -2,29 +2,29 @@
 // Created by 12132 on 2022/3/30.
 //
 
-#include "alpha_compiler.h"
+#include "compiler.h"
 #include "lexer.h"
 #include <fmt/format.h>
 namespace gfx {
-alpha_compiler::alpha_compiler(size_t heap_size)
+compiler::compiler(size_t heap_size)
 	: 	terp_(heap_size)
 {
 
 }
 
-alpha_compiler::~alpha_compiler() {
+compiler::~compiler() {
 }
 
-bool alpha_compiler::initialize(result& r) {
+bool compiler::initialize(result& r) {
 	return terp_.initialize(r);
 }
 
-bool alpha_compiler::compile(result& r, std::istream& input) {
+bool compiler::compile(result& r, std::istream& input) {
 	compile_stream(r, input);
 	return !r.is_failed();
 }
 
-bool alpha_compiler::compile_stream(result& r,std::istream& input) {
+bool compiler::compile_stream(result& r, std::istream& input) {
 	lexer alpha_lexer(input);
 	token_t token;
 	while (alpha_lexer.next(token)) {

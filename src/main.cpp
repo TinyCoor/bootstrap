@@ -138,11 +138,11 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 	fmt::print("function: {} {}\n", title, rc ? "SUCCESS" : "FAILED" );
 
-	if(!rc || r.is_failed()){
+	if(!rc || r.is_failed()) {
 		print_results(r);
 	}
 
-	fmt::print("execution time: {}\n\n",duration);
+	fmt::print("execution time (in us) : {}\n\n",duration);
 
 	return rc;
 }
@@ -151,7 +151,7 @@ static int terp_test() {
 
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 	gfx::terp terp((1024 * 1024) * 32);
-	terp.register_trap(1, [](gfx::terp* t){
+	terp.register_trap(1, [](gfx::terp* t) {
 		auto value = t->pop();
 		fmt::print("terp 1 value = {}\n", value);
 	});

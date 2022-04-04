@@ -81,11 +81,11 @@ namespace gfx {
 		inline uint8_t op_size_in_bytes(op_sizes size) const
 		{
 			switch (size) {
-				case op_sizes::none:  return 0;
-				case op_sizes::byte:  return 1;
-				case op_sizes::dword: return 2;
-				case op_sizes::word:  return 4;
-				case op_sizes::qword: return 8;
+				case op_sizes::none:  return 0u;
+				case op_sizes::byte:  return 1u;
+				case op_sizes::dword: return 2u;
+				case op_sizes::word:  return 4u;
+				case op_sizes::qword: return 8u;
 				default:
 					return 0;
 			}

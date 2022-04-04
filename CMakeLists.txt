@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(extern/fmt)
 
+include_directories(${PROJECT_SOURCE_DIR})
+message(STATUS ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
+
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override")

@@ -254,8 +254,8 @@ size_t instruction_t::encoding_size() const
 	return encoding_size;
 }
 
-void instruction_t::patch_branch_address(uint64_t address)
+void instruction_t::patch_branch_address(uint64_t address, uint8_t index)
 {
-	operands[0].value.u64 = align(address, sizeof(uint64_t));
+	operands[index].value.u64 = align(address, sizeof(uint64_t));
 }
 }

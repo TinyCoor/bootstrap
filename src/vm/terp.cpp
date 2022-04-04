@@ -4,7 +4,7 @@
 
 #include "terp.h"
 #include "src/common/formatter.h"
-#include "extern/fmt/include/fmt/format.h"
+#include <fmt/format.h>
 #include <sstream>
 #include <iomanip>
 
@@ -136,7 +136,7 @@ bool terp::step(result &r)
 			registers_.i[inst.operands[0].index]--;
 
 		}break;
-		case op_codes::copy:{
+		case op_codes::copy: {
 			uint64_t source_address, target_address;
 			if (!get_operand_value(r, inst, 0, source_address))
 				return false;
@@ -146,9 +146,8 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, length))
 				return false;
 			memcpy(heap_ + target_address, heap_ + source_address, length * op_size_in_bytes(inst.size));
-
 		}break;
-		case op_codes ::fill:{
+		case op_codes::fill: {
 			uint64_t value;
 			if (!get_operand_value(r, inst, 0, value))
 				return false;
@@ -174,7 +173,7 @@ bool terp::step(result &r)
 					memset(heap_ + address, static_cast<uint32_t>(value), length);
 					break;
 				case op_sizes::qword:length *= sizeof(uint64_t);
-					memset(heap_ + address, value, length);
+					memset(heap_ + address, static_cast<uint64_t>(value), length);
 					break;
 				default:
 					//// error
@@ -191,7 +190,7 @@ bool terp::step(result &r)
 				return false;
 			}
 		}break;
-		case op_codes::push:{
+		case op_codes::push: {
 			uint64_t value;
 			if (!get_operand_value(r, inst, 0, value)){
 				return false;
@@ -436,7 +435,6 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 0, address))
 				return false;
 			if (registers_.flags(register_file_t::flags_t::zero) == 0){
-				// registers_.flags(register_file_t::zero, false);
 				registers_.pc = address;
 			}
 		}break;
@@ -721,8 +719,9 @@ std::string terp::disassemble(result &r, uint64_t address)
 		if (inst_size == 0)
 			break;
 
-		stream << fmt::format("${:08X}: ", address)
-			   << disassemble(inst) << "\n";
+		stream << fmt::format("${:016X}: ", address)
+			   << disassemble(inst)
+			   << fmt::format(" (${:02X} bytes)\n", inst_size);
 
 		if (inst.op == op_codes::exit)
 			break;

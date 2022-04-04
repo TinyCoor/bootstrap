@@ -97,7 +97,7 @@ struct instruction_t {
 
 	size_t encoding_size() const;
 
-	void patch_branch_address(uint64_t address);
+	void patch_branch_address(uint64_t address, uint8_t index = 0u);
 
 	op_codes op = op_codes::nop;
 	op_sizes size = op_sizes::none;

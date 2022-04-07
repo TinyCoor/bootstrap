@@ -8,27 +8,38 @@
 #include <cstdlib>
 namespace gfx {
 
-bool token_t::as_bool() const {
+bool token_t::as_bool() const
+{
 	return value == "true";
 }
 
-bool token_t::is_boolean() const {
+bool token_t::is_boolean() const
+{
 	return type == token_types_t::true_literal
 		|| type == token_types_t::false_literal;
 }
 
-bool token_t::is_numeric() const {
+bool token_t::is_comment() const
+{
+	return type == token_types_t::line_comment
+		|| type == token_types_t::block_comment;
+}
+
+bool token_t::is_numeric() const
+{
 	return type == token_types_t::number_literal;
 }
 
-std::string token_t::name() const {
+std::string token_t::name() const
+{
 	auto it = s_type_to_name.find(type);
 	if (it == s_type_to_name.end())
 		return "unknown";
 	return it->second.data();
 }
 
-conversion_result token_t::parse(int64_t& out) const {
+conversion_result token_t::parse(int64_t& out) const
+{
 	const char* s = value.data();
 	char* end;
 	errno = 0;
@@ -45,7 +56,8 @@ conversion_result token_t::parse(int64_t& out) const {
 	return conversion_result::success;
 }
 
-conversion_result token_t::parse(uint64_t& out) const {
+conversion_result token_t::parse(uint64_t& out) const
+{
 	const char* s = value.data();
 	char* end;
 	errno = 0;
@@ -61,5 +73,7 @@ conversion_result token_t::parse(uint64_t& out) const {
 	}
 	return conversion_result::success;
 }
+
+
 
 }

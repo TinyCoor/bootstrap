@@ -622,6 +622,7 @@ bool lexer::line_comment(token_t& token) {
 		if (ch == '/') {
 			token.type = token_types_t::line_comment;
 			token.value = read_until('\n');
+			rewind_one_char();
 			return true;
 		}
 	}

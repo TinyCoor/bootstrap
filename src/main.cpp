@@ -31,13 +31,13 @@ static bool test_fibonacci(gfx::result& r, gfx::terp& terp) {
 	bootstrap_emitter.jump_direct(0);
 
 	gfx::instruction_emitter fn_fibonacci(bootstrap_emitter.end_address());
-	fn_fibonacci.load_stack_offset_to_register(gfx::op_sizes::dword, 0, 8);
-	fn_fibonacci.push_int_register(gfx::op_sizes::dword, 0);
+	fn_fibonacci.load_stack_offset_to_register(gfx::op_sizes::dword, gfx::i_registers_t::i0, 8);
+	fn_fibonacci.push_int_register(gfx::op_sizes::dword,  gfx::i_registers_t::i0);
 	fn_fibonacci.trap(1);
 
-	fn_fibonacci.compare_int_register_to_constant(gfx::op_sizes::dword, 0, 0);
+	fn_fibonacci.compare_int_register_to_constant(gfx::op_sizes::dword,  gfx::i_registers_t::i0, 0);
 	fn_fibonacci.branch_if_equal(0);
-	fn_fibonacci.compare_int_register_to_constant(gfx::op_sizes::dword, 0, 1);
+	fn_fibonacci.compare_int_register_to_constant(gfx::op_sizes::dword, gfx::i_registers_t::i0, 1);
 	fn_fibonacci.branch_if_equal(0);
 	fn_fibonacci.jump_direct(0);
 	auto label_exit_fib = fn_fibonacci.end_address();
@@ -49,31 +49,25 @@ static bool test_fibonacci(gfx::result& r, gfx::terp& terp) {
 	auto label_next_fib = fn_fibonacci.end_address();
 	fn_fibonacci[7].patch_branch_address(label_next_fib);
 
-	fn_fibonacci.subtract_int_constant_from_register(gfx::op_sizes::dword, 1, 0, 1);
-	fn_fibonacci.subtract_int_constant_from_register(gfx::op_sizes::dword, 2, 0, 2);
-	fn_fibonacci.push_int_register(gfx::op_sizes::dword, 2);
+	fn_fibonacci.subtract_int_constant_from_register(gfx::op_sizes::dword,  gfx::i_registers_t::i1, gfx::i_registers_t::i0, 1);
+	fn_fibonacci.subtract_int_constant_from_register(gfx::op_sizes::dword, gfx::i_registers_t::i2, gfx::i_registers_t::i0, 2);
+	fn_fibonacci.push_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i2);
 	fn_fibonacci.jump_subroutine_pc_relative(
-		gfx::op_sizes::byte,
-		gfx::operand_types::constant_offset_negative,
-		fn_fibonacci.end_address() - fn_fibonacci.start_address());
-	// fn_fibonacci.jump_subroutine_direct(fn_fibonacci.start_address());
-	fn_fibonacci.pop_int_register(gfx::op_sizes::dword, 2);
-	fn_fibonacci.add_int_register_to_register(gfx::op_sizes::dword, 1, 1, 2);
-	fn_fibonacci.push_int_register(gfx::op_sizes::dword, 1);
+		gfx::op_sizes::byte,gfx::operand_encoding_t::negative, fn_fibonacci.end_address() - fn_fibonacci.start_address());
+	fn_fibonacci.pop_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i2);
+	fn_fibonacci.add_int_register_to_register(gfx::op_sizes::dword, gfx::i_registers_t::i1, gfx::i_registers_t::i1, gfx::i_registers_t::i2);
+	fn_fibonacci.push_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i1);
 	fn_fibonacci.jump_subroutine_pc_relative(
-		gfx::op_sizes::byte,
-		gfx::operand_types::constant_offset_negative,
-		fn_fibonacci.end_address() - fn_fibonacci.start_address());
-	// fn_fibonacci.jump_subroutine_direct(fn_fibonacci.start_address());
-	fn_fibonacci.pop_int_register(gfx::op_sizes::dword, 1);
-	fn_fibonacci.store_register_to_stack_offset(gfx::op_sizes::dword, 1, 8);
+		gfx::op_sizes::byte, gfx::operand_encoding_t::negative, fn_fibonacci.end_address() - fn_fibonacci.start_address());
+	fn_fibonacci.pop_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i1);
+	fn_fibonacci.store_register_to_stack_offset(gfx::op_sizes::dword, gfx::i_registers_t::i1, 8);
 	fn_fibonacci.rts();
 
 	gfx::instruction_emitter main_emitter(fn_fibonacci.end_address());
 	main_emitter.push_int_constant(gfx::op_sizes::dword, 100);
 	main_emitter.jump_subroutine_direct(fn_fibonacci.start_address());
 	main_emitter.dup();
-	main_emitter.pop_int_register(gfx::op_sizes::dword, 0);
+	main_emitter.pop_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i0);
 	main_emitter.trap(1);
 	main_emitter.exit();
 
@@ -81,32 +75,34 @@ static bool test_fibonacci(gfx::result& r, gfx::terp& terp) {
 	bootstrap_emitter.encode(r, terp);
 	fn_fibonacci.encode(r, terp);
 	main_emitter.encode(r, terp);
-	auto result =run_terp(r, terp);
+	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
+	auto result = run_terp(r, terp);
+
 	if (terp.register_file().i[0] != 1){
 		r.add_message("T001", "fn_fibonacci should end with 0 or 1.", true);
 	}
 	return result;
 }
-
+using namespace gfx;
 static bool test_square(gfx::result& r, gfx::terp& terp)
 {
 	gfx::instruction_emitter bootstrap_emitter(terp.program_start);
 	bootstrap_emitter.jump_direct(0);
 
 	gfx::instruction_emitter fn_square_emitter(bootstrap_emitter.end_address());
-	fn_square_emitter.load_stack_offset_to_register(gfx::op_sizes::dword, 0, 8);
-	fn_square_emitter.multiply_int_register_to_register(gfx::op_sizes::dword, 0, 0, 0);
-	fn_square_emitter.store_register_to_stack_offset(gfx::op_sizes::dword, 0, 8);
+	fn_square_emitter.load_stack_offset_to_register(gfx::op_sizes::dword, i_registers_t::i0, 8);
+	fn_square_emitter.multiply_int_register_to_register(gfx::op_sizes::dword, i_registers_t::i0, i_registers_t::i0, i_registers_t::i0);
+	fn_square_emitter.store_register_to_stack_offset(gfx::op_sizes::dword, i_registers_t::i0, 8);
 	fn_square_emitter.rts();
 
 	gfx::instruction_emitter main_emitter(fn_square_emitter.end_address());
 	main_emitter.push_int_constant(gfx::op_sizes::dword, 9);
 	main_emitter.jump_subroutine_direct(fn_square_emitter.start_address());
-	main_emitter.pop_int_register(gfx::op_sizes::dword, 5);
+	main_emitter.pop_int_register(gfx::op_sizes::dword, i_registers_t::i5);
 	main_emitter.push_int_constant(gfx::op_sizes::dword, 5);
 	main_emitter.jump_subroutine_direct(fn_square_emitter.start_address());
 
-	main_emitter.pop_int_register(gfx::op_sizes::dword, 6);
+	main_emitter.pop_int_register(gfx::op_sizes::dword, i_registers_t::i6);
 
 	main_emitter.exit();
 
@@ -117,7 +113,10 @@ static bool test_square(gfx::result& r, gfx::terp& terp)
 	if(r.is_failed()){
 		return false;
 	}
+	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
+
 	auto res = run_terp(r, terp);
+
 	if (terp.register_file().i[5] != 81) {
 		r.add_message("T001", "test_square register 5 should 81", true);
 	}
@@ -133,7 +132,7 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 	terp.reset();
 	auto rc = test_function(r, terp);
-	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
+
 	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 	fmt::print("function: {} {}\n", title, rc ? "SUCCESS" : "FAILED" );

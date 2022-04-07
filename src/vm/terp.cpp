@@ -4,6 +4,7 @@
 
 #include "terp.h"
 #include "src/common/formatter.h"
+#include "instruction.h"
 #include <fmt/format.h>
 #include <sstream>
 #include <iomanip>
@@ -130,10 +131,10 @@ bool terp::step(result &r)
 			*qword_ptr(address) = value;
 		}break;
 		case op_codes::inc: {
-			registers_.i[inst.operands[0].index]++;
+			registers_.i[inst.operands[0].value.r8]++;
 		}break;
 		case op_codes::dec: {
-			registers_.i[inst.operands[0].index]--;
+			registers_.i[inst.operands[0].value.r8]--;
 
 		}break;
 		case op_codes::copy: {
@@ -474,12 +475,11 @@ bool terp::step(result &r)
 
 				if (!get_operand_value(r, inst, 1, offset))
 					return false;
-				switch (inst.operands[1].type) {
-					case operand_types::constant_offset_positive: address += offset + size;
-						break;
-					case operand_types::constant_offset_negative: address -= offset + size;
-						break;
-					default: break;
+
+				if (inst.operands[1].is_negative()) {
+					address -= offset + size;
+				} else {
+					address += offset + size;
 				}
 			}
 			registers_.pc = address;
@@ -550,163 +550,155 @@ void terp::dump_heap(uint64_t offset, size_t size)
 	fmt::print("{}\n",pMemory);
 }
 
-bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t& value) const
+bool terp::get_operand_value(result& r, const instruction_t& instruction, uint8_t operand_index, uint64_t& value) const
 {
-	switch (inst.operands[operand_index].type) {
-		case operand_types::increment_register_pre:
-		case operand_types::decrement_register_pre:
-		case operand_types::increment_register_post:
-		case operand_types::decrement_register_post:
-		case operand_types::register_integer: {
-			value = registers_.i[inst.operands[operand_index].index];
-			break;
+	auto& operand = instruction.operands[operand_index];
+
+	if (operand.is_reg()) {
+		if (operand.is_integer()) {
+			auto reg = static_cast<i_registers_t>(operand.value.r8);
+			switch (reg) {
+				case i_registers_t::pc: {
+					value = registers_.pc;
+					break;
+				}
+				case i_registers_t::sp: {
+					value = registers_.sp;
+					break;
+				}
+				case i_registers_t::fr: {
+					value = registers_.fr;
+					break;
+				}
+				case i_registers_t::sr: {
+					value = registers_.sr;
+					break;
+				}
+				default: {
+					value = registers_.i[reg];
+					break;
+				}
+			}
+		} else {
+			value = static_cast<uint64_t>(registers_.f[operand.value.r8]);
 		}
-		case operand_types::register_floating_point: {
-			value = static_cast<uint64_t>(registers_.f[inst.operands[operand_index].index]);
-			break;
+	} else {
+		if (operand.is_integer()) {
+			value = operand.value.u64;
+		} else {
+			value = static_cast<uint64_t>(operand.value.d64);
 		}
-		case operand_types::register_sp: {value = registers_.sp;break;}
-		case operand_types::register_pc:  {value = registers_.pc;break;}
-		case operand_types::register_flags: {value = registers_.fr;break;}
-		case operand_types::register_status: {value = registers_.sr;break;}
-		case operand_types::increment_constant_pre:
-		case operand_types::decrement_constant_pre:
-		case operand_types::increment_constant_post:
-		case operand_types::decrement_constant_post:
-		case operand_types::constant_offset_negative:
-		case operand_types::constant_offset_positive:
-		case operand_types::constant_integer: {value = inst.operands[operand_index].value.u64;break;}
-		case operand_types::constant_float: {value = static_cast<uint64_t>(inst.operands[operand_index].value.d64);break;}
 	}
 
 	return true;
 }
 
-bool terp::get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, double& value) const
+bool terp::get_operand_value(result& r, const instruction_t& instruction, uint8_t operand_index, double& value) const
 {
-	switch (inst.operands[operand_index].type) {
-		case operand_types::increment_register_pre:
-		case operand_types::increment_register_post:
-		case operand_types::decrement_register_post:
-		case operand_types::decrement_register_pre:
-		case operand_types::register_floating_point:{
-			value = registers_.f[inst.operands[operand_index].index];
-		}break;
-
-		case operand_types::register_pc:
-		case operand_types::register_sp:
-		case operand_types::register_flags:
-		case operand_types::register_status:
-		case operand_types::register_integer:{
-			r.add_message(
-				"B005",
-				"integer registers cannot be used for floating point operands.",
-				true);
-		}break;
-
-		case operand_types::increment_constant_pre:
-		case operand_types::decrement_constant_pre:
-		case operand_types::increment_constant_post:
-		case operand_types::decrement_constant_post:
-		case operand_types::constant_offset_positive:
-		case operand_types::constant_offset_negative:
-		case operand_types::constant_integer:
-			value = inst.operands[operand_index].value.u64;
-		case operand_types::constant_float:
-			value = inst.operands[operand_index].value.d64;
-			break;
+	auto& operand = instruction.operands[operand_index];
+	if (operand.is_reg()) {
+		if (operand.is_integer()) {
+			value = registers_.i[operand.value.r8];
+		} else {
+			value = registers_.f[operand.value.r8];
+		}
+	} else {
+		if (operand.is_integer()) {
+			value = operand.value.u64;
+		} else {
+			value = operand.value.d64;
+		}
 	}
 	return true;
 }
 
-bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index, uint64_t value)
+bool terp::set_target_operand_value(result &r, const instruction_t &instruction, uint8_t operand_index, uint64_t value)
 {
-	switch (inst.operands[operand_index].type) {
-		case operand_types::increment_register_pre:
-		case operand_types::decrement_register_pre:
-		case operand_types::increment_register_post:
-		case operand_types::decrement_register_post:
-		case operand_types::register_integer: {
-			registers_.i[inst.operands[operand_index].index] = value;
+	auto& operand = instruction.operands[operand_index];
+
+	if (operand.is_reg()) {
+		if (operand.is_integer()) {
+			auto reg = static_cast<i_registers_t>(operand.value.r8);
+			switch (reg) {
+				case i_registers_t::pc: {
+					registers_.pc = value;
+					break;
+				}
+				case i_registers_t::sp: {
+					registers_.sp = value;
+					break;
+				}
+				case i_registers_t::fr: {
+					registers_.fr = value;
+					break;
+				}
+				case i_registers_t::sr: {
+					registers_.sr = value;
+					break;
+				}
+				default: {
+					registers_.i[reg] = value;
+					registers_.flags(register_file_t::flags_t::zero, value == 0);
+					break;
+				}
+			}
+		} else {
+			registers_.f[operand.value.r8] = value;
 			registers_.flags(register_file_t::flags_t::zero, value == 0);
-			return true;
 		}
-		case operand_types::register_floating_point: {
-			registers_.f[inst.operands[operand_index].index] = value;
-			registers_.flags(register_file_t::flags_t::zero, value == 0);
-			break;
-		}
-		case operand_types::register_sp: {
-			registers_.sp = value;break;
-		}
-		case operand_types::register_pc: {
-			registers_.pc = value;break;
-		}
-		case operand_types::register_flags: {
-			registers_.fr = value;break;
-		}
-		case operand_types::register_status: {
-			registers_.sr = value;break;
-		}
-		case operand_types::constant_float:
-		case operand_types::constant_integer:
-		case operand_types::constant_offset_positive:
-		case operand_types::constant_offset_negative:
-		case operand_types::increment_constant_pre:
-		case operand_types::decrement_constant_pre:
-		case operand_types::increment_constant_post:
-		case operand_types::decrement_constant_post: {
-			r.add_message( "B006","constant cannot be a target operand type.", true);
-			break;
-		}
+	} else {
+		r.add_message(
+			"B006",
+			"constant cannot be a target operand type.",
+			true);
+		return false;
 	}
-	return false;
+
+	return true;
 }
 
-bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index, double value) {
-	switch (inst.operands[operand_index].type) {
-		case operand_types::increment_register_pre:
-		case operand_types::decrement_register_pre:
-		case operand_types::increment_register_post:
-		case operand_types::decrement_register_post:
-		case operand_types::register_integer: {
-			uint64_t integer_value = static_cast<uint64_t>(value);
-			registers_.i[inst.operands[operand_index].index] = integer_value;
-			registers_.flags(register_file_t::flags_t::zero, integer_value == 0);
-			break;
+bool terp::set_target_operand_value(result &r, const instruction_t &instruction, uint8_t operand_index, double value) {
+	auto& operand = instruction.operands[operand_index];
+
+	if (operand.is_reg()) {
+		if (operand.is_integer()) {
+			auto integer_value = static_cast<uint64_t>(value);
+			auto reg = static_cast<i_registers_t>(operand.value.r8);
+			switch (reg) {
+				case i_registers_t::pc: {
+					registers_.pc = integer_value;
+					break;
+				}
+				case i_registers_t::sp: {
+					registers_.sp = integer_value;
+					break;
+				}
+				case i_registers_t::fr: {
+					registers_.fr = integer_value;
+					break;
+				}
+				case i_registers_t::sr: {
+					registers_.sr = integer_value;
+					break;
+				}
+				default: {
+					registers_.i[reg] = integer_value;
+					registers_.flags(register_file_t::flags_t::zero, value == 0);
+					break;
+				}
+			}
+		} else {
+			registers_.f[operand.value.r8] = value;
 		}
-		case operand_types::register_floating_point: {
-			registers_.f[inst.operands[operand_index].index] = value;
-			break;
-		}
-		case operand_types::register_sp: {
-			registers_.sp = value;
-			break;
-		}
-		case operand_types::register_pc: {
-			registers_.pc = value;
-			break;
-		}
-		case operand_types::register_flags: {
-			registers_.fr = value;break;
-		}
-		case operand_types::register_status: {
-			registers_.sr = value;break;
-		}
-		case operand_types::constant_float:
-		case operand_types::constant_integer:
-		case operand_types::increment_constant_pre:
-		case operand_types::decrement_constant_pre:
-		case operand_types::increment_constant_post:
-		case operand_types::constant_offset_negative:
-		case operand_types::constant_offset_positive:
-		case operand_types::decrement_constant_post: {
-			r.add_message("B006", "constant cannot be a target operand type.", true);
-			break;
-		}
+	} else {
+		r.add_message(
+			"B006",
+			"constant cannot be a target operand type.",
+			true);
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 std::string terp::disassemble(result &r, uint64_t address)
@@ -767,60 +759,66 @@ std::string terp::disassemble(const instruction_t &inst) const
 			if (i > 0 && i < inst.operands_count) {
 				operands_stream << ", ";
 			}
-			switch (inst.operands[i].type) {
-				case operand_types::register_integer:
-					operands_stream << "I" << std::to_string(inst.operands[i].index);
-					break;
-				case operand_types::register_floating_point:
-					operands_stream << "F" << std::to_string(inst.operands[i].index);
-					break;
-				case operand_types::register_sp:
-					operands_stream << "SP";
-					break;
-				case operand_types::register_pc:
-					operands_stream << "PC";
-					break;
-				case operand_types::register_flags:
-					operands_stream << "FR";
-					break;
-				case operand_types::register_status:
-					operands_stream << "SR";
-					break;
-				case operand_types::constant_integer:
-				case operand_types::constant_offset_positive:
-					operands_stream << fmt::format(fmt::runtime(format_spec), inst.operands[i].value.u64);
-					break;
-				case operand_types::constant_float:
-					operands_stream << fmt::format(fmt::runtime(format_spec), static_cast<uint64_t>(inst.operands[i].value.d64));
-					break;
-				case operand_types::constant_offset_negative:
-					format_spec = "-" + format_spec;
-					operands_stream << fmt::format(fmt::runtime(format_spec), inst.operands[i].value.u64);
-					break;
-				case operand_types::increment_constant_pre:
-					operands_stream << "++" << std::to_string(inst.operands[i].value.u64);
-					break;
-				case operand_types::increment_constant_post:
-					operands_stream << std::to_string(inst.operands[i].value.u64) << "++";
-					break;
-				case operand_types::increment_register_pre:
-					operands_stream << "++" << "I" << std::to_string(inst.operands[i].index);
-					break;
-				case operand_types::increment_register_post:
-					operands_stream << "I" << std::to_string(inst.operands[i].index) << "++";
-					break;
-				case operand_types::decrement_constant_pre:
-					operands_stream << "--" << std::to_string(inst.operands[i].value.u64);
-					break;
-				case operand_types::decrement_constant_post:
-					operands_stream << std::to_string(inst.operands[i].value.u64) << "--";
-					break;
-				case operand_types::decrement_register_pre:
-					operands_stream << "--" << "I" << std::to_string(inst.operands[i].index);
-					break;
-				case operand_types::decrement_register_post:
-					operands_stream << "I" << std::to_string(inst.operands[i].index) << "--";
-					break;
+
+			const auto& operand = inst.operands[i];
+			std::string prefix, postfix;
+
+			if (operand.is_negative()) {
+				if (operand.is_prefix())
+					prefix = "--";
+				else
+					prefix = "-";
+
+				if (operand.is_postfix())
+					postfix = "--";
+			} else {
+				if (operand.is_prefix())
+					prefix = "++";
+
+				if (operand.is_postfix())
+					postfix = "++";
+			}
+
+			if (operand.is_reg()) {
+				if (operand.is_integer()) {
+					switch (operand.value.r8) {
+						case i_registers_t::sp: {
+							operands_stream << prefix << "SP" << postfix;
+							break;
+						}
+						case i_registers_t::pc: {
+							operands_stream << prefix << "PC" << postfix;
+							break;
+						}
+						case i_registers_t::fr: {
+							operands_stream << "FR";
+							break;
+						}
+						case i_registers_t::sr: {
+							operands_stream << "SR";
+							break;
+						}
+						default: {
+							operands_stream << prefix
+											<< "I"
+											<< std::to_string(operand.value.r8)
+											<< postfix;
+							break;
+						}
+					}
+				} else {
+					operands_stream << "F" << std::to_string(operand.value.r8);
+				}
+			} else {
+				if (operand.is_integer()) {
+					operands_stream << prefix
+									<< fmt::format(fmt::runtime(format_spec), operand.value.u64)
+									<< postfix;
+				} else {
+					operands_stream << prefix
+									<< fmt::format(fmt::runtime(format_spec), operand.value.d64)
+									<< postfix;
+				}
 			}
 		}
 		stream << std::left << std::setw(24) << operands_stream.str();

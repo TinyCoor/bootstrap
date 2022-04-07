@@ -35,7 +35,7 @@ namespace gfx {
 	private:
 		terp terp_;
 		uint64_t address_;
-		parser parser_ {};
+
 		class symbol_table symbol_table_ {};
 	};
 }

@@ -3,7 +3,7 @@
 //
 
 #include "compiler.h"
-#include "lexer.h"
+#include "src/lexer/lexer.h"
 #include <fmt/format.h>
 namespace gfx {
 compiler::compiler(size_t heap_size)

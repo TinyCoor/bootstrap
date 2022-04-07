@@ -8,6 +8,7 @@
 #include "terp.h"
 #include <vector>
 namespace gfx {
+
 class instruction_emitter {
 public:
 	explicit instruction_emitter(uint64_t address): start_address_(address) {}
@@ -59,22 +60,18 @@ public:
 	void branch_if_not_equal(uint64_t address);
 
 	///  add target_register src1_register src2_register
-	///
 	void add_int_register_to_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index,
 									  i_registers_t rhs_index);
 
 	///  div target_register src1_register src2_register
-	///
 	void divide_int_register_to_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index,
 										 i_registers_t rhs_index);
 
 	///  mul target_register src1_register src2_register
-	///
 	void multiply_int_register_to_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index,
 										   i_registers_t rhs_index);
 
 	///  sub target_register src1_register src2_register
-	///
 	void subtract_int_register_to_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index, i_registers_t rhs_index);
 
 	void subtract_int_constant_from_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index, uint64_t rhs_value);
@@ -86,8 +83,7 @@ public:
 
 	void store_register_to_stack_offset(op_sizes size, i_registers_t source_index, uint64_t offset);
 
-	/// load target_register  source_register offset
-	/// load r0 sp #$8
+	/// load target_register source_register offset
 	void load_with_offset_to_register(op_sizes size ,i_registers_t source_index, i_registers_t target_index,
 									  uint64_t offset);
 	/// store

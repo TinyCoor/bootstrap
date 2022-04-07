@@ -64,34 +64,28 @@ add_custom_command(TARGET all-unit-tests
         COMMAND ctest -C $<CONFIGURATION> --output-on-failure
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set(BOOTSTRAP_SRC
-        src/parser.cpp
-        src/symbol_table.cpp
-        src/alpha_parser.cpp
-        src/compiler.cpp
-        src/lexer.cpp
-        src/token.cpp
+set(VM_SRC
         src/vm/terp.cpp
         src/vm/instruction_emitter.cpp
-        src/common/formatter.cpp
+        src/vm/instruction.cpp
+        src/vm/instruction_cache.cpp
         )
 
 add_executable(bootstrap
         src/main.cpp
-        src/result.h
-        src/result_message.h
-        src/common/formatter.cpp
+        src/common/result.h
+        src/common/result_message.h
         src/vm/instruction_emitter.cpp
         src/vm/instruction.h
-        src/disassemble.cpp
-        src/parser.cpp
-        src/symbol_table.cpp
+        src/tools/disassemble.cpp
+        src/parser/parser.cpp
+        src/parser/symbol_table.cpp
         src/compiler.cpp
         src/vm/instruction_cache.cpp
         src/vm/instruction.cpp
-        src/lexer.cpp
-        src/ast.cpp
-        src/token.cpp
+        src/lexer/lexer.cpp
+        src/parser/ast/ast.cpp
+        src/lexer/token.cpp
         src/vm/terp.cpp)
 target_link_libraries(bootstrap PUBLIC
         fmt

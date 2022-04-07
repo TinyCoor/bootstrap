@@ -4,7 +4,7 @@
 
 #ifndef INSTRUCTION_H_
 #define INSTRUCTION_H_
-#include "src/result.h"
+#include "src/common/result.h"
 #include "op_code.h"
 #include <string>
 

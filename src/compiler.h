@@ -6,8 +6,8 @@
 #define ALPHA_COMPILER_H_
 
 #include "src/vm/terp.h"
-#include "parser.h"
-#include "symbol_table.h"
+#include "src/parser/parser.h"
+#include "src/parser/symbol_table.h"
 
 namespace gfx {
 	class compiler {

@@ -1,10 +1,11 @@
-#include "src/vm/terp.h"
-#include "src/vm/instruction_emitter.h"
+#include "vm/terp.h"
+#include "vm/instruction_emitter.h"
 #include <fmt/format.h>
 #include <chrono>
 #include <functional>
 #include <sstream>
 #include "compiler.h"
+using namespace gfx;
 
 static constexpr size_t heap_size = (1024 * 1024) * 32;
 
@@ -83,7 +84,7 @@ static bool test_fibonacci(gfx::result& r, gfx::terp& terp) {
 	}
 	return result;
 }
-using namespace gfx;
+
 static bool test_square(gfx::result& r, gfx::terp& terp)
 {
 	gfx::instruction_emitter bootstrap_emitter(terp.program_start);
@@ -152,7 +153,7 @@ static int terp_test() {
 	gfx::terp terp((1024 * 1024) * 32);
 	terp.register_trap(1, [](gfx::terp* t) {
 		auto value = t->pop();
-		fmt::print("terp 1 value = {}\n", value);
+		fmt::print("[trap 1] ${:016X}\n", value);
 	});
 	gfx::result r;
 	if (!terp.initialize(r)) {
@@ -224,8 +225,8 @@ static int compiler_tests() {
 
 int main() {
 	int result =0;
-//	result = compiler_tests();
-//	if (result != 0) return result;
+	result = compiler_tests();
+	if (result != 0) return result;
 
 	 result = terp_test();
 	return result;

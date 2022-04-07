@@ -5,7 +5,7 @@
 #ifndef TERP_H_
 #define TERP_H_
 #include "op_code.h"
-#include "src/result.h"
+#include "src/common/result.h"
 #include "instruction.h"
 #include "instruction_cache.h"
 #include <cstdint>

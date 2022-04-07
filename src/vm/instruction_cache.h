@@ -26,7 +26,7 @@ public:
 	size_t fetch_at(result& r, instruction_t& inst,uint64_t address);
 private:
 	terp* terp_ = nullptr;
-	std::unordered_map<uint64_t, inst_cache_entry_t > cache_;
+	std::unordered_map<uint64_t, inst_cache_entry_t> cache_;
 };
 }
 

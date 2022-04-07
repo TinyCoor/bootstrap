@@ -6,7 +6,7 @@
 #define BOOTSTRAP_SRC_TOKEN_H_
 #include <string_view>
 #include <string>
-#include <map>
+#include <unordered_map>
 namespace gfx {
 
 enum class token_types_t {
@@ -72,7 +72,7 @@ enum class token_types_t {
 	end_of_file
 };
 
-static inline std::map<token_types_t, std::string_view> s_type_to_name = {
+static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name = {
 	{token_types_t::unknown,                "unknown"},
 	{token_types_t::left_square_bracket,    "left_square_bracket"},
 	{token_types_t::right_square_bracket,   "right_square_bracket"},

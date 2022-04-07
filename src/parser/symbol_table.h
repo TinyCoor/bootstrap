@@ -4,12 +4,11 @@
 
 #ifndef SYMBOL_TABLE_H_
 #define SYMBOL_TABLE_H_
-#include "result.h"
-#include "ast.h"
+#include "src/common/result.h"
+#include "ast/ast.h"
 
 namespace gfx {
-
-using symbol_dict = std::map<std::string, ast_node_shared_ptr>;
+using symbol_dict = std::unordered_map<std::string, ast_node_shared_ptr>;
 class symbol_table {
 public:
 	symbol_table() =default;
@@ -33,7 +32,6 @@ public:
 
 private:
 	symbol_dict symbols_;
-
 };
 }
 

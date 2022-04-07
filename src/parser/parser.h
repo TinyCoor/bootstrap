@@ -1,15 +1,15 @@
 //
 // Created by 12132 on 2022/3/30.
 //
-
 #ifndef PARSER_H_
 #define PARSER_H_
-#include "result.h"
-#include "ast.h"
-#include "lexer.h"
+#include "src/parser/ast/ast.h"
+#include "src/common/result.h"
+#include "src/lexer/lexer.h"
 #include <map>
 #include <stack>
 #include <string>
+
 namespace gfx {
 
 enum class precedence_t : uint8_t {
@@ -33,26 +33,18 @@ class infix_parser {
 public:
 	virtual ~infix_parser() = default;
 
-	virtual ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		const ast_node_shared_ptr& lhs,
-		token_t& token) = 0;
+	virtual ast_node_shared_ptr parse(result& r,parser* parser, const ast_node_shared_ptr& lhs, token_t& token) = 0;
 
 	virtual precedence_t precedence() const = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////
 
-class type_identifier_infix_parser : public infix_parser {
+class type_decl_infix_parser : public infix_parser {
 public:
-	type_identifier_infix_parser() = default;
+	type_decl_infix_parser() = default;
 
-	ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		const ast_node_shared_ptr& lhs,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
 	precedence_t precedence() const override;
 };
@@ -61,11 +53,7 @@ class variable_reference_infix_parser : public infix_parser {
 public:
 	variable_reference_infix_parser() = default;
 
-	ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		const ast_node_shared_ptr& lhs,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
 	precedence_t precedence() const override;
 };
@@ -76,11 +64,7 @@ class assignment_infix_parser : public infix_parser {
 public:
 	assignment_infix_parser() = default;
 
-	ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		const ast_node_shared_ptr& lhs,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
 	precedence_t precedence() const override;
 };
@@ -91,10 +75,7 @@ class prefix_parser {
 public:
 	virtual ~prefix_parser() = default;
 
-	virtual ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		token_t& token) = 0;
+	virtual ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -103,50 +84,35 @@ class null_literal_prefix_parser : public prefix_parser {
 public:
 	null_literal_prefix_parser() = default;
 
-	ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
 
 class number_literal_prefix_parser : public prefix_parser {
 public:
 	number_literal_prefix_parser() = default;
 
-	ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r,parser* parser, token_t& token) override;
 };
 
 class string_literal_prefix_parser : public prefix_parser {
 public:
 	string_literal_prefix_parser() = default;
 
-	ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
 
 class char_literal_prefix_parser : public prefix_parser {
 public:
 	char_literal_prefix_parser() = default;
 
-	ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
 
 class boolean_literal_prefix_parser : public prefix_parser {
 public:
 	boolean_literal_prefix_parser() = default;
 
-	ast_node_shared_ptr parse(
-		result& r,
-		parser* parser,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
 
 class line_comment_prefix_parser : public prefix_parser {
@@ -170,7 +136,7 @@ public:
 	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
 
-class attribute_prefix_parser : public prefix_parser {
+class attribute_prefix_parser : public prefix_parser  {
 public:
 	attribute_prefix_parser() = default;
 
@@ -185,8 +151,6 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////
-
-
 
 class parser {
 public:
@@ -234,7 +198,7 @@ private:
 	static inline boolean_literal_prefix_parser s_boolean_literal_prefix_parser {};
 	static inline variable_declaration_prefix_parser s_variable_declaration_prefix_parser {};
 
-	static inline std::map<token_types_t, prefix_parser*> s_prefix_parsers = {
+	static inline std::unordered_map<token_types_t, prefix_parser*> s_prefix_parsers = {
 		{token_types_t::attribute,           &s_attribute_prefix_parser},
 		{token_types_t::line_comment,        &s_line_comment_prefix_parser},
 		{token_types_t::block_comment,       &s_block_comment_prefix_parser},
@@ -249,15 +213,14 @@ private:
 	};
 
 	static inline assignment_infix_parser s_assignment_infix_parser {};
-	static inline type_identifier_infix_parser s_type_identifier_infix_parser {};
+	static inline type_decl_infix_parser s_type_identifier_infix_parser {};
 	static inline variable_reference_infix_parser s_variable_reference_infix_parser {};
 
-	static inline std::map<token_types_t, infix_parser*> s_infix_parsers = {
+	static inline std::unordered_map<token_types_t, infix_parser*> s_infix_parsers = {
 		{token_types_t::identifier,    &s_variable_reference_infix_parser},
 		{token_types_t::colon,         &s_type_identifier_infix_parser},
 		{token_types_t::assignment,    &s_assignment_infix_parser},
 	};
-
 
 private:
 	lexer lexer_;

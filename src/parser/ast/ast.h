@@ -16,7 +16,6 @@ struct ast_node_t;
 using ast_node_shared_ptr = std::shared_ptr<ast_node_t>;
 using ast_node_list = std::vector<ast_node_shared_ptr>;
 
-
 enum class ast_node_types_t {
 	program,
 	fn_call,
@@ -136,9 +135,10 @@ struct ast_node_t {
 			return "unknown";
 		return it->second;
 	}
+
 	token_t token;
 	ast_node_types_t type;
-	ast_node_list children;
+	ast_node_list children {};
 	ast_node_shared_ptr lhs = nullptr;
 	ast_node_shared_ptr rhs = nullptr;
 	flags_value_t flags = flags_t::none;
@@ -151,6 +151,10 @@ public:
 
 	virtual ~ast_builder();
 
+	ast_node_shared_ptr if_node();
+
+	ast_node_shared_ptr else_node();
+
 	ast_node_shared_ptr end_scope();
 
 	ast_node_shared_ptr pop_scope();
@@ -161,15 +165,33 @@ public:
 
 	ast_node_shared_ptr program_node();
 
+	ast_node_shared_ptr fn_call_node();
+
+	ast_node_shared_ptr fn_decl_node();
+
+	ast_node_shared_ptr else_if_node();
+
 	ast_node_shared_ptr statement_node();
 
 	ast_node_shared_ptr assignment_node();
+
+	ast_node_shared_ptr expression_node();
 
 	ast_node_shared_ptr basic_block_node();
 
 	void push_scope(const ast_node_shared_ptr& node);
 
+	ast_node_shared_ptr argument_list_node();
+
+	ast_node_shared_ptr break_node(const token_t& token);
+
+	ast_node_shared_ptr continue_node(const token_t& token);
+
 	ast_node_shared_ptr attribute_node(const token_t& token);
+
+	ast_node_shared_ptr none_literal_node(const token_t& token);
+
+	ast_node_shared_ptr empty_literal_node(const token_t& token);
 
 	ast_node_shared_ptr null_literal_node(const token_t& token);
 
@@ -181,6 +203,8 @@ public:
 
 	ast_node_shared_ptr string_literal_node(const token_t& token);
 
+	ast_node_shared_ptr unary_operator_node(const token_t& token);
+
 	ast_node_shared_ptr type_identifier_node(const token_t& token);
 
 	ast_node_shared_ptr boolean_literal_node(const token_t& token);
@@ -190,6 +214,9 @@ public:
 	ast_node_shared_ptr variable_reference_node(const token_t& token);
 
 	ast_node_shared_ptr variable_declaration_node(const token_t& token);
+
+	ast_node_shared_ptr binary_operator_node(const ast_node_shared_ptr& lhs, const token_t& token,
+											 const ast_node_shared_ptr& rhs);
 
 private:
 	std::stack<ast_node_shared_ptr> scope_stack_ {};

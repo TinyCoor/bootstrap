@@ -8,6 +8,7 @@
 using namespace gfx;
 
 static constexpr size_t heap_size = (1024 * 1024) * 32;
+static constexpr size_t stack_size = (1024 * 1024) * 8;
 
 using test_function_callable = std::function<bool(gfx::result&, gfx::terp&)>;
 
@@ -172,7 +173,7 @@ static int terp_test() {
 }
 
 static int compiler_tests() {
-	gfx::compiler compiler(heap_size);
+	gfx::compiler compiler(heap_size, stack_size);
 	gfx::result r;
 	if (!compiler.initialize(r)) {
 		print_results(r);

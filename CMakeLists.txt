@@ -71,22 +71,22 @@ set(VM_SRC
         src/vm/instruction_cache.cpp
         )
 
+set(LEXER_SRC src/lexer/lexer.cpp
+        src/lexer/token.cpp)
+
+set(PARSER_SRC src/parser/scope.cpp
+        src/parser/symbol_table.cpp
+        src/parser/parser.cpp
+        src/parser/ast/ast.cpp
+        src/parser/ast/ast_formatter.cpp)
+
 add_executable(bootstrap
         src/main.cpp
-        src/common/result.h
-        src/common/result_message.h
-        src/vm/instruction_emitter.cpp
-        src/vm/instruction.h
-        src/tools/disassemble.cpp
-        src/parser/parser.cpp
-        src/parser/symbol_table.cpp
         src/compiler.cpp
-        src/vm/instruction_cache.cpp
-        src/vm/instruction.cpp
-        src/lexer/lexer.cpp
-        src/parser/ast/ast.cpp
-        src/lexer/token.cpp
-        src/vm/terp.cpp)
+        ${VM_SRC}
+        ${PARSER_SRC}
+        ${LEXER_SRC}
+        )
 target_link_libraries(bootstrap PUBLIC
         fmt
         )

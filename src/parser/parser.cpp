@@ -3,71 +3,142 @@
 //
 
 #include "parser.h"
-#include "extern/fmt/include/fmt/format.h"
+#include "fmt/format.h"
 #include <ostream>
+#include <sstream>
 namespace gfx {
-ast_node_shared_ptr null_literal_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+ast_node_shared_ptr group_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+	auto expression_node = parser->ast_builder()->expression_node();
+	expression_node->lhs = parser->parse_expression(r, 0);
+	token_t right_paren_token;
+	right_paren_token.type = token_types_t::right_paren;
+	if (!parser->expect(r, right_paren_token))
+		return nullptr;
+	return expression_node;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+unary_operator_prefix_parser::unary_operator_prefix_parser(precedence_t precedence) : _precedence(precedence)
+{
+
+}
+
+ast_node_shared_ptr unary_operator_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+	auto unary_operator_node = parser->ast_builder()->unary_operator_node(token);
+	unary_operator_node->rhs = parser->parse_expression(r,static_cast<uint8_t>(_precedence));
+	return unary_operator_node;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+ast_node_shared_ptr symbol_literal_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	return parser->ast_builder()->null_literal_node(token);
 }
 
-///////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr number_literal_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr number_literal_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	return parser->ast_builder()->number_literal_node(token);
 }
 
-///////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr string_literal_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr string_literal_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	return parser->ast_builder()->string_literal_node(token);
 }
 
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr char_literal_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr char_literal_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	return parser->ast_builder()->character_literal_node(token);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr boolean_literal_prefix_parser::parse(result& r,parser* parser, token_t& token) {
+ast_node_shared_ptr boolean_literal_prefix_parser::parse(result& r,parser* parser, token_t& token)
+{
 	return parser->ast_builder()->boolean_literal_node(token);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr line_comment_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr line_comment_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	return parser->ast_builder()->line_comment_node(token);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr block_comment_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr block_comment_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	return parser->ast_builder()->block_comment_node(token);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr variable_declaration_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr variable_decl_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	return parser->ast_builder()->variable_declaration_node(token);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr variable_reference_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-	token_t& token) {
+	token_t& token)
+{
 	lhs->rhs = parser->ast_builder()->variable_reference_node(token);
+
 	return lhs;
 }
 
-precedence_t variable_reference_infix_parser::precedence() const {
+///////////////////////////////////////////////////////////////////////////
+
+ast_node_shared_ptr fn_call_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+	token_t& token)
+{
+	auto fn_call_node = parser->ast_builder()->fn_call_node();
+	fn_call_node->lhs = lhs;
+
+	if (!parser->peek(token_types_t::right_paren)) {
+		while (true) {
+			fn_call_node->rhs->children.push_back(parser->parse_expression(r, 0));
+			if (!parser->peek(token_types_t::comma))
+				break;
+			parser->consume();
+		}
+		token_t right_paren_token;
+		right_paren_token.type = token_types_t::right_paren;
+		if (!parser->expect(r, right_paren_token))
+			return nullptr;
+	}
+
+	return fn_call_node;
+}
+
+precedence_t fn_call_infix_parser::precedence() const
+{
+	return precedence_t::call;
+}
+
+
+precedence_t variable_reference_infix_parser::precedence() const
+{
 	return precedence_t::variable;
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr type_decl_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-	token_t& token) {
+	token_t& token)
+{
 	auto is_pointer = false;
 	if (parser->peek(token_types_t::asterisk)) {
 		parser->consume();
@@ -77,10 +148,7 @@ ast_node_shared_ptr type_decl_infix_parser::parse(result& r, parser* parser, con
 	token_t type_identifier;
 	type_identifier.type = token_types_t::identifier;
 	if (!parser->expect(r, type_identifier)) {
-		r.add_message(
-			"B027",
-			"type name expected for variable declaration.",
-			true);
+		parser->error(r, "B027", "type name expected for variable declaration.", token.line, token.column);
 		return nullptr;
 	}
 
@@ -93,41 +161,69 @@ ast_node_shared_ptr type_decl_infix_parser::parse(result& r, parser* parser, con
 		lhs->rhs->rhs = array_subscript_expression;
 	}
 
-	if (is_pointer)
+	if (is_pointer) {
 		lhs->rhs->flags |= ast_node_t::flags_t::pointer;
-	else if (is_array)
+	} else if (is_array) {
 		lhs->rhs->flags |= ast_node_t::flags_t::array;
+	}
 
 	return lhs;
 }
 
-precedence_t type_decl_infix_parser::precedence() const {
+precedence_t type_decl_infix_parser::precedence() const
+{
 	return precedence_t::type;
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr assignment_infix_parser::parse(result& r,parser* parser,
-	const ast_node_shared_ptr& lhs, token_t& token) {
+binary_operator_infix_parser::binary_operator_infix_parser(precedence_t precedence,bool is_right_associative)
+	: 	_precedence(precedence),
+		_is_right_associative(is_right_associative)
+{
+}
+
+ast_node_shared_ptr binary_operator_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+	token_t& token)
+{
+	auto associative_precedence = static_cast<uint8_t>(
+		static_cast<uint8_t>(_precedence) - (_is_right_associative ? 1 : 0));
+	return parser->ast_builder()->binary_operator_node(lhs, token,
+		parser->parse_expression(r, associative_precedence));
+}
+
+precedence_t binary_operator_infix_parser::precedence() const
+{
+	return _precedence;
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+ast_node_shared_ptr assignment_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+	token_t& token)
+{
 	auto assignment_node = parser->ast_builder()->assignment_node();
 	assignment_node->lhs = lhs;
 	assignment_node->rhs = parser->parse_expression(r, 0);
 	return assignment_node;
 }
 
-precedence_t assignment_infix_parser::precedence() const {
+precedence_t assignment_infix_parser::precedence() const
+{
 	return precedence_t::assignment;
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr attribute_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr attribute_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	return parser->ast_builder()->attribute_node(token);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr array_subscript_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr array_subscript_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	auto expression = parser->parse_expression(r, 0);
 	if (expression != nullptr) {
 		token_t right_bracket_token;
@@ -140,17 +236,14 @@ ast_node_shared_ptr array_subscript_prefix_parser::parse(result& r, parser* pars
 
 ///////////////////////////////////////////////////////////////////////////
 
-
-parser::parser(std::istream &source) : lexer_(source)
+parser::parser(std::istream &source) : source_(source), lexer_(source)
 {
 
 }
-parser::~parser()
+parser::~parser() = default;
+
+bool parser::consume()
 {
-
-}
-
-bool parser::consume() {
 	token_t token;
 	return consume(token);
 }
@@ -167,7 +260,8 @@ bool parser::consume(token_t &token)
 	return true;
 }
 
-bool parser::peek(token_types_t type) {
+bool parser::peek(token_types_t type)
+{
 	if (!look_ahead(0))
 		return false;
 	auto& token = tokens_.front();
@@ -184,7 +278,8 @@ bool parser::look_ahead(size_t count)
 	return !tokens_.empty();
 }
 
-bool parser::expect(class result &r, token_t &token) {
+bool parser::expect(class result &r, token_t &token)
+{
 	if (!look_ahead(0)) {
 		return false;
 	}
@@ -193,7 +288,8 @@ bool parser::expect(class result &r, token_t &token) {
 	auto expected_type = token.type;
 	token = tokens_.front();
 	if (token.type != expected_type) {
-		r.add_message("B016", fmt::format("expected token '{}' but found '{}'.", expected_name, token.name()), true);
+		error(r, "B016", fmt::format("expected token '{}' but found '{}'.", expected_name, token.name()),
+			token.line, token.column);
 		return false;
 	}
 
@@ -202,7 +298,8 @@ bool parser::expect(class result &r, token_t &token) {
 	return true;
 }
 
-uint8_t parser::current_infix_precedence() {
+uint8_t parser::current_infix_precedence()
+{
 	if (!look_ahead(0)) {
 		return 0;
 	}
@@ -215,15 +312,18 @@ uint8_t parser::current_infix_precedence() {
 	return 0;
 }
 
-ast_builder* parser::ast_builder() {
+ast_builder* parser::ast_builder()
+{
 	return &ast_builder_;
 }
 
-ast_node_shared_ptr parser::parse(result& r) {
+ast_node_shared_ptr parser::parse(result& r)
+{
 	return parse_scope(r);
 }
 
-ast_node_shared_ptr parser::parse_scope(result& r) {
+ast_node_shared_ptr parser::parse_scope(result& r)
+{
 	auto scope = ast_builder_.begin_scope();
 
 	while (true) {
@@ -244,10 +344,11 @@ ast_node_shared_ptr parser::parse_scope(result& r) {
 	return ast_builder_.end_scope();
 }
 
-ast_node_shared_ptr parser::parse_statement(result& r) {
+ast_node_shared_ptr parser::parse_statement(result& r)
+{
 	auto expression = parse_expression(r, 0);
 	if (expression == nullptr) {
-		r.add_message("B031", "unexpected end of input", true);
+		error(r, "B031", "unexpected end of input", 0, 0);
 		return nullptr;
 	}
 	if (expression->type == ast_node_types_t::line_comment
@@ -260,7 +361,8 @@ ast_node_shared_ptr parser::parse_statement(result& r) {
 	return statement_node;
 }
 
-infix_parser* parser::infix_parser_for(token_types_t type) {
+infix_parser* parser::infix_parser_for(token_types_t type)
+{
 	auto it = s_infix_parsers.find(type);
 	if (it == s_infix_parsers.end()) {
 		return nullptr;
@@ -268,7 +370,8 @@ infix_parser* parser::infix_parser_for(token_types_t type) {
 	return it->second;
 }
 
-prefix_parser* parser::prefix_parser_for(token_types_t type) {
+prefix_parser* parser::prefix_parser_for(token_types_t type)
+{
 	auto it = s_prefix_parsers.find(type);
 	if (it == s_prefix_parsers.end()) {
 		return nullptr;
@@ -276,7 +379,8 @@ prefix_parser* parser::prefix_parser_for(token_types_t type) {
 	return it->second;
 }
 
-ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence) {
+ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
+{
 	token_t token;
 	if (!consume(token)) {
 		return nullptr;
@@ -284,7 +388,7 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence) {
 
 	auto prefix_parser = prefix_parser_for(token.type);
 	if (prefix_parser == nullptr) {
-		r.add_message("B021", fmt::format("prefix parser for token '{}' not found.", token.name()), true);
+		error(r, "B021", fmt::format("prefix parser for token '{}' not found.", token.name()), token.line, token.column);
 		return nullptr;
 	}
 
@@ -301,7 +405,7 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence) {
 
 		auto infix_parser = infix_parser_for(token.type);
 		if (infix_parser == nullptr) {
-			r.add_message("B021", fmt::format("infix parser for token '{}' not found.", token.name()), true);
+			error(r, "B021", fmt::format("infix parser for token '{}' not found.", token.name()), token.line, token.column);
 			break;
 		}
 		lhs = infix_parser->parse(r, this, lhs, token);
@@ -311,6 +415,42 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence) {
 	}
 
 	return lhs;
+}
+
+void parser::error(result &r, const std::string &code, const std::string &message, uint32_t line, uint32_t column)
+{
+	std::vector<std::string> source_lines {};
+	source_.seekg(0, std::ios::beg);
+	while (!source_.eof()) {
+		std::string source_line;
+		std::getline(source_, source_line);
+		source_lines.push_back(source_line);
+	}
+
+	std::stringstream stream;
+	stream << "\n";
+	auto start_line = std::max<int32_t>(0, static_cast<int32_t>(line) - 4);
+	auto stop_line = std::min<int32_t>(
+		static_cast<int32_t>(source_lines.size()),
+		static_cast<int32_t>(line + 4));
+	auto message_indicator = "^ " + message;
+	for (int32_t i = start_line; i < stop_line; i++) {
+		if (i == static_cast<int32_t>(line)) {
+			stream << fmt::format("{:04d}: ", i + 1)
+				   << source_lines[i] << "\n"
+				   << fmt::format("{0:>{1}}",
+								  message_indicator,
+								  message_indicator.length() + (column - 9));
+		} else {
+			stream << fmt::format("{:04d}: ", i + 1)
+				   << source_lines[i];
+		}
+
+		if (i < static_cast<int32_t>(stop_line - 1))
+			stream << "\n";
+	}
+
+	r.add_message(code, stream.str(), true);
 }
 
 }

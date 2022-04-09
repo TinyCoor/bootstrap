@@ -6,8 +6,8 @@
 #include "src/lexer/lexer.h"
 #include <fmt/format.h>
 namespace gfx {
-compiler::compiler(size_t heap_size)
-	: 	terp_(heap_size)
+compiler::compiler(size_t heap_size,size_t stack_size)
+	: 	terp_(heap_size), global_scope(nullptr, nullptr)
 {
 
 }

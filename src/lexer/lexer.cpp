@@ -6,6 +6,7 @@
 
 #include <sstream>
 namespace gfx {
+/// todo use lambda
 std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	// attribute
 	{'@', std::bind(&lexer::attribute, std::placeholders::_1, std::placeholders::_2)},
@@ -43,7 +44,8 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{':', std::bind(&lexer::scope_operator, std::placeholders::_1, std::placeholders::_2)},
 	{':', std::bind(&lexer::colon, std::placeholders::_1, std::placeholders::_2)},
 
-	// percent
+	// percent/number literal
+	{'%', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'%', std::bind(&lexer::percent, std::placeholders::_1, std::placeholders::_2)},
 
 	// asterisk

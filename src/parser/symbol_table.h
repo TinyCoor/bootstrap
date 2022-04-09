@@ -6,29 +6,36 @@
 #define SYMBOL_TABLE_H_
 #include "src/common/result.h"
 #include "ast/ast.h"
+#include <set>
 
 namespace gfx {
-using symbol_dict = std::unordered_map<std::string, ast_node_shared_ptr>;
+
+struct symbol_table_entry_t {
+	uint64_t address = 0;
+	ast_node_shared_ptr node = nullptr;
+};
+
+struct symbol_lookup_result_t {
+	bool found = false;
+	std::vector<symbol_table_entry_t*> entries {};
+};
+
+using symbol_dict = std::unordered_multimap<std::string, symbol_table_entry_t>;
 class symbol_table {
 public:
 	symbol_table() =default;
 
-	void put(const std::string& name, const ast_node_shared_ptr& value);
+	void put(const std::string& name, const symbol_table_entry_t& value);
 
 	void clear();
 
 	void remove(const std::string& name);
 
-	std::vector<std::string> identifiers()
-	{
-		std::vector<std::string> identifiers;
-		for (auto& symbol : symbols_) {
-			identifiers.push_back(symbol.first);
-		}
-		return identifiers;
-	}
+	std::set<std::string> names() const;
 
-	ast_node_shared_ptr get(const std::string& name) const;
+	bool is_defined(const std::string& name);
+
+	symbol_lookup_result_t get(const std::string& name);
 
 private:
 	symbol_dict symbols_;

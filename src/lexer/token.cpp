@@ -73,7 +73,4 @@ conversion_result token_t::parse(uint64_t& out) const
 	}
 	return conversion_result::success;
 }
-
-
-
 }

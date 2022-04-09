@@ -2,42 +2,32 @@
 // Created by 12132 on 2022/3/30.
 //
 
-#ifndef ALPHA_COMPILER_H_
-#define ALPHA_COMPILER_H_
+#ifndef COMPILER_H_
+#define COMPILER_H_
 
-#include "src/vm/terp.h"
-#include "src/parser/parser.h"
-#include "src/parser/symbol_table.h"
+#include "vm/terp.h"
+#include "parser/parser.h"
+#include "parser/scope.h"
 
 namespace gfx {
 	class compiler {
 	public:
-		explicit compiler(size_t heap_size);
+		explicit compiler(size_t heap_size, size_t stack_size);
 
 		virtual ~compiler();
 
-		inline uint64_t address() const
-		{
-			return address_;
-		}
-
 		bool initialize(result& r);
-
-		inline symbol_table* symbol_table()
-		{
-			return &symbol_table_;
-		}
 
 		bool compile(result& r, std::istream& input);
 
 		bool compile_stream(result& r, std::istream& input);
 
 	private:
-		terp terp_;
-		uint64_t address_;
 
-		class symbol_table symbol_table_ {};
+	private:
+		terp terp_;
+		scope global_scope;
 	};
 }
 
-#endif // ALPHA_COMPILER_H_
+#endif // COMPILER_H_

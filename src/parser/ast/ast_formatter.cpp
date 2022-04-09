@@ -17,10 +17,7 @@ void ast_formatter::format_node(const ast_node_shared_ptr& node, uint32_t level)
 		fmt::print("nullptr");
 		return;
 	}
-	fmt::print(
-		"[type: {} | token: {}]\n",
-		node->name(),
-		node->token.name());
+	fmt::print("[type: {} | token: {}]\n", node->name(), node->token.name());
 	fmt::print("{1:{0}}     value: '{2}'\n", level, "", node->token.value);
 	if (node->token.is_numeric()) {
 		fmt::print("{1:{0}}     radix: {2}\n", level, "", node->token.radix);

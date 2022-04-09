@@ -99,7 +99,9 @@ namespace gfx {
 	private:
 
 		bool exited_ = false;
-		uint32_t heap_size_ = 0;
+		size_t heap_size_ = 0;
+		size_t stack_size = 0;
+
 		uint8_t * heap_ = nullptr;
 		register_file_t registers_{};
 		instruction_cache inst_cache_;

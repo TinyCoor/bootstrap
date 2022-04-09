@@ -18,6 +18,8 @@ public:
 	inline void add_message(const std::string& code, const std::string& message, bool error) {
 		messages_.emplace_back(code, message, std::string(),
 	   	error ?  result_message::types::error :  result_message::types::info);
+		if (error)
+			fail();
 	}
 
 	inline void add_message(const std::string& code, const std::string& message, const std::string& details, bool error) {

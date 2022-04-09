@@ -162,7 +162,6 @@ private:
 	std::istream& source_;
 	std::istream::pos_type mark_;
 	std::set<std::istream::pos_type> line_breaks_ {};
-
 };
 
 }

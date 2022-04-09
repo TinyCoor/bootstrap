@@ -19,9 +19,9 @@ bool compiler::initialize(result& r) {
 	return terp_.initialize(r);
 }
 
-bool compiler::compile(result& r, std::istream& input) {
-	compile_stream(r, input);
-	return !r.is_failed();
+bool compiler::compile(result& r, std::istream& input)
+{
+	return compile_stream(r, input);
 }
 
 bool compiler::compile_stream(result& r, std::istream& input) {

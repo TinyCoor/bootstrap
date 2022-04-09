@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(extern/fmt)
 
-include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/src)
 message(STATUS ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
 
@@ -71,10 +71,12 @@ set(VM_SRC
         src/vm/instruction_cache.cpp
         )
 
-set(LEXER_SRC src/lexer/lexer.cpp
+set(LEXER_SRC
+        src/lexer/lexer.cpp
         src/lexer/token.cpp)
 
-set(PARSER_SRC src/parser/scope.cpp
+set(PARSER_SRC
+        src/parser/scope.cpp
         src/parser/symbol_table.cpp
         src/parser/parser.cpp
         src/parser/ast/ast.cpp

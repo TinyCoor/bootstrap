@@ -28,6 +28,7 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{'^', std::bind(&lexer::caret, std::placeholders::_1, std::placeholders::_2)},
 
 	// bang
+	{'!', std::bind(&lexer::not_equals_operator, std::placeholders::_1, std::placeholders::_2)},
 	{'!', std::bind(&lexer::bang, std::placeholders::_1, std::placeholders::_2)},
 
 	// question
@@ -53,7 +54,6 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 	// equals, not equals
 	{'=', std::bind(&lexer::equals_operator, std::placeholders::_1, std::placeholders::_2)},
-	{'!', std::bind(&lexer::not_equals_operator, std::placeholders::_1, std::placeholders::_2)},
 
 	// less than equal, less than
 	{'<', std::bind(&lexer::less_than_equal_operator, std::placeholders::_1, std::placeholders::_2)},

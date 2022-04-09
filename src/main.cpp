@@ -186,7 +186,7 @@ static int compiler_tests() {
 		"\n"
 		"@entry_point main;\n"
 		"\n"
-		"truth:bool := true;\n"
+		"truth:bool := != true;\n"
 		"lies:bool := false;\n"
 		"char:u8 := 'A';\n"
 		"name:string := \"this is a test string literal\";\n"
@@ -225,7 +225,7 @@ static int compiler_tests() {
 }
 
 int main() {
-	int result =0;
+	int result = 0;
 	result = compiler_tests();
 	if (result != 0) return result;
 

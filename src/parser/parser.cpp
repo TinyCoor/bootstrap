@@ -186,21 +186,21 @@ ast_node_shared_ptr line_comment_prefix_parser::parse(result& r, parser* parser,
 	return parser->ast_builder()->line_comment_node(token);
 }
 
-///////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr block_comment_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	return parser->ast_builder()->block_comment_node(token);
 }
 
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr variable_decl_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	return parser->ast_builder()->variable_declaration_node(token);
 }
 
-///////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr variable_reference_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
 	token_t& token)
@@ -210,7 +210,7 @@ ast_node_shared_ptr variable_reference_infix_parser::parse(result& r, parser* pa
 	return lhs;
 }
 
-///////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr fn_call_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
 	token_t& token)
@@ -225,11 +225,11 @@ ast_node_shared_ptr fn_call_infix_parser::parse(result& r, parser* parser, const
 				break;
 			parser->consume();
 		}
-		token_t right_paren_token;
-		right_paren_token.type = token_types_t::right_paren;
-		if (!parser->expect(r, right_paren_token))
-			return nullptr;
 	}
+	token_t right_paren_token;
+	right_paren_token.type = token_types_t::right_paren;
+	if (!parser->expect(r, right_paren_token))
+		return nullptr;
 
 	return fn_call_node;
 }
@@ -517,7 +517,7 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 
 	while (precedence < current_infix_precedence()) {
 		if (!consume(token)) {
-			// XXX: this bad ***mmmmkay***
+			// XXX: this bad *** mmmmkay ***
 			break;
 		}
 

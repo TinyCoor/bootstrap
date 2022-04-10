@@ -28,7 +28,8 @@ static bool run_terp(gfx::result& r, gfx::terp& terp)
 	return true;
 }
 
-static bool test_fibonacci(gfx::result& r, gfx::terp& terp) {
+static bool test_fibonacci(gfx::result& r, gfx::terp& terp)
+{
 	gfx::instruction_emitter bootstrap_emitter(terp.program_start);
 	bootstrap_emitter.jump_direct(0);
 
@@ -148,7 +149,8 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 	return rc;
 }
 
-static int terp_test() {
+static int terp_test()
+{
 
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 	gfx::terp terp((1024 * 1024) * 32);
@@ -172,7 +174,8 @@ static int terp_test() {
 	return 0;
 }
 
-static int compiler_tests() {
+static int compiler_tests()
+{
 	gfx::compiler compiler(heap_size, stack_size);
 	gfx::result r;
 	if (!compiler.initialize(r)) {
@@ -186,17 +189,17 @@ static int compiler_tests() {
 		"\n"
 		"@entry_point main;\n"
 		"\n"
-		"truth:bool := != true;\n"
+		"name:string := \"this is a test string literal\";\n"
+		"truth:bool := true;\n"
 		"lies:bool := false;\n"
 		"char:u8 := 'A';\n"
-		"name:string := \"this is a test string literal\";\n"
-		"name_ptr:*u8 := address_of(name);\n"
 		"name_ptr := null;\n"
 		"dx:u32 := 467;\n"
 		"vx:f64 := 3.145;\n"
 		"vy:f64 := 1.112233;\n"
+		"name_ptr:*u8 := address_of(name);\n"
 		"\n"
-		"foo:u16 := $ff * 2;\n"
+		"foo:u16 := $ff * (($7f * 2) | %1000_0000_0000_0000);\n"
 		"\n"
 		"fib := fn(n:u64):u64 {\n"
 		"    if n == 0 || n == 1 {\n"

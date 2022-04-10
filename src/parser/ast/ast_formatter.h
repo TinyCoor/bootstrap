@@ -17,7 +17,7 @@ private:
 	void format_node(const ast_node_shared_ptr& node, uint32_t level);
 
 private:
-	ast_node_shared_ptr _root;
+	ast_node_shared_ptr root_;
 };
 }
 

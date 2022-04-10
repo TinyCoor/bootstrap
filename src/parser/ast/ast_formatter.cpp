@@ -5,14 +5,19 @@
 #include "ast_formatter.h"
 #include "fmt/format.h"
 namespace gfx {
-ast_formatter::ast_formatter(const ast_node_shared_ptr& root) : _root(root) {
+
+ast_formatter::ast_formatter(const ast_node_shared_ptr& root)
+	: root_(root)
+{
 }
 
-void ast_formatter::format() {
-	format_node(_root, 0);
+void ast_formatter::format()
+{
+	format_node(root_, 0);
 }
 
-void ast_formatter::format_node(const ast_node_shared_ptr& node, uint32_t level) {
+void ast_formatter::format_node(const ast_node_shared_ptr& node, uint32_t level)
+{
 	if (node == nullptr) {
 		fmt::print("nullptr");
 		return;

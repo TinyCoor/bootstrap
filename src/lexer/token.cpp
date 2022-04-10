@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
+
 namespace gfx {
 
 bool token_t::as_bool() const

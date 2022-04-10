@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/4/1.
 //
 
-#ifndef BOOTSTRAP_SRC_AST_H_
-#define BOOTSTRAP_SRC_AST_H_
+#ifndef AST_H_
+#define AST_H_
 
 #include "src/lexer/token.h"
 #include <memory>
@@ -122,14 +122,18 @@ struct ast_node_t {
 		array   = 0b00000010,
 	};
 
-	inline bool is_array() const {
+	inline bool is_array() const
+	{
 		return ((flags & flags_t::array) != 0);
 	}
 
-	inline bool is_pointer() const {
+	inline bool is_pointer() const
+	{
 		return ((flags & flags_t::pointer) != 0);
 	}
-	inline std::string name() const {
+
+	inline std::string name() const
+	{
 		auto it = s_node_type_names.find(type);
 		if (it == s_node_type_names.end())
 			return "unknown";
@@ -223,4 +227,4 @@ private:
 };
 }
 
-#endif //BOOTSTRAP_SRC_AST_H_
+#endif // AST_H_

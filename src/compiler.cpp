@@ -4,6 +4,7 @@
 
 #include "compiler.h"
 #include "src/lexer/lexer.h"
+#include "parser/ast/ast_formatter.h"
 #include <fmt/format.h>
 namespace gfx {
 compiler::compiler(size_t heap_size,size_t stack_size)
@@ -30,6 +31,8 @@ bool compiler::compile_stream(result& r, std::istream& input) {
 	if (program_node != nullptr) {
 
 	}
+	ast_formatter formatter(program_node);
+	formatter.format();
 	return !r.is_failed();
 }
 

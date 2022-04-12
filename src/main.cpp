@@ -151,9 +151,8 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 
 static int terp_test()
 {
-
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-	gfx::terp terp((1024 * 1024) * 32);
+	gfx::terp terp(heap_size, stack_size);
 	terp.register_trap(1, [](gfx::terp* t) {
 		auto value = t->pop();
 		fmt::print("[trap 1] ${:016X}\n", value);

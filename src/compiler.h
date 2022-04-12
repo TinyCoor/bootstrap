@@ -23,7 +23,7 @@ namespace gfx {
 		bool compile_stream(result& r, std::istream& input);
 
 	private:
-
+		void build_scope_tree(result& r, scope* scope, const ast_node_shared_ptr& node);
 	private:
 		terp terp_;
 		scope global_scope;

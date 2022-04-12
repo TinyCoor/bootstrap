@@ -7,8 +7,8 @@ namespace gfx {
 
 scope::scope(scope *parent, const ast_node_shared_ptr &node) : parent_(parent), node_(node)
 {
-
 }
+
 void scope::clear()
 {
 	children_.clear();

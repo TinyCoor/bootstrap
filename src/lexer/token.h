@@ -162,6 +162,7 @@ struct token_t {
 	conversion_result parse(int64_t& out) const;
 
 	conversion_result parse(uint64_t& out) const;
+
 	token_types_t type = token_types_t::unknown;
 	std::string value;
 	uint8_t radix = 10;

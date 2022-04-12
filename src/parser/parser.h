@@ -75,7 +75,7 @@ public:
 
 class binary_operator_infix_parser : public infix_parser {
 public:
-	binary_operator_infix_parser( precedence_t precedence, bool is_right_associative) noexcept;
+	binary_operator_infix_parser(precedence_t precedence, bool is_right_associative) noexcept;
 
 	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 

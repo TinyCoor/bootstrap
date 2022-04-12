@@ -1,4 +1,4 @@
-fib:= fn(n:u64) ->u64 {
+fib:= fn(n:u64) :u64 {
     if n == 0 || n ==1 {
         n;
     }else {

@@ -149,6 +149,42 @@ static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string
 	return rc;
 }
 
+static bool test_branches(gfx::result& r, gfx::terp& terp) {
+	gfx::instruction_emitter main_emitter(terp.program_start);
+	main_emitter.move_int_constant_to_register(gfx::op_sizes::byte, 10, gfx::i_registers_t::i0);
+	main_emitter.move_int_constant_to_register(gfx::op_sizes::byte, 5, gfx::i_registers_t::i1);
+	main_emitter.compare_int_register_to_register(gfx::op_sizes::byte, gfx::i_registers_t::i0,
+		gfx::i_registers_t::i1);
+	main_emitter.branch_if_greater(0);
+	main_emitter.push_int_constant(gfx::op_sizes::byte, 1);
+	main_emitter.trap(1);
+
+	main_emitter[3].patch_branch_address(main_emitter.end_address());
+	main_emitter.compare_int_register_to_register(gfx::op_sizes::byte, gfx::i_registers_t::i1,
+		gfx::i_registers_t::i0);
+	main_emitter.branch_if_lesser(0);
+	main_emitter.push_int_constant(gfx::op_sizes::byte, 2);
+	main_emitter.trap(1);
+
+	main_emitter[7].patch_branch_address(main_emitter.end_address());
+	main_emitter.push_int_constant(gfx::op_sizes::byte, 10);
+	main_emitter.dup();
+	main_emitter.trap(1);
+	main_emitter.pop_int_register(gfx::op_sizes::byte, gfx::i_registers_t::i0);
+
+	main_emitter.exit();
+	main_emitter.encode(r, terp);
+
+	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
+
+	auto result = run_terp(r, terp);
+	if (terp.register_file().i[0] != 10) {
+		r.add_message("T001", "I0 should contain 10.", true);
+	}
+
+	return result;
+}
+
 static int terp_test()
 {
 	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -168,10 +204,12 @@ static int terp_test()
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 	fmt::print("execution time (in us): {}\n\n", duration);
 
+	time_test_function(r, terp, "test_branches", test_branches);
 	time_test_function(r, terp, "test_square" ,test_square);
 	time_test_function(r, terp, "test_fibonacci", test_fibonacci);
 	return 0;
 }
+
 
 static int compiler_tests()
 {
@@ -228,8 +266,8 @@ static int compiler_tests()
 
 int main() {
 	int result = 0;
-	result = compiler_tests();
-	if (result != 0) return result;
+//	result = compiler_tests();
+//	if (result != 0) return result;
 
 	 result = terp_test();
 	return result;

@@ -228,6 +228,7 @@ struct operand_encoding_t {
 	inline bool is_negative() const {
 		return (type & flags::negative) != 0;
 	}
+
 	flags_t type = flags::reg | flags::integer;
 	union {
 		uint8_t r8 = 0;

@@ -57,6 +57,14 @@ public:
 
 	void branch_if_equal(uint64_t address);
 
+	void branch_if_greater(uint64_t address);
+
+	void branch_if_lesser(uint64_t address);
+
+	void branch_if_lesser_or_equal(uint64_t address);
+
+	void branch_if_greater_or_equal(uint64_t address);
+
 	void branch_if_not_equal(uint64_t address);
 
 	void compare_int_register_to_constant(op_sizes sizes, i_registers_t index, uint64_t value);

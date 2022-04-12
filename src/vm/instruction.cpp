@@ -20,12 +20,8 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 	*(encoding_ptr + 1) = static_cast<uint8_t>(op);
 
 	uint8_t size_type_and_operand_count = 0;
-	size_type_and_operand_count = set_upper_nybble(
-		size_type_and_operand_count,
-		static_cast<uint8_t>(size));
-	size_type_and_operand_count = set_lower_nybble(
-		size_type_and_operand_count,
-		operands_count);
+	size_type_and_operand_count = set_upper_nybble(size_type_and_operand_count, static_cast<uint8_t>(size));
+	size_type_and_operand_count = set_lower_nybble(size_type_and_operand_count, operands_count);
 	*(encoding_ptr + 2) = size_type_and_operand_count;
 
 	for (size_t i = 0u; i < operands_count ; ++i) {
@@ -44,8 +40,7 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 					*constant_value_ptr = static_cast<uint8_t>(operands[i].value.u64);
 					offset += sizeof(uint8_t);
 					encoding_size += sizeof(uint8_t);
-					break;
-				}
+				}break;
 				case op_sizes::word: {
 					uint16_t *constant_value_ptr = reinterpret_cast<uint16_t *>(encoding_ptr + offset);
 					*constant_value_ptr = static_cast<uint16_t>(operands[i].value.u64);
@@ -87,9 +82,8 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 					} else {
 						r.add_message("B009","constant floats cannot have a size of 'none', 'byte', or 'word'.", true);
 					}
-				}
+				}break;
 			}
-			break;
 		}
 	}
 
@@ -102,7 +96,7 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 size_t instruction_t::decode(result& r, uint8_t* heap, uint64_t address)
 {
 	if (address % alignment != 0) {
-		r.add_message("B003",fmt::format("instruction alignment violation: alignment = {} bytes, address = ${:016X}",
+		r.add_message("B003", fmt::format("instruction alignment violation: alignment = {} bytes, address = ${:016X}",
 										 alignment,address), true);
 		return 0;
 	}
@@ -163,7 +157,7 @@ size_t instruction_t::decode(result& r, uint8_t* heap, uint64_t address)
 						operands[i].value.d64 = *constant_value_ptr;
 						offset += sizeof(double);
 					}
-				}
+				}break;
 			}
 		}
 	}

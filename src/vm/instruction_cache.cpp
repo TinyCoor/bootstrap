@@ -21,7 +21,7 @@ size_t instruction_cache::fetch(result& r, instruction_t &inst)
 
 size_t instruction_cache::fetch_at(result& r, instruction_t &inst, uint64_t address)
 {
-	auto it  =cache_.find(address);
+	auto it = cache_.find(address);
 	if (it == cache_.end()) {
 		auto inst_size = inst.decode(r, terp_->heap(), address);
 		if (inst_size == 0 ) {

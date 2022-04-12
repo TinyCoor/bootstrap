@@ -405,6 +405,43 @@ void instruction_emitter::jump_subroutine_pc_relative(op_sizes size, operand_enc
 	jsr_op.operands[1].value.u64 = offset;
 	inst_.push_back(jsr_op);
 }
+void instruction_emitter::branch_if_greater(uint64_t address) {
+	instruction_t branch_op;
+	branch_op.op = op_codes::bg;
+	branch_op.size = op_sizes::qword;
+	branch_op.operands_count = 1;
+	branch_op.operands[0].type = operand_encoding_t::integer | operand_encoding_t::constant;
+	branch_op.operands[0].value.u64 = address;
+	inst_.push_back(branch_op);
+}
 
+void instruction_emitter::branch_if_lesser(uint64_t address) {
+	instruction_t branch_op;
+	branch_op.op = op_codes::bl;
+	branch_op.size = op_sizes::qword;
+	branch_op.operands_count = 1;
+	branch_op.operands[0].type = operand_encoding_t::integer | operand_encoding_t::constant;
+	branch_op.operands[0].value.u64 = address;
+	inst_.push_back(branch_op);
+}
+
+void instruction_emitter::branch_if_lesser_or_equal(uint64_t address) {
+	instruction_t branch_op;
+	branch_op.op = op_codes::ble;
+	branch_op.size = op_sizes::qword;
+	branch_op.operands_count = 1;
+	branch_op.operands[0].type = operand_encoding_t::integer | operand_encoding_t::constant;
+	branch_op.operands[0].value.u64 = address;
+	inst_.push_back(branch_op);
+}
+void instruction_emitter::branch_if_greater_or_equal(uint64_t address) {
+	instruction_t branch_op;
+	branch_op.op = op_codes::bge;
+	branch_op.size = op_sizes::qword;
+	branch_op.operands_count = 1;
+	branch_op.operands[0].type = operand_encoding_t::integer | operand_encoding_t::constant;
+	branch_op.operands[0].value.u64 = address;
+	inst_.push_back(branch_op);
+}
 
 }

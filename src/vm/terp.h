@@ -18,13 +18,34 @@ namespace gfx {
 	public:
 		/// using to call cpp code
 		using trap_callable = std::function<void(terp*)>;
+
+		static constexpr uint64_t mask_byte        = 0b0000000000000000000000000000000000000000000000000000000011111111;
+		static constexpr uint64_t mask_byte_clear  = ~mask_byte;
+
+		static constexpr uint64_t mask_word        = 0b0000000000000000000000000000000000000000000000001111111111111111;
+		static constexpr uint64_t mask_word_clear  = ~mask_word;
+
+		static constexpr uint64_t mask_dword       = 0b0000000000000000000000000000000011111111111111111111111111111111;
+		static constexpr uint64_t mask_dword_clear = ~mask_dword;
+
+		static constexpr uint64_t mask_byte_negative  = 0b0000000000000000000000000000000000000000000000000000000010000000;
+		static constexpr uint64_t mask_word_negative  = 0b0000000000000000000000000000000000000000000000001000000000000000;
+		static constexpr uint64_t mask_dword_negative = 0b0000000000000000000000000000000010000000000000000000000000000000;
+		static constexpr uint64_t mask_qword_negative = 0b1000000000000000000000000000000000000000000000000000000000000000;
+
 		/// 中断向量表
 		static constexpr size_t interrupt_vector_table_start = 0u;
 		static constexpr size_t interrupt_vector_table_size = 16u;
 		static constexpr size_t interrupt_vector_table_end = sizeof(uint64_t) * interrupt_vector_table_size;
-		static constexpr size_t program_start = interrupt_vector_table_end;
 
-		explicit terp(size_t heap_size);
+		/// Heap Start
+		static constexpr size_t heap_vector_table_start = interrupt_vector_table_end;
+		static constexpr size_t heap_vector_table_size = 8;
+		static constexpr size_t heap_vector_table_end = heap_vector_table_start
+			+ (sizeof(uint16_t) * heap_vector_table_size);
+
+		static constexpr size_t program_start = heap_vector_table_end;
+		explicit terp(size_t heap_size, size_t stack_size);
 
 		virtual ~terp();
 
@@ -43,6 +64,17 @@ namespace gfx {
 		{
 			return heap_;
 		}
+
+		size_t stack_size() const
+		{
+			return stack_size_;
+		}
+
+		std::vector<uint64_t> jump_to_subroutine(result& r, uint64_t address);
+
+		uint64_t heap_vector(uint8_t index) const;
+
+		void heap_vector(uint8_t index, uint64_t address);
 
 		uint64_t pop();
 
@@ -96,11 +128,19 @@ namespace gfx {
 		{
 			return reinterpret_cast<uint64_t*>(heap_ + address);
 		}
+
+		uint64_t set_zoned_value(uint64_t source, uint64_t value, op_sizes size);
+
+		bool has_overflow(uint64_t lhs, uint64_t rhs, uint64_t result, op_sizes size);
+
+		bool has_carry(uint64_t value, op_sizes size);
+
+		bool is_negative(uint64_t value, op_sizes size);
 	private:
 
 		bool exited_ = false;
 		size_t heap_size_ = 0;
-		size_t stack_size = 0;
+		size_t stack_size_ = 0;
 
 		uint8_t * heap_ = nullptr;
 		register_file_t registers_{};

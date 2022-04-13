@@ -6,7 +6,7 @@
  Description: Callback - Implementation for x86
  License:
 
-   Copyright (c) 2007-2020 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -24,27 +24,22 @@
 */
 
 
-#include "dyncall_callback.h"
-#include "dyncall_alloc_wx.h"
-#include "dyncall_thunk.h"
+
+#include "dyncall_callback_x86.h"
 #include "dyncall_args_x86.h"
 
-/* Callback symbol. */
+#include "dyncall_alloc_wx.h"
+#include "dyncall_signature.h"
+
+/*
+ * assembly thunk entry for callbacks
+ */
+
 extern void dcCallbackThunkEntry();
-
-struct DCCallback
-{
-  DCThunk            thunk;         /* offset 0,  size 16 */
-  DCCallbackHandler* handler;       /* offset 16 */
-  DCArgsVT*          args_vt;       /* offset 20 */
-  size_t             stack_cleanup; /* offset 24 */
-  void*              userdata;      /* offset 28 */
-};
-
 
 /* compute stacksize for callee cleanup calling conventions:
  *
- * cdecl,stdcall,thiscall_ms,fastcall_ms,fastcall_gnu
+ * stdcall,fastcall_ms,fastcall_gnu
  */
 
 static int dcbCleanupSize_x86_cdecl(const char* signature)
@@ -203,13 +198,10 @@ void dcbInitCallback(DCCallback* pcb, const char* signature, DCCallbackHandler* 
     ptr++;
     ch = *ptr++;
     switch(ch) {
-      case DC_SIGCHAR_CC_DEFAULT:      mode = DC_CALL_C_DEFAULT;            break;
-      case DC_SIGCHAR_CC_THISCALL_GNU: // == cdecl
-      case DC_SIGCHAR_CC_CDECL:        mode = DC_CALL_C_X86_CDECL;          break;
       case DC_SIGCHAR_CC_STDCALL:      mode = DC_CALL_C_X86_WIN32_STD;      break;
-      case DC_SIGCHAR_CC_FASTCALL_MS:  mode = DC_CALL_C_X86_WIN32_FAST_MS;  break;
-      case DC_SIGCHAR_CC_FASTCALL_GNU: mode = DC_CALL_C_X86_WIN32_FAST_GNU; break;
       case DC_SIGCHAR_CC_THISCALL_MS:  mode = DC_CALL_C_X86_WIN32_THIS_MS;  break;
+      case DC_SIGCHAR_CC_FASTCALL_GNU: mode = DC_CALL_C_X86_WIN32_FAST_GNU; break;
+      case DC_SIGCHAR_CC_FASTCALL_MS:  mode = DC_CALL_C_X86_WIN32_FAST_MS;  break;
     }
   }
 
@@ -224,6 +216,10 @@ void dcbInitCallback(DCCallback* pcb, const char* signature, DCCallbackHandler* 
       pcb->args_vt = &dcArgsVT_default;
       pcb->stack_cleanup = dcbCleanupSize_x86_std(ptr);
       break;
+    case DC_CALL_C_X86_WIN32_THIS_MS:
+      pcb->args_vt = &dcArgsVT_this_ms;
+      pcb->stack_cleanup = dcbCleanupSize_x86_this_ms(ptr);
+      break;
     case DC_CALL_C_X86_WIN32_FAST_MS:
       pcb->args_vt = &dcArgsVT_fast_ms;
       pcb->stack_cleanup = dcbCleanupSize_x86_fast_ms(ptr);
@@ -231,10 +227,6 @@ void dcbInitCallback(DCCallback* pcb, const char* signature, DCCallbackHandler* 
     case DC_CALL_C_X86_WIN32_FAST_GNU:
       pcb->args_vt = &dcArgsVT_fast_gnu;
       pcb->stack_cleanup = dcbCleanupSize_x86_fast_gnu(ptr);
-      break;
-    case DC_CALL_C_X86_WIN32_THIS_MS:
-      pcb->args_vt = &dcArgsVT_this_ms;
-      pcb->stack_cleanup = dcbCleanupSize_x86_this_ms(ptr);
       break;
   }
 
@@ -268,18 +260,10 @@ DCCallback* dcbNewCallback(const char* signature, DCCallbackHandler* handler, vo
   int err;
   DCCallback* pcb;
   err = dcAllocWX(sizeof(DCCallback), (void**) &pcb);
-  if(err)
-    return NULL;
+  if (err != 0) return 0;
 
   dcbInitThunk(&pcb->thunk, dcCallbackThunkEntry);
   dcbInitCallback(pcb, signature, handler, userdata);
-
-  err = dcInitExecWX(pcb, sizeof(DCCallback));
-  if(err) {
-    dcFreeWX(pcb, sizeof(DCCallback));
-    return NULL;
-  }
-
   return pcb;
 }
 

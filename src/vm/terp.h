@@ -5,15 +5,20 @@
 #ifndef TERP_H_
 #define TERP_H_
 #include "op_code.h"
-#include "src/common/result.h"
 #include "instruction.h"
+#include "src/common/result.h"
+#include "shared_library.h"
 #include "instruction_cache.h"
 #include <cstdint>
 #include <string>
 #include <functional>
 #include <map>
 
+
+
+
 namespace gfx {
+
 	class terp {
 	public:
 		/// using to call cpp code
@@ -73,6 +78,8 @@ namespace gfx {
 		const meta_information_t& meta_information() const {
 			return meta_information_;
 		}
+
+		bool load_shared_library(result& r, const std::filesystem::path& path);
 
 		std::vector<uint64_t> jump_to_subroutine(result& r, uint64_t address);
 
@@ -148,13 +155,13 @@ namespace gfx {
 		bool exited_ = false;
 		size_t heap_size_ = 0;
 		size_t stack_size_ = 0;
-
 		uint8_t * heap_ = nullptr;
 		register_file_t registers_{};
 		instruction_cache inst_cache_;
 		meta_information_t meta_information_ {};
 		std::map<uint8_t, trap_callable> traps_{};
-
+		DCCallVM* call_vm_ = nullptr;
+	   std::unordered_map<std::string,shared_library> shared_libraries_{};
 	};
 }
 

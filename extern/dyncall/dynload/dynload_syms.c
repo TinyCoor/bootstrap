@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>, 
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>, 
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -33,5 +33,7 @@
 #include "dynload_syms_mach-o.c"
 #elif defined(ABI_ELF)
 #include "dynload_syms_elf.c"
+#else
+void dummy() { }
 #endif
 

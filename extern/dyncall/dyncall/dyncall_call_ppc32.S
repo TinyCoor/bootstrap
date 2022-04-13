@@ -6,7 +6,7 @@
  Description: Call Kernel for PowerPC 32-bit Architecture
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>, 
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>, 
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -33,7 +33,7 @@
 
 */
 
-	/* .machine ppc /* clang's integrated as doesn't handle this on anything but Darwin (at least for clang <= 9) */
+	.machine ppc
 	.text
 
 /* ============================================================================
@@ -100,7 +100,7 @@ ENTRY_C(dcCall_ppc32_darwin)
 
 	srwi r5,r5,2		/* r5 = size in words */
 
-	cmpi cr0,0,r5,0		/* if stacksize != 0 .. */
+	cmpi cr0,r5,0		/* if stacksize != 0 .. */
 	beq  cr0,.osx_done
 
 	mtctr r5		/* copy loop */
@@ -214,7 +214,7 @@ ENTRY_C(dcCall_ppc32_sysv)
 
 	srwi r5,r5,2		/* r5 = size in words */
 
-	cmpi cr0,0,r5,0		/* if stacksize != 0 .. */
+	cmpi cr0,r5,0		/* if stacksize != 0 .. */
 	beq  cr0,.sysv_done
 
 	mtctr r5		/* copy loop */
@@ -268,7 +268,6 @@ ENTRY_C(dcCall_ppc32_sysv)
 
 	.align 2
 
-/* @@@ Bus Error on Darwin */
 GLOBAL_C(dcCall_ppc32_syscall)
 ENTRY_C(dcCall_ppc32_syscall)
 	mflr r0			/* r0 = return address */
@@ -283,11 +282,10 @@ ENTRY_C(dcCall_ppc32_syscall)
 	lwz  r5 , 8(r11)
 	lwz  r6 ,12(r11)
 	lwz  r7 ,16(r11)
-	/* @@@ missing r8,r9,10 on some platforms? */
 	sc
 
 	lwz  r1, 0(r1)		/* restore stack */
 	lwz  r0, 4(r1)		/* r0 = return address */
 	mtlr r0			/* setup link register */
 	blr
-
+	

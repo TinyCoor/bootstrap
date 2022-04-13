@@ -6,7 +6,7 @@
  Description: Thunk - Header for MIPS64
  License:
 
-   Copyright (c) 2016-2018 Tassilo Philipp <tphilipp@potion-studios.com>
+   Copyright (c) 2016 Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
    purpose with or without fee is hereby granted, provided that the above
@@ -35,7 +35,7 @@ struct DCThunk_
   unsigned int padding; /* 4 bytes, to get struct size to multiple of 8 */
 };
 
-#define DCTHUNK_MIPS64_SIZE 56
+#define DCTHUNK_MIPS64_SIZE	56
 
 #endif /* DYNCALL_THUNK_MIPS64_H */
 

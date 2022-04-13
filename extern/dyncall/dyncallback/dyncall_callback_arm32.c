@@ -6,7 +6,7 @@
  Description: Callback - Implementation for ARM32 (ARM and THUMB mode)
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2007-2016 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -24,20 +24,11 @@
 */
 
 
-#include "dyncall_callback.h"
+#include "dyncall_callback_arm32.h"
+
 #include "dyncall_alloc_wx.h"
-#include "dyncall_thunk.h"
 
-/* Callback symbol. */
 extern void dcCallbackThunkEntry();
-
-struct DCCallback
-{
-  DCThunk  	         thunk;    // offset 0
-  DCCallbackHandler* handler;  // offset 12
-  void*              userdata; // offset 16
-};
-
 
 void dcbInitCallback(DCCallback* pcb, const char* signature, DCCallbackHandler* handler, void* userdata)
 {
@@ -51,18 +42,10 @@ DCCallback* dcbNewCallback(const char* signature, DCCallbackHandler* handler, vo
   int err;
   DCCallback* pcb;
   err = dcAllocWX(sizeof(DCCallback), (void**)&pcb);
-  if(err)
-    return NULL;
-
+  if(err || !pcb)
+    return 0;
   dcbInitThunk(&pcb->thunk, dcCallbackThunkEntry);
   dcbInitCallback(pcb, signature, handler, userdata);
-
-  err = dcInitExecWX(pcb, sizeof(DCCallback));
-  if(err) {
-    dcFreeWX(pcb, sizeof(DCCallback));
-    return NULL;
-  }
-
   return pcb;
 }
 

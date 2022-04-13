@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>, 
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>, 
                            Tassilo Philipp <tphilipp@potion-studios.com>,
                            Olivier Chafik <olivier.chafik@gmail.com>
 
@@ -38,11 +38,10 @@
 #if defined(OS_OpenBSD)
 #  include <stdint.h>
 #  include <elf_abi.h>
-#elif defined(OS_NetBSD)
-#  include <stddef.h>
-#  include <elf.h>
 #elif defined(OS_SunOS)
 #  include <libelf.h>
+#elif defined(OS_BeOS)
+#  include <elf32.h>
 #else
 #  include <elf.h>
 #endif
@@ -81,6 +80,16 @@ typedef Elf64_Sxword Elf_tag;
 typedef Elf64_Addr   Elf_Addr;
 
 #  else
+#    if defined(OS_BeOS)
+typedef struct Elf32_Ehdr   Elf_Ehdr;
+typedef struct Elf32_Phdr   Elf_Phdr;
+typedef struct Elf32_Shdr   Elf_Shdr;
+typedef struct Elf32_Sym    Elf_Sym;
+typedef struct Elf32_Dyn    Elf_Dyn;
+typedef        Elf32_Sword  Elf_tag;
+typedef        Elf32_Addr   Elf_Addr;
+
+#    else
 
 typedef Elf32_Ehdr   Elf_Ehdr;
 typedef Elf32_Phdr   Elf_Phdr;
@@ -92,6 +101,7 @@ typedef Elf32_Dyn    Elf_Dyn;
 typedef Elf32_Sword  Elf_tag;
 typedef Elf32_Addr   Elf_Addr;
 
+#    endif
 #  endif
 #endif
 
@@ -111,21 +121,14 @@ struct DLSyms_
 DLSyms* dlSymsInit(const char* libPath)
 {
   unsigned char* pMem;
+  void* pSectionContent;
   int i;
   struct stat st;
   Elf_Shdr* pS;
-  DLSyms* pSyms;
-
-  if(stat(libPath, &st) == -1)
-    return NULL;
-
-  i = open(libPath, O_RDONLY);
-  if(i == -1)
-    return NULL;
-
-  pSyms = (DLSyms*)dlAllocMem(sizeof(DLSyms));
+  DLSyms* pSyms = (DLSyms*)dlAllocMem(sizeof(DLSyms));
   memset(pSyms, 0, sizeof(DLSyms));
-  pSyms->file = i;
+  pSyms->file = open(libPath, O_RDONLY);
+  stat(libPath, &st);
   pSyms->fileSize = st.st_size;
   pSyms->pElf_Ehdr = (Elf_Ehdr*) mmap((void*) NULL, pSyms->fileSize, PROT_READ, MAP_SHARED, pSyms->file, 0);
 
@@ -147,7 +150,7 @@ DLSyms* dlSymsInit(const char* libPath)
   for (i = 1; i < pSyms->pElf_Ehdr->e_shnum; i++) 
   {
     Elf_Shdr* pSection = &pS[i];
-    void* pSectionContent = ((char*)pMem) + pSection->sh_offset;
+    pSectionContent = ((char*)pMem) + pSection->sh_offset;
     switch (pSection->sh_type)
     {
       case SHT_DYNSYM:
@@ -157,7 +160,7 @@ DLSyms* dlSymsInit(const char* libPath)
         }
         break;
       case SHT_STRTAB:
-        /* Do not trust pSyms->pElf_Ehdr->e_shstrndx! */
+        // Do not trust pSyms->pElf_Ehdr->e_shstrndx!
         if (!pSyms->pStrTab) {
           pSyms->pStrTab  = (const char*)pSectionContent;
           pSyms->strTabSize = pSection->sh_size;
@@ -183,7 +186,9 @@ void dlSymsCleanup(DLSyms* pSyms)
 
 int dlSymsCount(DLSyms* pSyms)
 {
-  return pSyms ? pSyms->nSymbols : 0;
+  if (!pSyms)
+    return 0;
+  return pSyms->nSymbols;
 }
 
 
@@ -192,7 +197,7 @@ const char* dlSymsName(DLSyms* pSyms, int index)
   int str_index;
   if(!pSyms || !pSyms->pSymTab || index < 0 || index >= pSyms->nSymbols)
     return NULL;
-
+  
   str_index = pSyms->pSymTab[index].st_name;
   if (str_index < 0 || str_index >= pSyms->strTabSize)
     return NULL;

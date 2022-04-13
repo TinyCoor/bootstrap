@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2011-2021 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2011-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -36,24 +36,22 @@
  **
  **/
 
+#include <assert.h>
 #include <errno.h>
 #include <signal.h>
 #include <setjmp.h>
-#include <string.h>
 
 jmp_buf jbuf;
 
-static int last_sig;
 
 void segv_handler(int sig)
 {
-  last_sig = sig;
   longjmp(jbuf, 1);
 }
 
 void my_entry(const char* text)
 {
-  printf("%s: %d\n", text, strcmp(text, "wx") == 0 || strcmp(text, "stack") == 0 || strcmp(text, "heap") == 0); /* @@@ */
+  printf("%s: 1\n", text);
 }
 
 typedef void (printfun)(const char*);
@@ -65,7 +63,7 @@ void test_stack()
   dcbInitThunk(&t, &my_entry);
   fp = (printfun*)&t;
   if(setjmp(jbuf) != 0)
-    printf(last_sig == SIGSEGV ? "sigsegv\n" : "sigbus\n");
+    printf("sigsegv\n");
   else
     fp("stack");
 }
@@ -83,7 +81,7 @@ void test_heap()
   dcbInitThunk(p, &my_entry);
   fp = (printfun*)p;
   if(setjmp(jbuf) != 0)
-    printf(last_sig == SIGSEGV ? "sigsegv\n" : "sigbus\n");
+    printf("sigsegv\n");
   else
     fp("heap");
   free(p);
@@ -99,15 +97,9 @@ void test_wx()
     return;
   }
   dcbInitThunk(p, &my_entry);
-  err = dcInitExecWX((void*)p, sizeof(DCThunk));
-  if(err) {
-    dcFreeWX((void*)p, sizeof(DCThunk));
-    printf("0\n");
-    return;
-  }
   fp = (printfun*)p;
   if(setjmp(jbuf) != 0)
-    printf(last_sig == SIGSEGV ? "sigsegv\n" : "sigbus\n");
+    printf("sigsegv\n");
   else
     fp("wx");
   dcFreeWX((void*)p, sizeof(DCThunk));
@@ -117,28 +109,7 @@ int main()
 {
   dcTest_initPlatform();
 
-  /* handle sigsegv and sigbus (latter used on some platforms for some mem */
-  /* access errors); use more complex setup if SA_ONSTACK is available */
-
-#if defined(SA_ONSTACK)
-  /* notes:
-     - use sigaction(2) to pass SA_ONSTACK, to handle segfaults on stack (as
-       handler would use same stack, this needs to be requested explicitly)
-     - not using sigaltstack(2), as no need in our case
-  */
-  struct sigaction sigAct;
-  sigfillset(&(sigAct.sa_mask));
-  sigAct.sa_sigaction = segv_handler;
-  sigAct.sa_flags = SA_ONSTACK;
-  sigaction(SIGSEGV, &sigAct, NULL);
-  sigaction(SIGBUS,  &sigAct, NULL);
-#else
   signal(SIGSEGV, segv_handler);
-#if !defined(DC_WINDOWS)
-  signal(SIGBUS,  segv_handler);
-#endif
-#endif
-
 
   printf("Allocating ...\n");
   printf("... W^X memory: ");

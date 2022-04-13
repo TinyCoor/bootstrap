@@ -1351,4 +1351,13 @@ bool terp::get_constant_address_or_pc_with_offset(result &r, const instruction_t
 	return true;
 }
 
+bool terp::load_shared_library(result &r, const std::filesystem::path &path) {
+	shared_library shared_library {};
+	if (!shared_library.initialize(r, path)) {
+		return false;
+	}
+	shared_libraries_.insert(std::make_pair(path.string(), shared_library));
+	return true;
+}
+
 }

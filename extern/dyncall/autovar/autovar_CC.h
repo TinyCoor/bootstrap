@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2011-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2011-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -33,8 +33,6 @@
 #define CC_INTEL
 #elif defined(_MSC_VER)
 #define CC_MSVC
-#elif defined(__clang__) || defined(__llvm__)
-#define CC_CLANG
 #elif defined(__GNUC__)
 #define CC_GNU
 #elif defined(__WATCOMC__)

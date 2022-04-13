@@ -6,7 +6,7 @@
  Description: Thunk - Header for MIPS
  License:
 
-   Copyright (c) 2013-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2013-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -34,7 +34,7 @@ struct DCThunk_
   unsigned short bddt[2]; // branch delay slots
 };
 
-#define DCTHUNK_MIPS_SIZE 20
+#define DCTHUNK_MIPS_SIZE	20
 
 #endif /* DYNCALL_THUNK_MIPS_H */
 

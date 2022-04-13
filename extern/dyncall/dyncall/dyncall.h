@@ -6,7 +6,7 @@
  Description: public header for library dyncall
  License:
 
-   Copyright (c) 2007-2020 Daniel Adler <dadler@uni-goettingen.de>, 
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>, 
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -39,7 +39,6 @@
 #define DYNCALL_H
 
 #include "dyncall_types.h"
-#include "dyncall_signature.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,7 +57,7 @@ typedef struct DCstruct_    DCstruct;
 #define DC_CALL_C_X86_WIN32_FAST_MS     3
 #define DC_CALL_C_X86_WIN32_FAST_GNU    4
 #define DC_CALL_C_X86_WIN32_THIS_MS     5
-#define DC_CALL_C_X86_WIN32_THIS_GNU    DC_CALL_C_X86_CDECL /* alias - identical to cdecl (w/ this-ptr as 1st arg) */
+#define DC_CALL_C_X86_WIN32_THIS_GNU    6
 #define DC_CALL_C_X64_WIN64             7
 #define DC_CALL_C_X64_SYSV              8
 #define DC_CALL_C_PPC32_DARWIN          9
@@ -84,7 +83,6 @@ typedef struct DCstruct_    DCstruct;
 #define DC_CALL_SYS_DEFAULT           200
 #define DC_CALL_SYS_X86_INT80H_LINUX  201
 #define DC_CALL_SYS_X86_INT80H_BSD    202
-#define DC_CALL_SYS_X64_SYSCALL_SYSV  204
 #define DC_CALL_SYS_PPC32             210
 #define DC_CALL_SYS_PPC64             211
 
@@ -136,12 +134,6 @@ DC_API void       dcFreeStruct     (DCstruct* s);
 
 DC_API DCstruct*  dcDefineStruct  (const char* signature);
 
-
-/* helpers */
-
-/* returns respective mode for callconv sig char (w/o checking if mode exists */
-/* on current platform), or DC_ERROR_UNSUPPORTED_MODE if char isn't a sigchar */
-DC_API DCint      dcGetModeFromCCSigChar(DCsigchar sig_char);
 
 #ifdef __cplusplus
 }

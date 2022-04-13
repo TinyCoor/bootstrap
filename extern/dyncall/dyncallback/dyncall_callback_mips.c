@@ -6,7 +6,7 @@
  Description: Callback - Implementation Header for MIPS
  License:
 
-   Copyright (c) 2013-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2013-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -25,20 +25,9 @@
 
 
 #include "dyncall_callback.h"
-#include "dyncall_alloc_wx.h"
-#include "dyncall_thunk.h"
+#include "dyncall_callback_mips.h"
 
-/* Callback symbol. */
 extern void dcCallbackThunkEntry();
-
-/* might want to make use of __packed__ or so @@@ */
-struct DCCallback              /*       mips32      |       mips64      */
-{                              /* ------------------+------------------ */
-  DCThunk            thunk;    /* offset  0 size 20 | offset  0 size 56 */
-  DCCallbackHandler* handler;  /* offset 20 size  4 | offset 56 size  8 */
-  void*              userdata; /* offset 24 size  4 | offset 64 size  8 */
-};
-
 
 void dcbInitCallback(DCCallback* pcb, const char* signature, DCCallbackHandler* handler, void* userdata)
 {
@@ -52,18 +41,10 @@ DCCallback* dcbNewCallback(const char* signature, DCCallbackHandler* handler, vo
   int err;
   DCCallback* pcb;
   err = dcAllocWX(sizeof(DCCallback), (void**)&pcb);
-  if(err)
-    return NULL;
-
+  if(err || !pcb)
+    return 0;
   dcbInitThunk(&pcb->thunk, dcCallbackThunkEntry);
   dcbInitCallback(pcb, signature, handler, userdata);
-
-  err = dcInitExecWX(pcb, sizeof(DCCallback));
-  if(err) {
-    dcFreeWX(pcb, sizeof(DCCallback));
-    return NULL;
-  }
-
   return pcb;
 }
 

@@ -6,7 +6,7 @@
  Description: Callback Thunk entry for x64 (portasm version)
  License:
 
-   Copyright (c) 2011-2018 Daniel Adler <dadler@uni-goettingen.de>
+   Copyright (c) 2011-2015 Daniel Adler <dadler@uni-goettingen.de>
 
    Permission to use, copy, modify, and distribute this software for any
    purpose with or without fee is hereby granted, provided that the above
@@ -24,7 +24,7 @@
 
 
 
-#include "../portasm/portasm-x64.S"
+#include "../portasm/portasm-x64-att.S"
 
 /* structure sizes */
 
@@ -51,11 +51,14 @@ SET(CTX_handler,24)
 SET(CTX_userdata,32)
 SET(DCCallback_size,40)
 
+/* character constants */
 
+#define ASCII_f 102
+#define ASCII_d 100
 
 GLOBAL(dcCallback_x64_sysv)
 BEGIN_PROC(dcCallback_x64_sysv)
-
+	
 	PUSH(RBP)
 	MOV(RSP,RBP)
 
@@ -63,7 +66,7 @@ BEGIN_PROC(dcCallback_x64_sysv)
 
 	/* float parameters (8 registers spill to DCArgs) */
 
-	SUB(LIT(8*8),RSP)
+	SUB(LIT(8*8),RSP)	
 
 	MOVSD(XMM7, QWORD(RSP,8*7))		/* struct offset 120: float parameter 7 */
 	MOVSD(XMM6, QWORD(RSP,8*6))		/* struct offset 112: float parameter 6 */
@@ -92,7 +95,7 @@ BEGIN_PROC(dcCallback_x64_sysv)
 	PUSH(RDX)
 
 	MOV(RSP,RSI)				/* arg 1 RSI : DCArgs* */
-
+	
 	/* initialize DCValue */
 
 	PUSH(LIT(0))				/* struct offset 0: return value (max long long) */
@@ -118,7 +121,7 @@ END_PROC(dcCallback_x64_sysv)
 
 GLOBAL(dcCallback_x64_win64)
 BEGIN_PROC(dcCallback_x64_win64)
-
+	
 	PUSH(RBP)
 	MOV(RSP,RBP)
 
@@ -126,7 +129,7 @@ BEGIN_PROC(dcCallback_x64_win64)
 
 	/* float parameters (4 registers spill to DCArgs) */
 
-	SUB(LIT(4*8),RSP)
+	SUB(LIT(4*8),RSP)	
 
 	MOVSD(XMM3, QWORD(RSP,8*3))		/* struct offset  72: float parameter 3 */
 	MOVSD(XMM2, QWORD(RSP,8*2))		/* struct offset  64: float parameter 2 */
@@ -171,7 +174,7 @@ BEGIN_PROC(dcCallback_x64_win64)
 	POP(RBP)
 	RET()
 
-END_PROC(dcCallback_x64_win64)
+END_PROC(dcCallback_x64_win64)	
 
 END_ASM
 

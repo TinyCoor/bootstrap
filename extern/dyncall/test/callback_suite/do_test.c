@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2011-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2011-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -30,6 +30,7 @@
 #include "sigstrings.h"
 #include "signature_utils.h"
 #include "env.h"
+#include "print.h"
 #include "../common/platformInit.h"
 
 int CompareValues(char type, DCValue* a, DCValue* b)
@@ -114,13 +115,13 @@ int DoTest(int id)
   index = id - 1;
   
   signature = GetSignature(index);
-  printf("f%d(\t%s", id, signature);
+  PrintCaseInfo(id,signature);
 
   pcb = dcbNewCallback( signature, handler, (void*) signature );
   assert(pcb != NULL);
   DoInvoke(index, (void*) pcb);
   result = Compare(signature); 
-  printf(" :%d\n", result);
+  PrintCaseResult(result);
   dcbFreeCallback(pcb);
   return result;
 }

@@ -6,7 +6,7 @@
  Description: Callback's Arguments VM - Implementation back-end selector
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -49,7 +49,7 @@
 #    include "dyncall_args_mips64.c"
 #elif defined(DC__Arch_Sparc)
 #  include "dyncall_args_sparc32.c"
-#elif defined(DC__Arch_Sparc64)
+#elif defined(DC__Arch_Sparcv9)
 #  include "dyncall_args_sparc64.c"
 #elif defined(DC__Arch_ARM64)
 #  if defined(DC__OS_Darwin)

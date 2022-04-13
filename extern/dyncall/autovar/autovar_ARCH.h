@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2011-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2011-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -48,16 +48,12 @@
 # if defined(__thumb__)
 #   define ARCH_THUMB
 # endif
-#elif defined(_M_ARM64) || defined(__aarch64__) || defined(__arm64) || defined(__arm64__)
-# define ARCH_ARM64
 #elif defined(__sh__)
 # define ARCH_SH
-#elif defined(__sparc) || defined(__sparc__)
-# if defined(__sparcv9) || defined(__sparc_v9__) || defined(__sparc64__) || defined(__arch64__)
-#  define ARCH_SPARC64
-# else
-#  define ARCH_SPARC
-# endif
+#elif defined(__sparcv9) || defined(__sparc64__) || ( defined(__sparc) && defined(__arch64__) ) 
+# define ARCH_SPARC64
+#elif defined(__sparc)
+# define ARCH_SPARC
 #endif
 
 #endif /* AUTOVAR_ARCH_H */

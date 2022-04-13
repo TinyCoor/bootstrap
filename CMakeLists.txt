@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(extern/fmt)
+add_subdirectory(extern/dyncall)
+add_subdirectory(extern/gtest)
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 message(STATUS ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
@@ -53,6 +55,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}
         ${FMT_INCLUDE_DIRS}
         extern/fmt/include
+        extern/dyncall
 )
 
 #all unit test
@@ -69,6 +72,7 @@ set(VM_SRC
         src/vm/instruction_emitter.cpp
         src/vm/instruction.cpp
         src/vm/instruction_cache.cpp
+        src/vm/shared_library.cpp
         )
 
 set(LEXER_SRC
@@ -91,6 +95,8 @@ add_executable(bootstrap
         )
 target_link_libraries(bootstrap PUBLIC
         fmt
+        dyncall_s
+        dynload_s
         )
 
 add_custom_target(bootstrap-configured DEPENDS dummy-target bootstrap)

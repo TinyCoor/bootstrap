@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>, 
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>, 
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -176,11 +176,11 @@ int main(int argc, char* argv[])
     success = run_range(0,NCASES);
   }
 
-  printf("result: suite2_x86win32fast: %d\n", success);
+  printf("result: suite2_x86win32fast: %s\n", success ? "1" : "0");
   
   dcTest_deInitPlatform();
 
-  return !success;
+  return (success) ? 0 : -1;
 }
 
 }  // extern "C"

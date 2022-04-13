@@ -6,8 +6,8 @@
  Description: Thunk - Header for ARM64 / ARMv8 / AAPCS64
  License:
 
-   Copyright (c) 2015-2018 Daniel Adler <dadler@uni-goettingen.de>,
-                           Tassilo Philipp <tphilipp@potion-studios.com>
+   Copyright (c) 2015 Daniel Adler <dadler@uni-goettingen.de>,
+                      Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
    purpose with or without fee is hereby granted, provided that the above
@@ -26,12 +26,17 @@
 #ifndef DYNCALL_THUNK_ARM64_H
 #define DYNCALL_THUNK_ARM64_H
 
-struct DCThunk_          /* off  size */
-{                        /* ----|---- */
-  unsigned int code[4];  /*   0   16  */
-  void (*entry)();       /*  16    8  */
-  void* reserved;        /*  24    8  */
-};                       /*  32 total */
+struct DCThunk_
+{
+                                // off  size
+                                //-----|----------
+  unsigned int code[4];		//   0    16
+  void (*entry)();		//  16     8
+  void* reserved;         	//  24     8
+
+                                //  32 total size
+  
+};
 
 #endif /* DYNCALL_THUNK_ARM64_H */
 

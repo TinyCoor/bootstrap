@@ -12,6 +12,8 @@ Background
 self referencing is important on configurations where there is no
 shared library but everything is statically linked.
 
-Note that on some platforms, linker flags have to be used so symbol
-names are in the binary, at first hand (e.g. --export-dynamic).
+
+
+
+
 

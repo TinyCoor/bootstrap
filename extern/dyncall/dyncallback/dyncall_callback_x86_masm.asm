@@ -2,6 +2,7 @@
 .386
 .MODEL FLAT
 .CODE
+
 DCThunk_size = 16
 DCArgs_size = 20
 DCValue_size = 8

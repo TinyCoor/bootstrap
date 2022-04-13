@@ -6,7 +6,7 @@
  Description: Callback - Implementation Header for ppc64
  License:
 
-   Copyright (c) 2014-2016 Masanori Mitsugi <mitsugi@linux.vnet.ibm.com>
+   Copyright (c) 2014-2015 Masanori Mitsugi <mitsugi@linux.vnet.ibm.com>
 
    Permission to use, copy, modify, and distribute this software for any
    purpose with or without fee is hereby granted, provided that the above
@@ -24,20 +24,7 @@
 
 
 #include "dyncall_callback.h"
-#include "dyncall_alloc_wx.h"
-#include "dyncall_thunk.h"
-
-/* Callback symbol. */
-extern void dcCallbackThunkEntry();
-
-struct DCCallback                   /*       ELF v1      |       ELF v2      */
-{                                   /* ------------------+------------------ */
-  DCThunk            thunk;         /* offset  0 size 64 | offset  0 size 48 */
-  DCCallbackHandler* handler;       /* offset 64 size  8 | offset 48 size  8 */
-  size_t             stack_cleanup; /* offset 72 size  8 | offset 56 size  8 */
-  void*              userdata;      /* offset 80 size  8 | offset 64 size  8 */
-};
-
+#include "dyncall_callback_ppc64.h"
 
 void dcbInitCallback(DCCallback* pcb, const char* signature, DCCallbackHandler* handler, void* userdata)
 {
@@ -48,21 +35,16 @@ void dcbInitCallback(DCCallback* pcb, const char* signature, DCCallbackHandler* 
   pcb->userdata = userdata;
 }
 
+extern void dcCallbackThunkEntry();
+
 DCCallback* dcbNewCallback(const char* signature, DCCallbackHandler* handler, void* userdata)
 {
   DCCallback* pcb;
   int err = dcAllocWX(sizeof(DCCallback), (void**) &pcb);
-  if(err)
-    return NULL;
+  if (err != 0) return 0;
 
   dcbInitThunk(&pcb->thunk, dcCallbackThunkEntry);
   dcbInitCallback(pcb, signature, handler, userdata);
-
-  err = dcInitExecWX(pcb, sizeof(DCCallback));
-  if(err) {
-    dcFreeWX(pcb, sizeof(DCCallback));
-    return NULL;
-  }
 
   return pcb;
 }

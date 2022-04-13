@@ -3,10 +3,10 @@
  Package: dyncall
  Library: dyncallback
  File: dyncallback/dyncall_thunk_sparc32.h
- Description: Thunk - Header for sparc32
+ Description: Thunk - Header for sparc32 - not yet implemented
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -29,10 +29,9 @@
 
 struct DCThunk_
 {
-  unsigned int code[6];
+  int x[4]; /* dummy */
 };
 
-#define DCTHUNK_SIZE_SPARC32 24
+#define DCTHUNK_SIZE_SPARC32 32
 
 #endif /* DYNCALL_THUNK_SPARC32_H */
-

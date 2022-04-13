@@ -6,7 +6,7 @@
  Description: assembly call kernel, auto-selected by gcc / Plan9 build system
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>, 
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>, 
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -43,7 +43,7 @@
 #  if defined(DC__Arch_Intel_x86)
 #    include "dyncall_call_x86.S"
 #  elif defined(DC__Arch_AMD64)
-#    include "dyncall_call_x64.S"
+#    include "dyncall_call_x64-att.S"
 #  elif defined(DC__Arch_ARM_ARM)
 #    if defined(DC__ABI_ARM_HF)
 #      include "dyncall_call_arm32_arm_armhf.S"
@@ -67,29 +67,13 @@
 #  elif defined(DC__Arch_PPC64)
 #    include "dyncall_call_ppc64.S"
 #  elif defined(DC__Arch_MIPS) || defined(DC__Arch_MIPS64)
-#    if defined(DC__ABI_MIPS_O32)
-#      include "dyncall_call_mips_o32.S"
-#    elif defined(DC__ABI_MIPS_N64)
-#      include "dyncall_call_mips_n64.S"
-#    elif defined(DC__ABI_MIPS_N32)
-#      include "dyncall_call_mips_n32.S"
-#    else
-#      include "dyncall_call_mips_eabi_gas.s"
-#    endif
-#  elif defined(DC__Arch_Sparc64)
-#    include "dyncall_call_sparc64.s"
+#    include "dyncall_call_mips_gas.S"
+#  elif defined(DC__Arch_Sparcv9)
+#    include "dyncall_call_sparc_v9.S"
 #  elif defined(DC__Arch_Sparc)
-#    include "dyncall_call_sparc.s"
+#    include "dyncall_call_sparc.S"
 #  else
 #    error Unsupported Architecture.
 #  endif
-#endif
-
-
-/* Use .note.GNU-stack to explicitly indicate a non-exec stack, b/c of bad   */
-/* default behaviour when translating handwritten assembly files (needed on  */
-/* GNU platforms, Android and FreeBSD, as tests have shown).                 */
-#if (defined(DC__C_CLANG) || defined(DC__C_GNU)) && defined(__ELF__) && (defined(DC__OS_Linux) || defined(DC__OS_FreeBSD))
-.section .note.GNU-stack,"",%progbits
 #endif
 

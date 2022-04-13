@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>, 
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>, 
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -53,18 +53,18 @@ int main(int argc, char* argv[])
   int i, n;
   DLLib* pLib;
   const char* libPath;
-
+  
   if (argc == 1) {
     fprintf(stderr, "usage : %s <dllpath>\n", argv[0]);
     return 1;
   }
-
+  
   libPath = argv[1];
-
+  
   /* load lib */
 
   pLib = dlLoadLibrary(libPath);
-
+  
   if (!pLib) {
     fprintf(stderr, "unable to open library %s\n", libPath);
     return 2;

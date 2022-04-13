@@ -3,10 +3,10 @@
  Package: dyncall
  Library: test
  File: test/suite_x86win32std/main.cc
- Description:
+ Description: 
  License:
 
-   Copyright (c) 2007-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2007-2015 Daniel Adler <dadler@uni-goettingen.de>, 
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -79,13 +79,13 @@ void init()
     valueDouble[i] = DCdouble(i);
     valuePointer[i] = DCpointer(i);
     valueFloat[i] = DCfloat(i);
-  }
+  } 
 }
 
 
 void push(DCCallVM* pCall, int select, int pos)
 {
-  switch(select)
+  switch(select) 
   {
     case 0: dcArgBool( pCall, valueBool[pos] ); break;
     case 1: dcArgInt( pCall, valueInt[pos] ); break;
@@ -97,10 +97,10 @@ void push(DCCallVM* pCall, int select, int pos)
 }
 
 
-#define test(x) if (!(x)) return false
+#define assert(x) if (!(x)) return false
 
 
-bool test_case(int x)
+bool test(int x)
 {
   clearValues();
 
@@ -110,21 +110,21 @@ bool test_case(int x)
   int y = x;
   int selects[NARGS] = { 0, };
   int pos = 0;
-  for(pos = 0;y>0;++pos)
+  for(pos = 0;y>0;++pos) 
   {
-    int select = (y-1) % NTYPES;
+    int select = (y-1) % NTYPES; 
     selects[pos] = select;
     push(pCall,select,pos);
     y = (y-1) / NTYPES;
   }
   dcCallVoid(pCall,getFunc(x));
-
-  test( getId() == x );
-
+  
+  assert( getId() == x );
+  
   for(int i = 0;i<pos;++i) {
-    test( equals( selects[i], i, getArg(i) ) );
+    assert( equals( selects[i], i, getArg(i) ) );      
   }
-
+  
   dcFree(pCall);
   return true;
 }
@@ -144,7 +144,7 @@ bool run_range(int from, int to)
   bool tr = true;
   for (int i = from ; i < to ; ++i ) {
     printf("%d:",i);
-    bool r = test_case(i);
+    bool r = test(i);
     printf("%d\n", r);
     tr &= r;
   }
@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
   init();
   if (argc == 2) {
     int index = atoi(argv[1]);
-    success = run_range( index, index+1 );
+    success = run_range( index, index+1 ); 
   } else if (argc == 3) {
     int from = atoi(argv[1]);
     int to   = atoi(argv[2])+1;
@@ -171,11 +171,11 @@ int main(int argc, char* argv[])
     success = run_range(0,ncalls);
   }
 
-  printf("result: suite_x86win32std: %d\n", success);
-
+  printf("result: suite_x86win32std: %s\n", success ? "1" : "0");
+  
   dcTest_deInitPlatform();
 
-  return !success;
+  return (success) ? 0 : -1;
 }
 
 }  // extern "C"

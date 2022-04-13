@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2011-2021 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2011-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -25,6 +25,7 @@
 
 
 #include "dyncall.h"
+#include "../common/platformInit.h"
 
 // This program demonstrates the need for 'unsigned' integers and the
 // ability to implement zero/sign extensions for small integers.

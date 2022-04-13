@@ -6,8 +6,8 @@
  Description: Callback Thunk - Implementation for ARM64 / ARMv8 / AAPCS64
  License:
 
-   Copyright (c) 2015-2020 Daniel Adler <dadler@uni-goettingen.de>,
-                           Tassilo Philipp <tphilipp@potion-studios.com>
+   Copyright (c) 2015 Daniel Adler <dadler@uni-goettingen.de>,
+                      Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
    purpose with or without fee is hereby granted, provided that the above
@@ -22,10 +22,6 @@
    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 */
-
-#include "../portasm/portasm-arm64.S"
-BEGIN_ASM
-
 // struct DCCallback
 //   type       off   size
 //   ---------|------|------
@@ -33,11 +29,11 @@ BEGIN_ASM
 //   handler  |  32  |   8
 //   userdata |  40  |   8
 
-TEXTAREA
+#include "../portasm/portasm-arm.S"
 
+.align 4
 GLOBAL_C(dcCallbackThunkEntry)
 ENTRY_C(dcCallbackThunkEntry)
-ALIGN(4)
 
 // input:
 //  x9: DCCallback* pcb
@@ -75,8 +71,8 @@ ALIGN(4)
 
 	stp d0, d1, [x11, #64]
 	stp d2, d3, [x11, #80]
-	stp d4, d5, [x11, #96]
-	stp d6, d7, [x11, #112]
+     	stp d4, d5, [x11, #96]
+        stp d6, d7, [x11, #112]
 
 	eor x12, x12, x12
 	stp x10,x12,[x11, #128]		// sp=sp, i=0, f=0
@@ -101,20 +97,15 @@ ALIGN(4)
 
 	and w0, w0, #255
 	cmp w0, 'f'
-	b.eq LABELUSE(retf)
+	b.eq .retf
 	cmp w0, 'd'
-	b.eq LABELUSE(retf)
+	b.eq .retf
 	
-LABELDEF(reti)
+.reti:
 	ldr x0, [x29, #184]
-	b LABELUSE(ret)
-LABELDEF(retf)
+	b .ret
+.retf:
 	ldr d0, [x29, #184]
-LABELDEF(ret)
+.ret:
 	ldp x29, x30, [sp], #208
 	ret
-
-
-END_PROC
-END_ASM
-

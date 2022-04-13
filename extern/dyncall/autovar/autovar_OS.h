@@ -6,7 +6,7 @@
  Description: 
  License:
 
-   Copyright (c) 2011-2018 Daniel Adler <dadler@uni-goettingen.de>,
+   Copyright (c) 2011-2015 Daniel Adler <dadler@uni-goettingen.de>,
                            Tassilo Philipp <tphilipp@potion-studios.com>
 
    Permission to use, copy, modify, and distribute this software for any
@@ -39,7 +39,7 @@
 #  endif
 #elif defined(__linux__) || defined(__linux) || defined(__gnu_linux__)
 #  define OS_Linux
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) /* latter is (also) used by systems using FreeBSD kernel, e.g. Debian/kFreeBSD, which could be detected specifically by also checking for __GLIBC__ */
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 #  define OS_FreeBSD
 #elif defined(__OpenBSD__)
 #  define OS_OpenBSD

@@ -1,5 +1,6 @@
-ALL=call_suite callback_suite plain plain_c++ suite suite2 suite3 suite_floats ellipsis callf syscall dynload_plain resolve_self thunk malloc_wx callback_plain
-PACK=call_suite callback_suite plain plain_c++ suite suite2 suite3 suite_floats ellipsis callf dynload_plain resolve_self callback_plain
+ALL=call_suite callback_suite plain plain_c++ suite suite2 suite3 suite_floats ellipsis callf syscall nm resolve_self thunk malloc_wx callback_plain
+PACK=call_suite callback_suite plain plain_c++ suite suite2 suite3 suite_floats ellipsis callf resolve_self callback_plain
+ALL_C=plain call_suite suite callf syscall nm resolve_self thunk malloc_wx callback_plain callback_suite
 .PHONY: all clean run-tests install distclean ${ALL} 
 all clean install: 
 	${MAKE} TARGET=$@ ${ALL}
@@ -13,7 +14,7 @@ all-c:
 	cd suite && ${MAKE}
 	cd callf && ${MAKE}
 	cd syscall && ${MAKE}
-	cd dynload_plain && ${MAKE}
+	cd nm && ${MAKE}
 	cd resolve_self && ${MAKE}
 	cd thunk && ${MAKE}
 	cd malloc_wx && ${MAKE}
@@ -25,10 +26,10 @@ all-win32:
 	cd suite2_x86win32std && ${MAKE}
 	cd suite2_x86win32fast && ${MAKE}
 run-win32:
-	suite_x86win32std/suite_x86win32std
-	suite_x86win32fast/suite_x86win32fast
-	suite2_x86win32std/suite2_x86win32std
-	suite2_x86win32fast/suite2_x86win32fast
+	suite_X86win32std/suite_x86win32std
+	suite_X86win32fast/suite_x86win32fast
+	suite2_X86win32std/suite2_x86win32std
+	suite2_X86win32fast/suite2_x86win32fast
 all-dyncall:
 	cd plain && ${MAKE}
 	cd plain_c++ && ${MAKE}
@@ -51,11 +52,13 @@ run-dyncall:
 	ellipsis/ellipsis
 	callf/callf
 	syscall/syscall
+# BUG: need to disable on sparc: testStructSize not found
+#	cd plain && ${MAKE}
 all-dynload:
-	cd dynload_plain && ${MAKE}
+	cd nm && ${MAKE}
 	cd resolve_self && ${MAKE}
 run-dynload:
-	dynload_plain/dynload_plain
+	#nm/nm
 	resolve_self/resolve_self
 all-dyncallback:
 	cd thunk && ${MAKE}
@@ -68,9 +71,13 @@ run-dyncallback:
 	callback_plain/callback_plain
 	callback_suite/callback_suite
 
+linux:
+	LDLIBS="-lm -ldl" ${MAKE} all
+bsd:
+	LDLIBS="-lm" ${MAKE} all
+
 pack: ${PACK}
 	${VPATH}/pack-tests.sh ${PACK}
 
 distclean:
 	rm -rf _work _packed
-

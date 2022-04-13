@@ -14,6 +14,9 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	// add
 	{'+', std::bind(&lexer::plus, std::placeholders::_1, std::placeholders::_2)},
 
+	// directive
+	{'#', std::bind(&lexer::directive, std::placeholders::_1, std::placeholders::_2)},
+
 	// minus, negate
 	{'-', std::bind(&lexer::minus, std::placeholders::_1, std::placeholders::_2)},
 
@@ -75,6 +78,9 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{'{', std::bind(&lexer::left_curly_brace, std::placeholders::_1, std::placeholders::_2)},
 	{'}', std::bind(&lexer::right_curly_brace, std::placeholders::_1, std::placeholders::_2)},
 
+	// return literal
+	{'r', std::bind(&lexer::return_literal, std::placeholders::_1, std::placeholders::_2)},
+
 	// parens
 	{'(', std::bind(&lexer::left_paren, std::placeholders::_1, std::placeholders::_2)},
 	{')', std::bind(&lexer::right_paren, std::placeholders::_1, std::placeholders::_2)},
@@ -101,6 +107,10 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{'n', std::bind(&lexer::none_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'n', std::bind(&lexer::ns_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'e', std::bind(&lexer::empty_literal, std::placeholders::_1, std::placeholders::_2)},
+
+	// enum literal
+	{'e', std::bind(&lexer::enum_literal, std::placeholders::_1, std::placeholders::_2)},
+
 
 	// if/else if/else literals
 	{'i', std::bind(&lexer::if_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -139,6 +149,10 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 	// while literal
 	{'w', std::bind(&lexer::while_literal, std::placeholders::_1, std::placeholders::_2)},
+
+	// struct literal
+	{'s', std::bind(&lexer::struct_literal, std::placeholders::_1, std::placeholders::_2)},
+
 
 	// identifier
 	{'_', std::bind(&lexer::identifier, std::placeholders::_1, std::placeholders::_2)},
@@ -975,5 +989,45 @@ bool lexer::greater_than_equal_operator(token_t& token) {
 	return false;
 }
 
+bool lexer::directive(token_t &token)
+{
+	auto ch = read();
+	if (ch == '#') {
+		token.value = read_identifier();
+		if (token.value.empty())
+			return false;
+		token.type = token_types_t::directive;
+		return true;
+	}
+	return false;
+}
+
+bool lexer::enum_literal(token_t &token)
+{
+	if (match_literal("enum")) {
+		token.type = token_types_t::enum_literal;
+		token.value = "enum";
+		return true;
+	}
+	return false;
+}
+bool lexer::struct_literal(token_t &token)
+{
+	if (match_literal("struct")) {
+		token.type = token_types_t::struct_literal;
+		token.value = "struct";
+		return true;
+	}
+	return false;
+}
+bool lexer::return_literal(token_t &token)
+{
+	if (match_literal("return")) {
+		token.type = token_types_t::return_literal;
+		token.value = "return";
+		return true;
+	}
+	return false;
+}
 
 }

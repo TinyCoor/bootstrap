@@ -67,6 +67,10 @@ public:
 
 	void branch_if_not_equal(uint64_t address);
 
+	void branch_pc_relative_if_equal(op_sizes size, operand_encoding_t::flags offset_type, uint64_t offset);
+
+	void branch_pc_relative_if_not_equal(op_sizes size, operand_encoding_t::flags offset_type, uint64_t offset);
+
 	void meta(uint32_t line, uint16_t column, const std::string& file_name, const std::string& symbol_name);
 
 	void swap_int_register(op_sizes size, i_registers_t target_index, i_registers_t source_index);
@@ -74,6 +78,10 @@ public:
 	void compare_int_register_to_constant(op_sizes sizes, i_registers_t index, uint64_t value);
 
 	void jump_direct(uint64_t address);
+
+	void jump_pc_relative(op_sizes size, operand_encoding_t::flags offset_type, uint64_t offset);
+
+	void jump_subroutine_pc_relative(op_sizes size, operand_encoding_t::flags offset_type, uint64_t offset);
 
 	void push_float_constant(double value);
 
@@ -92,8 +100,6 @@ public:
 	void push_int_constant(op_sizes size, uint64_t value);
 
 	void move_int_constant_to_register(op_sizes size, uint64_t value, i_registers_t index);
-
-	void jump_subroutine_pc_relative(op_sizes size, operand_encoding_t::flags offset_type, uint64_t offset);
 
 	void compare_int_register_to_register(op_sizes size, i_registers_t lhs_index, i_registers_t rhs_index);
 

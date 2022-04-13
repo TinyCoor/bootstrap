@@ -8,7 +8,7 @@
 
 namespace gfx {
 compiler::compiler(size_t heap_size,size_t stack_size)
-	: 	terp_(heap_size, stack_size), global_scope(nullptr, nullptr)
+	: 	terp_(heap_size, stack_size), global_scope_(nullptr, nullptr)
 {
 
 }
@@ -29,10 +29,12 @@ bool compiler::compile_stream(result& r, std::istream& input) {
 	parser alpha_parser(input);
 	auto program_node = alpha_parser.parse(r);
 	if (program_node != nullptr) {
+		ast_formatter formatter(program_node);
+		formatter.format_graph_viz();
 
+		build_scope_tree(r, &global_scope_, program_node);
 	}
-	ast_formatter formatter(program_node);
-	formatter.format();
+
 	return !r.is_failed();
 }
 

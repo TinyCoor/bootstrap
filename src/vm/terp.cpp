@@ -282,7 +282,6 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::negative, false);
 		}break;
-
 		case op_codes::move: {
 			uint64_t source_value;
 			if (!get_operand_value(r, inst, 0, source_value)) {
@@ -600,7 +599,6 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::zero, not_res == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(not_res, inst.size));
 		}break;
-
 		case op_codes::bis:{
 			uint64_t value, bit_number;
 			if (!get_operand_value(r, inst, 1, value))  {
@@ -767,7 +765,8 @@ bool terp::step(result &r)
 		}break;
 		case op_codes::bne: {
 			uint64_t address;
-			if (!get_operand_value(r, inst, 0, address)) {
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			if (!result) {
 				return false;
 			}
 
@@ -777,7 +776,8 @@ bool terp::step(result &r)
 		}break;
 		case op_codes::beq: {
 			uint64_t address;
-			if (!get_operand_value(r, inst, 0, address)) {
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			if (!result) {
 				return false;
 			}
 
@@ -788,8 +788,10 @@ bool terp::step(result &r)
 		case op_codes::bg: {
 			uint64_t address;
 
-			if (!get_operand_value(r, inst, 0, address))
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			if (!result) {
 				return false;
+			}
 
 			if (!registers_.flags(register_file_t::flags_t::carry)
 				&&  !registers_.flags(register_file_t::flags_t::zero)) {
@@ -801,8 +803,10 @@ bool terp::step(result &r)
 		case op_codes::bge: {
 			uint64_t address;
 
-			if (!get_operand_value(r, inst, 0, address))
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			if (!result) {
 				return false;
+			}
 
 			if (!registers_.flags(register_file_t::flags_t::carry)) {
 				registers_.pc = address;
@@ -811,8 +815,10 @@ bool terp::step(result &r)
 		case op_codes::bl: {
 			uint64_t address;
 
-			if (!get_operand_value(r, inst, 0, address))
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			if (!result) {
 				return false;
+			}
 
 			if (registers_.flags(register_file_t::flags_t::carry)
 				||  registers_.flags(register_file_t::flags_t::zero)) {
@@ -823,8 +829,10 @@ bool terp::step(result &r)
 		case op_codes::ble:{
 			uint64_t address;
 
-			if (!get_operand_value(r, inst, 0, address))
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			if (!result) {
 				return false;
+			}
 
 			if (registers_.flags(register_file_t::flags_t::carry)) {
 				registers_.pc = address;
@@ -835,23 +843,11 @@ bool terp::step(result &r)
 		case op_codes::jsr: {
 			push(registers_.pc);
 			uint64_t address;
-			if (!get_operand_value(r, inst, 0, address))
+			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, size, address);
+			if (!result) {
 				return false;
-			if (!get_operand_value(r, inst, 0, address))
-				return false;
-
-			if (inst.operands_count == 2) {
-				uint64_t offset;
-
-				if (!get_operand_value(r, inst, 1, offset))
-					return false;
-
-				if (inst.operands[1].is_negative()) {
-					address -= offset + size;
-				} else {
-					address += offset + size;
-				}
 			}
+
 			registers_.pc = address;
 		}break;
 		case op_codes::rts: {
@@ -861,8 +857,10 @@ bool terp::step(result &r)
 		case op_codes::jmp: {
 			uint64_t address;
 
-			if (!get_operand_value(r, inst, 0, address))
+			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, size, address);
+			if (!result) {
 				return false;
+			}
 			registers_.pc = address;
 		}break;
 		case op_codes::swi:{
@@ -1327,6 +1325,30 @@ bool terp::has_carry(uint64_t value, op_sizes size)
 		default:
 			return value > UINT64_MAX;
 	}
+}
+bool terp::get_constant_address_or_pc_with_offset(result &r, const instruction_t &inst, uint8_t operand_index,
+												  uint64_t inst_size, uint64_t &address)
+{
+	if (!get_operand_value(r, inst, operand_index, address)) {
+		return false;
+	}
+
+	if (inst.operands_count >= 2) {
+		uint64_t offset;
+
+		uint8_t offset_index = static_cast<uint8_t>(operand_index + 1);
+		if (!get_operand_value(r, inst, offset_index, offset)) {
+			return false;
+		}
+
+		if (inst.operands[offset_index].is_negative()) {
+			address -= offset + inst_size;
+		} else {
+			address += offset - inst_size;
+		}
+	}
+
+	return true;
 }
 
 }

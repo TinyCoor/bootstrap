@@ -475,4 +475,42 @@ void instruction_emitter::swap_int_register(op_sizes size, i_registers_t target_
 	inst_.push_back(swap_op);
 }
 
+void instruction_emitter::jump_pc_relative(op_sizes size, operand_encoding_t::flags offset_type, uint64_t offset)
+{
+	instruction_t jmp_op;
+	jmp_op.op = op_codes::jmp;
+	jmp_op.size = size;
+	jmp_op.operands_count = 2;
+	jmp_op.operands[0].type = operand_encoding_t::flags::integer | operand_encoding_t::flags::reg;
+	jmp_op.operands[0].value.r8 = i_registers_t::pc;
+	jmp_op.operands[1].type = offset_type | operand_encoding_t::flags::integer;
+	jmp_op.operands[1].value.u64 = offset;
+	inst_.push_back(jmp_op);
+}
+void instruction_emitter::branch_pc_relative_if_equal(op_sizes size,operand_encoding_t::flags offset_type,
+													  uint64_t offset)
+{
+	instruction_t branch_op;
+	branch_op.op = op_codes::beq;
+	branch_op.size = size;
+	branch_op.operands_count = 2;
+	branch_op.operands[0].type =operand_encoding_t::flags::integer | operand_encoding_t::flags::reg;
+	branch_op.operands[0].value.r8 = i_registers_t::pc;
+	branch_op.operands[1].type = offset_type | operand_encoding_t::flags::integer;
+	branch_op.operands[1].value.u64 = offset;
+	inst_.push_back(branch_op);
+}
+void instruction_emitter::branch_pc_relative_if_not_equal(op_sizes size, operand_encoding_t::flags offset_type,
+														  uint64_t offset) {
+	instruction_t branch_op;
+	branch_op.op = op_codes::bne;
+	branch_op.size = size;
+	branch_op.operands_count = 2;
+	branch_op.operands[0].type = operand_encoding_t::flags::integer | operand_encoding_t::flags::reg;
+	branch_op.operands[0].value.r8 = i_registers_t::pc;
+	branch_op.operands[1].type = offset_type | operand_encoding_t::flags::integer;
+	branch_op.operands[1].value.u64 = offset;
+	inst_.push_back(branch_op);
+}
+
 }

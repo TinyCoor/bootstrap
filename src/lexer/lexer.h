@@ -76,6 +76,14 @@ private:
 
 	bool none_literal(token_t& token);
 
+	bool directive(token_t& token);
+
+	bool enum_literal(token_t& token);
+
+	bool struct_literal(token_t& token);
+
+	bool return_literal(token_t& token);
+
 	bool cast_literal(token_t& token);
 
 	bool true_literal(token_t& token);

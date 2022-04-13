@@ -76,15 +76,15 @@ set(LEXER_SRC
         src/lexer/token.cpp)
 
 set(PARSER_SRC
-        src/parser/scope.cpp
-        src/parser/symbol_table.cpp
+        src/compiler/scope.cpp
+        src/compiler/symbol_table.cpp
         src/parser/parser.cpp
         src/parser/ast/ast.cpp
         src/parser/ast/ast_formatter.cpp)
 
 add_executable(bootstrap
         src/main.cpp
-        src/compiler.cpp
+        src/compiler/compiler.cpp
         ${VM_SRC}
         ${PARSER_SRC}
         ${LEXER_SRC}

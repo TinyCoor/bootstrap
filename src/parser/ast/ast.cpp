@@ -152,17 +152,10 @@ ast_node_shared_ptr ast_builder::character_literal_node(const token_t& token) {
 	return node;
 }
 
-ast_node_shared_ptr ast_builder::variable_reference_node(const token_t& token) {
+ast_node_shared_ptr ast_builder::symbol_reference_node(const token_t &token) {
 	auto node = std::make_shared<ast_node_t>();
 	node->token = token;
-	node->type = ast_node_types_t::variable_reference;
-	return node;
-}
-
-ast_node_shared_ptr ast_builder::variable_declaration_node(const token_t& token) {
-	auto node = std::make_shared<ast_node_t>();
-	node->token = token;
-	node->type = ast_node_types_t::variable_declaration;
+	node->type = ast_node_types_t::symbol_reference;
 	return node;
 }
 
@@ -251,6 +244,42 @@ ast_node_shared_ptr ast_builder::empty_literal_node(const token_t &token) {
 	auto node = std::make_shared<ast_node_t>();
 	node->type  = ast_node_types_t::empty_literal;
 	node->token = token;
+	return node;
+}
+ast_node_shared_ptr ast_builder::return_node()
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->type  = ast_node_types_t::return_statement;
+	return node;
+}
+
+ast_node_shared_ptr ast_builder::for_in_node()
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->type = ast_node_types_t::for_in_statement;
+	return node;
+}
+
+ast_node_shared_ptr ast_builder::enum_node(const token_t &token)
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->token = token;
+	node->type = ast_node_types_t::enum_expression;
+	return node;
+}
+
+ast_node_shared_ptr ast_builder::struct_node(const token_t &token)
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->token = token;
+	node->type = ast_node_types_t::struct_expression;
+	return node;
+}
+ast_node_shared_ptr ast_builder::directive_node(const token_t &token)
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->token = token;
+	node->type = ast_node_types_t::directive;
 	return node;
 }
 

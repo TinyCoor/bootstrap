@@ -7,7 +7,7 @@
 
 #include "vm/terp.h"
 #include "parser/parser.h"
-#include "parser/scope.h"
+#include "scope.h"
 
 namespace gfx {
 	class compiler {
@@ -26,7 +26,7 @@ namespace gfx {
 		void build_scope_tree(result& r, scope* scope, const ast_node_shared_ptr& node);
 	private:
 		terp terp_;
-		scope global_scope;
+		scope global_scope_;
 	};
 }
 

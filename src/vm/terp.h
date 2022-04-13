@@ -70,6 +70,10 @@ namespace gfx {
 			return stack_size_;
 		}
 
+		const meta_information_t& meta_information() const {
+			return meta_information_;
+		}
+
 		std::vector<uint64_t> jump_to_subroutine(result& r, uint64_t address);
 
 		uint64_t heap_vector(uint8_t index) const;
@@ -145,6 +149,7 @@ namespace gfx {
 		uint8_t * heap_ = nullptr;
 		register_file_t registers_{};
 		instruction_cache inst_cache_;
+		meta_information_t meta_information_ {};
 		std::map<uint8_t, trap_callable> traps_{};
 
 	};

@@ -434,7 +434,9 @@ void instruction_emitter::branch_if_lesser_or_equal(uint64_t address) {
 	branch_op.operands[0].value.u64 = address;
 	inst_.push_back(branch_op);
 }
-void instruction_emitter::branch_if_greater_or_equal(uint64_t address) {
+
+void instruction_emitter::branch_if_greater_or_equal(uint64_t address)
+{
 	instruction_t branch_op;
 	branch_op.op = op_codes::bge;
 	branch_op.size = op_sizes::qword;
@@ -442,6 +444,35 @@ void instruction_emitter::branch_if_greater_or_equal(uint64_t address) {
 	branch_op.operands[0].type = operand_encoding_t::integer | operand_encoding_t::constant;
 	branch_op.operands[0].value.u64 = address;
 	inst_.push_back(branch_op);
+}
+
+void instruction_emitter::meta(uint32_t line, uint16_t column, const std::string &file_name, const std::string &symbol_name)
+{
+	instruction_t meta_op;
+	meta_op.op = op_codes::meta;
+	meta_op.size = op_sizes::word;
+	meta_op.operands_count = 1;
+	meta_op.operands[0].type = operand_encoding_t::flags::integer;
+	meta_op.operands[0].value.u64 = 6 + file_name.length() + symbol_name.length();
+	meta_information_list_.push_back(meta_information_t{
+		.line_number = line,
+		.column_number = column,
+		.symbol = symbol_name,
+		.source_file = file_name,
+	});
+	inst_.push_back(meta_op);
+}
+
+void instruction_emitter::swap_int_register(op_sizes size, i_registers_t target_index, i_registers_t source_index) {
+	instruction_t swap_op;
+	swap_op.op = op_codes::swap;
+	swap_op.size = size;
+	swap_op.operands_count = 2;
+	swap_op.operands[0].type =operand_encoding_t::flags::integer | operand_encoding_t::flags::reg;
+	swap_op.operands[0].value.r8 = target_index;
+	swap_op.operands[1].type =operand_encoding_t::flags::integer | operand_encoding_t::flags::reg;
+	swap_op.operands[1].value.r8 = source_index;
+	inst_.push_back(swap_op);
 }
 
 }

@@ -237,9 +237,9 @@ struct operand_encoding_t {
 	}value;
 };
 
-struct debug_information_t {
+struct meta_information_t {
 	uint32_t line_number;
-	int16_t column_number;
+	uint16_t column_number;
 	std::string symbol;
 	std::string source_file;
 };

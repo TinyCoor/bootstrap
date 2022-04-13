@@ -12,6 +12,7 @@ enum class op_codes : uint8_t {
 	nop = 1,
 	load,
 	store,
+	swap,
 	move,
 	copy,
 	fill,
@@ -73,7 +74,7 @@ inline static std::map<op_codes, std::string> s_op_code_names = {
 	{op_codes::ble,    "BLE"},  {op_codes::bl,     "BL"},  {op_codes::jsr,    "JSR"},
 	{op_codes::dup,    "DUP"},  {op_codes::rts,    "RTS"}, {op_codes::jmp,    "JMP"},
 	{op_codes::meta,   "META"}, {op_codes::swi,   "SWI"},  {op_codes::trap,  "TRAP"},
-	{op_codes::exit,   "EXIT"},
+	{op_codes::exit,   "EXIT"}, {op_codes::swap, "SWAP"},
 };
 }
 #endif // OP_CODE_H_

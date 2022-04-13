@@ -5,6 +5,7 @@
 #include "terp.h"
 #include "src/common/formatter.h"
 #include "instruction.h"
+#include "common/bytes.h"
 #include <fmt/format.h>
 #include <sstream>
 #include <iomanip>
@@ -123,6 +124,44 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::zero, value == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
+		}break;
+		case op_codes::swap:{
+			uint64_t value;
+
+			if (!get_operand_value(r, inst, 1, value))
+				return false;
+
+			uint64_t result = 0;
+			switch (inst.size) {
+				case op_sizes::byte: {
+					uint8_t byte_value = static_cast<uint8_t>(value);
+					uint8_t upper_nybble = get_upper_nybble(byte_value);
+					uint8_t lower_nybble = get_lower_nybble(byte_value);
+					byte_value = set_upper_nybble(byte_value, lower_nybble);
+					result = set_lower_nybble(byte_value, upper_nybble);
+					break;
+				}
+				case op_sizes::word:
+					result = endian_swap_word(static_cast<uint16_t>(value));
+					break;
+				case op_sizes::dword:
+					result = endian_swap_dword(static_cast<uint32_t>(value));
+					break;
+				case op_sizes::qword:
+				default:
+					result = endian_swap_qword(value);
+					break;
+			}
+
+			if (!set_target_operand_value(r, inst, 0, result))
+				return false;
+
+			registers_.flags(register_file_t::flags_t::carry, false);
+			registers_.flags(register_file_t::flags_t::subtract, false);
+			registers_.flags(register_file_t::flags_t::overflow, false);
+			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
+
 		}break;
 		case op_codes::store: {
 			uint64_t value;
@@ -840,16 +879,22 @@ bool terp::step(result &r)
 		}break;
 		case op_codes::trap:{
 			uint64_t index;
-			if (!get_operand_value(r, inst, 0, index))
+			if (!get_operand_value(r, inst, 0, index)) {
 				return false;
+			}
+
 			auto it = traps_.find(static_cast<uint8_t>(index));
-			if (it== traps_.end()){
+			if (it== traps_.end()) {
 				break;
 			}
 			it->second(this);
 		}break;
 		case op_codes::meta: {
+			uint64_t meta_data_size;
 
+			if (!get_operand_value(r, inst, 0, meta_data_size)) {
+				return false;
+			}
 		}break;
 
 		case op_codes::exit: {

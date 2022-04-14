@@ -282,5 +282,19 @@ ast_node_shared_ptr ast_builder::directive_node(const token_t &token)
 	node->type = ast_node_types_t::directive;
 	return node;
 }
+ast_node_shared_ptr ast_builder::qualified_symbol_reference_node()
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->type = ast_node_types_t::qualified_symbol_reference;
+	return node;
+}
+
+ast_node_shared_ptr ast_builder::namespace_node(const token_t &token)
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->token = token;
+	node->type = ast_node_types_t::namespace_statement;
+	return node;
+}
 
 }

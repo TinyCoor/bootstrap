@@ -5,7 +5,7 @@
 #ifndef SYMBOL_TABLE_H_
 #define SYMBOL_TABLE_H_
 #include "src/common/result.h"
-#include "parser/ast/ast.h"
+#include "parser/ast.h"
 #include <set>
 
 namespace gfx {

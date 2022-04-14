@@ -8,6 +8,27 @@
 #include <sstream>
 namespace gfx {
 
+ast_node_shared_ptr namespace_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+	auto namespace_node = parser->ast_builder()->namespace_node(token);
+
+	while (true) {
+		token_t identifier_token;
+		identifier_token.type = token_types_t::identifier;
+		if (!parser->expect(r, identifier_token))
+			break;
+		auto symbol_node = parser->ast_builder()->symbol_reference_node(identifier_token);
+		namespace_node->lhs->children.push_back(symbol_node);
+		if (!parser->peek(token_types_t::scope_operator)) {
+			break;
+		}
+		parser->consume();
+	}
+
+	namespace_node->rhs = parser->parse_expression(r, 0);
+
+	return namespace_node;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr struct_prefix_parser::parse(
@@ -103,11 +124,23 @@ ast_node_shared_ptr type_identifier_prefix_parser::parse(result& r, parser* pars
 		is_pointer = true;
 	}
 
+	auto is_spread = false;
+	if (parser->peek(token_types_t::spread_operator)) {
+		parser->consume();
+		is_spread = true;
+	}
+
 	token_t type_identifier;
 	type_identifier.type = token_types_t::identifier;
-	if (!parser->expect(r, type_identifier)) {
-		parser->error(r, "B027", "type expected.", token.line, token.column);
-		return nullptr;
+
+	if (parser->peek(token_types_t::none_literal)) {
+		type_identifier.value = "none";
+		parser->consume();
+	} else {
+		if (!parser->expect(r, type_identifier)) {
+			parser->error(r, "B027", "type expected.", token.line, token.column);
+			return nullptr;
+		}
 	}
 
 	auto type_node = parser->ast_builder()->type_identifier_node(type_identifier);
@@ -118,10 +151,17 @@ ast_node_shared_ptr type_identifier_prefix_parser::parse(result& r, parser* pars
 		type_node->rhs = parser->parse_expression(r, 0);
 	}
 
-	if (is_pointer)
+	if (is_pointer) {
 		type_node->flags |= ast_node_t::flags_t::pointer;
-	else if (is_array)
+	}
+
+	if (is_array) {
 		type_node->flags |= ast_node_t::flags_t::array;
+	}
+
+	if (is_spread) {
+		type_node->flags |= ast_node_t::flags_t::spread;
+	}
 
 	return type_node;
 }
@@ -159,7 +199,9 @@ ast_node_shared_ptr fn_decl_prefix_parser::parse(result& r, parser* parser, toke
 		return nullptr;
 
 	fn_decl_node->lhs = parser->parse_expression(r, 0);
-	fn_decl_node->children.push_back(parser->parse_expression(r, 0));
+	if (!parser->peek(token_types_t::semi_colon)) {
+		fn_decl_node->children.push_back(parser->parse_expression(r, 0));
+	}
 
 	return fn_decl_node;
 }
@@ -194,7 +236,7 @@ ast_node_shared_ptr unary_operator_prefix_parser::parse(result& r, parser* parse
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr symbol_literal_prefix_parser::parse(result& r, parser* parser, token_t& token)
+ast_node_shared_ptr keyword_literal_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	switch (token.type) {
 		case token_types_t::break_literal:
@@ -254,7 +296,22 @@ ast_node_shared_ptr block_comment_prefix_parser::parse(result& r, parser* parser
 
 ast_node_shared_ptr symbol_reference_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	return parser->ast_builder()->symbol_reference_node(token);
+	auto symbol_reference_node = parser->ast_builder()->qualified_symbol_reference_node();
+
+	while (true) {
+		auto symbol_node = parser->ast_builder()->symbol_reference_node(token);
+		symbol_reference_node->lhs->children.push_back(symbol_node);
+		if (!parser->peek(token_types_t::scope_operator)) {
+			break;
+		}
+
+		parser->consume();
+		if (!parser->expect(r, token)) {
+			return nullptr;
+		}
+	}
+
+	return symbol_reference_node;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,7 +319,23 @@ ast_node_shared_ptr symbol_reference_prefix_parser::parse(result& r, parser* par
 ast_node_shared_ptr symbol_reference_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
 	token_t& token)
 {
-	lhs->rhs = parser->ast_builder()->symbol_reference_node(token);
+	auto symbol_reference_node = parser->ast_builder()->qualified_symbol_reference_node();
+
+	while (true) {
+		auto symbol_node = parser->ast_builder()->symbol_reference_node(token);
+		symbol_reference_node->lhs->children.push_back(symbol_node);
+		if (!parser->peek(token_types_t::scope_operator)) {
+			break;
+		}
+
+		parser->consume();
+		if (!parser->expect(r, token)) {
+			return nullptr;
+		}
+
+	}
+
+	lhs->rhs = symbol_reference_node;
 
 	return lhs;
 }
@@ -313,11 +386,23 @@ ast_node_shared_ptr type_identifier_infix_parser::parse(result& r, parser* parse
 		is_pointer = true;
 	}
 
+	auto is_spread = false;
+	if (parser->peek(token_types_t::spread_operator)) {
+		parser->consume();
+		is_spread = true;
+	}
+
 	token_t type_identifier;
 	type_identifier.type = token_types_t::identifier;
-	if (!parser->expect(r, type_identifier)) {
-		parser->error(r, "B027", "type name expected for variable declaration.", token.line, token.column);
-		return nullptr;
+
+	if (parser->peek(token_types_t::none_literal)) {
+		type_identifier.value = "none";
+		parser->consume();
+	} else {
+		if (!parser->expect(r, type_identifier)) {
+			parser->error(r, "B027", "type name expected for variable declaration.", token.line, token.column);
+			return nullptr;
+		}
 	}
 
 	lhs->rhs = parser->ast_builder()->type_identifier_node(type_identifier);
@@ -331,8 +416,12 @@ ast_node_shared_ptr type_identifier_infix_parser::parse(result& r, parser* parse
 
 	if (is_pointer) {
 		lhs->rhs->flags |= ast_node_t::flags_t::pointer;
-	} else if (is_array) {
+	}
+	if (is_array) {
 		lhs->rhs->flags |= ast_node_t::flags_t::array;
+	}
+	if (is_spread) {
+		lhs->rhs->flags |= ast_node_t::flags_t::spread;
 	}
 
 	return lhs;
@@ -385,13 +474,17 @@ precedence_t assignment_infix_parser::precedence() const
 
 ast_node_shared_ptr directive_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	return parser->ast_builder()->directive_node(token);
+	auto directive_node = parser->ast_builder()->directive_node(token);
+	directive_node->lhs = parser->parse_expression(r, 0);
+	return directive_node;
 }
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr attribute_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	return parser->ast_builder()->attribute_node(token);
+	auto attribute_node = parser->ast_builder()->attribute_node(token);
+	attribute_node->lhs = parser->parse_expression(r, 0);
+	return attribute_node;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -431,7 +524,7 @@ bool parser::consume(token_t &token)
 	token = tokens_.front();
 	tokens_.erase(tokens_.begin());
 
-	return true;
+	return token.type != token_types_t::end_of_file;
 }
 
 bool parser::peek(token_types_t type)
@@ -574,13 +667,17 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 	}
 
 	auto lhs = prefix_parser->parse(r, this, token);
+	if (lhs == nullptr) {
+		error(r, "B021", "unexpected empty ast node.", token.line, token.column);
+		return nullptr;
+	}
+
 	if (token.is_comment()) {
 		return lhs;
 	}
 
 	while (precedence < current_infix_precedence()) {
 		if (!consume(token)) {
-			// XXX: this bad *** mmmmkay ***
 			break;
 		}
 
@@ -629,7 +726,7 @@ void parser::error(result &r, const std::string &code, const std::string &messag
 			stream << "\n";
 	}
 
-	r.add_message(code, stream.str(), true);
+	r.add_message(code, fmt::format("{} @ {}:{}", message, line, column), stream.str(), true);
 }
 
 }

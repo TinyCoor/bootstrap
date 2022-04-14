@@ -67,6 +67,8 @@ add_custom_command(TARGET all-unit-tests
         COMMAND ctest -C $<CONFIGURATION> --output-on-failure
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
+set(COMMON_SRC src/common/ya_getopt.c)
+
 set(VM_SRC
         src/vm/terp.cpp
         src/vm/instruction_emitter.cpp
@@ -75,23 +77,26 @@ set(VM_SRC
         src/vm/shared_library.cpp
         )
 
-set(LEXER_SRC
-        src/lexer/lexer.cpp
-        src/lexer/token.cpp)
 
-set(PARSER_SRC
+set(COMPILER_SRC
         src/compiler/scope.cpp
         src/compiler/symbol_table.cpp
+        src/compiler/bytecode_emitter.cpp)
+
+
+set(PARSER_SRC
+        src/parser/lexer.cpp
+        src/parser/token.cpp
         src/parser/parser.cpp
-        src/parser/ast/ast.cpp
-        src/parser/ast/ast_formatter.cpp)
+        src/parser/ast.cpp
+        src/parser/ast_formatter.cpp)
 
 add_executable(bootstrap
         src/main.cpp
-        src/compiler/compiler.cpp
+        ${COMMON_SRC}
         ${VM_SRC}
         ${PARSER_SRC}
-        ${LEXER_SRC}
+        ${COMPILER_SRC}
         )
 target_link_libraries(bootstrap PUBLIC
         fmt

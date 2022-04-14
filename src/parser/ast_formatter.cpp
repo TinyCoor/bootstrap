@@ -7,8 +7,8 @@
 #include <set>
 namespace gfx {
 
-ast_formatter::ast_formatter(const ast_node_shared_ptr& root)
-	: root_(root)
+ast_formatter::ast_formatter(const ast_node_shared_ptr& root, FILE* file)
+	: file_(file), root_(root)
 {
 }
 
@@ -18,54 +18,51 @@ void ast_formatter::format_text() {
 
 void ast_formatter::format_text_node(const ast_node_shared_ptr &node, uint32_t level) {
 	if (node == nullptr) {
-		fmt::print("nullptr");
+		fmt::print(file_, "nullptr");
 		return;
 	}
-	fmt::print(
-		"[type: {} | token: {}]\n",
-		node->name(),
-		node->token.name());
-	fmt::print("{1:{0}}     value: '{2}'\n", level, "", node->token.value);
+	fmt::print(file_, "[type: {} | token: {}]\n", node->name(), node->token.name());
+	fmt::print(file_, "{1:{0}}     value: '{2}'\n", level, "", node->token.value);
 	if (node->token.is_numeric()) {
-		fmt::print("{1:{0}}     radix: {2}\n", level, "", node->token.radix);
+		fmt::print(file_,"{1:{0}}     radix: {2}\n", level, "", node->token.radix);
 		switch (node->token.number_type) {
 			case number_types_t::none:
-				fmt::print("{1:{0}}      type: none\n", level, "");
+				fmt::print(file_, "{1:{0}}      type: none\n", level, "");
 				break;
 			case number_types_t::integer:
-				fmt::print("{1:{0}}      type: integer\n", level, "");
+				fmt::print(file_, "{1:{0}}      type: integer\n", level, "");
 				break;
 			case number_types_t::floating_point:
-				fmt::print("{1:{0}}      type: floating_point\n", level, "");
+				fmt::print(file_, "{1:{0}}      type: floating_point\n", level, "");
 				break;
 		}
 	}
-	fmt::print("{1:{0}}is_pointer: {2}\n", level, "", node->is_pointer());
-	fmt::print("{1:{0}}  is_array: {2}\n", level, "", node->is_array());
-	fmt::print("{1:{0}}             --\n", level, "");
-	fmt::print("{1:{0}}       lhs: ", level, "");
+	fmt::print(file_, "{1:{0}}is_pointer: {2}\n", level, "", node->is_pointer());
+	fmt::print(file_, "{1:{0}}  is_array: {2}\n", level, "", node->is_array());
+	fmt::print(file_, "{1:{0}}             --\n", level, "");
+	fmt::print(file_, "{1:{0}}       lhs: ", level, "");
 	format_text_node(node->lhs, level + 7);
-	fmt::print("\n");
-	fmt::print("{1:{0}}             --\n", level, "");
-	fmt::print("{1:{0}}       rhs: ", level, "");
+	fmt::print(file_, "\n");
+	fmt::print(file_, "{1:{0}}             --\n", level, "");
+	fmt::print(file_, "{1:{0}}       rhs: ", level, "");
 	format_text_node(node->rhs, level + 7);
-	fmt::print("\n");
-	fmt::print("{1:{0}}             --\n", level, "");
+	fmt::print(file_, "\n");
+	fmt::print(file_, "{1:{0}}             --\n", level, "");
 
 	auto index = 0;
 	for (auto child : node->children) {
-		fmt::print("{1:{0}}      [{2:02}] ", level, "", index++);
+		fmt::print(file_, "{1:{0}}      [{2:02}] ", level, "", index++);
 		format_text_node(child, level + 6);
-		fmt::print("\n");
+		fmt::print(file_, "\n");
 	}
 }
 
 void ast_formatter::format_graph_viz() {
-	fmt::print("digraph {{\n");
-	//fmt::print("rankdir=LR\n");
-	fmt::print("splines=\"line\";\n");
+	fmt::print(file_, "digraph {{\n");
+	// fmt::print("rankdir=LR\n");
+	// fmt::print(file_, "splines=\"line\";\n");
 	format_graph_viz_node(root_);
-	fmt::print("}}\n");
+	fmt::print(file_,"}}\n");
 }
 
 void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
@@ -116,38 +113,31 @@ void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
 			style = ", fillcolor=yellow, style=\"filled\"";
 			break;
 		default:
-			if (!node->token.value.empty()) {
-				details = fmt::format(
-					"|{{ token: '{}' | radix: {} | is_pointer: {} | is_array: {} }}",
-					node->token.value,
-					node->token.radix,
-					node->is_pointer(),
-					node->is_array());
-			}
 			break;
 	}
 
-	fmt::print(
-		"{}[shape={},label=\"<f0> lhs|<f1> {}{}|<f2> rhs\"{}];\n",
-		node_vertex_name,
-		shape,
-		node->name(),
-		details,
-		style);
+	if (!node->token.value.empty() && details.empty()) {
+		std::string value = node->token.value;
+		if (value == "|") {
+			value = "&#124;";
+		} else if (value == "||") {
+			value = "&#124;&#124;";
+		}
+
+		details = fmt::format("|{{ token: '{}' | radix: {} | ptr: {} | array: {} | spread: {} }}",
+			value, node->token.radix, node->is_pointer(), node->is_array(), node->is_spread());
+	}
+
+	fmt::print(file_, "{}[shape={},label=\"<f0> lhs|<f1> {}{}|<f2> rhs\"{}];\n",
+		node_vertex_name, shape, node->name(), details, style);
 	if (node->lhs != nullptr) {
 		format_graph_viz_node(node->lhs);
-		fmt::print(
-			"{}:f0 -> {}:f1;\n",
-			node_vertex_name,
-			get_vertex_name(node->lhs));
+		fmt::print(file_, "{}:f0 -> {}:f1;\n", node_vertex_name, get_vertex_name(node->lhs));
 	}
 
 	if (node->rhs != nullptr) {
 		format_graph_viz_node(node->rhs);
-		fmt::print(
-			"{}:f2 -> {}:f1;\n",
-			node_vertex_name,
-			get_vertex_name(node->rhs));
+		fmt::print(file_, "{}:f2 -> {}:f1;\n", node_vertex_name, get_vertex_name(node->rhs));
 	}
 
 	auto index = 0;
@@ -162,12 +152,11 @@ void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
 	if (!edges.empty()) {
 		index = 0;
 		for (const auto& edge : edges)
-			fmt::print(
-				"{}:f1 -> {}:f1 [label=\"[{:02}]\"];\n",
+			fmt::print(file_, "{}:f1 -> {}:f1 [label=\"[{:02}]\"];\n",
 				node_vertex_name,
 				edge,
 				index++);
-		fmt::print("\n");
+		fmt::print(file_, "\n");
 	}
 }
 

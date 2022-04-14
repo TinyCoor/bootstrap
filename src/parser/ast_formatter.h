@@ -9,7 +9,7 @@
 namespace gfx {
 class ast_formatter {
 public:
-	explicit ast_formatter(const ast_node_shared_ptr& root);
+	explicit ast_formatter(const ast_node_shared_ptr& root, FILE* file);
 
 	void format_text();
 
@@ -25,6 +25,7 @@ private:
 	std::string get_vertex_name(const ast_node_shared_ptr& node) const;
 
 private:
+	FILE* file_ = nullptr;
 	ast_node_shared_ptr root_;
 };
 }

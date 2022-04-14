@@ -1,279 +1,136 @@
-#include "vm/terp.h"
-#include "vm/instruction_emitter.h"
+
 #include <fmt/format.h>
 #include <chrono>
-#include <functional>
-#include <sstream>
-#include "compiler/compiler.h"
+#include "common/ya_getopt.h"
+#include "compiler/bytecode_emitter.h"
 using namespace gfx;
 
 static constexpr size_t heap_size = (1024 * 1024) * 32;
 static constexpr size_t stack_size = (1024 * 1024) * 8;
 
-using test_function_callable = std::function<bool(gfx::result&, gfx::terp&)>;
+static void print_results(result& r) {
+	auto has_messages = !r.messages().empty();
 
-void print_results(gfx::result& r) {
-	for (const auto &msg : r.messages()) {
-		fmt::print("\t|{}|{} {}\n", msg.code(), msg.is_error() ? "ERROR": "", msg.message());
-	}
-}
+	if (has_messages)
+		fmt::print("\n");
 
-static bool run_terp(gfx::result& r, gfx::terp& terp)
-{
-	while (!terp.has_exited()) {
-		if (!terp.step(r)) {
-			return false;
+	for (const auto& msg : r.messages()) {
+		fmt::print("[{}] {}{}\n", msg.code(), msg.is_error() ? "ERROR: " : " ", msg.message());
+		if (!msg.details().empty()) {
+			fmt::print("{}\n", msg.details());
 		}
 	}
-	return true;
+
+	if (has_messages)
+		fmt::print("\n");
 }
 
-static bool test_fibonacci(gfx::result& r, gfx::terp& terp)
-{
-	gfx::instruction_emitter bootstrap_emitter(terp.program_start);
-	bootstrap_emitter.jump_pc_relative(op_sizes::byte, operand_encoding_t::flags::none, 0);
-
-	gfx::instruction_emitter fn_fibonacci(bootstrap_emitter.end_address());
-	fn_fibonacci.load_stack_offset_to_register(gfx::op_sizes::dword, gfx::i_registers_t::i0, 8);
-	fn_fibonacci.push_int_register(gfx::op_sizes::dword,  gfx::i_registers_t::i0);
-	fn_fibonacci.trap(1);
-
-	fn_fibonacci.compare_int_register_to_constant(gfx::op_sizes::dword,  gfx::i_registers_t::i0, 0);
-	auto first_branch_address = fn_fibonacci.end_address();
-	fn_fibonacci.branch_pc_relative_if_equal(op_sizes::byte, operand_encoding_t::none, 0);
-	fn_fibonacci.compare_int_register_to_constant(gfx::op_sizes::dword, gfx::i_registers_t::i0, 1);
-	auto second_branch_address = fn_fibonacci.end_address();
-	fn_fibonacci.branch_pc_relative_if_equal(op_sizes::byte,operand_encoding_t::none, 0);
-	auto jump_over_rts_address = fn_fibonacci.end_address();
-	fn_fibonacci.jump_pc_relative(op_sizes::byte, operand_encoding_t::none, 0);
-
-	auto label_exit_fib = fn_fibonacci.end_address();
-	fn_fibonacci[4].patch_branch_address(label_exit_fib - first_branch_address, 1);
-	fn_fibonacci[6].patch_branch_address(label_exit_fib - second_branch_address, 1);
-	fn_fibonacci.rts();
-
-	auto label_next_fib = fn_fibonacci.end_address();
-	fn_fibonacci[7].patch_branch_address(label_next_fib - jump_over_rts_address, 1);
-
-	fn_fibonacci.subtract_int_constant_from_register(gfx::op_sizes::dword,  gfx::i_registers_t::i1, gfx::i_registers_t::i0, 1);
-	fn_fibonacci.subtract_int_constant_from_register(gfx::op_sizes::dword, gfx::i_registers_t::i2, gfx::i_registers_t::i0, 2);
-	fn_fibonacci.push_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i2);
-	fn_fibonacci.jump_subroutine_pc_relative(
-		gfx::op_sizes::byte,gfx::operand_encoding_t::negative, fn_fibonacci.end_address() - fn_fibonacci.start_address());
-	fn_fibonacci.pop_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i2);
-	fn_fibonacci.add_int_register_to_register(gfx::op_sizes::dword, gfx::i_registers_t::i1, gfx::i_registers_t::i1, gfx::i_registers_t::i2);
-	fn_fibonacci.push_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i1);
-	fn_fibonacci.jump_subroutine_pc_relative(
-		gfx::op_sizes::byte, gfx::operand_encoding_t::negative, fn_fibonacci.end_address() - fn_fibonacci.start_address());
-	fn_fibonacci.pop_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i1);
-	fn_fibonacci.store_register_to_stack_offset(gfx::op_sizes::dword, gfx::i_registers_t::i1, 8);
-	fn_fibonacci.rts();
-
-	gfx::instruction_emitter main_emitter(fn_fibonacci.end_address());
-	main_emitter.push_int_constant(gfx::op_sizes::dword, 100);
-	main_emitter.jump_subroutine_pc_relative(op_sizes::byte, operand_encoding_t::negative,
-		main_emitter.end_address() - fn_fibonacci.start_address());
-	main_emitter.dup();
-	main_emitter.pop_int_register(gfx::op_sizes::dword, gfx::i_registers_t::i0);
-	main_emitter.trap(1);
-	main_emitter.exit();
-
-	bootstrap_emitter[0].patch_branch_address(main_emitter.start_address() - terp.program_start, 1);
-	bootstrap_emitter.encode(r, terp);
-	fn_fibonacci.encode(r, terp);
-	main_emitter.encode(r, terp);
-	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
-	auto result = run_terp(r, terp);
-
-	if (terp.register_file().i[0] != 1){
-		r.add_message("T001", "fn_fibonacci should end with 0 or 1.", true);
-	}
-	return result;
+static void usage() {
+	fmt::print("usage: bootstrap [-?|--help] [-v|--verbose] file\n");
 }
 
-static bool test_square(gfx::result& r, gfx::terp& terp)
-{
-	gfx::instruction_emitter bootstrap_emitter(terp.program_start);
-	bootstrap_emitter.jump_pc_relative(op_sizes::byte, operand_encoding_t::flags::none, 0);
+int main(int argc, char** argv) {
+	using namespace std::chrono;
 
-	gfx::instruction_emitter fn_square_emitter(bootstrap_emitter.end_address());
-	fn_square_emitter.load_stack_offset_to_register(gfx::op_sizes::dword, i_registers_t::i0, 8);
-	fn_square_emitter.multiply_int_register_to_register(gfx::op_sizes::dword, i_registers_t::i0, i_registers_t::i0, i_registers_t::i0);
-	fn_square_emitter.store_register_to_stack_offset(gfx::op_sizes::dword, i_registers_t::i0, 8);
-	fn_square_emitter.rts();
+	int opt = -1;
+	bool help_flag = false;
+	bool verbose_flag = false;
+	std::filesystem::path ast_graph_file_name;
 
-	gfx::instruction_emitter main_emitter(fn_square_emitter.end_address());
-	main_emitter.push_int_constant(gfx::op_sizes::dword, 9);
-	main_emitter.jump_subroutine_pc_relative(op_sizes::byte, operand_encoding_t::negative,
-		main_emitter.end_address() - fn_square_emitter.start_address());
-	main_emitter.pop_int_register(gfx::op_sizes::dword, i_registers_t::i5);
-	main_emitter.push_int_constant(gfx::op_sizes::dword, 5);
-	main_emitter.jump_subroutine_pc_relative(op_sizes::byte, operand_encoding_t::negative,
-		main_emitter.end_address() - fn_square_emitter.start_address());
-	main_emitter.pop_int_register(gfx::op_sizes::dword, i_registers_t::i6);
+	static struct option long_options[] = {
+		{"help",    ya_no_argument,       nullptr, 0  },
+		{"verbose", ya_no_argument,       nullptr, 0  },
+		{"ast",     ya_required_argument, 0,       'G'},
+		{0,         0,                    0,       0  },
+	};
 
-	main_emitter.exit();
+	while (true) {
+		int option_index = -1;
+		opt = ya_getopt_long(
+			argc,
+			argv,
+			"?:v:G:",
+			long_options,
+			&option_index);
+		if (opt == -1) {
+			break;
+		}
 
-	bootstrap_emitter[0].patch_branch_address(main_emitter.start_address() - terp.program_start, 1);
-	bootstrap_emitter.encode(r, terp);
-	fn_square_emitter.encode(r, terp);
-	main_emitter.encode(r, terp);
-	if(r.is_failed()){
-		return false;
+		switch (opt) {
+			case 0: {
+				switch (option_index) {
+					case 0:
+						help_flag = true;
+						break;
+					case 1:
+						verbose_flag = true;
+						break;
+					case 2:
+						ast_graph_file_name = ya_optarg;
+						break;
+					default:
+						abort();
+				}
+				break;
+			}
+			case '?':
+				help_flag = true;
+				break;
+			case 'v':
+				verbose_flag = true;
+				break;
+			case 'G':
+				ast_graph_file_name = ya_optarg;
+				break;
+			default:
+				break;
+		}
 	}
-	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
 
-	auto res = run_terp(r, terp);
-
-	if (terp.register_file().i[5] != 81) {
-		r.add_message("T001", "test_square register 5 should 81", true);
+	if (help_flag) {
+		usage();
+		return 1;
 	}
-	if (terp.register_file().i[6] != 25) {
-		r.add_message("T001", "test_square register 6 should 25", true);
+
+	high_resolution_clock::time_point start = high_resolution_clock::now();
+	bytecode_emitter_options_t compiler_options {
+		.verbose = verbose_flag,
+		.heap_size = heap_size,
+		.stack_size = stack_size,
+		.ast_graph_file_name = ast_graph_file_name,
+	};
+	bytecode_emitter compiler(compiler_options);
+	result r;
+	int rc = 0;
+
+	if (!compiler.initialize(r)) {
+		rc = 1;
+	} else {
+		std::vector<std::filesystem::path> source_files {};
+		while (ya_optind < argc) {
+			std::filesystem::path source_file_path(argv[ya_optind++]);
+			source_files.push_back(source_file_path);
+		}
+
+		if (source_files.empty()) {
+			usage();
+			rc = 1;
+		} else {
+			if (!compiler.compile_files(r, source_files)) {
+				rc = 1;
+			} else {
+				high_resolution_clock::time_point end = high_resolution_clock::now();
+				auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+				fmt::print("Total compilation time (in μs): {}\n", duration);
+			}
+		}
 	}
-	return res;
-}
 
-static int time_test_function(gfx::result& r, gfx::terp& terp, const std::string& title,
-							  const test_function_callable& test_function)
-{
-	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-	terp.reset();
-	auto rc = test_function(r, terp);
+	print_results(r);
 
-	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+	high_resolution_clock::time_point end = high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	fmt::print("function: {} {}\n", title, rc ? "SUCCESS" : "FAILED" );
-
-	if(!rc || r.is_failed()) {
-		print_results(r);
-	}
-
-	fmt::print("execution time (in us) : {}\n\n",duration);
+	fmt::print("Total compilation time (in μs): {}\n", duration);
 
 	return rc;
-}
-
-static bool test_branches(gfx::result& r, gfx::terp& terp) {
-	gfx::instruction_emitter main_emitter(terp.program_start);
-	main_emitter.move_int_constant_to_register(gfx::op_sizes::byte, 10, gfx::i_registers_t::i0);
-	main_emitter.move_int_constant_to_register(gfx::op_sizes::byte, 5, gfx::i_registers_t::i1);
-	main_emitter.compare_int_register_to_register(gfx::op_sizes::byte, gfx::i_registers_t::i0,
-		gfx::i_registers_t::i1);
-	main_emitter.branch_if_greater(0);
-	main_emitter.push_int_constant(gfx::op_sizes::byte, 1);
-	main_emitter.trap(1);
-
-	main_emitter[3].patch_branch_address(main_emitter.end_address());
-	main_emitter.compare_int_register_to_register(gfx::op_sizes::byte, gfx::i_registers_t::i1,
-		gfx::i_registers_t::i0);
-	main_emitter.branch_if_lesser(0);
-	main_emitter.push_int_constant(gfx::op_sizes::byte, 2);
-	main_emitter.trap(1);
-
-	main_emitter[7].patch_branch_address(main_emitter.end_address());
-	main_emitter.push_int_constant(gfx::op_sizes::byte, 10);
-	main_emitter.dup();
-	main_emitter.trap(1);
-	main_emitter.pop_int_register(gfx::op_sizes::byte, gfx::i_registers_t::i0);
-
-	main_emitter.exit();
-	main_emitter.encode(r, terp);
-
-	fmt::print("\nASSEMBLY LISTING:\n{}\n", terp.disassemble(r, terp.program_start));
-
-	auto result = run_terp(r, terp);
-	if (terp.register_file().i[0] != 10) {
-		r.add_message("T001", "I0 should contain 10.", true);
-	}
-
-	return result;
-}
-
-static int terp_test()
-{
-	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-	gfx::terp terp(heap_size, stack_size);
-	terp.register_trap(1, [](gfx::terp* t) {
-		auto value = t->pop();
-		fmt::print("[trap 1] ${:016X}\n", value);
-	});
-	gfx::result r;
-	if (!terp.initialize(r)) {
-		fmt::print("terp initialized failed.\n");
-		print_results(r);
-		return 1;
-	}
-
-	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	fmt::print("execution time (in us): {}\n\n", duration);
-
-	time_test_function(r, terp, "test_branches", test_branches);
-	time_test_function(r, terp, "test_square" ,test_square);
-	time_test_function(r, terp, "test_fibonacci", test_fibonacci);
-	return 0;
-}
-
-
-static int compiler_tests()
-{
-	gfx::compiler compiler(heap_size, stack_size);
-	gfx::result r;
-	if (!compiler.initialize(r)) {
-		print_results(r);
-		return 1;
-	}
-
-	std::stringstream source(
-		"// this is a test comment\n"
-		"// fibonacci sequence in basecode-alpha\n"
-		"\n"
-		"@entry_point main;\n"
-		"\n"
-		"name:string := \"this is a test string literal\";\n"
-		"truth:bool := true;\n"
-		"lies:bool := false;\n"
-		"char:u8 := 'A';\n"
-		"name_ptr := null;\n"
-		"dx:u32 := 467;\n"
-		"vx:f64 := 3.145;\n"
-		"vy:f64 := 1.112233;\n"
-		"name_ptr:*u8 := address_of(name);\n"
-		"\n"
-		"foo:u16 := $ff * (($7f * 2) | %1000_0000_0000_0000);\n"
-		"\n"
-		"fib := fn(n:u64):u64 {\n"
-		"    if n == 0 || n == 1 {\n"
-		"        n;\n"
-		"    } else {\n"
-		"        fib((n - 1) + fib(n - 2));\n"
-		"    };\n"
-		"};\n"
-		"\n"
-		"main := fn():u64 {\n"
-		"    fib(100);\n"
-		"};");
-
-	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
-	if (!compiler.compile(r, source)) {
-		print_results(r);
-		return 1;
-	}
-
-	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	fmt::print("compile time (in us): {}\n\n", duration);
-
-	return 0;
-}
-
-int main() {
-	int result = 0;
-	result = compiler_tests();
-	if (result != 0) return result;
-
-	 result = terp_test();
-	return result;
 }

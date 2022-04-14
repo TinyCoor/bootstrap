@@ -5,6 +5,7 @@
 #ifndef TERP_H_
 #define TERP_H_
 #include "instruction.h"
+#include "heap.h"
 #include "src/common/result.h"
 #include "shared_library.h"
 #include "instruction_cache.h"
@@ -75,13 +76,21 @@ namespace gfx {
 			return meta_information_;
 		}
 
+		uint64_t alloc(uint64_t size);
+
+		uint64_t free(uint64_t address);
+
+		uint64_t size(uint64_t address);
+
+		void heap_free_space_begin(uint64_t address);
+
+		uint64_t heap_vector(heap_vectors_t vector) const;
+
+		void heap_vector(heap_vectors_t vector, uint64_t address);
+
 		bool load_shared_library(result& r, const std::filesystem::path& path);
 
 		std::vector<uint64_t> jump_to_subroutine(result& r, uint64_t address);
-
-		uint64_t heap_vector(uint8_t index) const;
-
-		void heap_vector(uint8_t index, uint64_t address);
 
 		uint64_t pop();
 
@@ -108,7 +117,9 @@ namespace gfx {
 
 		void remove_trap(uint8_t index);
 	protected:
+		void free_heap_block_list();
 
+		void execute_trap(uint8_t index);
 		bool set_target_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t value);
 
 		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t& value) const;
@@ -157,6 +168,8 @@ namespace gfx {
 		meta_information_t meta_information_ {};
 		std::map<uint8_t, trap_callable> traps_{};
 		DCCallVM* call_vm_ = nullptr;
+		heap_block_t* head_heap_block_ = nullptr;
+		std::unordered_map<uint64_t, heap_block_t*> address_blocks_ {};
 	   std::unordered_map<std::string,shared_library> shared_libraries_{};
 	};
 }

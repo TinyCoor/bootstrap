@@ -38,7 +38,7 @@ public:
 
 	bool exports_symbol(const std::string& symbol_name);
 
-	void* get_symbol_address(const std::string& symbol_name);
+	void* symbol_address(const std::string& symbol_name);
 
 private:
 	void load_symbols(const char* path);

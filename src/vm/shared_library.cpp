@@ -37,7 +37,7 @@ bool shared_library::exports_symbol(const std::string &symbol_name) {
 	return symbols_.count(symbol_name) > 0;
 }
 
-void *shared_library::get_symbol_address(const std::string &symbol_name) {
+void *shared_library::symbol_address(const std::string &symbol_name) {
 	auto it = symbols_.find(symbol_name);
 	if (it == symbols_.end())
 		return nullptr;

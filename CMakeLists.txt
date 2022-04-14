@@ -100,8 +100,10 @@ add_executable(bootstrap
         )
 target_link_libraries(bootstrap PUBLIC
         fmt
+        dyncallback_s
         dyncall_s
         dynload_s
+
         )
 
 add_custom_target(bootstrap-configured DEPENDS dummy-target bootstrap)

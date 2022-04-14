@@ -37,28 +37,48 @@ terp::~terp() {
 		heap_ = nullptr;
 		heap_size_ = 0;
 	}
+	free_heap_block_list();
+
 }
 
 bool terp::initialize(result& r)
 {
+	if (heap_ != nullptr) {
+		return true;
+	}
+	// TODO fix it
+	// call_vm_ = dcNewCallVM(4096);
+
+	shared_libraries_.clear();
+//	shared_library_t self_image;
+//	if (!self_image.initialize(r)) {
+//		return false;
+//	}
+//	shared_libraries_.insert(std::make_pair(self_image.path(), self_image));
 	heap_ = new uint8_t[heap_size_];
+	heap_vector(heap_vectors_t::top_of_stack, heap_size_);
+	heap_vector(heap_vectors_t::bottom_of_stack, heap_size_ - stack_size_);
+	heap_vector(heap_vectors_t::program_start, program_start);
 	reset();
+
+
 	return !r.is_failed();
 }
 
 void terp::reset()
 {
-	registers_.pc = program_start;
+	registers_.pc = heap_vector(heap_vectors_t::program_start);
+	registers_.sp = heap_vector(heap_vectors_t::top_of_stack);
 	registers_.fr = 0;
 	registers_.sr = 0;
-	registers_.sp = heap_size_;
 	for (size_t i = 0; i < 64 ; ++i) {
 		registers_.i[i] = 0;
 		registers_.f[i] = 0.0;
 	}
-
 	inst_cache_.reset();
-
+	// todo fix dyncall issue
+	// dcReset(call_vm_);
+	free_heap_block_list();
 	exited_ = false;
 }
 
@@ -87,27 +107,66 @@ void terp::dump_state(uint8_t count) {
 
 }
 
-/// todo move to a function table
 bool terp::step(result &r)
 {
 	instruction_t inst{};
-	auto size = inst_cache_.fetch(r, inst);
-	if(size == 0) {
+	auto inst_size = inst_cache_.fetch(r, inst);
+	if(inst_size == 0) {
 		return false;
 	}
 
-	registers_.pc += size;
+	registers_.pc += inst_size;
 
 	switch (inst.op) {
 		case op_codes::nop:{
 		}break;
 		case op_codes::alloc: {
+			uint64_t size;
+			if (!get_operand_value(r, inst, 1, size)) {
+				return false;
+			}
+			size *= op_size_in_bytes(inst.size);
+			uint64_t address = alloc(size);
+			if (!set_target_operand_value(r, inst, 0, address)) {
+				return false;
+			}
+
+			registers_.flags(register_file_t::flags_t::carry, false);
+			registers_.flags(register_file_t::flags_t::subtract, false);
+			registers_.flags(register_file_t::flags_t::overflow, false);
+			registers_.flags(register_file_t::flags_t::zero, address == 0);
+			registers_.flags(register_file_t::flags_t::negative, is_negative(address, inst.size));
 
 		}break;
 		case op_codes ::free: {
+			uint64_t address;
+			if (!get_operand_value(r, inst, 0, address)) {
+				return false;
+			}
+
+			auto freed_size = free(address);
+			registers_.flags(register_file_t::flags_t::carry, false);
+			registers_.flags(register_file_t::flags_t::subtract, false);
+			registers_.flags(register_file_t::flags_t::overflow, false);
+			registers_.flags(register_file_t::flags_t::negative, false);
+			registers_.flags(register_file_t::flags_t::zero, freed_size != 0);
 
 		}break;
 		case op_codes::size: {
+			uint64_t address;
+			if (!get_operand_value(r, inst, 1, address)) {
+				return false;
+			}
+
+			uint64_t block_size = size(address);
+			if (!set_target_operand_value(r, inst, 0, block_size)) {
+				return false;
+			}
+			registers_.flags(register_file_t::flags_t::carry, false);
+			registers_.flags(register_file_t::flags_t::subtract, false);
+			registers_.flags(register_file_t::flags_t::overflow, false);
+			registers_.flags(register_file_t::flags_t::zero, block_size == 0);
+			registers_.flags(register_file_t::flags_t::negative, is_negative(block_size, inst.size));
 
 		} break;
 		case op_codes::load: {
@@ -137,8 +196,9 @@ bool terp::step(result &r)
 		case op_codes::swap:{
 			uint64_t value;
 
-			if (!get_operand_value(r, inst, 1, value))
+			if (!get_operand_value(r, inst, 1, value)) {
 				return false;
+			}
 
 			uint64_t result = 0;
 			switch (inst.size) {
@@ -213,7 +273,7 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
 		}break;
 		case op_codes::dec: {
-			uint8_t reg =  inst.operands[0].value.r8;
+			uint8_t reg = inst.operands[0].value.r8;
 			uint64_t lhs_value = registers_.i[reg] ;
 			uint64_t rhs_value = 1;
 			uint64_t value = lhs_value - rhs_value;
@@ -774,7 +834,7 @@ bool terp::step(result &r)
 		}break;
 		case op_codes::bne: {
 			uint64_t address;
-			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
@@ -785,7 +845,7 @@ bool terp::step(result &r)
 		}break;
 		case op_codes::beq: {
 			uint64_t address;
-			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
@@ -797,7 +857,7 @@ bool terp::step(result &r)
 		case op_codes::bg: {
 			uint64_t address;
 
-			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
@@ -812,7 +872,7 @@ bool terp::step(result &r)
 		case op_codes::bge: {
 			uint64_t address;
 
-			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
@@ -824,7 +884,7 @@ bool terp::step(result &r)
 		case op_codes::bl: {
 			uint64_t address;
 
-			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
@@ -838,7 +898,7 @@ bool terp::step(result &r)
 		case op_codes::ble:{
 			uint64_t address;
 
-			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, size, address);
+			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
@@ -852,7 +912,7 @@ bool terp::step(result &r)
 		case op_codes::jsr: {
 			push(registers_.pc);
 			uint64_t address;
-			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, size, address);
+			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
@@ -866,7 +926,7 @@ bool terp::step(result &r)
 		case op_codes::jmp: {
 			uint64_t address;
 
-			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, size, address);
+			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
@@ -890,11 +950,8 @@ bool terp::step(result &r)
 				return false;
 			}
 
-			auto it = traps_.find(static_cast<uint8_t>(index));
-			if (it== traps_.end()) {
-				break;
-			}
-			it->second(this);
+			execute_trap(static_cast<uint8_t>(index));
+
 		}break;
 		case op_codes ::ffi:{
 
@@ -1250,15 +1307,17 @@ std::vector<uint64_t> terp::jump_to_subroutine(result &r, uint64_t address)
 	// XXX: pull return values from the stack
 	return return_values;
 }
-uint64_t terp::heap_vector(uint8_t index) const
+uint64_t terp::heap_vector(heap_vectors_t vector) const
 {
-	size_t heap_vector_address = heap_vector_table_start + (sizeof(uint64_t) * index);
+	size_t heap_vector_address = heap_vector_table_start
+		+ (sizeof(uint64_t) * static_cast<uint8_t>(vector));
 	return *qword_ptr(heap_vector_address);
 }
 
-void terp::heap_vector(uint8_t index, uint64_t address)
+void terp::heap_vector(heap_vectors_t vector, uint64_t address)
 {
-	size_t heap_vector_address = heap_vector_table_start + (sizeof(uint64_t) * index);
+	size_t heap_vector_address = heap_vector_table_start
+		+ (sizeof(uint64_t) * static_cast<uint8_t>(vector));
 	*qword_ptr(heap_vector_address) = address;
 }
 
@@ -1370,6 +1429,174 @@ bool terp::load_shared_library(result &r, const std::filesystem::path &path) {
 	}
 	shared_libraries_.insert(std::make_pair(path.string(), shared_library));
 	return true;
+}
+
+uint64_t terp::alloc(uint64_t size) {
+	uint64_t size_delta = size;
+	heap_block_t* best_sized_block = nullptr;
+	auto current_block = head_heap_block_;
+
+	while (current_block != nullptr) {
+		if (current_block->is_free()) {
+			if (current_block->size == size) {
+				current_block->mark_allocated();
+				return current_block->address;
+			} else if (current_block->size > size) {
+				auto local_size_delta = current_block->size - size;
+				if (best_sized_block == nullptr
+					||  local_size_delta < size_delta) {
+					size_delta = local_size_delta;
+					best_sized_block = current_block;
+				}
+			}
+		}
+		current_block = current_block->next;
+	}
+
+	if (best_sized_block != nullptr) {
+		// if the block is over-sized by 64 bytes or less, just use it as-is
+		if (size_delta <= 64) {
+			best_sized_block->mark_allocated();
+			return best_sized_block->address;
+		} else {
+			// otherwise, we need to split the block in two
+			auto new_block = new heap_block_t;
+			new_block->size = size;
+			new_block->mark_allocated();
+			new_block->prev = best_sized_block->prev;
+			if (new_block->prev != nullptr)
+				new_block->prev->next = new_block;
+			new_block->next = best_sized_block;
+			new_block->address = best_sized_block->address;
+
+			best_sized_block->prev = new_block;
+			best_sized_block->address += size;
+			best_sized_block->size -= size;
+
+			if (new_block->prev == nullptr) {
+				head_heap_block_ = new_block;
+			}
+
+			address_blocks_[new_block->address] = new_block;
+			address_blocks_[best_sized_block->address] = best_sized_block;
+
+			return best_sized_block->prev->address;
+		}
+	}
+
+	return 0;
+}
+uint64_t terp::free(uint64_t address) {
+	auto it = address_blocks_.find(address);
+	if (it == address_blocks_.end())
+		return 0;
+
+	heap_block_t* freed_block = it->second;
+	auto freed_size = freed_block->size;
+	freed_block->clear_allocated();
+
+	// coalesce free blocks
+	// first, we walk down the prev chain until we find a non-free block
+	// then, we walk down the next chain until we find a non-free block
+	// because blocks are known to be adjacent to each other in the heap,
+	//          we then coalesce these blocks into one
+
+	std::vector<heap_block_t*> delete_list {};
+	uint64_t new_size = 0;
+
+	auto first_free_block = freed_block;
+	while (true) {
+		auto prev = first_free_block->prev;
+		if (prev == nullptr || !prev->is_free())
+			break;
+		first_free_block = prev;
+	}
+
+	auto last_free_block = freed_block;
+	while (true) {
+		auto next = last_free_block->next;
+		if (next == nullptr || !next->is_free())
+			break;
+		last_free_block = next;
+	}
+
+	auto current_node = first_free_block;
+	while (true) {
+		delete_list.emplace_back(current_node);
+		new_size += current_node->size;
+
+		if (current_node == last_free_block)
+			break;
+
+		current_node = current_node->next;
+	}
+
+	if (first_free_block != last_free_block) {
+		auto new_block = new heap_block_t;
+		new_block->size = new_size;
+
+		new_block->next = last_free_block->next;
+		if (new_block->next != nullptr)
+			new_block->next->prev = new_block;
+
+		new_block->prev = first_free_block->prev;
+		if (new_block->prev != nullptr)
+			new_block->prev->next = new_block;
+
+		new_block->address = first_free_block->address;
+
+		for (auto block : delete_list) {
+			address_blocks_.erase(block->address);
+			delete block;
+		}
+
+		if (new_block->prev == nullptr)
+			head_heap_block_ = new_block;
+
+		address_blocks_[new_block->address] = new_block;
+	}
+
+	return freed_size;
+}
+uint64_t terp::size(uint64_t address) {
+	auto it = address_blocks_.find(address);
+	if (it == address_blocks_.end())
+		return 0;
+	return it->second->size;
+}
+
+void terp::heap_free_space_begin(uint64_t address) {
+	heap_vector(heap_vectors_t::free_space_start, address);
+	head_heap_block_ = new heap_block_t;
+	head_heap_block_->address = address;
+	head_heap_block_->size = heap_vector(heap_vectors_t::bottom_of_stack) - address;
+	address_blocks_.insert(std::make_pair(head_heap_block_->address, head_heap_block_));
+
+}
+void terp::free_heap_block_list()
+{
+	address_blocks_.clear();
+
+	if (head_heap_block_ == nullptr)
+		return;
+
+	auto current_block = head_heap_block_;
+	while (current_block != nullptr) {
+		auto next_block = current_block->next;
+		delete current_block;
+		current_block = next_block;
+	}
+
+	head_heap_block_ = nullptr;
+}
+
+void terp::execute_trap(uint8_t index)
+{
+	auto it = traps_.find(static_cast<uint8_t>(index));
+	if (it== traps_.end()) {
+		return;
+	}
+	it->second(this);
 }
 
 }

@@ -26,6 +26,8 @@ private:
 
 	bool bang(token_t& token);
 
+	bool period(token_t& token);
+
 	bool minus(token_t& token);
 
 	bool comma(token_t& token);

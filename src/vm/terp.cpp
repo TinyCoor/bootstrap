@@ -101,6 +101,15 @@ bool terp::step(result &r)
 	switch (inst.op) {
 		case op_codes::nop:{
 		}break;
+		case op_codes::alloc: {
+
+		}break;
+		case op_codes ::free: {
+
+		}break;
+		case op_codes::size: {
+
+		} break;
 		case op_codes::load: {
 			uint64_t address;
 			if (!get_operand_value(r, inst, 1, address)) {
@@ -886,6 +895,9 @@ bool terp::step(result &r)
 				break;
 			}
 			it->second(this);
+		}break;
+		case op_codes ::ffi:{
+
 		}break;
 		case op_codes::meta: {
 			uint64_t meta_data_size;

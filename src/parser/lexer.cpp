@@ -38,6 +38,8 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{'?', std::bind(&lexer::question, std::placeholders::_1, std::placeholders::_2)},
 
 	// spread
+	// period/spread
+	{'.', std::bind(&lexer::period, std::placeholders::_1, std::placeholders::_2)},
 	{'.', std::bind(&lexer::spread, std::placeholders::_1, std::placeholders::_2)},
 
 	// tilde
@@ -1110,5 +1112,18 @@ bool lexer::else_if_literal(token_t& token) {
 	return false;
 }
 
+bool lexer::period(token_t &token) {
+	auto ch = read();
+	if (ch == '.') {
+		ch = read();
+		if (ch != '.') {
+			rewind_one_char();
+			token.type = token_types_t::period;
+			token.value = ".";
+			return true;
+		}
+	}
+	return false;
+}
 
 }

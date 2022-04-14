@@ -31,35 +31,30 @@ ast_node_shared_ptr namespace_prefix_parser::parse(result& r, parser* parser, to
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr struct_prefix_parser::parse(
-	result& r,
-	parser* parser,
-	token_t& token) {
-	return parser->ast_builder()->struct_node(token);
+ast_node_shared_ptr struct_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
+	auto struct_node = parser->ast_builder()->struct_node(token);
+	struct_node->rhs = parser->parse_expression(r, 0);
+	return struct_node;
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr enum_prefix_parser::parse(
-	result& r,
-	parser* parser,
-	token_t& token) {
+ast_node_shared_ptr enum_prefix_parser::parse(result& r, parser* parser, token_t& token) {
 	return parser->ast_builder()->enum_node(token);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr for_in_prefix_parser::parse(
-	result& r,
-	parser* parser,
-	token_t& token) {
+ast_node_shared_ptr for_in_prefix_parser::parse(result& r, parser* parser, token_t& token) {
 	auto for_node = parser->ast_builder()->for_in_node();
 	for_node->lhs = parser->parse_expression(r, 0);
 
 	token_t in_token;
 	in_token.type = token_types_t::in_literal;
-	if (!parser->expect(r, in_token))
+	if (!parser->expect(r, in_token)) {
 		return nullptr;
+	}
 
 	for_node->rhs = parser->parse_expression(r, 0);
 	for_node->children.push_back(parser->parse_expression(r, 0));
@@ -69,10 +64,7 @@ ast_node_shared_ptr for_in_prefix_parser::parse(
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr return_prefix_parser::parse(
-	result& r,
-	parser* parser,
-	token_t& token) {
+ast_node_shared_ptr return_prefix_parser::parse(result& r, parser* parser, token_t& token) {
 	auto return_node = parser->ast_builder()->return_node();
 
 	while (true) {
@@ -301,7 +293,7 @@ ast_node_shared_ptr symbol_reference_prefix_parser::parse(result& r, parser* par
 	while (true) {
 		auto symbol_node = parser->ast_builder()->symbol_reference_node(token);
 		symbol_reference_node->lhs->children.push_back(symbol_node);
-		if (!parser->peek(token_types_t::scope_operator)) {
+		if (!parser->peek(token_types_t::scope_operator) &&  !parser->peek(token_types_t::period)){
 			break;
 		}
 
@@ -324,7 +316,7 @@ ast_node_shared_ptr symbol_reference_infix_parser::parse(result& r, parser* pars
 	while (true) {
 		auto symbol_node = parser->ast_builder()->symbol_reference_node(token);
 		symbol_reference_node->lhs->children.push_back(symbol_node);
-		if (!parser->peek(token_types_t::scope_operator)) {
+		if (!parser->peek(token_types_t::scope_operator) &&  !parser->peek(token_types_t::period)){
 			break;
 		}
 

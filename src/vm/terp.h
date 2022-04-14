@@ -4,7 +4,6 @@
 
 #ifndef TERP_H_
 #define TERP_H_
-#include "op_code.h"
 #include "instruction.h"
 #include "src/common/result.h"
 #include "shared_library.h"
@@ -13,9 +12,6 @@
 #include <string>
 #include <functional>
 #include <map>
-
-
-
 
 namespace gfx {
 
@@ -45,7 +41,7 @@ namespace gfx {
 
 		/// Heap Start
 		static constexpr size_t heap_vector_table_start = interrupt_vector_table_end;
-		static constexpr size_t heap_vector_table_size = 8;
+		static constexpr size_t heap_vector_table_size = 16u;
 		static constexpr size_t heap_vector_table_end = heap_vector_table_start
 			+ (sizeof(uint16_t) * heap_vector_table_size);
 

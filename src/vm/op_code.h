@@ -10,6 +10,9 @@
 namespace gfx {
 enum class op_codes : uint8_t {
 	nop = 1,
+	alloc,
+	free,
+	size,
 	load,
 	store,
 	swap,
@@ -54,12 +57,14 @@ enum class op_codes : uint8_t {
 	jmp,
 	swi,
 	trap,
+	ffi,
 	meta,
 	exit,
 };
 
 inline static std::map<op_codes, std::string> s_op_code_names = {
-	{op_codes::nop,    "NOP"},  {op_codes::load,   "LOAD"}, {op_codes::store,  "STORE"},
+	{op_codes::nop,    "NOP"},  {op_codes::alloc, "ALLOC"}, {op_codes::free, "FREE"},
+	{op_codes::load,   "LOAD"}, {op_codes::store,  "STORE"}, {op_codes::size,"SIZE"},
 	{op_codes::copy,   "COPY"}, {op_codes::fill,   "FILL"}, {op_codes::move,   "MOVE"},
 	{op_codes::push,   "PUSH"}, {op_codes::pop,    "POP"}, {op_codes::inc,    "INC"},
 	{op_codes::dec,    "DEC"},  {op_codes::add,    "ADD"}, {op_codes::sub,    "SUB"},

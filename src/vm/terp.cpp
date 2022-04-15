@@ -1155,7 +1155,7 @@ std::string terp::disassemble(result &r, uint64_t address)
 
 		address += inst_size;
 	}
-	return std::move(stream.str());
+	return stream.str();
 }
 
 std::string terp::disassemble(const instruction_t &inst) const
@@ -1260,7 +1260,7 @@ std::string terp::disassemble(const instruction_t &inst) const
 	} else {
 		stream << "UNKNOWN";
 	}
-	return std::move(stream.str());
+	return stream.str();
 }
 
 void terp::register_trap(uint8_t index, const terp::trap_callable &callable)
@@ -1397,6 +1397,7 @@ bool terp::has_carry(uint64_t value, op_sizes size)
 			return value > UINT64_MAX;
 	}
 }
+
 bool terp::get_constant_address_or_pc_with_offset(result &r, const instruction_t &inst, uint8_t operand_index,
 												  uint64_t inst_size, uint64_t &address)
 {

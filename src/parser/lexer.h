@@ -66,6 +66,8 @@ private:
 
 	bool for_literal(token_t& token);
 
+	bool union_literal(token_t& token);
+
 	bool right_paren(token_t& token);
 
 	bool else_literal(token_t& token);
@@ -106,7 +108,6 @@ private:
 
 	bool scope_operator(token_t& token);
 
-	bool extend_literal(token_t& token);
 
 	bool string_literal(token_t& token);
 

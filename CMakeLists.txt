@@ -81,7 +81,8 @@ set(VM_SRC
 set(COMPILER_SRC
         src/compiler/scope.cpp
         src/compiler/symbol_table.cpp
-        src/compiler/bytecode_emitter.cpp)
+        src/compiler/bytecode_emitter.cpp
+        src/compiler/constant_expression_evaluator.cpp)
 
 
 set(PARSER_SRC

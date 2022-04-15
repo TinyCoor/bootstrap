@@ -31,6 +31,7 @@ enum class ast_node_types_t : uint32_t {
 	empty_literal,
 	block_comment,
 	argument_list,
+
 	fn_expression,
 	if_expression,
 	number_literal,
@@ -52,11 +53,13 @@ enum class ast_node_types_t : uint32_t {
 	for_in_statement,
 	character_literal,
 	array_constructor,
+	union_expression,
 	elseif_expression,
 	switch_expression,
 	struct_expression,
 	continue_statement,
 	namespace_statement,
+	subscript_expression,
 	qualified_symbol_reference,
 };
 
@@ -108,6 +111,7 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::break_statement, "break_statement"},
 	{ast_node_types_t::with_expression, "with_expression"},
 	{ast_node_types_t::type_identifier, "type_identifier"},
+	{ast_node_types_t::union_expression, "union_expression"},
 	{ast_node_types_t::return_statement, "return_statement"},
 	{ast_node_types_t::symbol_reference, "symbol_reference"},
 	{ast_node_types_t::extend_statement, "extend_statement"},
@@ -119,6 +123,7 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::elseif_expression, "elseif_expression"},
 	{ast_node_types_t::continue_statement, "continue_statement"},
 	{ast_node_types_t::namespace_statement, "namespace_statement"},
+	{ast_node_types_t::subscript_expression, "subscript_expression"},
 	{ast_node_types_t::qualified_symbol_reference, "qualified_symbol_reference"},
 };
 
@@ -195,6 +200,8 @@ public:
 
 	ast_node_shared_ptr expression_node();
 
+	ast_node_shared_ptr subscript_node();
+
 	ast_node_shared_ptr return_node();
 
 	ast_node_shared_ptr for_in_node();
@@ -214,6 +221,8 @@ public:
 	ast_node_shared_ptr namespace_node(const token_t& token);
 
 	ast_node_shared_ptr struct_node(const token_t& token);
+
+	ast_node_shared_ptr union_node(const token_t& token);
 
 	ast_node_shared_ptr continue_node(const token_t& token);
 
@@ -249,6 +258,10 @@ public:
 											 const ast_node_shared_ptr& rhs);
 
 private:
+	void configure_node(const ast_node_shared_ptr& node, const token_t& token, ast_node_types_t type);
+
+private:
+	uint32_t id_ = 0;
 	std::stack<ast_node_shared_ptr> scope_stack_ {};
 };
 }

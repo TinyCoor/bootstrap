@@ -113,6 +113,8 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	// enum literal
 	{'e', std::bind(&lexer::enum_literal, std::placeholders::_1, std::placeholders::_2)},
 
+	// union literal
+	{'u', std::bind(&lexer::union_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// if/else if/else literals
 	{'i', std::bind(&lexer::if_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -142,9 +144,6 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 	// alias literal
 	{'a', std::bind(&lexer::alias_literal, std::placeholders::_1, std::placeholders::_2)},
-
-	// extend literal
-	{'e', std::bind(&lexer::extend_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// read_only literal
 	{'r', std::bind(&lexer::read_only_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -361,13 +360,13 @@ bool lexer::while_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::extend_literal(token_t& token) {
-	if (match_literal("extend")) {
+bool lexer::union_literal(token_t &token) {
+	if (match_literal("union")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::extend_literal;
-			token.value = "extend";
+			token.type = token_types_t::union_literal;
+			token.value = "union";
 			return true;
 		}
 	}
@@ -1125,5 +1124,7 @@ bool lexer::period(token_t &token) {
 	}
 	return false;
 }
+
+
 
 }

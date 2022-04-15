@@ -7,25 +7,19 @@
 #include <ostream>
 #include <sstream>
 namespace gfx {
+///////////////////////////////////////////////////////////////////////////
+
+ast_node_shared_ptr union_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+	auto union_node = parser->ast_builder()->union_node(token);
+	union_node->rhs = parser->parse_expression(r, 0);
+	return union_node;
+}
+
+///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr namespace_prefix_parser::parse(result& r, parser* parser, token_t& token) {
 	auto namespace_node = parser->ast_builder()->namespace_node(token);
-
-	while (true) {
-		token_t identifier_token;
-		identifier_token.type = token_types_t::identifier;
-		if (!parser->expect(r, identifier_token))
-			break;
-		auto symbol_node = parser->ast_builder()->symbol_reference_node(identifier_token);
-		namespace_node->lhs->children.push_back(symbol_node);
-		if (!parser->peek(token_types_t::scope_operator)) {
-			break;
-		}
-		parser->consume();
-	}
-
 	namespace_node->rhs = parser->parse_expression(r, 0);
-
 	return namespace_node;
 }
 
@@ -41,7 +35,9 @@ ast_node_shared_ptr struct_prefix_parser::parse(result& r, parser* parser, token
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr enum_prefix_parser::parse(result& r, parser* parser, token_t& token) {
-	return parser->ast_builder()->enum_node(token);
+	auto enum_node = parser->ast_builder()->enum_node(token);
+	enum_node->rhs = parser->parse_expression(r, 0);
+	return enum_node;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -111,12 +107,18 @@ ast_node_shared_ptr if_prefix_parser::parse(result& r, parser* parser, token_t& 
 ast_node_shared_ptr type_identifier_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	auto is_pointer = false;
+	auto is_spread = false;
+	ast_node_shared_ptr array_decl_node = nullptr;
 	if (parser->peek(token_types_t::asterisk)) {
 		parser->consume();
 		is_pointer = true;
 	}
 
-	auto is_spread = false;
+	if (parser->peek(token_types_t::left_square_bracket)) {
+		array_decl_node = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::variable));
+	}
+
+
 	if (parser->peek(token_types_t::spread_operator)) {
 		parser->consume();
 		is_spread = true;
@@ -137,17 +139,12 @@ ast_node_shared_ptr type_identifier_prefix_parser::parse(result& r, parser* pars
 
 	auto type_node = parser->ast_builder()->type_identifier_node(type_identifier);
 
-	auto is_array = false;
-	if (parser->peek(token_types_t::left_square_bracket)) {
-		is_array = true;
-		type_node->rhs = parser->parse_expression(r, 0);
-	}
-
 	if (is_pointer) {
 		type_node->flags |= ast_node_t::flags_t::pointer;
 	}
 
-	if (is_array) {
+	if (array_decl_node != nullptr) {
+		type_node->rhs = array_decl_node;
 		type_node->flags |= ast_node_t::flags_t::array;
 	}
 
@@ -373,12 +370,17 @@ ast_node_shared_ptr type_identifier_infix_parser::parse(result& r, parser* parse
 	token_t& token)
 {
 	auto is_pointer = false;
+	auto is_spread = false;
+	ast_node_shared_ptr array_decl_node = nullptr;
 	if (parser->peek(token_types_t::asterisk)) {
 		parser->consume();
 		is_pointer = true;
 	}
 
-	auto is_spread = false;
+	if (parser->peek(token_types_t::left_square_bracket)) {
+		array_decl_node = parser->parse_expression( r,
+			static_cast<uint8_t>(precedence_t::variable));
+	}
 	if (parser->peek(token_types_t::spread_operator)) {
 		parser->consume();
 		is_spread = true;
@@ -399,19 +401,15 @@ ast_node_shared_ptr type_identifier_infix_parser::parse(result& r, parser* parse
 
 	lhs->rhs = parser->ast_builder()->type_identifier_node(type_identifier);
 
-	auto is_array = false;
-	if (parser->peek(token_types_t::left_square_bracket)) {
-		is_array = true;
-		auto array_subscript_expression = parser->parse_expression(r, 0);
-		lhs->rhs->rhs = array_subscript_expression;
-	}
-
 	if (is_pointer) {
 		lhs->rhs->flags |= ast_node_t::flags_t::pointer;
 	}
-	if (is_array) {
+
+	if (array_decl_node != nullptr) {
+		lhs->rhs->rhs = array_decl_node;
 		lhs->rhs->flags |= ast_node_t::flags_t::array;
 	}
+
 	if (is_spread) {
 		lhs->rhs->flags |= ast_node_t::flags_t::spread;
 	}
@@ -483,14 +481,18 @@ ast_node_shared_ptr attribute_prefix_parser::parse(result& r, parser* parser, to
 
 ast_node_shared_ptr array_subscript_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	auto expression = parser->parse_expression(r, 0);
-	if (expression != nullptr) {
-		token_t right_bracket_token;
-		right_bracket_token.type = token_types_t::right_square_bracket;
-		if (!parser->expect(r, right_bracket_token))
-			return nullptr;
+	ast_node_shared_ptr subscript_node = parser->ast_builder()->subscript_node();
+	if (!parser->peek(token_types_t::right_square_bracket)) {
+		subscript_node->lhs = parser->parse_expression(r, 0);
 	}
-	return expression;
+
+	token_t right_bracket_token;
+	right_bracket_token.type = token_types_t::right_square_bracket;
+	if (!parser->expect(r, right_bracket_token)) {
+		return nullptr;
+	}
+
+	return subscript_node;
 }
 
 ///////////////////////////////////////////////////////////////////////////

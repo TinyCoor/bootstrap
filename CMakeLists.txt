@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
-project(bootstrap)
+project(bootstrap CXX C ASM)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(extern/fmt)
-add_subdirectory(extern/dyncall)
+#add_subdirectory(extern/dyncall)
 add_subdirectory(extern/gtest)
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -99,12 +99,12 @@ add_executable(bootstrap
         ${PARSER_SRC}
         ${COMPILER_SRC}
         )
+target_link_directories(bootstrap PUBLIC lib)
 target_link_libraries(bootstrap PUBLIC
         fmt
         dyncallback_s
         dyncall_s
         dynload_s
-
         )
 
 add_custom_target(bootstrap-configured DEPENDS dummy-target bootstrap)

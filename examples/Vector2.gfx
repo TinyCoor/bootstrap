@@ -4,8 +4,12 @@
 
 @entry_point main;
 
+#foreign
+    @library "fmt"
+    format := fn(fmt :string ,value:... any) : none;
+
 #foreign sqrt := fn(value:f64):f64;
-#foreign printf := fn(fmt:string, values:...any):none;
+#foreign printf := fn(fmt:string, values:...any) : none;
 
 alpha::compiler::examples := ns {
     something::nested := ns {

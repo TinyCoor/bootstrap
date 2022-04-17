@@ -533,8 +533,9 @@ bool parser::look_ahead(size_t count)
 {
 	while (count >= tokens_.size() && lexer_.has_next()) {
 		token_t token;
-		if (lexer_.next(token))
+		if (lexer_.next(token)) {
 			tokens_.push_back(token);
+		}
 	}
 	return !tokens_.empty();
 }
@@ -613,8 +614,9 @@ ast_node_shared_ptr parser::parse_scope(result& r)
 ast_node_shared_ptr parser::parse_statement(result& r)
 {
 	auto expression = parse_expression(r, 0);
-	if (expression == nullptr)
+	if (expression == nullptr) {
 		return nullptr;
+	}
 
 	if (expression->type == ast_node_types_t::line_comment
 		||  expression->type == ast_node_types_t::block_comment

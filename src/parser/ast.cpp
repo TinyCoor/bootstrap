@@ -254,6 +254,7 @@ ast_node_shared_ptr ast_builder::return_node()
 	auto node = std::make_shared<ast_node_t>();
 	node->id =++id_;
 	node->type  = ast_node_types_t::return_statement;
+	node->rhs = argument_list_node();
 	return node;
 }
 
@@ -288,6 +289,7 @@ ast_node_shared_ptr ast_builder::qualified_symbol_reference_node()
 {
 	auto node = std::make_shared<ast_node_t>();
 	node->id= ++id_;
+	node->lhs = argument_list_node();
 	node->type = ast_node_types_t::qualified_symbol_reference;
 	return node;
 }

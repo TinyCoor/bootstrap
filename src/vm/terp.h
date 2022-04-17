@@ -88,7 +88,9 @@ namespace gfx {
 
 		void heap_vector(heap_vectors_t vector, uint64_t address);
 
-		bool load_shared_library(result& r, const std::filesystem::path& path);
+		shared_library* shared_library(const std::filesystem::path& path);
+
+		class shared_library* load_shared_library(result& r, const std::filesystem::path& path);
 
 		std::vector<uint64_t> jump_to_subroutine(result& r, uint64_t address);
 
@@ -116,10 +118,13 @@ namespace gfx {
 		void register_trap(uint8_t index, const trap_callable& callable);
 
 		void remove_trap(uint8_t index);
+
+		bool register_foreign_function(result& r, function_signature_t& signature);
 	protected:
 		void free_heap_block_list();
 
 		void execute_trap(uint8_t index);
+
 		bool set_target_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t value);
 
 		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t& value) const;
@@ -158,7 +163,6 @@ namespace gfx {
 
 		bool is_negative(uint64_t value, op_sizes size);
 	private:
-
 		bool exited_ = false;
 		size_t heap_size_ = 0;
 		size_t stack_size_ = 0;
@@ -170,7 +174,8 @@ namespace gfx {
 		DCCallVM* call_vm_ = nullptr;
 		heap_block_t* head_heap_block_ = nullptr;
 		std::unordered_map<uint64_t, heap_block_t*> address_blocks_ {};
-	   std::unordered_map<std::string,shared_library> shared_libraries_{};
+		std::unordered_map<void*, function_signature_t> foreign_functions_{};
+	    std::unordered_map<std::string, class shared_library> shared_libraries_{};
 	};
 }
 

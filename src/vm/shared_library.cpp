@@ -21,7 +21,7 @@ bool shared_library::initialize(gfx::result &r, const std::filesystem::path &pat
 	return true;
 }
 
-//bool shared_library::initialize(gfx::result &r) {
+// bool shared_library::initialize(gfx::result &r) {
 //	library_ = dlLoadLibrary(nullptr);
 //	if (library_ == nullptr) {
 //		r.add_message("B062", fmt::format("unable to load library image for self."), true);
@@ -33,14 +33,16 @@ bool shared_library::initialize(gfx::result &r, const std::filesystem::path &pat
 //	path_ = library_path;
 //	return true;
 //}
+
 bool shared_library::exports_symbol(const std::string &symbol_name) {
 	return symbols_.count(symbol_name) > 0;
 }
 
-void *shared_library::symbol_address(const std::string &symbol_name) {
+void* shared_library::symbol_address(const std::string &symbol_name) {
 	auto it = symbols_.find(symbol_name);
-	if (it == symbols_.end())
+	if (it == symbols_.end()) {
 		return nullptr;
+	}
 	if (it->second == nullptr) {
 		it->second = dlFindSymbol(library_, symbol_name.c_str());
 	}

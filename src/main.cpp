@@ -46,12 +46,7 @@ int main(int argc, char** argv) {
 
 	while (true) {
 		int option_index = -1;
-		opt = ya_getopt_long(
-			argc,
-			argv,
-			"?:v:G:",
-			long_options,
-			&option_index);
+		opt = ya_getopt_long(argc, argv, "?:v:G:", long_options, &option_index);
 		if (opt == -1) {
 			break;
 		}
@@ -127,10 +122,6 @@ int main(int argc, char** argv) {
 	}
 
 	print_results(r);
-
-	high_resolution_clock::time_point end = high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	fmt::print("Total compilation time (in μs): {}\n", duration);
 
 	return rc;
 }

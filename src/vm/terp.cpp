@@ -1,7 +1,7 @@
 //
 // Created by 12132 on 2022/3/26.
 //
-
+#include "ffi.h"
 #include "terp.h"
 #include "src/common/formatter.h"
 #include "instruction.h"
@@ -11,20 +11,6 @@
 #include <iomanip>
 
 namespace gfx {
-
-static inline uint64_t rotl(uint64_t n, uint8_t c)
-{
-	const unsigned int mask = (CHAR_BIT *sizeof(n) -1);
-	c &= mask;
-	return (n << c) | (n >>( (-c) & mask) );
-}
-
-static inline uint64_t rotr(uint64_t n, uint8_t c)
-{
-	const unsigned int mask = (CHAR_BIT *sizeof(n) -1);
-	c &= mask;
-	return (n >> c) | (n << ( (-c) & mask) );
-}
 
 terp::terp(size_t heap_size, size_t stack_size)
 	: heap_size_(heap_size), stack_size_(stack_size), inst_cache_(this)
@@ -47,7 +33,7 @@ bool terp::initialize(result& r)
 		return true;
 	}
 	// TODO fix it
-	// call_vm_ = dcNewCallVM(4096);
+	call_vm_ = dcNewCallVM(4096);
 
 	shared_libraries_.clear();
 //	shared_library_t self_image;
@@ -77,7 +63,7 @@ void terp::reset()
 	}
 	inst_cache_.reset();
 	// todo fix dyncall issue
-	// dcReset(call_vm_);
+	dcReset(call_vm_);
 	free_heap_block_list();
 	exited_ = false;
 }
@@ -934,8 +920,10 @@ bool terp::step(result &r)
 		}break;
 		case op_codes::swi:{
 			uint64_t index;
-			if (!get_operand_value(r, inst, 0, index))
+			if (!get_operand_value(r, inst, 0, index)) {
 				return false;
+			}
+
 			size_t swi_offset = sizeof(uint64_t) * index;
 			uint64_t swi_address = *qword_ptr(swi_offset);
 			if (swi_address != 0) {
@@ -953,8 +941,160 @@ bool terp::step(result &r)
 			execute_trap(static_cast<uint8_t>(index));
 
 		}break;
-		case op_codes ::ffi:{
+		case op_codes::ffi:{
+			uint64_t address;
+			if (!get_operand_value(r, inst, 0, address)) {
+				return false;
+			}
 
+			auto it =foreign_functions_.find(reinterpret_cast<void*>(address));
+			if (it == foreign_functions_.end()) {
+				break;
+			}
+			auto func_signature = &it->second;
+
+			switch (func_signature->calling_mode) {
+				case ffi_calling_mode_t::c_default:{
+					dcMode(call_vm_, DC_CALL_C_DEFAULT);
+					break;
+				}
+				case ffi_calling_mode_t::c_ellipsis: {
+					dcMode(call_vm_, DC_CALL_C_ELLIPSIS);
+					break;
+				}
+				case ffi_calling_mode_t::c_ellipsis_varargs: {
+					dcMode(call_vm_, DC_CALL_C_ELLIPSIS_VARARGS);
+					break;
+				}
+
+			}
+
+			dcReset(call_vm_);
+
+			std::vector<DCstruct* > structs_to_free{};
+			for (auto& arg : func_signature->arguments) {
+				switch (arg.type) {
+					case ffi_types_t::void_type:{
+						break;
+					}
+					case ffi_types_t::bool_type: {
+						dcArgBool(call_vm_, static_cast<DCbool>(pop()));
+						break;
+					}
+					case ffi_types_t::char_type: {
+						dcArgChar(call_vm_, static_cast<DCchar>(pop()));
+						break;
+					}
+					case ffi_types_t::short_type: {
+						dcArgShort(call_vm_, static_cast<DCshort>(pop()));
+						break;
+					}
+					case ffi_types_t::int_type: {
+						dcArgInt(call_vm_, static_cast<DCint>(pop()));
+						break;
+					}
+					case ffi_types_t::long_type:{
+						dcArgLong(call_vm_, static_cast<DClong>(pop()));
+						break;
+					}
+					case ffi_types_t::long_long_type: {
+						dcArgLongLong(call_vm_, static_cast<DClonglong >(pop()));
+						break;
+					}
+					case ffi_types_t::float_type:{
+						dcArgFloat(call_vm_, static_cast<DCfloat>(pop()));
+						break;
+					}
+					case ffi_types_t::double_type: {
+						dcArgDouble(call_vm_, static_cast<DCdouble>(pop()));
+						break;
+					}
+					case ffi_types_t::pointer_type: {
+						dcArgPointer(call_vm_, reinterpret_cast<DCpointer>(pop()));
+						break;
+					}
+					case ffi_types_t::struct_type:{
+						auto dc_struct= arg.to_dc_struct();
+						structs_to_free.emplace_back(dc_struct);
+						dcArgStruct(call_vm_, dc_struct, reinterpret_cast<DCpointer>(pop()));
+						break;
+					}
+				}
+			}
+
+			switch (func_signature->return_value.type) {
+				case ffi_types_t::void_type: {
+					dcCallVoid(call_vm_, reinterpret_cast<DCpointer>(address));
+					break;
+				}
+				case ffi_types_t::bool_type: {
+					auto value = static_cast<uint64_t>(dcCallBool(
+						call_vm_, reinterpret_cast<DCpointer>(address)));
+					push(value);
+					break;
+				}
+				case ffi_types_t::char_type: {
+					auto value = static_cast<uint64_t>(dcCallChar(
+						call_vm_, reinterpret_cast<DCpointer>(address)));
+					push(value);
+					break;
+				}
+				case ffi_types_t::short_type: {
+					auto value = static_cast<uint64_t>(dcCallShort(
+						call_vm_, reinterpret_cast<DCpointer>(address)));
+					push(value);
+					break;
+				}
+				case ffi_types_t::int_type: {
+					auto value = static_cast<uint64_t>(dcCallInt(
+						call_vm_, reinterpret_cast<DCpointer>(address)));
+					push(value);
+					break;
+				}
+				case ffi_types_t::long_type: {
+					auto value = static_cast<uint64_t>(dcCallLong(
+						call_vm_, reinterpret_cast<DCpointer>(address)));
+					push(value);
+					break;
+				}
+				case ffi_types_t::long_long_type: {
+					auto value = static_cast<uint64_t>(dcCallLongLong(
+						call_vm_, reinterpret_cast<DCpointer>(address)));
+					push(value);
+					break;
+				}
+				case ffi_types_t::float_type: {
+					auto value = static_cast<uint64_t>(dcCallFloat(
+						call_vm_, reinterpret_cast<DCpointer>(address)));
+					push(value);
+					break;
+				}
+				case ffi_types_t::double_type: {
+					auto value = static_cast<uint64_t>(dcCallDouble(
+						call_vm_, reinterpret_cast<DCpointer>(address)));
+					push(value);
+					break;
+				}
+				case ffi_types_t::pointer_type: {
+					auto value = reinterpret_cast<uint64_t>(dcCallPointer(
+						call_vm_, reinterpret_cast<DCpointer>(address)));
+					push(value);
+					break;
+				}
+				case ffi_types_t::struct_type:{
+					DCpointer return_value;
+
+					auto dc_struct = func_signature->return_value.to_dc_struct();
+					structs_to_free.emplace_back(dc_struct);
+
+					dcCallStruct(call_vm_,reinterpret_cast<DCpointer>(address), dc_struct, &return_value);
+					push(reinterpret_cast<uint64_t>(return_value));
+					break;
+				}
+			}
+			for(auto dc_struct : structs_to_free) {
+				dcFreeStruct(dc_struct);
+			}
 		}break;
 		case op_codes::meta: {
 			uint64_t meta_data_size;
@@ -1383,6 +1523,7 @@ bool terp::is_negative(uint64_t value, op_sizes size)
 	}
 	return false;
 }
+
 bool terp::has_carry(uint64_t value, op_sizes size)
 {
 	switch (size) {
@@ -1399,7 +1540,7 @@ bool terp::has_carry(uint64_t value, op_sizes size)
 }
 
 bool terp::get_constant_address_or_pc_with_offset(result &r, const instruction_t &inst, uint8_t operand_index,
-												  uint64_t inst_size, uint64_t &address)
+	uint64_t inst_size, uint64_t &address)
 {
 	if (!get_operand_value(r, inst, operand_index, address)) {
 		return false;
@@ -1423,13 +1564,18 @@ bool terp::get_constant_address_or_pc_with_offset(result &r, const instruction_t
 	return true;
 }
 
-bool terp::load_shared_library(result &r, const std::filesystem::path &path) {
-	shared_library shared_library {};
-	if (!shared_library.initialize(r, path)) {
-		return false;
+class shared_library* terp::load_shared_library(result &r, const std::filesystem::path &path) {
+	auto it = shared_libraries_.find(path.string());
+	if (it != shared_libraries_.end()) {
+		return &it->second;
 	}
-	shared_libraries_.insert(std::make_pair(path.string(), shared_library));
-	return true;
+
+	class shared_library shared_library {};
+	if (!shared_library.initialize(r, path)) {
+		return nullptr;
+	}
+	auto pair = shared_libraries_.insert(std::make_pair(path.string(), shared_library));
+	return &(*pair.first).second;
 }
 
 uint64_t terp::alloc(uint64_t size) {
@@ -1465,8 +1611,10 @@ uint64_t terp::alloc(uint64_t size) {
 			new_block->size = size;
 			new_block->mark_allocated();
 			new_block->prev = best_sized_block->prev;
-			if (new_block->prev != nullptr)
+			if (new_block->prev != nullptr) {
 				new_block->prev->next = new_block;
+			}
+
 			new_block->next = best_sized_block;
 			new_block->address = best_sized_block->address;
 
@@ -1489,8 +1637,10 @@ uint64_t terp::alloc(uint64_t size) {
 }
 uint64_t terp::free(uint64_t address) {
 	auto it = address_blocks_.find(address);
-	if (it == address_blocks_.end())
+	if (it == address_blocks_.end()) {
 		return 0;
+	}
+
 
 	heap_block_t* freed_block = it->second;
 	auto freed_size = freed_block->size;
@@ -1508,16 +1658,20 @@ uint64_t terp::free(uint64_t address) {
 	auto first_free_block = freed_block;
 	while (true) {
 		auto prev = first_free_block->prev;
-		if (prev == nullptr || !prev->is_free())
+		if (prev == nullptr || !prev->is_free()) {
 			break;
+		}
+
 		first_free_block = prev;
 	}
 
 	auto last_free_block = freed_block;
 	while (true) {
 		auto next = last_free_block->next;
-		if (next == nullptr || !next->is_free())
+		if (next == nullptr || !next->is_free()) {
 			break;
+		}
+
 		last_free_block = next;
 	}
 
@@ -1526,9 +1680,9 @@ uint64_t terp::free(uint64_t address) {
 		delete_list.emplace_back(current_node);
 		new_size += current_node->size;
 
-		if (current_node == last_free_block)
+		if (current_node == last_free_block) {
 			break;
-
+		}
 		current_node = current_node->next;
 	}
 
@@ -1537,12 +1691,15 @@ uint64_t terp::free(uint64_t address) {
 		new_block->size = new_size;
 
 		new_block->next = last_free_block->next;
-		if (new_block->next != nullptr)
+		if (new_block->next != nullptr) {
 			new_block->next->prev = new_block;
+		}
 
 		new_block->prev = first_free_block->prev;
-		if (new_block->prev != nullptr)
+		if (new_block->prev != nullptr) {
 			new_block->prev->next = new_block;
+		}
+
 
 		new_block->address = first_free_block->address;
 
@@ -1551,22 +1708,25 @@ uint64_t terp::free(uint64_t address) {
 			delete block;
 		}
 
-		if (new_block->prev == nullptr)
+		if (new_block->prev == nullptr) {
 			head_heap_block_ = new_block;
+		}
 
 		address_blocks_[new_block->address] = new_block;
 	}
 
 	return freed_size;
 }
-uint64_t terp::size(uint64_t address) {
+uint64_t terp::size(uint64_t address)
+{
 	auto it = address_blocks_.find(address);
 	if (it == address_blocks_.end())
 		return 0;
 	return it->second->size;
 }
 
-void terp::heap_free_space_begin(uint64_t address) {
+void terp::heap_free_space_begin(uint64_t address)
+{
 	heap_vector(heap_vectors_t::free_space_start, address);
 	head_heap_block_ = new heap_block_t;
 	head_heap_block_->address = address;
@@ -1578,8 +1738,9 @@ void terp::free_heap_block_list()
 {
 	address_blocks_.clear();
 
-	if (head_heap_block_ == nullptr)
+	if (head_heap_block_ == nullptr) {
 		return;
+	}
 
 	auto current_block = head_heap_block_;
 	while (current_block != nullptr) {
@@ -1598,6 +1759,40 @@ void terp::execute_trap(uint8_t index)
 		return;
 	}
 	it->second(this);
+}
+
+bool terp::register_foreign_function(result& r, function_signature_t &signature)
+{
+	if (signature.func_ptr !=nullptr) {
+		auto it = foreign_functions_.find(signature.func_ptr);
+		if (it != foreign_functions_.end()) {
+			return true;
+		}
+	}
+	if (signature.library == nullptr) {
+		/// TODO error msg
+		return false;
+	}
+
+	auto func_ptr =signature.library->symbol_address(signature.symbol);
+	if (func_ptr == nullptr) {
+		/// TODO error msg
+		return false;
+	}
+
+	signature.func_ptr= func_ptr;
+	foreign_functions_.insert(std::make_pair(func_ptr,signature));
+
+	return false;
+}
+
+shared_library *terp::shared_library(const std::filesystem::path &path)
+{
+	auto it = shared_libraries_.find(path.string());
+	if (it == shared_libraries_.end()) {
+		return nullptr;
+	}
+	return &it->second;
 }
 
 }

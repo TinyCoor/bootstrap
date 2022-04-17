@@ -4,13 +4,12 @@
 
 #ifndef SHARED_LIBRARY_H_
 #define SHARED_LIBRARY_H_
+#include "ffi.h"
 #include <filesystem>
 #include <common/result.h>
-#include <dyncall/dyncall.h>
-#include <dynload/dynload.h>
 
 namespace gfx {
-using symbol_address_map = std::unordered_map<std::string, void *>;
+using symbol_address_map = std::unordered_map<std::string, void*>;
 
 class shared_library {
 public:
@@ -49,4 +48,4 @@ private:
 	symbol_address_map symbols_{};
 };
 }
-#endif //BOOTSTRAP_SRC_VM_SHARED_LIBRARY_H_
+#endif // SHARED_LIBRARY_H_

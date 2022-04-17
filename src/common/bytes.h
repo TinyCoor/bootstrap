@@ -62,5 +62,19 @@ inline uint8_t set_upper_nybble(uint8_t original, uint8_t value)
 	res |= ((value << 4) & 0xF0);
 	return res;
 }
+
+static inline uint64_t rotl(uint64_t n, uint8_t c)
+{
+	const unsigned int mask = (CHAR_BIT *sizeof(n) -1);
+	c &= mask;
+	return (n << c) | (n >>( (-c) & mask) );
+}
+
+static inline uint64_t rotr(uint64_t n, uint8_t c)
+{
+	const unsigned int mask = (CHAR_BIT *sizeof(n) -1);
+	c &= mask;
+	return (n >> c) | (n << ( (-c) & mask) );
+}
 }
 #endif // BYTES_H_

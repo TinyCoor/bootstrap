@@ -25,10 +25,11 @@ bool bytecode_emitter::compile_files(result& r, const std::vector<std::filesyste
 		}
 		std::ifstream input_stream(source_file);
 		if (input_stream.is_open()) {
-			if (!compile(r, input_stream))
+			if (!compile(r, input_stream)) {
 				fmt::print("FAILED.\n");
-			else
+			} else {
 				fmt::print("PASSED.\n");
+			}
 			input_stream.close();
 		}
 	}

@@ -75,6 +75,7 @@ set(VM_SRC
         src/vm/instruction.cpp
         src/vm/instruction_cache.cpp
         src/vm/shared_library.cpp
+        src/vm/assembler.cpp
         )
 
 

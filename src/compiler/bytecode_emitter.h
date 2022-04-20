@@ -35,6 +35,8 @@ public:
 private:
 	void build_scope_tree(result &r, scope *scope, const ast_node_shared_ptr &node);
 
+	void apply_constant_folding(result& r, const ast_node_shared_ptr& node);
+
 private:
 	terp terp_;
 	scope global_scope_;

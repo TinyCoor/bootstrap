@@ -3,7 +3,9 @@
 //
 
 #include "bytecode_emitter.h"
+#include "constant_expression_evaluator.h"
 #include "parser/ast_formatter.h"
+
 #include <fmt/format.h>
 namespace gfx{
 bytecode_emitter::bytecode_emitter(
@@ -42,12 +44,8 @@ void bytecode_emitter::build_scope_tree(result& r, scope* scope, const ast_node_
 	}
 
 	for (auto& child_node : node->children) {
-		if (child_node->type == ast_node_types_t::basic_block) {
-			auto child_scope = scope->add_child_scope(child_node);
-			build_scope_tree(r, child_scope, child_node);
-		} else {
-			// XXX: need to recurse down lhs and rhs nodes
-		}
+		auto child_scope = scope->add_child_scope(child_node);
+		build_scope_tree(r, child_scope, child_node);
 	}
 }
 
@@ -64,6 +62,8 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input) {
 	parser alpha_parser(input);
 	auto program_node = alpha_parser.parse(r);
 	if (program_node != nullptr && !r.is_failed()) {
+		build_scope_tree(r, &global_scope_, program_node);
+		apply_constant_folding(r, program_node);
 		if (options_.verbose) {
 			auto close_required = false;
 			FILE* ast_output_file = stdout;
@@ -75,12 +75,17 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input) {
 			ast_formatter formatter(program_node, ast_output_file);
 			formatter.format_graph_viz();
 
-			if (close_required)
+			if (close_required){
 				fclose(ast_output_file);
+			}
 		}
-
-		build_scope_tree(r, &global_scope_, program_node);
 	}
 	return !r.is_failed();
+}
+
+void bytecode_emitter::apply_constant_folding(result &r, const ast_node_shared_ptr &node)
+{
+	constant_expression_evaluator evaluator(&global_scope_);
+	auto result_node = evaluator.evaluate(r, node);
 }
 }

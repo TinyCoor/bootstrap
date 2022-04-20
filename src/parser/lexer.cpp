@@ -108,45 +108,44 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{'n', std::bind(&lexer::null_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'n', std::bind(&lexer::none_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'n', std::bind(&lexer::ns_literal, std::placeholders::_1, std::placeholders::_2)},
-	{'e', std::bind(&lexer::empty_literal, std::placeholders::_1, std::placeholders::_2)},
+
 
 	// enum literal
+	// else if/else literals
 	{'e', std::bind(&lexer::enum_literal, std::placeholders::_1, std::placeholders::_2)},
-
+	{'e', std::bind(&lexer::empty_literal, std::placeholders::_1, std::placeholders::_2)},
+	{'e', std::bind(&lexer::else_if_literal, std::placeholders::_1, std::placeholders::_2)},
+	{'e', std::bind(&lexer::else_literal, std::placeholders::_1, std::placeholders::_2)},
 	// union literal
 	{'u', std::bind(&lexer::union_literal, std::placeholders::_1, std::placeholders::_2)},
 
-	// if/else if/else literals
-	{'i', std::bind(&lexer::if_literal, std::placeholders::_1, std::placeholders::_2)},
-	{'e', std::bind(&lexer::else_if_literal, std::placeholders::_1, std::placeholders::_2)},
-	{'e', std::bind(&lexer::else_literal, std::placeholders::_1, std::placeholders::_2)},
-
-	// fn literal
-	{'f', std::bind(&lexer::fn_literal, std::placeholders::_1, std::placeholders::_2)},
-
+	// if
 	// in literal
+	{'i', std::bind(&lexer::if_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'i', std::bind(&lexer::in_literal, std::placeholders::_1, std::placeholders::_2)},
 
+
+	// fn literal
 	// for literal
+	{'f', std::bind(&lexer::fn_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'f', std::bind(&lexer::for_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// break literal
 	{'b', std::bind(&lexer::break_literal, std::placeholders::_1, std::placeholders::_2)},
 
-	// cast literal
-	{'c', std::bind(&lexer::cast_literal, std::placeholders::_1, std::placeholders::_2)},
-
 	// defer literal
 	{'d', std::bind(&lexer::defer_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// continue literal
+	// read_only literal
+	// cast literal
 	{'c', std::bind(&lexer::continue_literal, std::placeholders::_1, std::placeholders::_2)},
+	{'c', std::bind(&lexer::constant_literal, std::placeholders::_1, std::placeholders::_2)},
+	{'c', std::bind(&lexer::cast_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// alias literal
 	{'a', std::bind(&lexer::alias_literal, std::placeholders::_1, std::placeholders::_2)},
 
-	// read_only literal
-	{'r', std::bind(&lexer::read_only_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// while literal
 	{'w', std::bind(&lexer::while_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -267,10 +266,13 @@ bool lexer::next(token_t& token) {
 	auto case_range = s_cases.equal_range(ch);
 	for (auto it = case_range.first; it != case_range.second; ++it) {
 		token.radix = 10;
+		token.number_type = number_types_t::none;
 		token.line = line_;
 		token.column = column_;
 		token.number_type = number_types_t::none;
 		if (it->second(this, token)) {
+			token.line = line_;
+			token.column = column_;
 			return true;
 		}
 		restore_position();
@@ -326,8 +328,7 @@ bool lexer::alias_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::alias_literal;
-			token.value = "alias";
+			token =s_alias_literal;
 			return true;
 		}
 	}
@@ -339,8 +340,7 @@ bool lexer::break_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::break_literal;
-			token.value = "break";
+			token = s_break_literal;
 			return true;
 		}
 	}
@@ -352,8 +352,7 @@ bool lexer::while_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::while_literal;
-			token.value = "while";
+			token = s_while_literal;
 			return true;
 		}
 	}
@@ -365,8 +364,7 @@ bool lexer::union_literal(token_t &token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::union_literal;
-			token.value = "union";
+			token = s_union_literal;
 			return true;
 		}
 	}
@@ -378,8 +376,7 @@ bool lexer::continue_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::continue_literal;
-			token.value = "continue";
+			token = s_constant_literal;
 			return true;
 		}
 	}
@@ -389,8 +386,7 @@ bool lexer::continue_literal(token_t& token) {
 bool lexer::left_curly_brace(token_t& token) {
 	auto ch = read();
 	if (ch == '{') {
-		token.type = token_types_t::left_curly_brace;
-		token.value = "{";
+		token = s_left_curly_brace_literal;
 		return true;
 	}
 	return false;
@@ -399,8 +395,7 @@ bool lexer::left_curly_brace(token_t& token) {
 bool lexer::right_curly_brace(token_t& token) {
 	auto ch = read();
 	if (ch == '}') {
-		token.type = token_types_t::right_curly_brace;
-		token.value = "}";
+		token = s_right_curly_brace_literal;
 		return true;
 	}
 	return false;
@@ -423,8 +418,7 @@ std::string lexer::read_until(char target_ch) {
 bool lexer::plus(token_t& token) {
 	auto ch = read();
 	if (ch == '+') {
-		token.type = token_types_t::plus;
-		token.value = "+";
+		token =s_plus_literal;
 		return true;
 	}
 	return false;
@@ -433,8 +427,7 @@ bool lexer::plus(token_t& token) {
 bool lexer::bang(token_t& token) {
 	auto ch = read();
 	if (ch == '!') {
-		token.type = token_types_t::bang;
-		token.value = "!";
+		token = s_bang_literal;
 		return true;
 	}
 	return false;
@@ -443,8 +436,7 @@ bool lexer::bang(token_t& token) {
 bool lexer::caret(token_t& token) {
 	auto ch = read();
 	if (ch == '^') {
-		token.type = token_types_t::caret;
-		token.value = "^";
+		token = s_caret_literal;
 		return true;
 	}
 	return false;
@@ -453,8 +445,7 @@ bool lexer::caret(token_t& token) {
 bool lexer::tilde(token_t& token) {
 	auto ch = read();
 	if (ch == '~') {
-		token.type = token_types_t::tilde;
-		token.value = "~";
+		token = s_tilde_literal;
 		return true;
 	}
 	return false;
@@ -463,8 +454,7 @@ bool lexer::tilde(token_t& token) {
 bool lexer::colon(token_t& token) {
 	auto ch = read();
 	if (ch == ':') {
-		token.type = token_types_t::colon;
-		token.value = ":";
+		token = s_colon_literal;
 		return true;
 	}
 	return false;
@@ -473,8 +463,7 @@ bool lexer::colon(token_t& token) {
 bool lexer::minus(token_t& token) {
 	auto ch = read();
 	if (ch == '-') {
-		token.type = token_types_t::minus;
-		token.value = "-";
+		token =s_minus_literal;
 		return true;
 	}
 	return false;
@@ -483,8 +472,7 @@ bool lexer::minus(token_t& token) {
 bool lexer::comma(token_t& token) {
 	auto ch = read();
 	if (ch == ',') {
-		token.type = token_types_t::comma;
-		token.value = ",";
+		token = s_comma_literal;
 		return true;
 	}
 	return false;
@@ -493,8 +481,7 @@ bool lexer::comma(token_t& token) {
 bool lexer::slash(token_t& token) {
 	auto ch = read();
 	if (ch == '/') {
-		token.type = token_types_t::slash;
-		token.value = "/";
+		token = s_slash_literal;
 		return true;
 	}
 	return false;
@@ -502,8 +489,7 @@ bool lexer::slash(token_t& token) {
 
 bool lexer::spread(token_t& token) {
 	if (match_literal("...")) {
-		token.type = token_types_t::spread_operator;
-		token.value = "...";
+		token = s_spread_operator_literal;
 		return true;
 	}
 	return false;
@@ -512,8 +498,7 @@ bool lexer::spread(token_t& token) {
 bool lexer::percent(token_t& token) {
 	auto ch = read();
 	if (ch == '%') {
-		token.type = token_types_t::percent;
-		token.value = "%";
+		token =s_percent_literal;
 		return true;
 	}
 	return false;
@@ -522,8 +507,7 @@ bool lexer::percent(token_t& token) {
 bool lexer::question(token_t& token) {
 	auto ch = read();
 	if (ch == '?') {
-		token.type = token_types_t::question;
-		token.value = "?";
+		token =s_question_literal;
 		return true;
 	}
 	return false;
@@ -532,8 +516,7 @@ bool lexer::question(token_t& token) {
 bool lexer::asterisk(token_t& token) {
 	auto ch = read();
 	if (ch == '*') {
-		token.type = token_types_t::asterisk;
-		token.value = "*";
+		token = s_asterisk_literal;
 		return true;
 	}
 	return false;
@@ -543,8 +526,9 @@ bool lexer::attribute(token_t& token) {
 	auto ch = read();
 	if (ch == '@') {
 		token.value = read_identifier();
-		if (token.value.empty())
+		if (token.value.empty()) {
 			return false;
+		}
 		token.type = token_types_t::attribute;
 		return true;
 	}
@@ -553,8 +537,10 @@ bool lexer::attribute(token_t& token) {
 
 bool lexer::identifier(token_t& token) {
 	auto name = read_identifier();
-	if (name.empty())
+	if (name.empty()) {
 		return false;
+	}
+
 	token.type = token_types_t::identifier;
 	token.value = name;
 	rewind_one_char();
@@ -566,8 +552,7 @@ bool lexer::assignment(token_t& token) {
 	if (ch == ':') {
 		ch = read();
 		if (ch == '=') {
-			token.type = token_types_t::assignment;
-			token.value = ":=";
+			token =s_assignment_literal;
 			return true;
 		}
 	}
@@ -577,8 +562,7 @@ bool lexer::assignment(token_t& token) {
 bool lexer::left_paren(token_t& token) {
 	auto ch = read();
 	if (ch == '(') {
-		token.type = token_types_t::left_paren;
-		token.value = "(";
+		token =s_left_paren_literal;
 		return true;
 	}
 	return false;
@@ -589,8 +573,7 @@ bool lexer::in_literal(token_t& token) {
 	if (ch == 'i') {
 		ch = read();
 		if (ch == 'n') {
-			token.type = token_types_t::in_literal;
-			token.value = "in";
+			token = s_in_literal;
 			return true;
 		}
 	}
@@ -600,8 +583,7 @@ bool lexer::in_literal(token_t& token) {
 bool lexer::right_paren(token_t& token) {
 	auto ch = read();
 	if (ch == ')') {
-		token.type = token_types_t::right_paren;
-		token.value = ")";
+		token = s_right_paren_literal;
 		return true;
 	}
 	return false;
@@ -612,8 +594,7 @@ bool lexer::fn_literal(token_t& token) {
 	if (ch == 'f') {
 		ch = read();
 		if (ch == 'n') {
-			token.type = token_types_t::fn_literal;
-			token.value = "fn";
+			token = s_fn_literal;
 			return true;
 		}
 	}
@@ -625,8 +606,7 @@ bool lexer::ns_literal(token_t& token) {
 	if (ch == 'n') {
 		ch = read();
 		if (ch == 's') {
-			token.type = token_types_t::namespace_literal;
-			token.value = "ns";
+			token =s_namespace_literal;
 			return true;
 		}
 	}
@@ -638,8 +618,7 @@ bool lexer::if_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::if_literal;
-			token.value = "if";
+			token = s_if_literal;
 			return true;
 		}
 	}
@@ -651,8 +630,7 @@ bool lexer::else_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::else_literal;
-			token.value = "else";
+			token = s_else_literal;
 			return true;
 		}
 	}
@@ -678,8 +656,7 @@ bool lexer::for_literal(token_t& token) {
 		auto ch = read(false);
 		if (isspace(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::for_literal;
-			token.value = "for";
+			token= s_for_literal;
 			return true;
 		}
 	}
@@ -691,8 +668,7 @@ bool lexer::null_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::null_literal;
-			token.value = "null";
+			token =s_null_literal;
 			return true;
 		}
 	}
@@ -704,8 +680,7 @@ bool lexer::none_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::none_literal;
-			token.value = "none";
+			token = s_none_literal;
 			return true;
 		}
 	}
@@ -717,8 +692,7 @@ bool lexer::cast_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::cast_literal;
-			token.value = "cast";
+			token =s_cast_literal;
 			return true;
 		}
 	}
@@ -730,8 +704,7 @@ bool lexer::true_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::true_literal;
-			token.value = "true";
+			token = s_true_literal;
 			return true;
 		}
 	}
@@ -741,8 +714,7 @@ bool lexer::true_literal(token_t& token) {
 bool lexer::pipe_literal(token_t& token) {
 	auto ch = read();
 	if (ch == '|') {
-		token.type = token_types_t::pipe;
-		token.value = "|";
+		token = s_pipe_literal;
 		return true;
 	}
 	return false;
@@ -763,8 +735,7 @@ bool lexer::false_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::false_literal;
-			token.value = "false";
+			token = s_false_literal;
 			return true;
 		}
 	}
@@ -776,8 +747,7 @@ bool lexer::defer_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::defer_literal;
-			token.value = "defer";
+			token =s_defer_literal;
 			return true;
 		}
 	}
@@ -789,8 +759,7 @@ bool lexer::empty_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::empty_literal;
-			token.value = "empty";
+			token = s_empty_literal;
 			return true;
 		}
 	}
@@ -806,10 +775,14 @@ bool lexer::number_literal(token_t& token) {
 		token.radix = 16;
 		while (true) {
 			ch = read();
-			if (ch == '_')
+			if (ch == '_') {
 				continue;
-			if (!std::isxdigit(ch))
+			}
+
+			if (!std::isxdigit(ch)) {
 				break;
+			}
+
 			stream << ch;
 		}
 	} else if (ch == '@') {
@@ -817,28 +790,36 @@ bool lexer::number_literal(token_t& token) {
 		token.radix = 8;
 		while (true) {
 			ch = read();
-			if (ch == '_')
+			if (ch == '_') {
 				continue;
-			if (valid.find_first_of(ch) == std::string::npos)
+			}
+
+			if (valid.find_first_of(ch) == std::string::npos) {
 				break;
+			}
+
 			stream << ch;
 		}
 	} else if (ch == '%') {
 		token.radix = 2;
 		while (true) {
 			ch = read();
-			if (ch == '_')
+			if (ch == '_') {
 				continue;
-			if (ch != '0' && ch != '1')
+			}
+			if (ch != '0' && ch != '1') {
 				break;
+			}
+
 			stream << ch;
 		}
 	} else {
 		const std::string valid = "0123456789_.";
 		while (valid.find_first_of(ch) != std::string::npos) {
 			if (ch!='_') {
-				if (ch=='.')
+				if (ch=='.') {
 					token.number_type = number_types_t::floating_point;
+				}
 				stream << ch;
 			}
 			ch = read();
@@ -846,8 +827,9 @@ bool lexer::number_literal(token_t& token) {
 	}
 
 	token.value = stream.str();
-	if (token.value.empty())
+	if (token.value.empty()) {
 		return false;
+	}
 
 	rewind_one_char();
 
@@ -859,8 +841,7 @@ bool lexer::scope_operator(token_t& token) {
 	if (ch == ':') {
 		ch = read();
 		if (ch == ':') {
-			token.type = token_types_t::scope_operator;
-			token.value = "::";
+			token  = s_scope_operator_literal;
 			return true;
 		}
 	}
@@ -870,8 +851,7 @@ bool lexer::scope_operator(token_t& token) {
 bool lexer::line_terminator(token_t& token) {
 	auto ch = read();
 	if (ch == ';') {
-		token.type = token_types_t::semi_colon;
-		token.value = ";";
+		token = s_semi_colon_literal;
 		return true;
 	}
 	return false;
@@ -882,8 +862,7 @@ bool lexer::equals_operator(token_t& token) {
 	if (ch == '=') {
 		ch = read();
 		if (ch == '=') {
-			token.type = token_types_t::equals;
-			token.value = "==";
+			token = s_equals_literal;
 			return true;
 		}
 	}
@@ -908,8 +887,7 @@ bool lexer::character_literal(token_t& token) {
 bool lexer::ampersand_literal(token_t& token) {
 	auto ch = read();
 	if (ch == '&') {
-		token.type = token_types_t::ampersand;
-		token.value = "&";
+		token = s_ampersand_literal;
 		return true;
 	}
 	return false;
@@ -918,8 +896,7 @@ bool lexer::ampersand_literal(token_t& token) {
 bool lexer::less_than_operator(token_t& token) {
 	auto ch = read();
 	if (ch == '<') {
-		token.type = token_types_t::less_than;
-		token.value = "<";
+		token = s_less_than_literal;
 		return true;
 	}
 	return false;
@@ -930,8 +907,7 @@ bool lexer::logical_or_operator(token_t& token) {
 	if (ch == '|') {
 		ch = read();
 		if (ch == '|') {
-			token.type = token_types_t::logical_or;
-			token.value = "||";
+			token = s_logical_or_literal;
 			return true;
 		}
 	}
@@ -943,8 +919,7 @@ bool lexer::logical_and_operator(token_t& token) {
 	if (ch == '&') {
 		ch = read();
 		if (ch == '&') {
-			token.type = token_types_t::logical_and;
-			token.value = "&&";
+			token = s_logical_and_literal;
 			return true;
 		}
 	}
@@ -956,8 +931,7 @@ bool lexer::not_equals_operator(token_t& token) {
 	if (ch == '!') {
 		ch = read();
 		if (ch == '=') {
-			token.type = token_types_t::not_equals;
-			token.value = "!=";
+			token = s_not_equals_literal;
 			return true;
 		}
 	}
@@ -967,8 +941,7 @@ bool lexer::not_equals_operator(token_t& token) {
 bool lexer::left_square_bracket(token_t& token) {
 	auto ch = read();
 	if (ch == '[') {
-		token.type = token_types_t::left_square_bracket;
-		token.value = "[";
+		token = s_left_square_bracket_literal;
 		return true;
 	}
 	return false;
@@ -977,8 +950,7 @@ bool lexer::left_square_bracket(token_t& token) {
 bool lexer::right_square_bracket(token_t& token) {
 	auto ch = read();
 	if (ch == ']') {
-		token.type = token_types_t::right_square_bracket;
-		token.value = "]";
+		token= s_right_square_bracket_literal;
 		return true;
 	}
 	return false;
@@ -987,8 +959,7 @@ bool lexer::right_square_bracket(token_t& token) {
 bool lexer::greater_than_operator(token_t& token) {
 	auto ch = read();
 	if (ch == '>') {
-		token.type = token_types_t::greater_than;
-		token.value = ">";
+		token = s_greater_than_literal;
 		return true;
 	}
 	return false;
@@ -999,8 +970,7 @@ bool lexer::less_than_equal_operator(token_t& token) {
 	if (ch == '<') {
 		ch = read();
 		if (ch == '=') {
-			token.type = token_types_t::less_than_equal;
-			token.value = "<=";
+			token = s_less_than_equal_literal;
 			return true;
 		}
 	}
@@ -1011,8 +981,9 @@ bool lexer::match_literal(const std::string& literal) {
 	auto ch = read();
 	for (size_t i = 0; i < literal.length(); ++i) {
 		const auto& target_ch = literal[i];
-		if (target_ch != ch)
+		if (target_ch != ch) {
 			return false;
+		}
 		ch = read(false);
 	}
 	rewind_one_char();
@@ -1024,8 +995,7 @@ bool lexer::greater_than_equal_operator(token_t& token) {
 	if (ch == '>') {
 		ch = read();
 		if (ch == '=') {
-			token.type = token_types_t::greater_than_equal;
-			token.value = ">=";
+			token = s_greater_than_equal_literal;
 			return true;
 		}
 	}
@@ -1037,8 +1007,9 @@ bool lexer::directive(token_t &token)
 	auto ch = read();
 	if (ch == '#') {
 		token.value = read_identifier();
-		if (token.value.empty())
+		if (token.value.empty()) {
 			return false;
+		}
 		token.type = token_types_t::directive;
 		return true;
 	}
@@ -1051,8 +1022,7 @@ bool lexer::enum_literal(token_t &token)
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::enum_literal;
-			token.value = "enum";
+			token = s_enum_literal;
 			return true;
 		}
 	}
@@ -1064,8 +1034,7 @@ bool lexer::struct_literal(token_t &token)
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::struct_literal;
-			token.value = "struct";
+			token = s_struct_literal;
 			return true;
 		}
 	}
@@ -1077,21 +1046,19 @@ bool lexer::return_literal(token_t &token)
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::return_literal;
-			token.value = "return";
+			token = s_return_literal;
 			return true;
 		}
 	}
 	return false;
 }
 
-bool lexer::read_only_literal(token_t& token) {
+bool lexer::constant_literal(token_t &token) {
 	if (match_literal("read_only")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::read_only_literal;
-			token.value = "read_only";
+			token = s_constant_literal;
 			return true;
 		}
 	}
@@ -1103,8 +1070,7 @@ bool lexer::else_if_literal(token_t& token) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token.type = token_types_t::else_if_literal;
-			token.value = "else if";
+			token = s_else_if_literal;
 			return true;
 		}
 	}
@@ -1117,8 +1083,7 @@ bool lexer::period(token_t &token) {
 		ch = read();
 		if (ch != '.') {
 			rewind_one_char();
-			token.type = token_types_t::period;
-			token.value = ".";
+			token =s_period_literal;
 			return true;
 		}
 	}

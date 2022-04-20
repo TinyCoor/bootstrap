@@ -35,17 +35,70 @@ enum class ffi_types_t : uint16_t {
 };
 
 struct function_value_t {
+	~function_value_t(){
+		if (struct_meta_data_ !=nullptr) {
+			delete struct_meta_data_;
+			struct_meta_data_ = nullptr;
+		}
+	}
+
+	DCstruct *struct_meta_info() {
+		if (struct_meta_data_ !=nullptr) {
+			return struct_meta_data_;
+		}
+		struct_meta_data_ = dcNewStruct(fields.size(), DEFAULT_ALIGNMENT);
+		add_struct_fields(struct_meta_data_);
+		dcCloseStruct(struct_meta_data_);
+		return struct_meta_data_;
+	}
+
+	void push(DCCallVM* vm, uint64_t value){
+		switch (type) {
+			case ffi_types_t::void_type:
+				break;
+			case ffi_types_t::bool_type:
+				dcArgBool(vm, static_cast<DCbool>(value));
+				break;
+			case ffi_types_t::char_type:
+				dcArgChar(vm, static_cast<DCchar>(value));
+				break;
+			case ffi_types_t::short_type:
+				dcArgShort(vm, static_cast<DCshort>(value));
+				break;
+			case ffi_types_t::int_type:
+				dcArgInt(vm, static_cast<DCint>(value));
+				break;
+			case ffi_types_t::long_type:
+				dcArgLong(vm, static_cast<DClong>(value));
+				break;
+			case ffi_types_t::long_long_type:
+				dcArgLongLong(vm, static_cast<DClonglong>(value));
+				break;
+			case ffi_types_t::float_type:
+				dcArgFloat(vm, static_cast<DCfloat>(value));
+				break;
+			case ffi_types_t::double_type:
+				dcArgDouble(vm, static_cast<DCdouble>(value));
+				break;
+			case ffi_types_t::pointer_type:
+				dcArgPointer(vm, reinterpret_cast<DCpointer>(value));
+				break;
+			case ffi_types_t::struct_type: {
+				auto dc_struct = struct_meta_info();
+				dcArgStruct(
+					vm,
+					dc_struct,
+					reinterpret_cast<DCpointer>(value));
+				break;
+			}
+		}
+	}
+
 	std::string name;
 	ffi_types_t type;
 	std::vector<function_value_t> fields;
 
-	DCstruct * to_dc_struct() {
-		auto dc_struct = dcNewStruct(fields.size(), sizeof(uint64_t));
-		add_struct_fields(dc_struct);
-		dcCloseStruct(dc_struct);
-		return dc_struct;
-	}
-
+private:
 	void add_struct_fields(DCstruct* dc_struct) {
 		for (auto& value : fields) {
 			switch (value.type) {
@@ -101,11 +154,105 @@ struct function_value_t {
 
 	}
 
+private:
+	DCstruct *struct_meta_data_ = nullptr;
+
 };
 
 class shared_library;
 
 struct function_signature_t {
+	void apply_calling_convention(DCCallVM* vm ){
+		switch (calling_mode) {
+			case ffi_calling_mode_t::c_default:
+				dcMode(vm, DC_CALL_C_DEFAULT);
+				break;
+			case ffi_calling_mode_t::c_ellipsis:
+				dcMode(vm, DC_CALL_C_ELLIPSIS);
+				break;
+			case ffi_calling_mode_t::c_ellipsis_varargs:
+				dcMode(vm, DC_CALL_C_ELLIPSIS_VARARGS);
+				break;
+		}
+	}
+
+	uint64_t call(DCCallVM* vm, uint64_t address) {
+		switch (return_value.type) {
+			case ffi_types_t::void_type:
+				dcCallVoid(vm, reinterpret_cast<DCpointer>(address));
+				break;
+			case ffi_types_t::bool_type: {
+				auto value = static_cast<uint64_t>(dcCallBool(
+					vm,
+					reinterpret_cast<DCpointer>(address)));
+				return value;
+			}
+			case ffi_types_t::char_type: {
+				auto value = static_cast<uint64_t>(dcCallChar(
+					vm,
+					reinterpret_cast<DCpointer>(address)));
+				return value;
+			}
+			case ffi_types_t::short_type: {
+				auto value = static_cast<uint64_t>(dcCallShort(
+					vm,
+					reinterpret_cast<DCpointer>(address)));
+				return value;
+			}
+			case ffi_types_t::int_type: {
+				auto value = static_cast<uint64_t>(dcCallInt(
+					vm,
+					reinterpret_cast<DCpointer>(address)));
+				return value;
+			}
+			case ffi_types_t::long_type: {
+				auto value = static_cast<uint64_t>(dcCallLong(
+					vm,
+					reinterpret_cast<DCpointer>(address)));
+				return value;
+			}
+			case ffi_types_t::long_long_type: {
+				auto value = static_cast<uint64_t>(dcCallLongLong(
+					vm,
+					reinterpret_cast<DCpointer>(address)));
+				return value;
+			}
+			case ffi_types_t::float_type: {
+				auto value = static_cast<uint64_t>(dcCallFloat(
+					vm,
+					reinterpret_cast<DCpointer>(address)));
+				return value;
+			}
+			case ffi_types_t::double_type: {
+				auto value = static_cast<uint64_t>(dcCallDouble(
+					vm,
+					reinterpret_cast<DCpointer>(address)));
+				return value;
+			}
+			case ffi_types_t::pointer_type: {
+				auto value = reinterpret_cast<uint64_t>(dcCallPointer(
+					vm,
+					reinterpret_cast<DCpointer>(address)));
+				return value;
+			}
+			case ffi_types_t::struct_type: {
+				auto dc_struct = return_value.struct_meta_info();
+
+				DCpointer output_value;
+				dcCallStruct(
+					vm,
+					reinterpret_cast<DCpointer>(address),
+					dc_struct,
+					&output_value);
+
+				return reinterpret_cast<uint64_t>(output_value);
+			}
+		}
+
+		return 0;
+	}
+
+
 	std::string symbol;
 	void *func_ptr = nullptr;
 	shared_library* library = nullptr;

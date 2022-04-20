@@ -2,9 +2,10 @@
 // Created by 12132 on 2022/4/14.
 //
 
-#ifndef BOOTSTRAP_SRC_VM_HEAP_H_
-#define BOOTSTRAP_SRC_VM_HEAP_H_
+#ifndef VM_HEAP_H_
+#define VM_HEAP_H_
 #include <cstdint>
+
 // 0: pointer to the top of the stack
 // 1: pointer to the bottom of the stack, based on the stack_size value
 //    passed into the vm::terp
@@ -47,4 +48,4 @@ struct heap_block_t {
 };
 
 
-#endif //BOOTSTRAP_SRC_VM_HEAP_H_
+#endif // VM_HEAP_H_

@@ -47,6 +47,10 @@ namespace gfx {
 			+ (sizeof(uint16_t) * heap_vector_table_size);
 
 		static constexpr size_t program_start = heap_vector_table_end;
+
+		static constexpr uint8_t trap_out_of_memory = 0xff;
+		static constexpr uint8_t trap_invalid_ffi_call = 0xfe;
+
 		explicit terp(size_t heap_size, size_t stack_size);
 
 		virtual ~terp();

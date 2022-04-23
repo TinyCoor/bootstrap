@@ -83,7 +83,8 @@ set(COMPILER_SRC
         src/compiler/scope.cpp
         src/compiler/symbol_table.cpp
         src/compiler/bytecode_emitter.cpp
-        src/compiler/constant_expression_evaluator.cpp)
+        src/compiler/constant_expression_evaluator.cpp
+        src/compiler/type_inference_engine.cpp)
 
 
 set(PARSER_SRC

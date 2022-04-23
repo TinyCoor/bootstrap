@@ -13,26 +13,25 @@ constant_expression_evaluator::~constant_expression_evaluator()
 {
 }
 
-ast_node_shared_ptr constant_expression_evaluator::evaluate(result& r, const ast_node_shared_ptr& node)
-{
+ast_node_shared_ptr constant_expression_evaluator::fold_literal_expression(result &r, const ast_node_shared_ptr &node) {
 	if (node == nullptr) {
 		return nullptr;
 	}
 
 	switch (node->type) {
 		case ast_node_types_t::expression: {
-			node->rhs = evaluate(r, node->rhs);
+			node->rhs = fold_literal_expression(r, node->rhs);
 			break;
 		}
 
 		case ast_node_types_t::statement: {
-			node->rhs = evaluate(r, node->rhs);
+			node->rhs = fold_literal_expression(r, node->rhs);
 			break;
 		}
 
 		case ast_node_types_t::assignment: {
 			if (is_subtree_constant(node->rhs)) {
-				auto fold_expression = evaluate(r, node->rhs);
+				auto fold_expression = fold_literal_expression(r, node->rhs);
 			} else {
 				return node;
 			}
@@ -40,7 +39,7 @@ ast_node_shared_ptr constant_expression_evaluator::evaluate(result& r, const ast
 		}
 
 		case ast_node_types_t::unary_operator: {
-			auto folded_rhs = evaluate(r,node->rhs);
+			auto folded_rhs = fold_literal_expression(r,node->rhs);
 			uint64_t rhs_value ;
 			if (folded_rhs->token.is_boolean()) {
 				rhs_value = folded_rhs->token.as_bool() ? 1 : 0;
@@ -73,8 +72,8 @@ ast_node_shared_ptr constant_expression_evaluator::evaluate(result& r, const ast
 			break;
 		}
 		case ast_node_types_t::binary_operator: {
-			auto folded_lhs = evaluate(r, node->lhs);
-			auto folded_rhs = evaluate(r, node->rhs);
+			auto folded_lhs = fold_literal_expression(r, node->lhs);
+			auto folded_rhs = fold_literal_expression(r, node->rhs);
 
 			switch (node->token.type) {
 				case token_types_t::pipe:
@@ -180,7 +179,7 @@ ast_node_shared_ptr constant_expression_evaluator::evaluate(result& r, const ast
 				if (block_child->type == ast_node_types_t::line_comment ||  block_child->type == ast_node_types_t::block_comment) {
 					it = node->children.erase(it);
 				} else {
-					block_child = evaluate(r, block_child);
+					block_child = fold_literal_expression(r, block_child);
 					++it;
 				}
 			}
@@ -228,5 +227,14 @@ bool constant_expression_evaluator::is_subtree_constant(const ast_node_shared_pt
 			return false;
 
 	}
+}
+
+ast_node_shared_ptr constant_expression_evaluator::fold_constant_symbols_and_expression(result &r,
+	const ast_node_shared_ptr &node) {
+	return nullptr;
+}
+ast_node_shared_ptr constant_expression_evaluator::fold_constant_functions_and_call_sites(result &r,
+	const ast_node_shared_ptr &node) {
+	return nullptr;
 }
 }

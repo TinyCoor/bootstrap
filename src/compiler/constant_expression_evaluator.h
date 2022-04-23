@@ -12,7 +12,11 @@ public:
 
 	virtual ~constant_expression_evaluator();
 
-	ast_node_shared_ptr evaluate(result &r, const ast_node_shared_ptr &node);
+	ast_node_shared_ptr fold_literal_expression(result& r, const ast_node_shared_ptr& node);
+
+	ast_node_shared_ptr fold_constant_symbols_and_expression(result& r, const ast_node_shared_ptr& node);
+
+	ast_node_shared_ptr fold_constant_functions_and_call_sites(result& r, const ast_node_shared_ptr& node);
 
 private:
 	bool is_subtree_constant(const ast_node_shared_ptr& node);

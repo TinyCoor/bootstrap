@@ -18,7 +18,6 @@ ast_node_shared_ptr constant_prefix_parser::parse(result& r, parser* parser, tok
 
 ///////////////////////////////////////////////////////////////////////////
 
-
 ast_node_shared_ptr union_prefix_parser::parse(result& r, parser* parser, token_t& token) {
 	auto union_node = parser->ast_builder()->union_node(token);
 	union_node->rhs = parser->parse_expression(r, 0);

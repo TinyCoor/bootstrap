@@ -86,6 +86,6 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input) {
 void bytecode_emitter::apply_constant_folding(result &r, const ast_node_shared_ptr &node)
 {
 	constant_expression_evaluator evaluator(&global_scope_);
-	auto result_node = evaluator.evaluate(r, node);
+	auto result_node = evaluator.fold_literal_expression(r, node);
 }
 }

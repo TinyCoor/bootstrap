@@ -1,6 +1,6 @@
 .vscode/
 .vs/
-
+/extern/boost-1.79
 *.iml
 .idea/
 .externalNativeBuild/

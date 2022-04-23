@@ -1,5 +1,6 @@
 [requires]
 fmt/8.0.1
+boost/1.79.0
 
 [generators]
 cmake

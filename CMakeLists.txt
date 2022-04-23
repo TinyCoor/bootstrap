@@ -56,6 +56,7 @@ include_directories(
         ${FMT_INCLUDE_DIRS}
         extern/fmt/include
         extern/dyncall
+        extern/boost-1.79
 )
 
 #all unit test
@@ -67,7 +68,9 @@ add_custom_command(TARGET all-unit-tests
         COMMAND ctest -C $<CONFIGURATION> --output-on-failure
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set(COMMON_SRC src/common/ya_getopt.c)
+set(COMMON_SRC src/common/ya_getopt.c
+        src/common/id_pool.cpp
+        )
 
 set(VM_SRC
         src/vm/terp.cpp
@@ -78,6 +81,25 @@ set(VM_SRC
         src/vm/assembler.cpp
         )
 
+set(ELEMENT_SRC
+        src/compiler/elements/attribute.cpp
+        src/compiler/elements/binary_operator.cpp
+        src/compiler/elements/block.cpp
+        src/compiler/elements/directive.cpp
+        src/compiler/elements/element.cpp
+        src/compiler/elements/expression.cpp
+        src/compiler/elements/field.cpp
+        src/compiler/elements/float_literal.cpp
+        src/compiler/elements/identifier.cpp
+        src/compiler/elements/initializer.cpp
+        src/compiler/elements/integer_literal.cpp
+        src/compiler/elements/namespace_element.cpp
+        src/compiler/elements/operator_base.cpp
+        src/compiler/elements/program.cpp
+        src/compiler/elements/string_literal.cpp
+        src/compiler/elements/type.cpp
+        src/compiler/elements/unary_operator.cpp
+        )
 
 set(COMPILER_SRC
         src/compiler/scope.cpp

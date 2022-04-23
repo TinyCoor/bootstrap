@@ -1,0 +1,16 @@
+pointer::examples := ns {
+    my_special_struct := struct {
+        x: u16;
+        y: u16;
+    };
+
+    // what you might expect
+    my_block_of_memory:*u8;
+    my_block_of_memory := alloc(1024);
+    defer free(my_block_of_memory);
+
+    // maybe this is better
+    another_block_of_memory: addr<my_special_struct>;
+    another_block_of_memory := alloc(size_of(my_special_struct));
+    defer free(another_block_of_memory);
+};

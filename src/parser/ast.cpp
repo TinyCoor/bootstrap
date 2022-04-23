@@ -323,4 +323,11 @@ void ast_builder::configure_node(const ast_node_shared_ptr &node, const token_t 
 	node->token = token;
 }
 
+ast_node_shared_ptr ast_builder::constant_node(const token_t &token) {
+	auto node = std::make_shared<ast_node_t>();
+	configure_node(node, token, ast_node_types_t::constant_statement);
+	node->lhs = argument_list_node();
+	return node;
+}
+
 }

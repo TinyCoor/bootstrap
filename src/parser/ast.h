@@ -58,6 +58,7 @@ enum class ast_node_types_t : uint32_t {
 	switch_expression,
 	struct_expression,
 	continue_statement,
+	constant_statement,
 	namespace_statement,
 	subscript_expression,
 	qualified_symbol_reference,
@@ -122,6 +123,7 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::array_constructor, "array_constructor"},
 	{ast_node_types_t::elseif_expression, "elseif_expression"},
 	{ast_node_types_t::continue_statement, "continue_statement"},
+	{ast_node_types_t::constant_statement, "constant_statement"},
 	{ast_node_types_t::namespace_statement, "namespace_statement"},
 	{ast_node_types_t::subscript_expression, "subscript_expression"},
 	{ast_node_types_t::qualified_symbol_reference, "qualified_symbol_reference"},
@@ -253,6 +255,9 @@ public:
 	ast_node_shared_ptr string_literal_node(const token_t& token);
 
 	ast_node_shared_ptr unary_operator_node(const token_t& token);
+
+	ast_node_shared_ptr constant_node(const token_t& token);
+
 
 	ast_node_shared_ptr type_identifier_node(const token_t& token);
 

@@ -16,6 +16,23 @@ ast_node_shared_ptr constant_prefix_parser::parse(result& r, parser* parser, tok
 	return constant_node;
 }
 
+ast_node_shared_ptr with_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
+	auto with_node = parser->ast_builder()->with_node(token);
+	with_node->rhs = parser->parse_expression(r, 0);
+	return with_node;
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+ast_node_shared_ptr defer_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
+	auto defer_node = parser->ast_builder()->defer_node(token);
+	defer_node->rhs = parser->parse_expression(r, 0);
+	return defer_node;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr union_prefix_parser::parse(result& r, parser* parser, token_t& token) {

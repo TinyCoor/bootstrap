@@ -7,10 +7,32 @@
 
 @entry_point alpha::compiler::examples::main;
 
-ns alpha::compiler::config {
+alpha::compiler::config := ns {
 
-    ns fibonacci {
-        length_of_sequence := 1000;
+    fibonacci := ns {
+        constant length_of_sequence:u32 := 1000;
+    };
+
+};
+
+alpha::compiler::examples := ns {
+
+    fib := fn(n:u64 := 10):u64 {
+        if n == 0 || n == 1 {
+            return n;
+        } else {
+            value := fib((n - 1) + fib(n - 2));
+            print(value);
+            return value;
+        };
+    };
+
+    main := fn():u32 {
+        defer {
+            final_fib_value:u32 := fib(
+                alpha::compiler::config::fibonacci::length_of_sequence);
+        };
+        return final_fib_value;
     };
 
 };

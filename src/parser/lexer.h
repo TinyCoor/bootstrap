@@ -122,6 +122,8 @@ private:
 
 	bool constant_literal(token_t& token);
 
+	bool with_literal(token_t& token);
+
 	bool right_curly_brace(token_t& token);
 
 	bool ampersand_literal(token_t& token);

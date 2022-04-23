@@ -42,6 +42,7 @@ enum class token_types_t {
 	right_paren,
 	for_literal,
 	end_of_file,
+	with_literal,
 	greater_than,
 	none_literal,
 	line_comment,
@@ -144,6 +145,7 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::defer_literal,          "defer_literal"},
 	{token_types_t::fn_literal,             "fn_literal"},
 	{token_types_t::end_of_file,            "end_of_file"},
+	{token_types_t::with_literal, 			"with_literal"},
 };
 
 enum class conversion_result {
@@ -215,6 +217,11 @@ static inline token_t s_bang_literal = {
 static inline token_t s_plus_literal = {
 	.type = token_types_t::plus,
 	.value = "+"
+};
+
+static inline token_t s_with_literal = {
+	.type = token_types_t::with_literal,
+	.value = "with"
 };
 
 static inline token_t s_pipe_literal = {

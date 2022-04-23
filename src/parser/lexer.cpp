@@ -149,6 +149,7 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 	// while literal
 	{'w', std::bind(&lexer::while_literal, std::placeholders::_1, std::placeholders::_2)},
+	{'w', std::bind(&lexer::with_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// struct literal
 	{'s', std::bind(&lexer::struct_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -1090,6 +1091,16 @@ bool lexer::period(token_t &token) {
 	return false;
 }
 
-
+bool lexer::with_literal(token_t& token) {
+	if (match_literal("with")) {
+		auto ch = read(false);
+		if (!isalnum(ch)) {
+			rewind_one_char();
+			token = s_true_literal;
+			return true;
+		}
+	}
+	return false;
+}
 
 }

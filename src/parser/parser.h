@@ -115,6 +115,24 @@ public:
 	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
 
+class with_prefix_parser : public prefix_parser {
+public:
+	with_prefix_parser() = default;
+
+	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
+};
+
+///////////////////////////////////////////////////////////////////////////
+
+class defer_prefix_parser : public prefix_parser {
+public:
+	defer_prefix_parser() = default;
+
+	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
+};
+
+///////////////////////////////////////////////////////////////////////////
+
 
 ///////////////////////////////////////////////////////////////////////////
 class namespace_prefix_parser : public prefix_parser {

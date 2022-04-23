@@ -46,6 +46,7 @@ enum class ast_node_types_t : uint32_t {
 	break_statement,
 	with_expression,
 	type_identifier,
+	defer_expression,
 	enum_expression,
 	symbol_reference,
 	return_statement,
@@ -112,6 +113,7 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::break_statement, "break_statement"},
 	{ast_node_types_t::with_expression, "with_expression"},
 	{ast_node_types_t::type_identifier, "type_identifier"},
+	{ast_node_types_t::defer_expression, "defer_expression"},
 	{ast_node_types_t::union_expression, "union_expression"},
 	{ast_node_types_t::return_statement, "return_statement"},
 	{ast_node_types_t::symbol_reference, "symbol_reference"},
@@ -224,6 +226,10 @@ public:
 
 	ast_node_shared_ptr argument_list_node();
 
+	ast_node_shared_ptr with_node(const token_t& token);
+
+	ast_node_shared_ptr defer_node(const token_t& token);
+
 	ast_node_shared_ptr enum_node(const token_t& token);
 
 	ast_node_shared_ptr break_node(const token_t& token);
@@ -233,6 +239,8 @@ public:
 	ast_node_shared_ptr struct_node(const token_t& token);
 
 	ast_node_shared_ptr union_node(const token_t& token);
+
+	ast_node_shared_ptr constant_node(const token_t& token);
 
 	ast_node_shared_ptr continue_node(const token_t& token);
 
@@ -255,9 +263,6 @@ public:
 	ast_node_shared_ptr string_literal_node(const token_t& token);
 
 	ast_node_shared_ptr unary_operator_node(const token_t& token);
-
-	ast_node_shared_ptr constant_node(const token_t& token);
-
 
 	ast_node_shared_ptr type_identifier_node(const token_t& token);
 

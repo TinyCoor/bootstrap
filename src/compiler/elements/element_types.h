@@ -36,5 +36,5 @@ using attribute_map_t = std::map<std::string, attribute*>;
 using directive_map_t = std::map<std::string, directive*>;
 using identifier_map_t = std::map<std::string, identifier*>;
 
-};
+}
 #endif // COMPILER_ELEMENTS_ELEMENT_TYPES_H_

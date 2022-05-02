@@ -17,19 +17,23 @@ public:
 	void add_field(const std::string& name, compiler::type* type,
 		compiler::initializer* initializer);
 
-	inline uint64_t min() const {
+	inline uint64_t min() const
+	{
 		return min_;
 	}
 
-	inline uint64_t max() const {
+	inline uint64_t max() const
+	{
 		return max_;
 	}
 
-	inline std::string name() const {
+	inline std::string name() const
+	{
 		return name_;
 	}
 
-	inline size_t field_count() const {
+	inline size_t field_count() const
+	{
 		return fields_.size();
 	}
 

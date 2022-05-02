@@ -26,12 +26,10 @@ ast_node_shared_ptr constant_expression_evaluator::fold_literal_expression(resul
 			node->rhs = fold_literal_expression(r, node->rhs);
 			break;
 		}
-
 		case ast_node_types_t::statement: {
 			node->rhs = fold_literal_expression(r, node->rhs);
 			break;
 		}
-
 		case ast_node_types_t::assignment: {
 			if (is_subtree_constant(node->rhs)) {
 				auto fold_expression = fold_literal_expression(r, node->rhs);
@@ -40,7 +38,6 @@ ast_node_shared_ptr constant_expression_evaluator::fold_literal_expression(resul
 			}
 			break;
 		}
-
 		case ast_node_types_t::unary_operator: {
 			auto folded_rhs = fold_literal_expression(r,node->rhs);
 			uint64_t rhs_value ;
@@ -206,13 +203,13 @@ bool constant_expression_evaluator::is_subtree_constant(const ast_node_shared_pt
 		case ast_node_types_t::expression: {
 			return is_subtree_constant(node->lhs);
 		}
-		case ast_node_types_t::assignment:{
+		case ast_node_types_t::assignment: {
 			return is_subtree_constant(node->rhs);
 		}
-		case ast_node_types_t::unary_operator:{
+		case ast_node_types_t::unary_operator: {
 			return is_subtree_constant(node->rhs);
 		}
-		case ast_node_types_t::binary_operator:{
+		case ast_node_types_t::binary_operator: {
 			return is_subtree_constant(node->lhs) && is_subtree_constant(node->rhs);
 		}
 		case ast_node_types_t::basic_block:

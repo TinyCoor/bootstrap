@@ -7,8 +7,7 @@
 #include <common/id_pool.h>
 #include <common/result.h>
 #include "element_types.h"
-namespace gfx {
-namespace compiler {
+namespace gfx::compiler {
 class element {
 public:
 	element();
@@ -34,7 +33,6 @@ private:
 	directive_map_t directives_ {};
 	attribute_map_t attributes_ {};
 };
-}
 }
 
 #endif // COMPILER_ELEMENTS_ELEMENT_H_

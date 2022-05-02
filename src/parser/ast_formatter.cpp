@@ -66,6 +66,9 @@ void ast_formatter::format_graph_viz() {
 }
 
 void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
+	if (node ==nullptr) {
+		return;
+	}
 	auto node_vertex_name = get_vertex_name(node);
 
 	std::string shape = "record", style, details;
@@ -151,11 +154,11 @@ void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
 
 	if (!edges.empty()) {
 		index = 0;
-		for (const auto& edge : edges)
+		for (const auto& edge : edges) {
 			fmt::print(file_, "{}:f1 -> {}:f1 [label=\"[{:02}]\"];\n",
-				node_vertex_name,
-				edge,
-				index++);
+					   node_vertex_name, edge, index++);
+		}
+
 		fmt::print(file_, "\n");
 	}
 }

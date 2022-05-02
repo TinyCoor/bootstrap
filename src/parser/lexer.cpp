@@ -242,8 +242,9 @@ bool lexer::has_next() const {
 
 void lexer::rewind_one_char() {
 	source_.seekg(-1, std::istream::cur);
-	if (column_ > 0)
+	if (column_ > 0){
 		column_--;
+	}
 }
 
 void lexer::restore_position() {

@@ -523,7 +523,8 @@ ast_node_shared_ptr array_subscript_prefix_parser::parse(result& r, parser* pars
 
 ///////////////////////////////////////////////////////////////////////////
 
-parser::parser(std::istream &source) : source_(source), lexer_(source)
+parser::parser(std::istream &source)
+	: source_(source), lexer_(source)
 {
 
 }

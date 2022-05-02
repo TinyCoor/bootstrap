@@ -36,21 +36,3 @@ alpha::compiler::examples := ns {
     };
 
 };
-
-ns alpha::compiler::examples {
-
-    fib := fn(n:u64):u64 {
-        if n == 0 || n == 1 {
-            return n;
-        } else {
-            value := fib((n - 1) + fib(n - 2));
-            print(value);
-            return value;
-        };
-    };
-
-    main := fn():u64 {
-        return fib(alpha::compiler::config::fibonacci::length_of_sequence);
-    };
-
-};

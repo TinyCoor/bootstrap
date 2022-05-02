@@ -21,9 +21,10 @@ struct symbol_lookup_result_t {
 };
 
 using symbol_dict = std::unordered_multimap<std::string, symbol_table_entry_t>;
+
 class symbol_table {
 public:
-	symbol_table() =default;
+	symbol_table() = default;
 
 	void put(const std::string& name, const symbol_table_entry_t& value);
 

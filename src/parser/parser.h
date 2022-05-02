@@ -370,6 +370,7 @@ private:
 	static inline char_literal_prefix_parser s_char_literal_prefix_parser {};
 	static inline line_comment_prefix_parser s_line_comment_prefix_parser {};
 	static inline block_comment_prefix_parser s_block_comment_prefix_parser {};
+	static inline defer_prefix_parser s_defer_literal_prefix_parser {};
 	static inline string_literal_prefix_parser s_string_literal_prefix_parser {};
 	static inline number_literal_prefix_parser s_number_literal_prefix_parser {};
 	static inline keyword_literal_prefix_parser s_keyword_literal_prefix_parser {};
@@ -398,6 +399,7 @@ private:
 		{token_types_t::left_curly_brace,    &s_basic_block_prefix_parser},
 		{token_types_t::character_literal,   &s_char_literal_prefix_parser},
 		{token_types_t::line_comment,        &s_line_comment_prefix_parser},
+		{token_types_t::defer_literal, 		 &s_defer_literal_prefix_parser},
 		{token_types_t::block_comment,       &s_block_comment_prefix_parser},
 		{token_types_t::string_literal,      &s_string_literal_prefix_parser},
 		{token_types_t::number_literal,      &s_number_literal_prefix_parser},

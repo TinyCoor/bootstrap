@@ -4,10 +4,12 @@
 
 #include "float_literal.h"
 namespace gfx::compiler {
-float_literal::float_literal(double value) : value_(value) {
+float_literal::float_literal(double value) : value_(value)
+{
 }
 
-float_literal::~float_literal() {
+float_literal::~float_literal()
+{
 }
 
 }

@@ -11,11 +11,13 @@ identifier::identifier(const std::string& name, const compiler::initializer& ini
 identifier::~identifier() {
 }
 
-compiler::type* identifier::type() {
+compiler::type* identifier::type()
+{
 	return type_;
 }
 
-std::string identifier::name() const {
+std::string identifier::name() const
+{
 	return name_;
 }
 

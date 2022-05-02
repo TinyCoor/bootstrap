@@ -5,11 +5,11 @@
 #include "integer_literal.h"
 namespace gfx::compiler {
 integer_literal::integer_literal(uint64_t value)
-	: value_(value) {
-
+	: value_(value)
+{
 }
 
-integer_literal::~integer_literal() {
-
+integer_literal::~integer_literal()
+{
 }
 }

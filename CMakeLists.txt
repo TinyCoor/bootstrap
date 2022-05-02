@@ -104,6 +104,7 @@ set(ELEMENT_SRC
 set(COMPILER_SRC
         src/compiler/scope.cpp
         src/compiler/symbol_table.cpp
+        ${ELEMENT_SRC}
         src/compiler/bytecode_emitter.cpp
         src/compiler/constant_expression_evaluator.cpp
         src/compiler/type_inference_engine.cpp)

@@ -3,12 +3,12 @@
 //
 
 #include "attribute.h"
-namespace gfx::compiler{
+namespace gfx::compiler {
 attribute::attribute(const std::string &name, expression *rhs)
 	: name_(name), rhs_(rhs)
 {}
 
-attribute::~attribute() noexcept {
-
+attribute::~attribute() noexcept
+{
 }
 }

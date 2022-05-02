@@ -5,10 +5,12 @@
 #include "type.h"
 #include "field.h"
 namespace gfx::compiler {
-type::type() {
+type::type()
+{
 }
 
-type::~type() {
+type::~type()
+{
 	for (auto field : fields_) {
 		delete field.second;
 	}
@@ -22,11 +24,13 @@ void type::add_field(const std::string& name, compiler::type* type, compiler::in
 	fields_.insert(std::make_pair(name, field));
 }
 
-bool type::remove_field(const std::string& name) {
+bool type::remove_field(const std::string& name)
+{
 	return fields_.erase(name) > 0;
 }
 
-compiler::field* type::find_field(const std::string& name) {
+compiler::field* type::find_field(const std::string& name)
+{
 	auto it = fields_.find(name);
 	if (it != fields_.end()) {
 		return it->second;

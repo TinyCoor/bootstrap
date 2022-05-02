@@ -19,7 +19,7 @@ public:
 private:
 	double value_;
 };
-};
+
 }
 
 #endif // COMPILER_ELEMENTS_FLOAT_LITERAL_H_

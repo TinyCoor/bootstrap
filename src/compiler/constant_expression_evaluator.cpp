@@ -5,7 +5,8 @@
 #include "constant_expression_evaluator.h"
 
 namespace gfx {
-constant_expression_evaluator::constant_expression_evaluator(scope* scope) : scope_(scope)
+constant_expression_evaluator::constant_expression_evaluator(scope* scope)
+	: scope_(scope)
 {
 }
 
@@ -13,7 +14,9 @@ constant_expression_evaluator::~constant_expression_evaluator()
 {
 }
 
-ast_node_shared_ptr constant_expression_evaluator::fold_literal_expression(result &r, const ast_node_shared_ptr &node) {
+ast_node_shared_ptr constant_expression_evaluator::fold_literal_expression(result &r,
+	const ast_node_shared_ptr &node)
+{
 	if (node == nullptr) {
 		return nullptr;
 	}
@@ -176,7 +179,8 @@ ast_node_shared_ptr constant_expression_evaluator::fold_literal_expression(resul
 		case ast_node_types_t::namespace_statement: {
 			for (auto it = node->children.begin(); it != node->children.end();) {
 				auto block_child = *it;
-				if (block_child->type == ast_node_types_t::line_comment ||  block_child->type == ast_node_types_t::block_comment) {
+				if (block_child->type == ast_node_types_t::line_comment ||
+					block_child->type == ast_node_types_t::block_comment) {
 					it = node->children.erase(it);
 				} else {
 					block_child = fold_literal_expression(r, block_child);
@@ -207,7 +211,6 @@ bool constant_expression_evaluator::is_subtree_constant(const ast_node_shared_pt
 		}
 		case ast_node_types_t::unary_operator:{
 			return is_subtree_constant(node->rhs);
-
 		}
 		case ast_node_types_t::binary_operator:{
 			return is_subtree_constant(node->lhs) && is_subtree_constant(node->rhs);

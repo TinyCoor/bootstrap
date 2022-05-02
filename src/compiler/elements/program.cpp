@@ -4,7 +4,9 @@
 
 #include "program.h"
 namespace gfx::compiler {
-program::program() : block(nullptr){
+program::program()
+	: block(nullptr)
+{
 
 }
 }

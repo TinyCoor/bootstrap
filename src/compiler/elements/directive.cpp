@@ -5,17 +5,21 @@
 #include "directive.h"
 namespace gfx::compiler {
 directive::directive(const std::string& name, expression* rhs)
-	: name_(name), rhs_(rhs) {
+	: name_(name), rhs_(rhs)
+{
 }
 
-directive::~directive() {
+directive::~directive()
+{
 }
 
-std::string directive::name() const {
+std::string directive::name() const
+{
 	return name_;
 }
 
-compiler::expression* directive::rhs() {
+compiler::expression* directive::rhs()
+{
 	return rhs_;
 }
 }

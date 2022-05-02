@@ -11,8 +11,9 @@ static constexpr size_t stack_size = (1024 * 1024) * 8;
 static void print_results(result& r) {
 	auto has_messages = !r.messages().empty();
 
-	if (has_messages)
+	if (has_messages) {
 		fmt::print("\n");
+	}
 
 	for (const auto& msg : r.messages()) {
 		fmt::print("[{}] {}{}\n", msg.code(), msg.is_error() ? "ERROR: " : " ", msg.message());
@@ -21,8 +22,9 @@ static void print_results(result& r) {
 		}
 	}
 
-	if (has_messages)
+	if (has_messages) {
 		fmt::print("\n");
+	}
 }
 
 static void usage() {

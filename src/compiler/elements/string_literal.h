@@ -12,7 +12,8 @@ public:
 
 	~string_literal() override;
 
-	inline std::string value() const {
+	inline std::string value() const
+	{
 		return value_;
 	}
 

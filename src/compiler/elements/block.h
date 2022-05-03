@@ -4,7 +4,11 @@
 
 #ifndef COMPILER_ELEMENTS_BLOCK_H_
 #define COMPILER_ELEMENTS_BLOCK_H_
+#include "type.h"
 #include "element.h"
+#include "element_types.h"
+#include "identifier.h"
+
 namespace gfx::compiler {
 
 class block : public element {
@@ -17,21 +21,13 @@ public:
 
 	element_list_t& children();
 
-	inline size_t type_count() const {
-		return types_.size();
+	type_map_t& types() {
+		return types_;
 	}
 
-	inline size_t identifier_count() const {
-		return identifiers_.size();
+	identifier_map_t& identifiers() {
+		return identifiers_;
 	}
-
-	bool remove_type(const std::string& name);
-
-	bool remove_identifier(const std::string& name);
-
-	compiler::type* find_type(const std::string& name);
-
-	compiler::identifier* find_identifier(const std::string& name);
 
 private:
 	type_map_t types_ {};

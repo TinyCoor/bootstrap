@@ -10,42 +10,46 @@
 namespace gfx::compiler {
 class type : public element {
 public:
-	type();
+	explicit type(const std::string& name);
 
 	~type() override;
-
-	void add_field(const std::string& name, compiler::type* type,
-		compiler::initializer* initializer);
-
-	inline uint64_t min() const
-	{
-		return min_;
-	}
-
-	inline uint64_t max() const
-	{
-		return max_;
-	}
 
 	inline std::string name() const
 	{
 		return name_;
 	}
 
-	inline size_t field_count() const
+private:
+	std::string name_;
+};
+
+struct type_map_t {
+	void add(const std::string& name, compiler::type* type)
 	{
-		return fields_.size();
+		types_.insert(std::make_pair(name, type));
 	}
 
-	bool remove_field(const std::string& name);
+	size_t size() const
+	{
+		return types_.size();
+	}
 
-	compiler::field* find_field(const std::string& name);
+	bool remove(const std::string& name)
+	{
+		return types_.erase(name) > 0;
+	}
+
+	compiler::type* find(const std::string& name)
+	{
+		auto it = types_.find(name);
+		if (it != types_.end()) {
+			return it->second;
+		}
+		return nullptr;
+	}
 
 private:
-	uint64_t min_;
-	uint64_t max_;
-	std::string name_;
-	field_map_t fields_ {};
+	std::unordered_map<std::string, type*> types_ {};
 };
 }
 #endif // COMPILER_ELEMENTS_TYPE_H_

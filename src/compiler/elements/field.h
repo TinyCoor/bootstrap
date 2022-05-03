@@ -35,6 +35,43 @@ private:
 	compiler::type* type_ = nullptr;
 	compiler::initializer* initializer_ = nullptr;
 };
+
+struct field_map_t {
+	~field_map_t() {
+		for (auto field : fields_)
+			delete field.second;
+		fields_.clear();
+	}
+
+	void add(
+		const std::string& name,
+		compiler::type* type,
+		compiler::initializer* initializer) {
+		auto field = new compiler::field(name, type, initializer);
+		field->type(type);
+		fields_.insert(std::make_pair(name, field));
+	}
+
+	inline size_t size() const {
+		return fields_.size();
+	}
+
+	bool remove(const std::string& name) {
+		return fields_.erase(name) > 0;
+	}
+
+	compiler::field* find(const std::string& name) {
+		auto it = fields_.find(name);
+		if (it != fields_.end()) {
+			return it->second;
+		}
+
+		return nullptr;
+	}
+
+private:
+	std::unordered_map<std::string, field*> fields_ {};
+};
 }
 
-#endif //BOOTSTRAP_SRC_COMPILER_ELEMENTS_FIELD_H_
+#endif // COMPILER_ELEMENTS_FIELD_H_

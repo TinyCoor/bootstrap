@@ -17,6 +17,9 @@ class block;
 class element;
 class program;
 class directive;
+class array_type;
+class string_type;
+class procedure_type;
 class attribute;
 class identifier;
 class expression;
@@ -30,11 +33,8 @@ class namespace_element;
 
 using element_list_t = std::vector<element*>;
 
-using type_map_t = std::map<std::string, type*>;
-using field_map_t = std::map<std::string, field*>;
 using attribute_map_t = std::map<std::string, attribute*>;
 using directive_map_t = std::map<std::string, directive*>;
-using identifier_map_t = std::map<std::string, identifier*>;
 
 }
 #endif // COMPILER_ELEMENTS_ELEMENT_TYPES_H_

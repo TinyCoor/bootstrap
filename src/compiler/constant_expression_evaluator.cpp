@@ -122,7 +122,6 @@ ast_node_shared_ptr constant_expression_evaluator::fold_literal_expression(resul
 					node->rhs = nullptr;
 					node->type = ast_node_types_t::number_literal;
 					node->token.type = token_types_t::number_literal;
-
 					break;
 				}
 				case token_types_t::equals: {
@@ -214,10 +213,8 @@ bool constant_expression_evaluator::is_subtree_constant(const ast_node_shared_pt
 		}
 		case ast_node_types_t::basic_block:
 		case ast_node_types_t::line_comment:
-		case ast_node_types_t::none_literal:
 		case ast_node_types_t::null_literal:
 		case ast_node_types_t::block_comment:
-		case ast_node_types_t::empty_literal:
 		case ast_node_types_t::number_literal:
 		case ast_node_types_t::string_literal:
 		case ast_node_types_t::boolean_literal:

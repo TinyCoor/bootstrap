@@ -115,6 +115,8 @@ set(PARSER_SRC
         src/parser/token.cpp
         src/parser/parser.cpp
         src/parser/ast.cpp
+        src/parser/infix_parser.cpp
+        src/parser/prefix_parser.cpp
         src/parser/ast_formatter.cpp)
 
 add_executable(bootstrap

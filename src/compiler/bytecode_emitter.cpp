@@ -10,7 +10,6 @@
 namespace gfx {
 bytecode_emitter::bytecode_emitter( const bytecode_emitter_options_t& options)
 	: 	terp_(options.heap_size, options.stack_size),
-		global_scope_(nullptr, nullptr),
 		options_(options)
 {
 }
@@ -40,18 +39,6 @@ bool bytecode_emitter::compile_files(result& r, const std::vector<std::filesyste
 	return !r.is_failed();
 }
 
-void bytecode_emitter::build_scope_tree(result& r, scope* scope, const ast_node_shared_ptr& node)
-{
-	if (scope == nullptr || node == nullptr) {
-		return;
-	}
-
-	for (auto& child_node : node->children) {
-		auto child_scope = scope->add_child_scope(child_node);
-		build_scope_tree(r, child_scope, child_node);
-	}
-}
-
 bool bytecode_emitter::initialize(result& r)
 {
 	return terp_.initialize(r);
@@ -68,8 +55,6 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input)
 	parser alpha_parser(input);
 	auto program_node = alpha_parser.parse(r);
 	if (program_node != nullptr && !r.is_failed()) {
-		build_scope_tree(r, &global_scope_, program_node);
-		apply_constant_folding(r, program_node);
 		if (options_.verbose) {
 			auto close_required = false;
 			FILE* ast_output_file = stdout;
@@ -89,9 +74,4 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input)
 	return !r.is_failed();
 }
 
-void bytecode_emitter::apply_constant_folding(result &r, const ast_node_shared_ptr &node)
-{
-	constant_expression_evaluator evaluator(&global_scope_);
-	auto result_node = evaluator.fold_literal_expression(r, node);
-}
 }

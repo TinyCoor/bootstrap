@@ -10,6 +10,8 @@ namespace gfx::compiler {
 class program : public block {
 public:
 	program();
+private:
+
 };
 }
 

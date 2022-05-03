@@ -13,4 +13,9 @@ expression::~expression()
 {
 }
 
+element *expression::root()
+{
+	return root_;
+}
+
 }

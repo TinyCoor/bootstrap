@@ -15,4 +15,9 @@ element *attribute::expression()
 {
 	return expr_;
 }
+
+std::string attribute::name() const
+{
+	return name_;
+}
 }

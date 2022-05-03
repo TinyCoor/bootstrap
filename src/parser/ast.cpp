@@ -287,7 +287,7 @@ ast_node_shared_ptr ast_builder::qualified_symbol_reference_node()
 ast_node_shared_ptr ast_builder::namespace_node(const token_t &token)
 {
 	auto node = std::make_shared<ast_node_t>();
-	configure_node(node, token, ast_node_types_t::namespace_statement);
+	configure_node(node, token, ast_node_types_t::namespace_expression);
 	return node;
 }
 
@@ -315,7 +315,7 @@ void ast_builder::configure_node(const ast_node_shared_ptr &node, const token_t 
 
 ast_node_shared_ptr ast_builder::constant_node(const token_t &token) {
 	auto node = std::make_shared<ast_node_t>();
-	configure_node(node, token, ast_node_types_t::constant_statement);
+	configure_node(node, token, ast_node_types_t::constant_expression);
 	node->lhs = argument_list_node();
 	return node;
 }

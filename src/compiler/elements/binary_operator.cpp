@@ -4,7 +4,7 @@
 
 #include "binary_operator.h"
 namespace gfx::compiler {
-binary_operator::binary_operator(element* parent, operator_type_t type, expression* lhs, expression* rhs)
+binary_operator::binary_operator(element* parent, operator_type_t type, element* lhs, element* rhs)
 	: operator_base(parent, type), lhs_(lhs), rhs_(rhs)
 {
 }
@@ -13,12 +13,12 @@ binary_operator::~binary_operator()
 {
 }
 
-expression* binary_operator::lhs()
+element* binary_operator::lhs()
 {
 	return lhs_;
 }
 
-expression* binary_operator::rhs()
+element* binary_operator::rhs()
 {
 	return rhs_;
 }

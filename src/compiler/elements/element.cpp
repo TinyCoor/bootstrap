@@ -5,7 +5,7 @@
 #include "element.h"
 namespace gfx::compiler {
 element::element(element* parent)
-	:  id_(id_pool::instance()->allocate()), parent_(parent), attributes_(this)
+	:  id_(id_pool::instance()->allocate()), parent_(parent)
 {
 }
 

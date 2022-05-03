@@ -4,19 +4,14 @@
 
 #include "element_types.h"
 #include "attribute.h"
+#include "field.h"
+#include "identifier.h"
 
 namespace gfx::compiler {
-attribute_map_t::attribute_map_t(element *parent)
-	: parent_(parent)
-{
 
-}
-
-attribute_map_t::~attribute_map_t()
+size_t attribute_map_t::size() const
 {
-	for (auto attr : attrs_)
-		delete attr.second;
-	attrs_.clear();
+	return attrs_.size();
 }
 
 bool attribute_map_t::remove(const std::string &name)
@@ -32,10 +27,87 @@ compiler::attribute *attribute_map_t::find(const std::string &name)
 
 	return nullptr;
 }
-element * attribute_map_t::add(const std::string &name, element *expr)
+void attribute_map_t::add(attribute* value)
 {
-	auto attr = new compiler::attribute(parent_, name, expr);
-	attrs_.insert(std::make_pair(name, attr));
-	return attr;
+	attrs_.insert(std::make_pair(value->name(), value));
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+void field_map_t:: add(field* value)
+{
+	fields_.insert(std::make_pair(value->name(), value));
+}
+
+size_t field_map_t:: size() const
+{
+	return fields_.size();
+}
+
+bool field_map_t:: remove(const std::string& name)
+{
+	return fields_.erase(name) > 0;
+}
+
+compiler::field* field_map_t:: find(const std::string& name)
+{
+	auto it = fields_.find(name);
+	if (it != fields_.end()) {
+		return it->second;
+	}
+	return nullptr;
+}
+
+
+//////////////////////////////////////////////////////
+
+void identifier_map_t::add(identifier* value)
+{
+	identifiers_.insert(std::make_pair(value->name(), value));
+}
+
+size_t identifier_map_t::size() const
+{
+	return identifiers_.size();
+}
+
+bool identifier_map_t::remove(const std::string& name)
+{
+	return identifiers_.erase(name) > 0;
+}
+
+identifier* identifier_map_t::find(const std::string& name)
+{
+	auto it = identifiers_.find(name);
+	if (it != identifiers_.end()) {
+		return it->second;
+	}
+	return nullptr;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+void type_map_t::add(compiler::type* type)
+{
+	types_.insert(std::make_pair(type->name(), type));
+}
+
+size_t type_map_t::size() const
+{
+	return types_.size();
+}
+
+bool type_map_t::remove(const std::string& name)
+{
+	return types_.erase(name) > 0;
+}
+
+compiler::type* type_map_t::find(const std::string& name)
+{
+	auto it = types_.find(name);
+	if (it != types_.end()) {
+		return it->second;
+	}
+	return nullptr;
+}
+
+
 }

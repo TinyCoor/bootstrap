@@ -9,14 +9,8 @@
 namespace gfx::compiler {
 class initializer : public expression {
 public:
-	explicit initializer(element* parent, binary_operator* assignment);
+	explicit initializer(element* parent, element* expr);
 
-	~initializer() override;
-
-	binary_operator* assignment();
-
-private:
-	binary_operator* assignment_ = nullptr;
 };
 }
 

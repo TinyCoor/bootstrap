@@ -16,6 +16,8 @@ public:
 
 	element* expression();
 
+	std::string name() const;
+
 private:
 	std::string name_;
 	element* expr_ = nullptr;

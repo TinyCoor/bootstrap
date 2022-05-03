@@ -15,6 +15,8 @@ public:
 
 	~expression() override;
 
+	element* root();
+
 private:
 	element* root_;
 };

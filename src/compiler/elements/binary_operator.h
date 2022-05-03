@@ -10,17 +10,17 @@ namespace gfx::compiler {
 
 class binary_operator : public operator_base {
 public:
-	binary_operator(element* parent, operator_type_t type, expression* lhs, expression* rhs);
+	binary_operator(element* parent, operator_type_t type, element* lhs, element* rhs);
 
 	~binary_operator() override;
 
-	expression* lhs();
+	element* lhs();
 
-	expression* rhs();
+	element* rhs();
 
 private:
-	expression* lhs_ = nullptr;
-	expression* rhs_ = nullptr;
+	element* lhs_ = nullptr;
+	element* rhs_ = nullptr;
 };
 }
 

@@ -28,7 +28,7 @@ protected:
 private:
 	id_t id_;
 	element* parent_ = nullptr;
-	attribute_map_t attributes_ ;
+	attribute_map_t attributes_ {};
 };
 }
 

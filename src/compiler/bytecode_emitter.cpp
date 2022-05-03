@@ -3,7 +3,6 @@
 //
 
 #include "bytecode_emitter.h"
-#include "constant_expression_evaluator.h"
 #include "parser/ast_formatter.h"
 
 #include <fmt/format.h>

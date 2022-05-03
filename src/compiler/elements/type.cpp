@@ -13,5 +13,14 @@ type::type(element* parent, const std::string& name)
 type::~type()
 {
 }
+std::string type::name() const
+{
+	return name_;
+}
+
+void type::name(const std::string &value)
+{
+	name_ =value;
+}
 
 }

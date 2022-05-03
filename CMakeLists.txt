@@ -104,15 +104,14 @@ set(ELEMENT_SRC
         src/compiler/elements/string_type.cpp
         src/compiler/elements/line_comment.cpp
         src/compiler/elements/numeric_type.cpp
+        src/compiler/elements/composite_type.cpp
         )
 
 set(COMPILER_SRC
         src/compiler/scope.cpp
         src/compiler/symbol_table.cpp
         ${ELEMENT_SRC}
-        src/compiler/bytecode_emitter.cpp
-        src/compiler/constant_expression_evaluator.cpp
-        src/compiler/type_inference_engine.cpp)
+        src/compiler/bytecode_emitter.cpp)
 
 
 set(PARSER_SRC

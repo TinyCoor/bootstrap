@@ -7,18 +7,10 @@
 
 namespace gfx::compiler {
 
-initializer::initializer( element* parent, binary_operator* assignment)
-	: expression(parent,dynamic_cast<element*>(assignment))
+initializer::initializer( element* parent, element* expr)
+	: expression(parent, expr)
 {
 
 }
 
-initializer::~initializer()
-{
-}
-
-binary_operator* initializer::assignment()
-{
-	return assignment_;
-}
 }

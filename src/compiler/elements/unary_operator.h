@@ -10,14 +10,14 @@
 namespace gfx::compiler {
 class unary_operator : public  operator_base {
 public:
-	explicit unary_operator(element* parent, operator_type_t type, expression* rhs);
+	explicit unary_operator(element* parent, operator_type_t type, element* rhs);
 
 	~unary_operator() override;
 
-	expression* rhs();
+	element* rhs();
 
 private:
-	expression* rhs_ = nullptr;
+	element* rhs_ = nullptr;
 };
 }
 #endif // COMPILER_ELEMENTS_UNARY_OPERATOR_H_

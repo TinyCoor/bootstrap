@@ -4,8 +4,8 @@
 
 #include "directive.h"
 namespace gfx::compiler {
-directive::directive(const std::string& name, expression* rhs)
-	: name_(name), rhs_(rhs)
+directive::directive(block* parent, const std::string& name)
+	: block(parent),name_(name)
 {
 }
 
@@ -18,8 +18,4 @@ std::string directive::name() const
 	return name_;
 }
 
-compiler::expression* directive::rhs()
-{
-	return rhs_;
-}
 }

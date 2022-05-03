@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class float_literal : public element {
 public:
-	explicit float_literal(double value);
+	explicit float_literal(element* parent, double value);
 
 	~float_literal() override;
 

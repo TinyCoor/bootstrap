@@ -9,9 +9,9 @@ namespace gfx::compiler {
 
 class numeric_type : public type {
 public:
-	numeric_type(const std::string& name);
+	explicit numeric_type(element* parent, const std::string& name, int64_t min, uint64_t max);
 
-	inline uint64_t min() const
+	inline int64_t min() const
 	{
 		return min_;
 	}
@@ -21,7 +21,7 @@ public:
 		return max_;
 	}
 private:
-	uint64_t min_;
+	int64_t min_;
 	uint64_t max_;
 };
 }

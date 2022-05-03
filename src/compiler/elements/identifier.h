@@ -12,7 +12,7 @@ namespace gfx::compiler {
 
 class identifier : public element {
 public:
-	identifier(const std::string& name, const compiler::initializer& initializer);
+	identifier(element* parent, const std::string& name, const compiler::initializer& initializer);
 
 	~identifier() override;
 
@@ -37,21 +37,23 @@ private:
 };
 
 struct identifier_map_t {
-	void add(
-		const std::string& name,
-		compiler::identifier* identifier) {
+	void add(const std::string& name, identifier* identifier)
+	{
 		identifiers_.insert(std::make_pair(name, identifier));
 	}
 
-	size_t size() const {
+	size_t size() const
+	{
 		return identifiers_.size();
 	}
 
-	bool remove(const std::string& name) {
+	bool remove(const std::string& name)
+	{
 		return identifiers_.erase(name) > 0;
 	}
 
-	identifier* find(const std::string& name) {
+	identifier* find(const std::string& name)
+	{
 		auto it = identifiers_.find(name);
 		if (it != identifiers_.end()) {
 			return it->second;

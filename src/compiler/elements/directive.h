@@ -4,22 +4,19 @@
 
 #ifndef COMPILER_ELEMENTS_DIRECTIVE_H_
 #define COMPILER_ELEMENTS_DIRECTIVE_H_
-#include "expression.h"
+#include "block.h"
 namespace gfx::compiler {
 
-class directive : public element {
+class directive : public block {
 public:
-	directive(const std::string& name, expression* rhs);
+	directive(block* parent, const std::string& name);
 
 	~directive() override;
-
-	expression* rhs();
 
 	std::string name() const;
 
 private:
 	std::string name_;
-	expression* rhs_ = nullptr;
 };
 }
 

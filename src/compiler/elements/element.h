@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class element {
 public:
-	element();
+	element(element* parent);
 
 	virtual ~element();
 
@@ -18,20 +18,17 @@ public:
 
 	bool fold(result& r);
 
-	bool remove_directive(const std::string& name);
+	element* parent();
 
-	bool remove_attribute(const std::string& name);
+	attribute_map_t& attributes();
 
-	directive* find_directive(const std::string& name);
-
-	attribute* find_attribute(const std::string& name);
 protected:
 	virtual bool on_fold(result& result);
 
 private:
 	id_t id_;
-	directive_map_t directives_ {};
-	attribute_map_t attributes_ {};
+	element* parent_ = nullptr;
+	attribute_map_t attributes_ ;
 };
 }
 

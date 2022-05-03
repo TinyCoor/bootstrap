@@ -4,11 +4,15 @@
 
 #include "attribute.h"
 namespace gfx::compiler {
-attribute::attribute(const std::string &name, expression *rhs)
-	: name_(name), rhs_(rhs)
+attribute::attribute(element* parent, const std::string& name, element* expr)
+	: element(parent), name_(name), expr_(expr)
 {}
 
 attribute::~attribute() noexcept
 {
+}
+element *attribute::expression()
+{
+	return expr_;
 }
 }

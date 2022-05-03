@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class string_literal : public element {
 public:
-	explicit string_literal(const std::string& value);
+	explicit string_literal(element* parent, const std::string& value);
 
 	~string_literal() override;
 

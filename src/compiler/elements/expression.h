@@ -11,7 +11,7 @@
 namespace gfx::compiler {
 class expression : public element {
 public:
-	explicit expression(element* root);
+	explicit expression( element* parent, element* root);
 
 	~expression() override;
 

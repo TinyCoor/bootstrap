@@ -99,6 +99,11 @@ set(ELEMENT_SRC
         src/compiler/elements/string_literal.cpp
         src/compiler/elements/type.cpp
         src/compiler/elements/unary_operator.cpp
+        src/compiler/elements/element_types.cpp
+        src/compiler/elements/any_type.cpp
+        src/compiler/elements/string_type.cpp
+        src/compiler/elements/line_comment.cpp
+        src/compiler/elements/numeric_type.cpp
         )
 
 set(COMPILER_SRC

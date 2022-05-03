@@ -4,17 +4,12 @@
 
 #include "block.h"
 namespace gfx::compiler {
-block::block(block* parent) : parent_(parent)
+block::block(block* parent) : element(parent)
 {
 }
 
 block::~block()
 {
-}
-
-block* block::parent() const
-{
-	return parent_;
 }
 
 element_list_t& block::children()

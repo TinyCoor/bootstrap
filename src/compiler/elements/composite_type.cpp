@@ -3,3 +3,10 @@
 //
 
 #include "composite_type.h"
+namespace gfx::compiler {
+composite_type::composite_type(element *parent, const std::string name)
+	: type(parent,name)
+{
+
+}
+}

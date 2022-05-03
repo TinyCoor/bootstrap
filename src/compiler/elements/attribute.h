@@ -8,15 +8,17 @@
 #include "element.h"
 
 namespace gfx::compiler {
-class attribute : public element{
+class attribute : public element {
 public:
-	attribute(const std::string& name, expression* rhs);
+	attribute(element* parent, const std::string& name, element* expr);
 
 	~attribute() override;
 
+	element* expression();
+
 private:
 	std::string name_;
-	expression* rhs_ = nullptr;
+	element* expr_ = nullptr;
 };
 }
 #endif // COMPILER_ELEMENTS_ATTRIBUTE_H_

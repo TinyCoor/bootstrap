@@ -39,7 +39,7 @@ enum class operator_type_t {
 
 class operator_base : public  element {
 public:
-	explicit  operator_base(operator_type_t type);
+	explicit operator_base(element* parent, operator_type_t type);
 	~operator_base() override;
 
 	operator_type_t type() const;

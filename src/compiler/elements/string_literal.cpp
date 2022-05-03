@@ -4,8 +4,8 @@
 
 #include "string_literal.h"
 namespace gfx::compiler {
-string_literal::string_literal(const std::string& value)
-	: value_(value)
+string_literal::string_literal(element* parent, const std::string& value)
+	: element(parent),value_(value)
 {
 }
 

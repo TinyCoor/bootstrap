@@ -5,12 +5,28 @@
 #ifndef COMPILER_ELEMENTS_PROCEDURE_TYPE_H_
 #define COMPILER_ELEMENTS_PROCEDURE_TYPE_H_
 #include "type.h"
+#include "field.h"
 namespace gfx::compiler {
 class procedure_type : public type {
 public:
-	procedure_type();
+	explicit procedure_type(element* parent, const std::string name);
 
+
+	field_map_t& returns() {
+		return returns_;
+	}
+
+	field_map_t& parameters() {
+		return parameters_;
+	}
+
+	type_map_t& type_parameters() {
+		return type_parameters_;
+	}
 private:
+	field_map_t returns_;
+	field_map_t parameters_;
+	type_map_t type_parameters_;
 };
 }
 

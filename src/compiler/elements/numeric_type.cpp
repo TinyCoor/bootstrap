@@ -4,8 +4,8 @@
 
 #include "numeric_type.h"
 namespace gfx::compiler {
-numeric_type::numeric_type(const std::string &name)
-	: type(name)
+numeric_type::numeric_type(element* parent, const std::string &name, int64_t min, uint64_t max)
+	: type(parent,name), min_(min), max_(max)
 {
 
 }

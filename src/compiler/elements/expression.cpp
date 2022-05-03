@@ -4,8 +4,8 @@
 
 #include "expression.h"
 namespace gfx::compiler {
-expression::expression(element* root)
-	: root_(root)
+expression::expression(element* parent, element* root)
+	: element(parent),root_(root)
 {
 }
 

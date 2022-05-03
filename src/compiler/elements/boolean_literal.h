@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class boolean_literal : public type{
 public:
-	boolean_literal(const std::string& name, bool value);
+	boolean_literal(element* parent, const std::string& name, bool value);
 
 	bool value() const
 	{

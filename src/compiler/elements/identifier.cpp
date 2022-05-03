@@ -4,8 +4,8 @@
 
 #include "identifier.h"
 namespace gfx::compiler {
-identifier::identifier(const std::string& name, const compiler::initializer& initializer)
-	: name_(name), initializer_(initializer) {
+identifier::identifier(element *parent, const std::string& name, const compiler::initializer& initializer)
+	: element(parent), name_(name), initializer_(initializer) {
 }
 
 identifier::~identifier() {

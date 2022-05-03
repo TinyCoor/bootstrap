@@ -17,7 +17,6 @@ public:
 
 	~block() override;
 
-	block* parent() const;
 
 	element_list_t& children();
 
@@ -31,7 +30,6 @@ public:
 
 private:
 	type_map_t types_ {};
-	block* parent_ = nullptr;
 	element_list_t children_ {};
 	identifier_map_t identifiers_ {};
 };

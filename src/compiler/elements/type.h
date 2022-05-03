@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class type : public element {
 public:
-	explicit type(const std::string& name);
+	explicit type(element* parent, const std::string& name);
 
 	~type() override;
 

@@ -3,3 +3,10 @@
 //
 
 #include "string_type.h"
+namespace gfx::compiler {
+string_type::string_type(element* parent)
+	: type(parent, "string")
+{
+
+}
+}

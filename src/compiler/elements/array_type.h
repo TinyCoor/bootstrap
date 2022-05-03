@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class array_type : public type {
 public:
-	array_type(const std::string& name, compiler::type* element_type);
+	array_type(element* parent, const std::string& name, compiler::type* element_type);
 
 	uint64_t size() const
 	{

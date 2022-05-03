@@ -54,6 +54,9 @@ private:
 
 	line_comment* make_line_comment(const std::string& value);
 
+	block_comment* make_block_comment(const std::string& value);
+
+
 private:
 	std::stack<block*> scope_stack_ {};
 	std::unordered_map<id_t, element*> elements_ {};

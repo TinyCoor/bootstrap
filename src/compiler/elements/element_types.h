@@ -24,6 +24,7 @@ class string_type;
 class numeric_type;
 class attribute;
 class identifier;
+class block_comment;
 class expression;
 class initializer;
 class float_literal;

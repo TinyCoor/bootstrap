@@ -130,6 +130,8 @@ private:
 
 	bool not_equals_operator(token_t& token);
 
+	bool block_comment(token_t& token);
+
 	bool left_square_bracket(token_t& token);
 
 	bool logical_or_operator(token_t& token);

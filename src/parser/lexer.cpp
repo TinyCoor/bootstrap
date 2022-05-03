@@ -20,7 +20,8 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	// minus, negate
 	{'-', std::bind(&lexer::minus, std::placeholders::_1, std::placeholders::_2)},
 
-	// line comment, slash
+	// block comment line comment, slash
+	{'/', std::bind(&lexer::block_comment, std::placeholders::_1, std::placeholders::_2)},
 	{'/', std::bind(&lexer::line_comment, std::placeholders::_1, std::placeholders::_2)},
 	{'/', std::bind(&lexer::slash, std::placeholders::_1, std::placeholders::_2)},
 
@@ -280,8 +281,7 @@ bool lexer::next(token_t& token) {
 		restore_position();
 	}
 
-	token.type = token_types_t::end_of_file;
-	token.value = "";
+	token=s_end_of_file;
 	token.line = line_;
 	token.column = column_;
 
@@ -1078,6 +1078,51 @@ bool lexer::with_literal(token_t& token) {
 			token = s_true_literal;
 			return true;
 		}
+	}
+	return false;
+}
+bool lexer::block_comment(token_t &token)
+{
+	if (match_literal("/*")) {
+		auto block_count = 1;
+		token = s_block_comment;
+
+		std::stringstream stream;
+		while (true) {
+			if (source_.eof()) {
+				token = s_end_of_file;
+				token.line = line_;
+				token.column = column_;
+				return true;
+			}
+
+			auto ch = read(false);
+			if (ch == '/') {
+				ch = read(false);
+				if (ch == '*') {
+					block_count++;
+					continue;
+				} else {
+					rewind_one_char();
+					ch = read(false);
+				}
+			} else if (ch == '*') {
+				ch = read(false);
+				if (ch == '/') {
+					block_count--;
+					if (block_count == 0)
+						break;
+					continue;
+				} else {
+					rewind_one_char();
+					ch = read(false);
+				}
+			}
+			stream << ch;
+		}
+
+		token.value = stream.str();
+		return true;
 	}
 	return false;
 }

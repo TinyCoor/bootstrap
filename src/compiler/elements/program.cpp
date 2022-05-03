@@ -12,6 +12,7 @@
 #include "composite_type.h"
 #include "binary_operator.h"
 #include "fmt/format.h"
+#include "block_comment.h"
 namespace gfx::compiler {
 program::program()
 	: block(nullptr)
@@ -326,6 +327,13 @@ directive *program::make_directive(const std::string &name)
 line_comment *program::make_line_comment(const std::string &value)
 {
 	auto comment = new compiler::line_comment(current_scope(), value);
+	elements_.insert(std::make_pair(comment->id(), comment));
+	return comment;
+}
+
+block_comment *program::make_block_comment(const std::string &value)
+{
+	auto comment = new compiler::block_comment(current_scope(), value);
 	elements_.insert(std::make_pair(comment->id(), comment));
 	return comment;
 }

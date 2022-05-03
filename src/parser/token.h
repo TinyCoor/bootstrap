@@ -206,6 +206,11 @@ static inline token_t s_else_literal = {
 	.value = "else"
 };
 
+static inline token_t s_block_comment = {
+	.type = token_types_t::block_comment,
+	.value = "/*"
+};
+
 static inline token_t s_bang_literal = {
 	.type = token_types_t::bang,
 	.value = "!"
@@ -230,6 +235,12 @@ static inline token_t s_colon_literal = {
 	.type = token_types_t::colon,
 	.value = ":"
 };
+
+static inline token_t s_end_of_file = {
+	.type = token_types_t::end_of_file,
+	.value = ""
+};
+
 
 static inline token_t s_enum_literal = {
 	.type = token_types_t::enum_literal,

@@ -18,7 +18,7 @@ using ast_node_list = std::vector<ast_node_shared_ptr>;
 
 enum class ast_node_types_t : uint32_t {
 	program,
-	fn_call,
+	proc_call,
 	statement,
 	attribute,
 	directive,
@@ -26,13 +26,10 @@ enum class ast_node_types_t : uint32_t {
 	expression,
 	basic_block,
 	line_comment,
-	none_literal,
 	null_literal,
-	empty_literal,
 	block_comment,
 	argument_list,
-
-	fn_expression,
+	proc_expression,
 	if_expression,
 	number_literal,
 	string_literal,
@@ -85,7 +82,7 @@ enum class ast_node_types_t : uint32_t {
 
 static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_names = {
 	{ast_node_types_t::program, "program"},
-	{ast_node_types_t::fn_call, "fn_call"},
+	{ast_node_types_t::proc_call, "proc_call"},
 	{ast_node_types_t::statement, "statement"},
 	{ast_node_types_t::attribute, "attribute"},
 	{ast_node_types_t::directive, "directive"},
@@ -93,12 +90,10 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::expression, "expression"},
 	{ast_node_types_t::basic_block, "basic_block"},
 	{ast_node_types_t::line_comment, "line_comment"},
-	{ast_node_types_t::none_literal, "none_literal"},
 	{ast_node_types_t::null_literal, "null_literal"},
-	{ast_node_types_t::empty_literal, "empty_literal"},
 	{ast_node_types_t::block_comment, "block_comment"},
 	{ast_node_types_t::argument_list, "argument_list"},
-	{ast_node_types_t::fn_expression, "fn_expression"},
+	{ast_node_types_t::proc_expression, "proc_expression"},
 	{ast_node_types_t::if_expression, "if_expression"},
 	{ast_node_types_t::number_literal, "number_literal"},
 	{ast_node_types_t::string_literal, "string_literal"},
@@ -200,9 +195,9 @@ public:
 
 	ast_node_shared_ptr program_node();
 
-	ast_node_shared_ptr fn_call_node();
+	ast_node_shared_ptr proc_call_node();
 
-	ast_node_shared_ptr fn_decl_node();
+	ast_node_shared_ptr proc_expression_node();
 
 	ast_node_shared_ptr else_if_node();
 
@@ -247,10 +242,6 @@ public:
 	ast_node_shared_ptr directive_node(const token_t& token);
 
 	ast_node_shared_ptr attribute_node(const token_t& token);
-
-	ast_node_shared_ptr none_literal_node(const token_t& token);
-
-	ast_node_shared_ptr empty_literal_node(const token_t& token);
 
 	ast_node_shared_ptr null_literal_node(const token_t& token);
 

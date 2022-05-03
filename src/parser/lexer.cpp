@@ -106,14 +106,12 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 	// null/none/ns/empty literals
 	{'n', std::bind(&lexer::null_literal, std::placeholders::_1, std::placeholders::_2)},
-	{'n', std::bind(&lexer::none_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'n', std::bind(&lexer::ns_literal, std::placeholders::_1, std::placeholders::_2)},
 
 
 	// enum literal
 	// else if/else literals
 	{'e', std::bind(&lexer::enum_literal, std::placeholders::_1, std::placeholders::_2)},
-	{'e', std::bind(&lexer::empty_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'e', std::bind(&lexer::else_if_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'e', std::bind(&lexer::else_literal, std::placeholders::_1, std::placeholders::_2)},
 	// union literal
@@ -127,7 +125,7 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 	// fn literal
 	// for literal
-	{'f', std::bind(&lexer::fn_literal, std::placeholders::_1, std::placeholders::_2)},
+	{'f', std::bind(&lexer::proc_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'f', std::bind(&lexer::for_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// break literal
@@ -146,6 +144,8 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	// alias literal
 	{'a', std::bind(&lexer::alias_literal, std::placeholders::_1, std::placeholders::_2)},
 
+	// proc literal
+	{'p', std::bind(&lexer::proc_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// while literal
 	{'w', std::bind(&lexer::while_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -591,12 +591,13 @@ bool lexer::right_paren(token_t& token) {
 	return false;
 }
 
-bool lexer::fn_literal(token_t& token) {
-	auto ch = read();
-	if (ch == 'f') {
-		ch = read();
-		if (ch == 'n') {
-			token = s_fn_literal;
+bool lexer::proc_literal(token_t &token)
+{
+	if (match_literal("proc")) {
+		auto ch = read(false);
+		if (!isalnum(ch)) {
+			rewind_one_char();
+			token = s_proc_literal;
 			return true;
 		}
 	}
@@ -604,11 +605,11 @@ bool lexer::fn_literal(token_t& token) {
 }
 
 bool lexer::ns_literal(token_t& token) {
-	auto ch = read();
-	if (ch == 'n') {
-		ch = read();
-		if (ch == 's') {
-			token =s_namespace_literal;
+	if (match_literal("ns")) {
+		auto ch = read(false);
+		if (!isalnum(ch)) {
+			rewind_one_char();
+			token = s_namespace_literal;
 			return true;
 		}
 	}
@@ -671,18 +672,6 @@ bool lexer::null_literal(token_t& token) {
 		if (!isalnum(ch)) {
 			rewind_one_char();
 			token =s_null_literal;
-			return true;
-		}
-	}
-	return false;
-}
-
-bool lexer::none_literal(token_t& token) {
-	if (match_literal("none")) {
-		auto ch = read(false);
-		if (!isalnum(ch)) {
-			rewind_one_char();
-			token = s_none_literal;
 			return true;
 		}
 	}
@@ -756,17 +745,6 @@ bool lexer::defer_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::empty_literal(token_t& token) {
-	if (match_literal("empty")) {
-		auto ch = read(false);
-		if (!isalnum(ch)) {
-			rewind_one_char();
-			token = s_empty_literal;
-			return true;
-		}
-	}
-	return false;
-}
 
 bool lexer::number_literal(token_t& token) {
 	std::stringstream stream;

@@ -50,7 +50,7 @@ private:
 
 	bool attribute(token_t& token);
 
-	bool fn_literal(token_t& token);
+	bool proc_literal(token_t& token);
 
 	bool in_literal(token_t& token);
 
@@ -78,8 +78,6 @@ private:
 
 	bool null_literal(token_t& token);
 
-	bool none_literal(token_t& token);
-
 	bool directive(token_t& token);
 
 	bool enum_literal(token_t& token);
@@ -99,8 +97,6 @@ private:
 	bool break_literal(token_t& token);
 
 	bool while_literal(token_t& token);
-
-	bool empty_literal(token_t& token);
 
 	bool alias_literal(token_t& token);
 

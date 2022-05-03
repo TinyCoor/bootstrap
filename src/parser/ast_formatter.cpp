@@ -97,10 +97,10 @@ void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
 		case ast_node_types_t::statement:
 			style = ", fillcolor=cornflowerblue, style=\"filled\"";
 			break;
-		case ast_node_types_t::fn_expression:
+		case ast_node_types_t::proc_expression:
 			style = ", fillcolor=cyan, style=\"filled\"";
 			break;
-		case ast_node_types_t::fn_call:
+		case ast_node_types_t::proc_call:
 			style = ", fillcolor=darkorchid1, style=\"filled\"";
 			break;
 		case ast_node_types_t::basic_block:

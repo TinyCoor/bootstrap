@@ -52,10 +52,10 @@ ast_node_shared_ptr ast_builder::program_node() {
 	return node;
 }
 
-ast_node_shared_ptr ast_builder::fn_call_node() {
+ast_node_shared_ptr ast_builder::proc_call_node() {
 	auto node = std::make_shared<ast_node_t>();
 	node->id = ++id_;
-	node->type = ast_node_types_t::fn_call;
+	node->type = ast_node_types_t::proc_call;
 	node->rhs = argument_list_node();
 	return node;
 }
@@ -208,11 +208,12 @@ ast_node_shared_ptr ast_builder::else_node()
 	return node;
 }
 
-ast_node_shared_ptr ast_builder::fn_decl_node()
+ast_node_shared_ptr ast_builder::proc_expression_node()
 {
 	auto node = std::make_shared<ast_node_t>();
 	node->id =++id_;
-	node->type = ast_node_types_t::fn_expression;
+	node->type = ast_node_types_t::proc_expression;
+	node->lhs = argument_list_node();
 	node->rhs = argument_list_node();
 	return node;
 }
@@ -238,17 +239,6 @@ ast_node_shared_ptr ast_builder::continue_node(const token_t &token)
 	return node;
 }
 
-ast_node_shared_ptr ast_builder::none_literal_node(const token_t &token) {
-	auto node = std::make_shared<ast_node_t>();
-	configure_node(node, token,ast_node_types_t::none_literal);
-	return node;
-}
-
-ast_node_shared_ptr ast_builder::empty_literal_node(const token_t &token) {
-	auto node = std::make_shared<ast_node_t>();
-	configure_node(node, token, ast_node_types_t::empty_literal);
-	return node;
-}
 ast_node_shared_ptr ast_builder::return_node()
 {
 	auto node = std::make_shared<ast_node_t>();

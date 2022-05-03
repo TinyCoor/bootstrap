@@ -4,8 +4,9 @@
 
 #ifndef BOOTSTRAP_SRC_TOKEN_H_
 #define BOOTSTRAP_SRC_TOKEN_H_
-#include <string_view>
+
 #include <string>
+#include <string_view>
 #include <unordered_map>
 namespace gfx {
 
@@ -37,23 +38,21 @@ enum class token_types_t {
 	identifier,
 	assignment,
 	logical_or,
-	fn_literal,
 	logical_and,
 	right_paren,
 	for_literal,
 	end_of_file,
 	with_literal,
 	greater_than,
-	none_literal,
 	line_comment,
 	true_literal,
 	enum_literal,
+	proc_literal,
 	null_literal,
 	else_literal,
 	cast_literal,
 	block_comment, //
 	false_literal,
-	empty_literal,
 	alias_literal,
 	break_literal,
 	while_literal,
@@ -81,24 +80,24 @@ enum class token_types_t {
 
 static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name = {
 	{token_types_t::unknown,                "unknown"},
-	{token_types_t::left_square_bracket,    "left_square_bracket"},
-	{token_types_t::right_square_bracket,   "right_square_bracket"},
+	{token_types_t::comma,                  "comma"},
+	{token_types_t::equals,                 "equals"},
+	{token_types_t::period, 				"period"},
+	{token_types_t::percent,  				"percent"},
+	{token_types_t::asterisk, 				"ampersand"},
+	{token_types_t::assignment,             "assignment"},
+	{token_types_t::not_equals,             "not_equals"},
 	{token_types_t::directive,  			"directive"},
-	{token_types_t::struct_literal,         "struct_literal"},
-	{token_types_t::return_literal, 		"return_literal"},
 	{token_types_t::left_paren,             "left_paren"},
 	{token_types_t::right_paren,            "right_paren"},
+	{token_types_t::struct_literal,         "struct_literal"},
+	{token_types_t::return_literal, 		"return_literal"},
 	{token_types_t::left_curly_brace,       "left_curly_brace"},
 	{token_types_t::right_curly_brace,      "right_curly_brace"},
 	{token_types_t::line_comment,           "line_comment"},
 	{token_types_t::block_comment,          "block_comment"},
-	{token_types_t::comma,                  "comma"},
-	{token_types_t::period, 				"period"},
-	{token_types_t::asterisk, 				"ampersand"},
-	{token_types_t::percent,  				"percent"},
-	{token_types_t::assignment,             "assignment"},
-	{token_types_t::equals,                 "equals"},
-	{token_types_t::not_equals,             "not_equals"},
+	{token_types_t::left_square_bracket,    "left_square_bracket"},
+	{token_types_t::right_square_bracket,   "right_square_bracket"},
 	{token_types_t::greater_than,           "greater_than"},
 	{token_types_t::greater_than_equal,     "greater_than_equal"},
 	{token_types_t::less_than,              "less_than"},
@@ -126,8 +125,7 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::true_literal,           "true_literal"},
 	{token_types_t::false_literal,          "false_literal"},
 	{token_types_t::null_literal,           "null_literal"},
-	{token_types_t::empty_literal,          "empty_literal"},
-	{token_types_t::none_literal,           "none_literal"},
+	{token_types_t::proc_literal,           "proc_literal"},
 	{token_types_t::number_literal,         "number_literal"},
 	{token_types_t::namespace_literal,      "namespace_literal"},
 	{token_types_t::for_literal,            "for_literal"},
@@ -143,7 +141,6 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::cast_literal,           "cast_literal"},
 	{token_types_t::read_only_literal,      "read_only_literal"},
 	{token_types_t::defer_literal,          "defer_literal"},
-	{token_types_t::fn_literal,             "fn_literal"},
 	{token_types_t::end_of_file,            "end_of_file"},
 	{token_types_t::with_literal, 			"with_literal"},
 };
@@ -184,9 +181,9 @@ struct token_t {
 	number_types_t number_type = number_types_t::none;
 };
 
-static inline token_t s_fn_literal = {
-	.type = token_types_t::fn_literal,
-	.value = "fn"
+static inline token_t s_proc_literal = {
+	.type = token_types_t::proc_literal,
+	.value = "proc"
 };
 
 static inline token_t s_if_literal = {
@@ -249,10 +246,6 @@ static inline token_t s_null_literal = {
 	.value = "null"
 };
 
-static inline token_t s_none_literal = {
-	.type = token_types_t::none_literal,
-	.value = "none"
-};
 
 static inline token_t s_true_literal = {
 	.type = token_types_t::true_literal,
@@ -297,11 +290,6 @@ static inline token_t s_while_literal = {
 static inline token_t s_alias_literal = {
 	.type = token_types_t::alias_literal,
 	.value = "alias"
-};
-
-static inline token_t s_empty_literal = {
-	.type = token_types_t::empty_literal,
-	.value = "empty"
 };
 
 static inline token_t s_union_literal = {
@@ -466,4 +454,4 @@ static inline token_t s_right_square_bracket_literal = {
 
 }
 
-#endif //BOOTSTRAP_SRC_TOKEN_H_
+#endif // BOOTSTRAP_SRC_TOKEN_H_

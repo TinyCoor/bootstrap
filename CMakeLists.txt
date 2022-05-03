@@ -11,6 +11,8 @@ add_subdirectory(extern/gtest)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 message(STATUS ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
+# dot -Tpdf ast.dot -oast.pdf
+
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override")

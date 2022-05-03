@@ -56,7 +56,8 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input)
 	if (program_node != nullptr && !r.is_failed()) {
 		if (options_.verbose) {
 			auto close_required = false;
-			FILE* ast_output_file = stdout;
+			// FILE* ast_output_file = stdout;
+			FILE* ast_output_file = fopen("ast.dot","w");
 			if (!options_.ast_graph_file_name.empty()) {
 				auto file_name  = options_.ast_graph_file_name.string();
 				ast_output_file = fopen(file_name.c_str(), "wt");

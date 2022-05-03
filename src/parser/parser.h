@@ -54,6 +54,7 @@ private:
 	static inline struct_prefix_parser s_struct_prefix_parser {};
 	static inline for_in_prefix_parser s_for_in_prefix_parser {};
 	static inline return_prefix_parser s_return_prefix_parser {};
+
 	static inline defer_prefix_parser s_defer_literal_prefix_parser {};
 	static inline namespace_prefix_parser s_namespace_prefix_parser {};
 	static inline attribute_prefix_parser s_attribute_prefix_parser {};
@@ -107,6 +108,7 @@ private:
 
 	static inline proc_call_infix_parser s_proc_call_infix_parser {};
 	static inline assignment_infix_parser s_assignment_infix_parser {};
+	static inline block_comment_infix_parser s_block_comment_infix_parser {};
 	static inline type_identifier_infix_parser s_type_identifier_infix_parser {};
 	static inline symbol_reference_infix_parser s_symbol_reference_infix_parser {};
 	static inline binary_operator_infix_parser s_sum_binary_op_parser {precedence_t::sum, false};
@@ -122,6 +124,7 @@ private:
 		{token_types_t::plus,               &s_sum_binary_op_parser},
 		{token_types_t::assignment,         &s_assignment_infix_parser},
 		{token_types_t::slash,              &s_product_binary_op_parser},
+		{token_types_t::block_comment,       &s_block_comment_infix_parser},
 		{token_types_t::asterisk,           &s_product_binary_op_parser},
 		{token_types_t::percent,            &s_product_binary_op_parser},
 		{token_types_t::ampersand,          &s_bitwise_binary_op_parser},

@@ -14,6 +14,7 @@
 #include "fmt/format.h"
 #include "block_comment.h"
 namespace gfx::compiler {
+
 program::program()
 	: block(nullptr)
 {
@@ -79,9 +80,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 				initialize_core_types();
 			}
 
-			for (auto it = node->children.begin();
-				 it != node->children.end();
-				 ++it) {
+			for (auto it = node->children.begin(); it != node->children.end(); ++it) {
 				evaluate(r, *it);
 			}
 
@@ -106,7 +105,10 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			return comment;
 		}
 		case ast_node_types_t::block_comment: {
-			break;
+			auto scope = current_scope();
+			auto comment = make_block_comment(node->token.value);
+			scope->children().push_back(comment);
+			return comment;
 		}
 		case ast_node_types_t::unary_operator: {
 			break;
@@ -174,8 +176,8 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 	return nullptr;
 }
 
-bool program::is_subtree_constant(
-	const ast_node_shared_ptr& node) {
+bool program::is_subtree_constant(const ast_node_shared_ptr& node)
+{
 	if (node == nullptr)
 		return false;
 
@@ -214,6 +216,7 @@ block *program::make_new_block()
 	push_scope(type);
 	return type;
 }
+
 any_type *program::make_any_type()
 {
 	auto type = new any_type(current_scope());

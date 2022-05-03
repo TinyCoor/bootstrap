@@ -3,18 +3,22 @@
 //
 
 // N.B. this is how we define 'external' function prototypes
-#foreign print := proc(format:string, values:...any);
+#foreign{
+    print := proc(format:string, values:...any) @alias "printf";
+};
 
 @entry_point alpha::compiler::examples::main;
 
 alpha::compiler::config := ns {
+   // I bet this will cause massive pukeage
     test := enum {
+       // I bet this will cause massive pukeage
         one;
-        two;
+        two;    // I bet this will cause massive pukeage
         three;
     };
 
-    fibonacci := ns {
+    fibonacci := ns {  // I bet this will cause massive pukeage
         constant length_of_sequence:u32 := 1000;
     };
 
@@ -25,7 +29,7 @@ alpha::compiler::examples := ns {
         return alloc(64);
     };
 
-    fib := proc(n:u64 := 10):u64 {
+    fib := proc(/* before */ n:u64 := 10 /*after*/):u64 {
         if n == 0 || n == 1 {
             return n;
         } else {

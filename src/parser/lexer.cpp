@@ -307,7 +307,7 @@ char lexer::read(bool skip_whitespace) {
 }
 
 std::string lexer::read_identifier() {
-	auto ch = read();
+	auto ch = read(false);
 	if (ch != '_' && !isalpha(ch)) {
 		return "";
 	}
@@ -315,13 +315,15 @@ std::string lexer::read_identifier() {
 	std::stringstream stream;
 	stream << ch;
 	while (true) {
-		ch = static_cast<char>(source_.get());
-		column_++;
-		if (ch == '_' || isalnum(ch)) {
-			stream << ch;
-		} else {
+		ch = read(false);
+		if (ch == ';') {
 			return stream.str();
 		}
+		if (ch == '_' || isalnum(ch)) {
+			stream << ch;
+			continue;
+		}
+		return stream.str();
 	}
 }
 
@@ -528,6 +530,7 @@ bool lexer::attribute(token_t& token) {
 	auto ch = read();
 	if (ch == '@') {
 		token.value = read_identifier();
+		rewind_one_char();
 		if (token.value.empty()) {
 			return false;
 		}

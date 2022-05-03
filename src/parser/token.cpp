@@ -20,10 +20,12 @@ bool token_t::is_boolean() const
 		|| type == token_types_t::false_literal;
 }
 
-bool token_t::is_comment() const
-{
-	return type == token_types_t::line_comment
-		|| type == token_types_t::block_comment;
+bool token_t::is_line_comment() const {
+	return type == token_types_t::line_comment;
+}
+
+bool token_t::is_block_comment() const {
+	return type == token_types_t::block_comment;
 }
 
 bool token_t::is_numeric() const

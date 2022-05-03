@@ -51,7 +51,7 @@ enum class token_types_t {
 	null_literal,
 	else_literal,
 	cast_literal,
-	block_comment, //
+	block_comment,
 	false_literal,
 	alias_literal,
 	break_literal,
@@ -161,13 +161,15 @@ enum class number_types_t {
 struct token_t {
 	bool as_bool() const;
 
-	bool is_comment() const;
-
 	bool is_boolean() const;
 
 	bool is_numeric() const;
 
 	std::string name() const;
+
+	bool is_line_comment() const;
+
+	bool is_block_comment() const;
 
 	conversion_result parse(int64_t& out) const;
 

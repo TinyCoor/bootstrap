@@ -116,6 +116,11 @@ ast_node_shared_ptr parser::parse_scope(result& r)
 		}
 	}
 
+	if (peek(token_types_t::attribute)) {
+		auto attribute_node = parse_expression(r, 0);
+		scope->children.push_back(attribute_node);
+	}
+
 	return ast_builder_.end_scope();
 }
 
@@ -133,7 +138,6 @@ ast_node_shared_ptr parser::parse_statement(result& r)
 	}
 
 	auto statement_node = ast_builder_.statement_node();
-	// XXX:  lhs should be used or any labels
 	statement_node->rhs = expression;
 
 	return statement_node;
@@ -176,7 +180,7 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 		return nullptr;
 	}
 
-	if (token.is_comment()) {
+	if (token.is_line_comment() || token.is_block_comment()) {
 		return lhs;
 	}
 

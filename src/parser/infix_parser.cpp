@@ -52,7 +52,13 @@ ast_node_shared_ptr proc_call_infix_parser::parse(result& r, parser* parser, con
 
 	if (!parser->peek(token_types_t::right_paren)) {
 		while (true) {
-			proc_call_node->rhs->children.push_back(parser->parse_expression(r, 0));
+			auto param_expr = parser->parse_expression(r, 0);
+			if (param_expr->type == ast_node_types_t::block_comment) {
+				proc_call_node->children.push_back(param_expr);
+				continue;
+			} else {
+				proc_call_node->rhs->children.push_back(param_expr);
+			}
 			if (!parser->peek(token_types_t::comma)) {
 				break;
 			}
@@ -151,6 +157,20 @@ ast_node_shared_ptr assignment_infix_parser::parse(result& r, parser* parser, co
 precedence_t assignment_infix_parser::precedence() const
 {
 	return precedence_t::assignment;
+}
+
+
+ast_node_shared_ptr block_comment_infix_parser::parse(result &r,parser *parser, const ast_node_shared_ptr &lhs,
+													  token_t &token)
+{
+	auto block_comment_node = parser->ast_builder()->block_comment_node(token);
+	lhs->children.push_back(block_comment_node);
+	return lhs;
+}
+
+precedence_t block_comment_infix_parser::precedence() const
+{
+	return precedence_t::block_comment;
 }
 
 }

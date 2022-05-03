@@ -16,8 +16,9 @@ enum class precedence_t : uint8_t {
 	product,
 	logical,
 	relational,
-	exponent,
 	bitwise,
+	exponent,
+	block_comment,
 	prefix,
 	postfix,
 	type,
@@ -96,6 +97,21 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+
+class block_comment_infix_parser : public infix_parser {
+public:
+	block_comment_infix_parser() = default;
+
+	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+		token_t& token) override;
+
+	precedence_t precedence() const override;
+};
+
+
+
 ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token_t& token);
 }
 

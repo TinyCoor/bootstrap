@@ -153,7 +153,14 @@ ast_node_shared_ptr proc_expression_prefix_parser::parse(result& r, parser* pars
 
 	if (!parser->peek(token_types_t::right_paren)) {
 		while (true) {
-			proc_node->rhs->children.push_back(parser->parse_expression(r, 0));
+			auto param_expr = parser->parse_expression(r, 0);
+			if (param_expr->type ==ast_node_types_t::block_comment) {
+				proc_node->children.push_back(param_expr);
+				continue;
+			} else {
+				proc_node->rhs->children.push_back(param_expr);
+			}
+
 			if (!parser->peek(token_types_t::comma)) {
 				break;
 			}
@@ -301,6 +308,9 @@ ast_node_shared_ptr symbol_reference_prefix_parser::parse(result& r, parser* par
 ast_node_shared_ptr directive_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	auto directive_node = parser->ast_builder()->directive_node(token);
+	if (parser->peek(token_types_t::semi_colon)) {
+		return directive_node;
+	}
 	directive_node->lhs = parser->parse_expression(r, 0);
 	return directive_node;
 }
@@ -309,6 +319,9 @@ ast_node_shared_ptr directive_prefix_parser::parse(result& r, parser* parser, to
 ast_node_shared_ptr attribute_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	auto attribute_node = parser->ast_builder()->attribute_node(token);
+	if (parser->peek(token_types_t::semi_colon)) {
+		return attribute_node;
+	}
 	attribute_node->lhs = parser->parse_expression(r, 0);
 	return attribute_node;
 }

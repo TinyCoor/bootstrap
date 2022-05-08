@@ -96,6 +96,7 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{';', std::bind(&lexer::line_terminator, std::placeholders::_1, std::placeholders::_2)},
 
 	// character literal
+	{'\'', std::bind(&lexer::label, std::placeholders::_1, std::placeholders::_2)},
 	{'\'', std::bind(&lexer::character_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// string literal
@@ -408,12 +409,10 @@ bool lexer::right_curly_brace(token_t& token) {
 std::string lexer::read_until(char target_ch) {
 	std::stringstream stream;
 	while (true) {
-		auto ch = static_cast<char>(source_.get());
-		column_++;
-		if (ch == '\n')
-			increment_line();
-		if (ch == target_ch)
+		auto ch = read(false);
+		if (ch == target_ch) {
 			break;
+		}
 		stream << ch;
 	}
 	return stream.str();
@@ -546,9 +545,10 @@ bool lexer::identifier(token_t& token) {
 		return false;
 	}
 
+	rewind_one_char();
+
 	token.type = token_types_t::identifier;
 	token.value = name;
-	rewind_one_char();
 	return true;
 }
 
@@ -1126,6 +1126,25 @@ bool lexer::block_comment(token_t &token)
 
 		token.value = stream.str();
 		return true;
+	}
+	return false;
+}
+
+bool lexer::label(token_t &token)
+{
+	auto ch = read();
+	if (ch == '\'') {
+		auto identifier = read_identifier();
+		if (identifier.empty()) {
+			return false;
+		}
+		rewind_one_char();
+		ch = read(false);
+		if (ch == ':') {
+			token.type = token_types_t::label;
+			token.value = identifier;
+			return true;
+		}
 	}
 	return false;
 }

@@ -21,6 +21,7 @@ enum class token_types_t {
 	tilde,
 	colon,
 	comma,
+	label,
 	equals,
 	period,
 	percent,
@@ -81,6 +82,7 @@ enum class token_types_t {
 static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name = {
 	{token_types_t::unknown,                "unknown"},
 	{token_types_t::comma,                  "comma"},
+	{token_types_t::label,  				"label"},
 	{token_types_t::equals,                 "equals"},
 	{token_types_t::period, 				"period"},
 	{token_types_t::percent,  				"percent"},
@@ -160,6 +162,8 @@ enum class number_types_t {
 
 struct token_t {
 	bool as_bool() const;
+
+	bool is_label() const;
 
 	bool is_boolean() const;
 

@@ -344,4 +344,9 @@ ast_node_shared_ptr array_subscript_prefix_parser::parse(result& r, parser* pars
 	return subscript_node;
 }
 
+ast_node_shared_ptr label_prefix_parser::parse(result& r, parser* parser,token_t& token)
+{
+	return parser->ast_builder()->label_node(token);
+}
+
 }

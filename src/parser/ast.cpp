@@ -332,4 +332,19 @@ ast_node_shared_ptr ast_builder::defer_node(const token_t& token) {
 	return node;
 }
 
+ast_node_shared_ptr ast_builder::label_list_node()
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->id = ++id_;
+	node->type = ast_node_types_t::label_list;
+	return node;
+}
+
+ast_node_shared_ptr ast_builder::label_node(token_t &token)
+{
+	auto node = std::make_shared<ast_node_t>();
+	configure_node(node, token, ast_node_types_t::label);
+	return node;
+}
+
 }

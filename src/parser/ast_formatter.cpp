@@ -121,14 +121,31 @@ void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
 
 	if (!node->token.value.empty() && details.empty()) {
 		std::string value = node->token.value;
+
 		if (value == "|") {
 			value = "&#124;";
 		} else if (value == "||") {
 			value = "&#124;&#124;";
 		}
 
-		details = fmt::format("|{{ token: '{}' | radix: {} | ptr: {} | array: {} | spread: {} }}",
-			value, node->token.radix, node->is_pointer(), node->is_array(), node->is_spread());
+		details = fmt::format("|{{ token: '{}' ", value);
+		if (node->token.is_numeric()) {
+			details += fmt::format("| radix: {}", node->token.radix);
+		}
+
+		if (node->is_pointer()) {
+			details += "| ptr:    true ";
+		}
+
+		if (node->is_array()) {
+			details += "| array:  true ";
+		}
+
+		if (node->is_spread()) {
+			details += "| spread: true ";
+		}
+
+		details += "}";
 	}
 
 	fmt::print(file_, "{}[shape={},label=\"<f0> lhs|<f1> {}{}|<f2> rhs\"{}];\n",

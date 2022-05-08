@@ -32,6 +32,8 @@ private:
 
 	bool comma(token_t& token);
 
+	bool label(token_t& token);
+
 	bool slash(token_t& token);
 
 	bool caret(token_t& token);

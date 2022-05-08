@@ -127,20 +127,36 @@ ast_node_shared_ptr parser::parse_scope(result& r)
 
 ast_node_shared_ptr parser::parse_statement(result& r)
 {
-	auto expression = parse_expression(r, 0);
-	if (expression == nullptr) {
-		return nullptr;
-	}
+	ast_node_list pending_labels {};
 
-	if (expression->type == ast_node_types_t::line_comment
-		||  expression->type == ast_node_types_t::block_comment
-		||  expression->type == ast_node_types_t::basic_block) {
-		return expression;
+	ast_node_shared_ptr expression;
+	while (true) {
+		expression = parse_expression(r, 0);
+		if (expression == nullptr) {
+			return nullptr;
+		}
+		if (expression->type == ast_node_types_t::label) {
+			pending_labels.push_back(expression);
+			continue;
+		}
+		if (expression->type == ast_node_types_t::line_comment
+			||  expression->type == ast_node_types_t::block_comment
+			||  expression->type == ast_node_types_t::basic_block) {
+			return expression;
+		}
+		break;
 	}
 
 	auto statement_node = ast_builder_.statement_node();
-	statement_node->rhs = expression;
 
+	if (!pending_labels.empty()) {
+		statement_node->lhs = ast_builder_.label_list_node();
+		for (const auto& label_node : pending_labels) {
+			statement_node->lhs->children.push_back(label_node);
+		}
+	}
+
+	statement_node->rhs = expression;
 	return statement_node;
 }
 
@@ -181,7 +197,7 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 		return nullptr;
 	}
 
-	if (token.is_line_comment() || token.is_block_comment()) {
+	if (token.is_line_comment() || token.is_block_comment() || token.is_label()) {
 		return lhs;
 	}
 

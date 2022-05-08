@@ -40,6 +40,7 @@ enum class ast_node_types_t : uint32_t {
 	boolean_literal,
 	map_constructor,
 	else_expression,
+	cast_expression,
 	while_statement,
 	break_statement,
 	with_expression,
@@ -63,24 +64,6 @@ enum class ast_node_types_t : uint32_t {
 	subscript_expression,
 	qualified_symbol_reference,
 };
-
-// foo := 5 + 5;
-//
-//  program_node (root)
-//          |
-//          |
-//          | statement_node
-//          +---> lhs := variable (token = "foo")
-//                         |
-//                rhs := expression (token is unknown)
-//                         |
-//                         +--children
-//                              |
-//                           (0)+--> binary_operator (token = "+")
-//                                      lhs := number_literal (token = "5")
-//
-//                                      rhs := number_literal (token = "5")
-//
 
 static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_names = {
 	{ast_node_types_t::label, 	"label"},
@@ -119,6 +102,7 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::extend_statement, "extend_statement"},
 	{ast_node_types_t::for_in_statement, "for_in_statement"},
 	{ast_node_types_t::switch_expression, "switch_statement"},
+	{ast_node_types_t::cast_expression,   "cast_expression"},
 	{ast_node_types_t::struct_expression, "struct_expression"},
 	{ast_node_types_t::character_literal, "character_literal"},
 	{ast_node_types_t::array_constructor, "array_constructor"},
@@ -233,6 +217,8 @@ public:
 	ast_node_shared_ptr with_node(const token_t& token);
 
 	ast_node_shared_ptr alias_node(token_t& token);
+
+	ast_node_shared_ptr cast_node(token_t& token);
 
 	ast_node_shared_ptr defer_node(const token_t& token);
 

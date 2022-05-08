@@ -13,6 +13,7 @@
 
 namespace gfx::compiler {
 
+class cast;
 class type;
 class alias;
 class field;
@@ -39,16 +40,19 @@ class integer_literal;
 class binary_operator;
 class namespace_element;
 class composite_type;
+class procedure_instance;
 
 using label_list_t  = std::vector<label*>;
 using element_list_t = std::vector<element*>;
 using comment_list_t  = std::vector<comment*>;
 using statement_list_t  = std::vector<statement*>;
 using directive_map_t = std::map<std::string, directive*>;
+using procedure_instance_list_t = std::vector<procedure_instance*>;
 
 enum class element_type_t {
 	element = 1,
 	proc,
+	cast,
 	label,
 	block,
 	field,
@@ -68,6 +72,7 @@ enum class element_type_t {
 	namespace_e,
 	initializer,
 	numeric_type,
+	proc_instance,
 	float_literal,
 	string_literal,
 	composite_type,

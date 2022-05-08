@@ -17,7 +17,6 @@ public:
 private:
 	std::string value_;
 	comment_type_t type_;
-
 };
 }
 

@@ -21,6 +21,7 @@ enum class precedence_t : uint8_t {
 	block_comment,
 	prefix,
 	postfix,
+	cast,
 	type,
 	variable,
 	call
@@ -110,9 +111,21 @@ public:
 	precedence_t precedence() const override;
 };
 
+class cast_infix_parser : public infix_parser {
+public:
+	cast_infix_parser() = default;
+
+	ast_node_shared_ptr parse(result& r, parser* parser,
+		const ast_node_shared_ptr& lhs, token_t& token) override;
+
+	precedence_t precedence() const override;
+};
 
 
 ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token_t& token);
+
+ast_node_shared_ptr create_cast_node(result& r, parser* parser, token_t& token);
+
 }
 
 #endif // PARSER_INFIX_PARSER_H_

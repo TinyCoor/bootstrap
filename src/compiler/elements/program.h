@@ -54,6 +54,15 @@ private:
 
 	expression* make_expression(element* expr);
 
+	initializer* make_initializer(element* expr);
+
+	procedure_instance* make_procedure_instance(compiler::type* procedure_type,
+		compiler::block* scope);
+
+	procedure_type* make_procedure_type();
+
+	cast* make_cast(compiler::type* type, element* expr);
+
 private:
 
 	element* evaluate(result& r, const ast_node_shared_ptr& node);
@@ -67,6 +76,8 @@ private:
 	void push_scope(block* block);
 
 	bool is_subtree_constant(const ast_node_shared_ptr& node);
+
+	type* find_type(const std::string& name);
 
 private:
 	std::stack<block*> scope_stack_ {};

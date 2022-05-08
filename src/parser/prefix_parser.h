@@ -252,6 +252,15 @@ public:
 	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
 
+///////////////////////////////////////////////////////////////////////////
+
+class cast_prefix_parser : public prefix_parser {
+public:
+	cast_prefix_parser() = default;
+
+	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
+};
+
 }
 
 #endif //BOOTSTRAP_SRC_PARSER_PREFIX_PARSER_H_

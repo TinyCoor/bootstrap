@@ -16,10 +16,14 @@ public:
 	field_map_t& parameters();
 
 	type_map_t& type_parameters();
+
+	procedure_instance_list_t& instances();
+
 private:
 	field_map_t returns_{};
 	field_map_t parameters_{};
 	type_map_t type_parameters_{};
+	procedure_instance_list_t instances_ {};
 };
 }
 

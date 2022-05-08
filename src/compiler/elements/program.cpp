@@ -3,19 +3,22 @@
 //
 
 #include "program.h"
-#include "attribute.h"
-#include "directive.h"
+#include "cast.h"
 #include "label.h"
 #include "alias.h"
-#include "statement.h"
-#include "numeric_type.h"
-#include "string_type.h"
-#include "unary_operator.h"
+#include "comment.h"
 #include "any_type.h"
+#include "attribute.h"
+#include "directive.h"
+#include "statement.h"
+#include "string_type.h"
+#include "numeric_type.h"
+#include "procedure_type.h"
+#include "unary_operator.h"
 #include "composite_type.h"
 #include "binary_operator.h"
 #include "fmt/format.h"
-#include "comment.h"
+#include "procedure_instance.h"
 namespace gfx::compiler {
 
 program::program()
@@ -36,10 +39,7 @@ bool program::initialize(result& r, const ast_node_shared_ptr& root)
 	initialize_core_types();
 
 	if (root->type != ast_node_types_t::program) {
-		r.add_message(
-			"P001",
-			"The root AST node must be of type 'program'.",
-			true);
+		r.add_message("P001","The root AST node must be of type 'program'.", true);
 		return false;
 	}
 
@@ -135,7 +135,55 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 										evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::proc_expression: {
-			break;
+			auto proc_type = make_procedure_type();
+			current_scope()->types().add(proc_type);
+
+			auto count = 0;
+			for (const auto& type_node : node->lhs->children) {
+				switch (type_node->type) {
+					case ast_node_types_t::qualified_symbol_reference: {
+						// XXX: I am a horrible human being
+						auto total_hack_fix_me = type_node->lhs->children[0];
+						proc_type->returns().add(make_field(
+							fmt::format("_{}", count++),
+							find_type(total_hack_fix_me->token.value),
+							nullptr));
+						break;
+					}
+					default: {
+						break;
+					}
+				}
+			}
+
+			for (const auto& type_node : node->rhs->children) {
+				proc_type->parameters().add(make_field(
+					type_node->token.value,
+					find_type(type_node->lhs->token.value),
+					type_node->rhs != nullptr ? make_initializer(evaluate(r, type_node->rhs)) : nullptr));
+			}
+
+			if (!node->children.empty()) {
+				for (const auto& child_node : node->children) {
+					switch (child_node->type) {
+						case ast_node_types_t::attribute: {
+							proc_type->attributes().add(make_attribute(
+								child_node->token.value,
+								evaluate(r, child_node->lhs)));
+							break;
+						}
+						case ast_node_types_t::basic_block: {
+							proc_type->instances().push_back(make_procedure_instance(
+								proc_type,
+								dynamic_cast<block*>(evaluate(r, child_node))));
+						}
+						default:
+							break;
+					}
+				}
+			}
+
+			return proc_type;
 		}
 		case ast_node_types_t::enum_expression: {
 			auto scope = current_scope();
@@ -144,13 +192,23 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			auto type = make_enum();
 			scope_types.add(type);
 
-			for (const auto& child : node->rhs->children) {
-				auto field_element = evaluate(r, child);
-				auto field = make_field("", nullptr, nullptr);
-				type->fields().add(field);
-			}
+//                for (const auto& child : node->rhs->children) {
+//                    auto field_element = evaluate(r, child);
+//                    auto field = make_field("", nullptr, nullptr);
+//                    type->fields().add(field);
+//                }
 
 			return type;
+		}
+		case ast_node_types_t::cast_expression: {
+			auto type = find_type(node->lhs->token.value);
+			if (type == nullptr) {
+				r.add_message(
+					"P002",
+					fmt::format("unknown type '{}'.", node->lhs->token.value),
+					true);
+			}
+			return make_cast(type, evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::alias_expression: {
 			return make_alias(evaluate(r, node->lhs));
@@ -163,8 +221,8 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			auto type = make_union();
 			scope_types.add(type);
 
-			for (const auto& child : node->rhs->children) {
-			}
+//			for (const auto& child : node->rhs->children) {
+//			}
 
 			return type;
 		}
@@ -175,8 +233,8 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			auto type = make_struct();
 			scope_types.add(type);
 
-			for (const auto& child : node->rhs->children) {
-			}
+//			for (const auto& child : node->rhs->children) {
+//			}
 
 			return type;
 		}
@@ -402,5 +460,48 @@ alias *program::make_alias(element *expr)
 	elements_.insert(std::make_pair(alias_type->id(), alias_type));
 	return alias_type;
 }
+
+procedure_type* program::make_procedure_type() {
+	// XXX: the name of the proc isn't correct here but it works temporarily.
+	auto type = new compiler::procedure_type(current_scope(),
+		 fmt::format("__proc_{}__", id_pool::instance()->allocate()));
+	elements_.insert(std::make_pair(type->id(), type));
+	return type;
+}
+
+type* program::find_type(const std::string& name) {
+	auto scope = current_scope();
+	while (scope != nullptr) {
+		auto type = scope->types().find(name);
+		if (type != nullptr)
+			return type;
+		scope = dynamic_cast<block*>(scope->parent());
+	}
+	return nullptr;
+}
+
+procedure_instance* program::make_procedure_instance(
+	compiler::type* procedure_type,
+	compiler::block* scope) {
+	auto instance = new compiler::procedure_instance(
+		current_scope(),
+		procedure_type,
+		scope);
+	elements_.insert(std::make_pair(instance->id(), instance));
+	return instance;
+}
+
+initializer* program::make_initializer(element* expr) {
+	auto initializer = new compiler::initializer(current_scope(), expr);
+	elements_.insert(std::make_pair(initializer->id(), initializer));
+	return initializer;
+}
+
+cast* program::make_cast(compiler::type* type, element* expr) {
+	auto cast = new compiler::cast(current_scope(), type, expr);
+	elements_.insert(std::make_pair(cast->id(), cast));
+	return cast;
+}
+
 
 }

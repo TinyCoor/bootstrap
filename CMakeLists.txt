@@ -110,6 +110,9 @@ set(ELEMENT_SRC
         src/compiler/elements/composite_type.cpp
         src/compiler/elements/statement.cpp
         src/compiler/elements/alias.cpp
+        src/compiler/elements/cast.cpp
+        src/compiler/elements/procedure_type.cpp
+        src/compiler/elements/procedure_instance.cpp
         )
 
 set(COMPILER_SRC

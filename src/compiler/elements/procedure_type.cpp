@@ -22,4 +22,8 @@ type_map_t& procedure_type::type_parameters() {
 	return type_parameters_;
 }
 
+procedure_instance_list_t& procedure_type::instances() {
+	return instances_;
+}
+
 }

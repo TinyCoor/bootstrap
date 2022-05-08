@@ -34,6 +34,8 @@ public:
 
 	void error(result& r, const std::string& code, const std::string& message, uint32_t line, uint32_t column);
 
+	ast_node_shared_ptr expect_expression(result& r,ast_node_types_t expected_type, uint8_t precedence);
+
 	ast_node_shared_ptr parse_scope(result& r);
 protected:
 
@@ -96,6 +98,7 @@ private:
 		{token_types_t::block_comment,       &s_block_comment_prefix_parser},
 		{token_types_t::string_literal,      &s_string_literal_prefix_parser},
 		{token_types_t::number_literal,      &s_number_literal_prefix_parser},
+		{token_types_t::alias_literal,       &s_keyword_literal_prefix_parser},
 		{token_types_t::null_literal,        &s_keyword_literal_prefix_parser},
 		{token_types_t::break_literal,       &s_keyword_literal_prefix_parser},
 		{token_types_t::continue_literal,    &s_keyword_literal_prefix_parser},
@@ -129,6 +132,11 @@ private:
 		{token_types_t::percent,            &s_product_binary_op_parser},
 		{token_types_t::ampersand,          &s_bitwise_binary_op_parser},
 		{token_types_t::pipe,               &s_bitwise_binary_op_parser},
+		{token_types_t::xor_literal,        &s_bitwise_binary_op_parser},
+		{token_types_t::shl_literal,        &s_bitwise_binary_op_parser},
+		{token_types_t::shr_literal,        &s_bitwise_binary_op_parser},
+		{token_types_t::rol_literal,        &s_bitwise_binary_op_parser},
+		{token_types_t::ror_literal,        &s_bitwise_binary_op_parser},
 		{token_types_t::logical_and,        &s_logical_binary_op_parser},
 		{token_types_t::logical_or,         &s_logical_binary_op_parser},
 		{token_types_t::caret,              &s_exponent_binary_op_parser},

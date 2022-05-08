@@ -41,7 +41,6 @@ enum class ast_node_types_t : uint32_t {
 	map_constructor,
 	else_expression,
 	while_statement,
-	alias_statement,
 	break_statement,
 	with_expression,
 	type_identifier,
@@ -50,6 +49,7 @@ enum class ast_node_types_t : uint32_t {
 	symbol_reference,
 	return_statement,
 	extend_statement,
+	alias_expression,
 	for_in_statement,
 	character_literal,
 	array_constructor,
@@ -108,7 +108,7 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::map_constructor, "map_constructor"},
 	{ast_node_types_t::else_expression, "else_expression"},
 	{ast_node_types_t::while_statement, "while_statement"},
-	{ast_node_types_t::alias_statement, "alias_statement"},
+	{ast_node_types_t::alias_expression, "alias_expression"},
 	{ast_node_types_t::break_statement, "break_statement"},
 	{ast_node_types_t::with_expression, "with_expression"},
 	{ast_node_types_t::type_identifier, "type_identifier"},
@@ -130,6 +130,14 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::qualified_symbol_reference, "qualified_symbol_reference"},
 };
 
+static inline std::string ast_node_type_name(ast_node_types_t type) {
+	auto it = s_node_type_names.find(type);
+	if (it == s_node_type_names.end()) {
+		return "unknown";
+	}
+	return it->second;
+}
+
 struct ast_node_t {
 	using flags_value_t = uint8_t;
 	enum flags_t : uint8_t {
@@ -139,33 +147,30 @@ struct ast_node_t {
 		spread  = 0b00000100,
 	};
 
-	inline bool is_array() const
+	bool is_array() const
 	{
 		return ((flags & flags_t::array) != 0);
 	}
 
-	inline bool is_pointer() const
+	bool is_pointer() const
 	{
 		return ((flags & flags_t::pointer) != 0);
 	}
 
-	inline bool is_spread() const {
+	bool is_spread() const {
 		return ((flags & flags_t::spread) != 0);
 	}
 
-	inline std::string name() const
+	std::string name() const
 	{
-		auto it = s_node_type_names.find(type);
-		if (it == s_node_type_names.end())
-			return "unknown";
-		return it->second;
+		return ast_node_type_name(type);
 	}
 
-	inline bool operator != (const ast_node_t& other) const {
+	bool operator != (const ast_node_t& other) const {
 		return this->token.value != other.token.value;
 	}
 
-	inline bool operator == (const ast_node_t& other) const {
+	bool operator == (const ast_node_t& other) const {
 		return this->token.value == other.token.value;
 	}
 	
@@ -226,6 +231,8 @@ public:
 	ast_node_shared_ptr argument_list_node();
 
 	ast_node_shared_ptr with_node(const token_t& token);
+
+	ast_node_shared_ptr alias_node(token_t& token);
 
 	ast_node_shared_ptr defer_node(const token_t& token);
 

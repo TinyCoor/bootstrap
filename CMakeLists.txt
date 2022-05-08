@@ -109,6 +109,7 @@ set(ELEMENT_SRC
         src/compiler/elements/comment.cpp
         src/compiler/elements/composite_type.cpp
         src/compiler/elements/statement.cpp
+        src/compiler/elements/alias.cpp
         )
 
 set(COMPILER_SRC

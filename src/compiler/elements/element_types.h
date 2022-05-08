@@ -14,6 +14,7 @@
 namespace gfx::compiler {
 
 class type;
+class alias;
 class field;
 class block;
 class label;

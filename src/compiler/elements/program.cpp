@@ -6,6 +6,7 @@
 #include "attribute.h"
 #include "directive.h"
 #include "label.h"
+#include "alias.h"
 #include "statement.h"
 #include "numeric_type.h"
 #include "string_type.h"
@@ -151,6 +152,10 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 
 			return type;
 		}
+		case ast_node_types_t::alias_expression: {
+			return make_alias(evaluate(r, node->lhs));
+		}
+
 		case ast_node_types_t::union_expression: {
 			auto scope = current_scope();
 			auto& scope_types = scope->types();
@@ -391,5 +396,11 @@ expression* program::make_expression(element* expr)
 	return expression;
 }
 
+alias *program::make_alias(element *expr)
+{
+	auto alias_type = new compiler::alias(current_scope(), expr);
+	elements_.insert(std::make_pair(alias_type->id(), alias_type));
+	return alias_type;
+}
 
 }

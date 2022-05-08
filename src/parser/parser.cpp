@@ -187,7 +187,8 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 
 	auto prefix_parser = prefix_parser_for(token.type);
 	if (prefix_parser == nullptr) {
-		error(r, "B021", fmt::format("prefix parser for token '{}' not found.", token.name()), token.line, token.column);
+		error(r, "B021", fmt::format("prefix parser for token '{}' not found.",
+			 token.name()), token.line, token.column);
 		return nullptr;
 	}
 
@@ -208,7 +209,8 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 
 		auto infix_parser = infix_parser_for(token.type);
 		if (infix_parser == nullptr) {
-			error(r, "B021", fmt::format("infix parser for token '{}' not found.", token.name()), token.line, token.column);
+			error(r, "B021", fmt::format("infix parser for token '{}' not found.",
+				 token.name()), token.line, token.column);
 			break;
 		}
 		lhs = infix_parser->parse(r, this, lhs, token);
@@ -218,6 +220,23 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 	}
 
 	return lhs;
+}
+
+ast_node_shared_ptr parser::expect_expression(result& r, ast_node_types_t expected_type, uint8_t precedence)
+{
+	auto node = parse_expression(r, precedence);
+	if (node == nullptr) {
+		return nullptr;
+	}
+
+	if (node->type != expected_type) {
+		error(r, "B031",
+			fmt::format("unexpected '{}', wanted '{}'.", node->name(), ast_node_type_name(expected_type)),
+			node->token.line, node->token.column);
+		return nullptr;
+	}
+
+	return node;
 }
 
 void parser::error(result &r, const std::string &code, const std::string &message, uint32_t line, uint32_t column)

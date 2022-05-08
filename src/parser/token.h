@@ -43,6 +43,11 @@ enum class token_types_t {
 	right_paren,
 	for_literal,
 	end_of_file,
+	xor_literal,
+	shl_literal,
+	shr_literal,
+	rol_literal,
+	ror_literal,
 	with_literal,
 	greater_than,
 	line_comment,
@@ -106,6 +111,11 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::less_than_equal,        "less_than_equal"},
 	{token_types_t::logical_or,             "logical_or"},
 	{token_types_t::logical_and,            "logical_and"},
+	{token_types_t::xor_literal,            "xor_literal"},
+	{token_types_t::shl_literal,            "shl_literal"},
+	{token_types_t::shr_literal,            "shr_literal"},
+	{token_types_t::rol_literal,            "rol_literal"},
+	{token_types_t::ror_literal,            "ror_literal"},
 	{token_types_t::plus,                   "plus"},
 	{token_types_t::minus,                  "minus"},
 	{token_types_t::asterisk,               "asterisk"},
@@ -468,6 +478,32 @@ static inline token_t s_right_square_bracket_literal = {
 	.type = token_types_t::right_square_bracket,
 	.value = "]"
 };
+
+static inline token_t s_xor_literal = {
+	.type = token_types_t::xor_literal,
+	.value = "xor"
+};
+
+static inline token_t s_shl_literal = {
+	.type = token_types_t::shl_literal,
+	.value = "shl"
+};
+
+static inline token_t s_shr_literal = {
+	.type = token_types_t::shr_literal,
+	.value = "shr"
+};
+
+static inline token_t s_rol_literal = {
+	.type = token_types_t::rol_literal,
+	.value = "rol"
+};
+
+static inline token_t s_ror_literal = {
+	.type = token_types_t::ror_literal,
+	.value = "ror"
+};
+
 
 }
 

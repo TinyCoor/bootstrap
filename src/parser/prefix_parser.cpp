@@ -225,15 +225,27 @@ ast_node_shared_ptr unary_operator_prefix_parser::parse(result& r, parser* parse
 ast_node_shared_ptr keyword_literal_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	switch (token.type) {
-		case token_types_t::break_literal:
+		case token_types_t::alias_literal: {
+			auto alias_node = parser->ast_builder()->alias_node(token);
+			alias_node->lhs = parser->expect_expression(
+				r,
+				ast_node_types_t::assignment,
+				0);
+			return alias_node;
+		}
+		case token_types_t::break_literal: {
 			return parser->ast_builder()->break_node(token);
-		case token_types_t::continue_literal:
+		}
+		case token_types_t::continue_literal: {
 			return parser->ast_builder()->continue_node(token);
-		case token_types_t::null_literal:
+		}
+		case token_types_t::null_literal: {
 			return parser->ast_builder()->null_literal_node(token);
+		}
 		case token_types_t::true_literal:
-		case token_types_t::false_literal:
+		case token_types_t::false_literal: {
 			return parser->ast_builder()->boolean_literal_node(token);
+		}
 		default:
 			return nullptr;
 	}

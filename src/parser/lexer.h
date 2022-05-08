@@ -60,6 +60,16 @@ private:
 
 	bool left_paren(token_t& token);
 
+	bool xor_literal(token_t& token);
+
+	bool shl_literal(token_t& token);
+
+	bool shr_literal(token_t& token);
+
+	bool rol_literal(token_t& token);
+
+	bool ror_literal(token_t& token);
+
 	bool identifier(token_t& token);
 
 	bool assignment(token_t& token);

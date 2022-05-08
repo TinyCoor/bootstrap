@@ -25,6 +25,8 @@ alpha::compiler::config := ns {
 };
 
 alpha::compiler::examples := ns {
+    alias id := u64;
+
     multi_return := proc():u64, address {
         return alloc(64);
     };

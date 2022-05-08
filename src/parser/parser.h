@@ -53,6 +53,7 @@ private:
 	static inline enum_prefix_parser s_enum_prefix_parser {};
 	static inline union_prefix_parser s_union_prefix_parser {};
 	static inline group_prefix_parser s_group_prefix_parser {};
+	static inline label_prefix_parser s_label_prefix_parser {};
 	static inline struct_prefix_parser s_struct_prefix_parser {};
 	static inline for_in_prefix_parser s_for_in_prefix_parser {};
 	static inline return_prefix_parser s_return_prefix_parser {};
@@ -61,6 +62,7 @@ private:
 	static inline namespace_prefix_parser s_namespace_prefix_parser {};
 	static inline attribute_prefix_parser s_attribute_prefix_parser {};
 	static inline directive_prefix_parser s_directive_prefix_parser {};
+
 	static inline basic_block_prefix_parser s_basic_block_prefix_parser {};
 	static inline char_literal_prefix_parser s_char_literal_prefix_parser {};
 	static inline line_comment_prefix_parser s_line_comment_prefix_parser {};
@@ -79,6 +81,7 @@ private:
 	static inline std::unordered_map<token_types_t, prefix_parser*> s_prefix_parsers = {
 		{token_types_t::if_literal,          &s_if_prefix_parser},
 		{token_types_t::bang,                &s_not_prefix_parser},
+		{token_types_t::label,               &s_label_prefix_parser},
 		{token_types_t::enum_literal,        &s_enum_prefix_parser},
 		{token_types_t::left_paren,          &s_group_prefix_parser},
 		{token_types_t::union_literal,       &s_union_prefix_parser},
@@ -127,7 +130,7 @@ private:
 		{token_types_t::plus,               &s_sum_binary_op_parser},
 		{token_types_t::assignment,         &s_assignment_infix_parser},
 		{token_types_t::slash,              &s_product_binary_op_parser},
-		{token_types_t::block_comment,       &s_block_comment_infix_parser},
+		{token_types_t::block_comment,      &s_block_comment_infix_parser},
 		{token_types_t::asterisk,           &s_product_binary_op_parser},
 		{token_types_t::percent,            &s_product_binary_op_parser},
 		{token_types_t::ampersand,          &s_bitwise_binary_op_parser},

@@ -93,7 +93,7 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::assignment, "assignment"},
 	{ast_node_types_t::expression, "expression"},
 	{ast_node_types_t::basic_block, "basic_block"},
-	{ast_node_types_t::line_comment, "label"},
+	{ast_node_types_t::line_comment, "line_comment"},
 	{ast_node_types_t::null_literal, "null_literal"},
 	{ast_node_types_t::block_comment, "comment"},
 	{ast_node_types_t::argument_list, "argument_list"},

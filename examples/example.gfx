@@ -49,4 +49,13 @@ alpha::compiler::examples := ns {
         return final_fib_value;
     };
 
+    'somewhere_special:
+        final_fib_value:u32 := fib(alpha::compiler::config::fibonacci::length_of_sequence);
+
+    'is_it_really:
+    'the_end:
+        return final_fib_value;
+    } @entry_point;
+
+
 };

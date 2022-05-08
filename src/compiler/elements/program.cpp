@@ -9,6 +9,7 @@
 #include "statement.h"
 #include "numeric_type.h"
 #include "string_type.h"
+#include "unary_operator.h"
 #include "any_type.h"
 #include "composite_type.h"
 #include "binary_operator.h"
@@ -105,13 +106,11 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			return make_statement(labels, evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::expression: {
-			break;
+			return make_expression(evaluate(r, node->lhs));
 		}
 		case ast_node_types_t::assignment: {
-			// binary_operator returned from here
-//                auto list_of_identifiers = evaluate(r, node->lhs);
-//                auto list_of_expressions = evaluate(r, node->rhs);
-			break;
+			return make_binary_operator(operator_type_t::assignment,
+				evaluate(r,node->lhs), evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::line_comment: {
 			return make_comment(comment_type_t::line, node->token.value);
@@ -120,10 +119,19 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			return make_comment(comment_type_t::block, node->token.value);
 		}
 		case ast_node_types_t::unary_operator: {
-			break;
+			auto it = s_unary_operators.find(node->token.type);
+			if (it == s_unary_operators.end()) {
+				return nullptr;
+			}
+			return make_unary_operator(it->second, evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::binary_operator: {
-			break;
+			auto it = s_binary_operators.find(node->token.type);
+			if (it == s_binary_operators.end()) {
+				return nullptr;
+			}
+			return make_binary_operator(it->second, evaluate(r, node->lhs),
+										evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::proc_expression: {
 			break;
@@ -168,11 +176,11 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			return type;
 		}
 		case ast_node_types_t::constant_expression: {
-			// XXX: highly doubt this correct
-			auto assignment = dynamic_cast<binary_operator*>(evaluate(r, node->rhs));
-			auto variable = dynamic_cast<identifier*>(assignment->lhs());
-			variable->constant(true);
-			return assignment;
+			auto identifier = dynamic_cast<class identifier*>(evaluate(r, node->rhs));
+			if (identifier !=nullptr) {
+				identifier->constant(true);
+			}
+			return identifier;
 		}
 		case ast_node_types_t::qualified_symbol_reference: {
 			return evaluate(r, node->rhs);
@@ -355,7 +363,33 @@ label *program::make_label(const std::string &name)
 	return label;
 }
 
+identifier* program::make_identifier(const std::string& name, initializer* expr)
+{
+	auto identifier = new compiler::identifier(current_scope(), name, expr);
+	elements_.insert(std::make_pair(identifier->id(), identifier));
+	return identifier;
+}
 
+unary_operator* program::make_unary_operator(operator_type_t type, element* rhs)
+{
+	auto unary_operator = new compiler::unary_operator(current_scope(), type, rhs);
+	elements_.insert(std::make_pair(unary_operator->id(), unary_operator));
+	return unary_operator;
+}
+
+binary_operator* program::make_binary_operator(operator_type_t type, element* lhs, element* rhs)
+{
+	auto binary_operator = new compiler::binary_operator(current_scope(), type, lhs, rhs);
+	elements_.insert(std::make_pair(binary_operator->id(), binary_operator));
+	return binary_operator;
+}
+
+expression* program::make_expression(element* expr)
+{
+	auto expression = new compiler::expression(current_scope(), expr);
+	elements_.insert(std::make_pair(expression->id(), expression));
+	return expression;
+}
 
 
 }

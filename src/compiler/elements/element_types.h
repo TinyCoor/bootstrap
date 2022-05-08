@@ -9,6 +9,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include "parser/token.h"
 
 namespace gfx::compiler {
 
@@ -79,6 +80,56 @@ enum class  comment_type_t {
 	line = 1,
 	block,
 };
+
+enum class operator_type_t {
+	// unary
+	negate,
+	binary_not,
+	logical_not,
+
+	// binary
+	add,
+	subtract,
+	multiply,
+	divide,
+	modulo,
+	equals,
+	not_equals,
+	greater_than,
+	less_than,
+	greater_than_or_equal,
+	less_than_or_equal,
+	logical_or,
+	logical_and,
+	binary_or,
+	binary_and,
+	binary_xor,
+	shift_right,
+	shift_left,
+	rotate_right,
+	rotate_left,
+	exponent,
+	assignment
+};
+
+static inline std::unordered_map<token_types_t, operator_type_t> s_unary_operators = {
+	{token_types_t::minus, operator_type_t::negate},
+	{token_types_t::tilde, operator_type_t::binary_not},
+	{token_types_t::bang,  operator_type_t::logical_not}
+};
+
+static inline std::unordered_map<token_types_t, operator_type_t> s_binary_operators = {
+	{ token_types_t::equals,     operator_type_t::equals},
+	{ token_types_t::minus,      operator_type_t::subtract},
+	{ token_types_t::plus,       operator_type_t::add},
+	{ token_types_t::asterisk,   operator_type_t::multiply},
+	{ token_types_t::slash,      operator_type_t::divide},
+	{ token_types_t::percent,    operator_type_t::modulo},
+	{ token_types_t::not_equals, operator_type_t::not_equals},
+	{ token_types_t::assignment, operator_type_t::assignment},
+	{ token_types_t::logical_or, operator_type_t::logical_or}
+};
+
 
 struct attribute_map_t {
 

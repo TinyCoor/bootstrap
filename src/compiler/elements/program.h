@@ -44,7 +44,15 @@ private:
 
 	label* make_label(const std::string& name);
 
-	identifier* make_identifier(element* expr);
+	identifier* make_identifier(const std::string& name, initializer* expr);
+
+	unary_operator* make_unary_operator(operator_type_t type, element* rhs);
+
+	binary_operator* make_binary_operator(operator_type_t type, element* lhs, element* rhs);
+
+	expression* make_expression(element* expr);
+
+private:
 
 	element* evaluate(result& r, const ast_node_shared_ptr& node);
 

@@ -5,7 +5,7 @@
 #include "any_type.h"
 namespace gfx::compiler {
 any_type::any_type(element* parent)
-	: type(parent, "any")
+	: type(parent, element_type_t::any_type, "any")
 {
 
 }

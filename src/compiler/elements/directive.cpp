@@ -4,18 +4,19 @@
 
 #include "directive.h"
 namespace gfx::compiler {
-directive::directive(block* parent, const std::string& name)
-	: block(parent),name_(name)
-{
-}
-
-directive::~directive()
+directive::directive(block* parent, const std::string& name, element* expression)
+	: element(parent, element_type_t::directive),name_(name),expression_(expression)
 {
 }
 
 std::string directive::name() const
 {
 	return name_;
+}
+
+element *directive::expression()
+{
+	return expression_;
 }
 
 }

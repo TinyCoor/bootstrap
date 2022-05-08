@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class element {
 public:
-	element(element* parent);
+	element(element* parent, element_type_t type);
 
 	virtual ~element();
 
@@ -22,6 +22,8 @@ public:
 
 	attribute_map_t& attributes();
 
+	element_type_t element_type() const;
+
 protected:
 	virtual bool on_fold(result& result);
 
@@ -29,6 +31,7 @@ private:
 	id_t id_;
 	element* parent_ = nullptr;
 	attribute_map_t attributes_ {};
+	element_type_t element_type_ = element_type_t::element;
 };
 }
 

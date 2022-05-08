@@ -12,7 +12,6 @@ class binary_operator : public operator_base {
 public:
 	binary_operator(element* parent, operator_type_t type, element* lhs, element* rhs);
 
-	~binary_operator() override;
 
 	element* lhs();
 

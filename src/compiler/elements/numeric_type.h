@@ -11,15 +11,10 @@ class numeric_type : public type {
 public:
 	explicit numeric_type(element* parent, const std::string& name, int64_t min, uint64_t max);
 
-	inline int64_t min() const
-	{
-		return min_;
-	}
+	int64_t min() const;
 
-	inline uint64_t max() const
-	{
-		return max_;
-	}
+	uint64_t max() const;
+
 private:
 	int64_t min_;
 	uint64_t max_;

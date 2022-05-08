@@ -11,8 +11,6 @@ class namespace_element : public block {
 public:
 	namespace_element(block* parent, const std::string& name);
 
-	~namespace_element() override;
-
 	std::string name() const;
 
 private:

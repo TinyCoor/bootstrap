@@ -13,24 +13,22 @@ namespace gfx::compiler {
 
 class block : public element {
 public:
-	explicit block(block* parent);
+	explicit block(block* parent, element_type_t type = element_type_t::block);
 
 	~block() override;
 
+	type_map_t& types();
 
-	element_list_t& children();
+	comment_list_t& comments();
 
-	type_map_t& types() {
-		return types_;
-	}
+	statement_list_t& statements();
 
-	identifier_map_t& identifiers() {
-		return identifiers_;
-	}
+	identifier_map_t& identifiers();
 
 private:
 	type_map_t types_ {};
-	element_list_t children_ {};
+	comment_list_t comments_{};
+	statement_list_t statements_{};
 	identifier_map_t identifiers_ {};
 };
 }

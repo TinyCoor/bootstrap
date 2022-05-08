@@ -12,8 +12,6 @@ class unary_operator : public  operator_base {
 public:
 	explicit unary_operator(element* parent, operator_type_t type, element* rhs);
 
-	~unary_operator() override;
-
 	element* rhs();
 
 private:

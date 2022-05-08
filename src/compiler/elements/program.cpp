@@ -5,14 +5,15 @@
 #include "program.h"
 #include "attribute.h"
 #include "directive.h"
-#include "line_comment.h"
+#include "label.h"
+#include "statement.h"
 #include "numeric_type.h"
 #include "string_type.h"
 #include "any_type.h"
 #include "composite_type.h"
 #include "binary_operator.h"
 #include "fmt/format.h"
-#include "block_comment.h"
+#include "comment.h"
 namespace gfx::compiler {
 
 program::program()
@@ -59,18 +60,10 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 	}
 	switch (node->type) {
 		case ast_node_types_t::attribute: {
-			auto scope = current_scope();
-			auto attribute = make_attribute(node->token.value, evaluate(r, node->rhs));
-			scope->attributes().add(attribute);
-			return attribute;
+			return make_attribute(node->token.value, evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::directive: {
-			auto scope = current_scope();
-			auto directive_element = make_directive(node->token.value);
-			elements_.insert(std::make_pair(directive_element->id(), directive_element));
-			scope->children().push_back(directive_element);
-			evaluate(r, node->lhs);
-			return directive_element;
+			return make_directive(node->token.value, evaluate(r,node->lhs));
 		}
 		case ast_node_types_t::program:
 		case ast_node_types_t::basic_block: {
@@ -81,14 +74,36 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			}
 
 			for (auto it = node->children.begin(); it != node->children.end(); ++it) {
-				evaluate(r, *it);
+				auto expr = evaluate(r, *it);
+				switch (expr->element_type()) {
+					case element_type_t::comment:
+						current_scope()->comments().push_back(dynamic_cast<comment*>(expr));
+						break;
+					case element_type_t::attribute:
+						current_scope()->attributes().add(dynamic_cast<attribute*>(expr));
+						break;
+					case element_type_t::statement: {
+						current_scope()->statements().push_back(dynamic_cast<statement*>(expr));
+						break;
+					}
+					default:
+						break;
+				}
 			}
 
 			pop_scope();
 
 			break;
 		}
-		case ast_node_types_t::statement:
+		case ast_node_types_t::statement:{
+			label_list_t  labels{};
+			if (node->lhs != nullptr) {
+				for (const auto & label: node->lhs->children) {
+					labels.push_back(make_label(label->token.value));
+				}
+			}
+			return make_statement(labels, evaluate(r, node->rhs));
+		}
 		case ast_node_types_t::expression: {
 			break;
 		}
@@ -99,16 +114,10 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			break;
 		}
 		case ast_node_types_t::line_comment: {
-			auto scope = current_scope();
-			auto comment = make_line_comment(node->token.value);
-			scope->children().push_back(comment);
-			return comment;
+			return make_comment(comment_type_t::line, node->token.value);
 		}
 		case ast_node_types_t::block_comment: {
-			auto scope = current_scope();
-			auto comment = make_block_comment(node->token.value);
-			scope->children().push_back(comment);
-			return comment;
+			return make_comment(comment_type_t::block, node->token.value);
 		}
 		case ast_node_types_t::unary_operator: {
 			break;
@@ -163,10 +172,10 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			auto assignment = dynamic_cast<binary_operator*>(evaluate(r, node->rhs));
 			auto variable = dynamic_cast<identifier*>(assignment->lhs());
 			variable->constant(true);
-			break;
+			return assignment;
 		}
 		case ast_node_types_t::qualified_symbol_reference: {
-			break;
+			return evaluate(r, node->rhs);
 		}
 		default: {
 			break;
@@ -315,30 +324,38 @@ composite_type* program::make_struct() {
 	return type;
 }
 
-identifier *program::make_identifier(element *expr)
+comment *program::make_comment(comment_type_t type, const std::string &value)
 {
-	return nullptr;
+	auto comment = new compiler::comment(current_scope(),type, value);
+	elements_.insert(std::make_pair(comment->id(), comment));
+	return comment;
 }
 
-directive *program::make_directive(const std::string &name)
+directive *program::make_directive(const std::string &name, element *expr)
 {
-	auto directive1 = new compiler::directive(current_scope(), name);
+	auto directive1 = new compiler::directive(current_scope(), name, expr);
 	elements_.insert(std::make_pair(directive1->id(), directive1));
 	return directive1;
 }
 
-line_comment *program::make_line_comment(const std::string &value)
+statement *program::make_statement(label_list_t labels, element *expr)
 {
-	auto comment = new compiler::line_comment(current_scope(), value);
-	elements_.insert(std::make_pair(comment->id(), comment));
-	return comment;
+	auto statement = new compiler::statement(current_scope(), expr);
+	for (auto label : labels) {
+		statement->labels().push_back(label);
+	}
+	elements_.insert(std::make_pair(statement->id(), statement));
+	return statement;
 }
 
-block_comment *program::make_block_comment(const std::string &value)
+label *program::make_label(const std::string &name)
 {
-	auto comment = new compiler::block_comment(current_scope(), value);
-	elements_.insert(std::make_pair(comment->id(), comment));
-	return comment;
+	auto label = new compiler::label(current_scope(), name);
+	elements_.insert(std::make_pair(label->id(), label));
+	return label;
 }
+
+
+
 
 }

@@ -5,11 +5,7 @@
 #include "expression.h"
 namespace gfx::compiler {
 expression::expression(element* parent, element* root)
-	: element(parent),root_(root)
-{
-}
-
-expression::~expression()
+	: element(parent, element_type_t::expression),root_(root)
 {
 }
 

@@ -104,10 +104,11 @@ set(ELEMENT_SRC
         src/compiler/elements/element_types.cpp
         src/compiler/elements/any_type.cpp
         src/compiler/elements/string_type.cpp
-        src/compiler/elements/line_comment.cpp
+        src/compiler/elements/label.cpp
         src/compiler/elements/numeric_type.cpp
-        src/compiler/elements/block_comment.cpp
+        src/compiler/elements/comment.cpp
         src/compiler/elements/composite_type.cpp
+        src/compiler/elements/statement.cpp
         )
 
 set(COMPILER_SRC

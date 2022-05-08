@@ -5,11 +5,7 @@
 #include "field.h"
 namespace gfx::compiler {
 field::field(element* parent,const std::string& name, compiler::type* type, compiler::initializer* initializer)
-	: element(parent), name_(name), type_(type), initializer_(initializer)
-{
-}
-
-field::~field()
+	: element(parent, element_type_t::field), name_(name), type_(type), initializer_(initializer)
 {
 }
 

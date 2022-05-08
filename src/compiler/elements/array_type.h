@@ -8,25 +8,17 @@
 namespace gfx::compiler {
 class array_type : public type {
 public:
-	array_type(element* parent, const std::string& name, compiler::type* element_type);
+	array_type(element* parent, const std::string& name, compiler::type* entry_type);
 
-	uint64_t size() const
-	{
-		return size_;
-	}
+	uint64_t size() const;
 
-	void size(uint64_t value)
-	{
-		size_ = value;
-	}
+	void size(uint64_t value);
 
-	compiler::type* element_type() {
-		return element_type_;
-	}
+	compiler::type* entry_type();
 
 private:
 	uint64_t size_ = 0;
-	compiler::type* element_type_ = nullptr;
+	compiler::type* entry_type_ = nullptr;
 };
 }
 

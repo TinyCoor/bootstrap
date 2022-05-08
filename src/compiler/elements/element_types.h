@@ -13,33 +13,72 @@
 namespace gfx::compiler {
 
 class type;
-class any_type;
 class field;
 class block;
+class label;
 class element;
 class program;
+class comment;
+class any_type;
 class directive;
+class attribute;
+class statement;
 class array_type;
 class string_type;
 class numeric_type;
-class attribute;
 class identifier;
-class block_comment;
 class expression;
 class initializer;
 class float_literal;
 class operator_base;
 class procedure_type;
-class line_comment;
 class unary_operator;
 class integer_literal;
 class binary_operator;
 class namespace_element;
 class composite_type;
 
+using label_list_t  = std::vector<label*>;
 using element_list_t = std::vector<element*>;
-
+using comment_list_t  = std::vector<comment*>;
+using statement_list_t  = std::vector<statement*>;
 using directive_map_t = std::map<std::string, directive*>;
+
+enum class element_type_t {
+	element = 1,
+	proc,
+	label,
+	block,
+	field,
+	comment,
+	program,
+	any_type,
+	proc_type,
+	directive,
+	attribute,
+	bool_type,
+	statement,
+	alias_type,
+	array_type,
+	identifier,
+	expression,
+	string_type,
+	namespace_e,
+	initializer,
+	numeric_type,
+	float_literal,
+	string_literal,
+	composite_type,
+	unary_operator,
+	boolean_literal,
+	integer_literal,
+	binary_operator,
+};
+
+enum class  comment_type_t {
+	line = 1,
+	block,
+};
 
 struct attribute_map_t {
 

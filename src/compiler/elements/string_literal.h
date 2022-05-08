@@ -10,8 +10,6 @@ class string_literal : public element {
 public:
 	explicit string_literal(element* parent, const std::string& value);
 
-	~string_literal() override;
-
 	inline std::string value() const
 	{
 		return value_;

@@ -4,7 +4,8 @@
 
 #include "block.h"
 namespace gfx::compiler {
-block::block(block* parent) : element(parent)
+block::block(block* parent,element_type_t type)
+	: element(parent, type)
 {
 }
 
@@ -12,10 +13,22 @@ block::~block()
 {
 }
 
-element_list_t& block::children()
-{
-	return children_;
+type_map_t& block::types() {
+	return types_;
 }
 
+identifier_map_t& block::identifiers() {
+	return identifiers_;
+}
+
+statement_list_t &block::statements()
+{
+	return statements_;
+}
+
+comment_list_t &block::comments()
+{
+	return comments_;
+}
 
 }

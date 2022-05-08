@@ -14,8 +14,6 @@ class identifier : public element {
 public:
 	identifier(element* parent, const std::string& name, compiler::initializer* initializer);
 
-	~identifier() override;
-
 	compiler::type* type();
 
 	std::string name() const;
@@ -39,7 +37,5 @@ private:
 	compiler::type* type_ = nullptr;
 	compiler::initializer* initializer_;
 };
-
-
 }
 #endif // COMPILER_ELEMENTS_IDENTIFIER_H_

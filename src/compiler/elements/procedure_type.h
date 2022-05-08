@@ -11,17 +11,11 @@ class procedure_type : public type {
 public:
 	explicit procedure_type(element* parent, const std::string name);
 
-	field_map_t& returns() {
-		return returns_;
-	}
+	field_map_t& returns();
 
-	field_map_t& parameters() {
-		return parameters_;
-	}
+	field_map_t& parameters();
 
-	type_map_t& type_parameters() {
-		return type_parameters_;
-	}
+	type_map_t& type_parameters();
 private:
 	field_map_t returns_{};
 	field_map_t parameters_{};

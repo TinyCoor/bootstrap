@@ -7,9 +7,14 @@
 #include "expression.h"
 
 namespace gfx::compiler {
-class initializer : public expression {
+class initializer : public element {
 public:
 	explicit initializer(element* parent, element* expr);
+
+	element* expression();
+
+private:
+	element* expr_ = nullptr;
 
 };
 }

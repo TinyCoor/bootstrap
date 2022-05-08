@@ -10,11 +10,7 @@ class float_literal : public element {
 public:
 	explicit float_literal(element* parent, double value);
 
-	~float_literal() override;
-
-	inline double value() const {
-		return value_;
-	}
+	double value() const;
 
 private:
 	double value_;

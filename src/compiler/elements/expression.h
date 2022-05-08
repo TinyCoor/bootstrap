@@ -13,8 +13,6 @@ class expression : public element {
 public:
 	explicit expression( element* parent, element* root);
 
-	~expression() override;
-
 	element* root();
 
 private:

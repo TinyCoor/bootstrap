@@ -7,14 +7,11 @@
 #include "type.h"
 
 namespace gfx::compiler {
-class boolean_literal : public type{
+class boolean_literal : public element {
 public:
-	boolean_literal(element* parent, const std::string& name, bool value);
+	boolean_literal(element* parent, bool value);
 
-	bool value() const
-	{
-		return value_;
-	}
+	bool value() const;
 
 private:
 	bool value_ = false;

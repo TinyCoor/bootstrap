@@ -8,9 +8,13 @@
 namespace gfx::compiler {
 
 initializer::initializer( element* parent, element* expr)
-	: expression(parent, expr)
+	: element(parent, element_type_t::initializer), expr_(expr)
 {
 
+}
+element *initializer::expression()
+{
+	return expr_;
 }
 
 }

@@ -4,19 +4,14 @@
 
 #include "operator_base.h"
 namespace gfx::compiler{
-operator_base::operator_base(element* parent, operator_type_t type)
-	: element(parent),type_(type)
+operator_base::operator_base(element* parent, element_type_t element_type, operator_type_t type)
+	: element(parent,element_type),operator_type_(type)
 {
 }
 
-operator_base::~operator_base()
+operator_type_t operator_base::operator_type() const
 {
-
-}
-
-operator_type_t operator_base::type() const
-{
-	return type_;
+	return operator_type_;
 }
 
 }

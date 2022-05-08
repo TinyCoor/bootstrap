@@ -5,13 +5,10 @@
 #include "binary_operator.h"
 namespace gfx::compiler {
 binary_operator::binary_operator(element* parent, operator_type_t type, element* lhs, element* rhs)
-	: operator_base(parent, type), lhs_(lhs), rhs_(rhs)
+	: operator_base(parent, element_type_t::binary_operator,type), lhs_(lhs), rhs_(rhs)
 {
 }
 
-binary_operator::~binary_operator()
-{
-}
 
 element* binary_operator::lhs()
 {

@@ -5,10 +5,7 @@
 #include "identifier.h"
 namespace gfx::compiler {
 identifier::identifier(element *parent, const std::string& name, compiler::initializer* initializer)
-	: element(parent), name_(name), initializer_(initializer) {
-}
-
-identifier::~identifier() {
+	: element(parent,element_type_t::identifier), name_(name), initializer_(initializer) {
 }
 
 compiler::type* identifier::type()

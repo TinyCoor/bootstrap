@@ -7,16 +7,17 @@
 #include "block.h"
 namespace gfx::compiler {
 
-class directive : public block {
+class directive : public element {
 public:
-	directive(block* parent, const std::string& name);
+	directive(block* parent, const std::string& name, element* expression);
 
-	~directive() override;
+	element* expression();
 
 	std::string name() const;
 
 private:
 	std::string name_;
+	element* expression_ = nullptr;
 };
 }
 

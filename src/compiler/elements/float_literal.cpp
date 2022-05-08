@@ -4,12 +4,13 @@
 
 #include "float_literal.h"
 namespace gfx::compiler {
-float_literal::float_literal(element* parent,double value) : element(parent), value_(value)
+float_literal::float_literal(element* parent,double value)
+	: element(parent, element_type_t::float_literal), value_(value)
 {
 }
 
-float_literal::~float_literal()
-{
+double float_literal::value() const {
+	return value_;
 }
 
 }

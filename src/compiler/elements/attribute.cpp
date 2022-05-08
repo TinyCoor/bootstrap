@@ -5,12 +5,9 @@
 #include "attribute.h"
 namespace gfx::compiler {
 attribute::attribute(element* parent, const std::string& name, element* expr)
-	: element(parent), name_(name), expr_(expr)
+	: element(parent, element_type_t::attribute), name_(name), expr_(expr)
 {}
 
-attribute::~attribute() noexcept
-{
-}
 element *attribute::expression()
 {
 	return expr_;

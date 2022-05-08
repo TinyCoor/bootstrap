@@ -36,6 +36,16 @@ private:
 
 	composite_type* make_struct();
 
+	comment* make_comment(comment_type_t type, const std::string& value);
+
+	directive* make_directive(const std::string& name, element* expr);
+
+	statement* make_statement(label_list_t labels, element* expr);
+
+	label* make_label(const std::string& name);
+
+	identifier* make_identifier(element* expr);
+
 	element* evaluate(result& r, const ast_node_shared_ptr& node);
 
 	block* pop_scope();
@@ -47,15 +57,6 @@ private:
 	void push_scope(block* block);
 
 	bool is_subtree_constant(const ast_node_shared_ptr& node);
-
-	identifier* make_identifier(element* expr);
-
-	directive* make_directive(const std::string& name);
-
-	line_comment* make_line_comment(const std::string& value);
-
-	block_comment* make_block_comment(const std::string& value);
-
 
 private:
 	std::stack<block*> scope_stack_ {};

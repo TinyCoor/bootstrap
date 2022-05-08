@@ -15,8 +15,6 @@ class field : public element {
 public:
 	field(element* parent, const std::string& name, type* type, initializer* initializer);
 
-	~field() override;
-
 	compiler::type* type();
 
 	std::string name() const;

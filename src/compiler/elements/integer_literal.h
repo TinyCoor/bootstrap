@@ -10,11 +10,7 @@ class integer_literal : public element {
 public:
 	explicit integer_literal(element* parent, uint64_t value);
 
-	~integer_literal() override;
-
-	inline uint64_t value() const {
-		return value_;
-	}
+	uint64_t value() const ;
 
 private:
 	uint64_t value_;

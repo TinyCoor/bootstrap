@@ -4,8 +4,8 @@
 
 #include "element.h"
 namespace gfx::compiler {
-element::element(element* parent)
-	:  id_(id_pool::instance()->allocate()), parent_(parent)
+element::element(element* parent, element_type_t type)
+	:  id_(id_pool::instance()->allocate()), parent_(parent),element_type_(type)
 {
 }
 
@@ -36,6 +36,11 @@ element *element::parent()
 attribute_map_t &element::attributes()
 {
 	return attributes_;
+}
+
+element_type_t element::element_type() const
+{
+	return element_type_;
 }
 
 }

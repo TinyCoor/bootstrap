@@ -18,7 +18,9 @@ public:
 
 private:
 
-	block* make_new_block();
+	block* make_block();
+
+	block* push_new_block();
 
 	any_type* make_any_type();
 
@@ -59,6 +61,9 @@ private:
 	procedure_instance* make_procedure_instance(compiler::type* procedure_type,
 		compiler::block* scope);
 
+	procedure_call* make_procedure_call(compiler::type* procedure_type,
+		element* expr);
+
 	procedure_type* make_procedure_type();
 
 	cast* make_cast(compiler::type* type, element* expr);
@@ -66,6 +71,8 @@ private:
 	if_element* make_if(element* predicate, element* true_branch, element* false_branch);
 
 	return_element* make_return();
+
+	namespace_element* make_namespace(element* expr);
 
 private:
 

@@ -5,9 +5,8 @@
 #ifndef COMPILER_ELEMENTS_IDENTIFIER_H_
 #define COMPILER_ELEMENTS_IDENTIFIER_H_
 
-#include "type.h"
 #include "element.h"
-#include "initializer.h"
+
 namespace gfx::compiler {
 
 class identifier : public element {

@@ -105,6 +105,7 @@ set(ELEMENT_SRC
 
         src/compiler/elements/if_element.cpp
         src/compiler/elements/return_element.cpp
+        src/compiler/elements/procedure_call.cpp
         src/compiler/elements/block.cpp
         src/compiler/elements/directive.cpp
         src/compiler/elements/element.cpp

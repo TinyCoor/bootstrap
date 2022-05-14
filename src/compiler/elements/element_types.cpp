@@ -6,6 +6,7 @@
 #include "attribute.h"
 #include "field.h"
 #include "identifier.h"
+#include "type.h"
 
 namespace gfx::compiler {
 

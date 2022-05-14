@@ -4,7 +4,7 @@
 
 #ifndef COMPILER_ELEMENTS_INITIALIZER_H_
 #define COMPILER_ELEMENTS_INITIALIZER_H_
-#include "expression.h"
+#include "element.h"
 
 namespace gfx::compiler {
 class initializer : public element {

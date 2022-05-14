@@ -31,6 +31,7 @@ class string_type;
 class numeric_type;
 class if_element;
 class return_element;
+class procedure_call;
 class identifier;
 class expression;
 class initializer;
@@ -53,7 +54,7 @@ using procedure_instance_list_t = std::vector<procedure_instance*>;
 
 enum class element_type_t {
 	element = 1,
-	proc,
+
 	cast,
 	label,
 	block,
@@ -66,6 +67,7 @@ enum class element_type_t {
 	directive,
 	attribute,
 	bool_type,
+	proc_call,
 	return_e,
 	statement,
 	alias_type,

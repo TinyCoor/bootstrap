@@ -7,14 +7,14 @@
 #include "element_types.h"
 #include "block.h"
 namespace gfx::compiler {
-class namespace_element : public block {
+class namespace_element : public element {
 public:
-	namespace_element(block* parent, const std::string& name);
+	namespace_element(element* parent,  element* expr);
 
-	std::string name() const;
+	element* expression();
 
 private:
-	std::string name_;
+	element* expression_ = nullptr;
 };
 
 }

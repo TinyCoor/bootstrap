@@ -4,13 +4,13 @@
 
 #include "namespace_element.h"
 namespace gfx::compiler {
-namespace_element::namespace_element(block* parent, const std::string& name)
-	: block(parent,element_type_t::namespace_e), name_(name)
+namespace_element::namespace_element(element *parent, element *expression)
+	: element(parent,element_type_t::namespace_e), expression_(expression)
 {
 }
 
-std::string namespace_element::name() const
+element *namespace_element::expression()
 {
-	return name_;
+	return expression_;
 }
 }

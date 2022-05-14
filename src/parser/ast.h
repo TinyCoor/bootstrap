@@ -17,13 +17,15 @@ using ast_node_shared_ptr = std::shared_ptr<ast_node_t>;
 using ast_node_list = std::vector<ast_node_shared_ptr>;
 
 enum class ast_node_types_t : uint32_t {
+	pair,
 	label,
-	program,
 	symbol,
+	program,
 	proc_call,
 	statement,
 	attribute,
 	directive,
+	type_list,
 	assignment,
 	expression,
 	label_list,
@@ -35,6 +37,7 @@ enum class ast_node_types_t : uint32_t {
 	argument_list,
 	proc_expression,
 	if_expression,
+	parameter_list,
 	number_literal,
 	string_literal,
 	unary_operator,
@@ -64,11 +67,16 @@ enum class ast_node_types_t : uint32_t {
 	constant_expression,
 	namespace_expression,
 	subscript_expression,
+	return_argument_list,
+	assignment_target_list,
 };
 
 static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_names = {
+	{ast_node_types_t::pair, "pair"},
 	{ast_node_types_t::label, 	"label"},
 	{ast_node_types_t::symbol, 	"symbol"},
+	{ast_node_types_t::type_list, "type_list"},
+	{ast_node_types_t::parameter_list, "parameter_list"},
 	{ast_node_types_t::symbol_part, "symbol_part"},
 	{ast_node_types_t::label_list, "label_list"},
 	{ast_node_types_t::program, "program"},
@@ -114,7 +122,8 @@ static inline std::unordered_map<ast_node_types_t, std::string> s_node_type_name
 	{ast_node_types_t::constant_expression, "constant_expression"},
 	{ast_node_types_t::namespace_expression, "namespace_statement"},
 	{ast_node_types_t::subscript_expression, "subscript_expression"},
-
+	{ast_node_types_t::return_argument_list, "return_argument_list"},
+	{ast_node_types_t::assignment_target_list, "assignment_target_list"},
 };
 
 static inline std::string ast_node_type_name(ast_node_types_t type) {
@@ -179,6 +188,14 @@ public:
 
 	ast_node_shared_ptr if_node();
 
+	ast_node_shared_ptr pair_node();
+
+	ast_node_shared_ptr type_list_node();
+
+	ast_node_shared_ptr parameter_list_node();
+
+	ast_node_shared_ptr assignment_target_list_node();
+
 	ast_node_shared_ptr else_node();
 
 	ast_node_shared_ptr end_scope();
@@ -210,6 +227,8 @@ public:
 	ast_node_shared_ptr basic_block_node();
 
 	ast_node_shared_ptr symbol_node();
+
+	ast_node_shared_ptr return_argument_list_node();
 
 	ast_node_shared_ptr proc_expression_node();
 

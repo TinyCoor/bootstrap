@@ -42,6 +42,45 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
 	return type_node;
 }
 
+void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr& root) {
+	if (root->type != ast_node_types_t::pair) {
+		target->children.push_back(root);
+		return;
+	}
+
+	auto current_pair = root;
+	while (true) {
+		if (current_pair->lhs->type != ast_node_types_t::pair) {
+			target->children.push_back(current_pair->lhs);
+			target->children.push_back(current_pair->rhs);
+			break;
+		}
+		target->children.push_back(current_pair->rhs);
+		current_pair = current_pair->lhs;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+ast_node_shared_ptr create_expression_node(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+										   token_t& token) {
+	auto expression_node = parser->ast_builder()->expression_node();
+	expression_node->lhs = parser->parse_expression(r, 0);
+
+	token_t right_paren_token;
+	right_paren_token.type = token_types_t::right_paren;
+	if (!parser->expect(r, right_paren_token))
+		return nullptr;
+
+	if (lhs != nullptr
+		&&  lhs->type == ast_node_types_t::block_comment) {
+		expression_node->children.push_back(lhs);
+	}
+
+	return expression_node;
+}
+
+
 ast_node_shared_ptr create_symbol_node(result& r, parser* parser, const ast_node_shared_ptr& lhs,
 	token_t& token) {
 	auto symbol_node = parser->ast_builder()->symbol_node();
@@ -113,30 +152,34 @@ ast_node_shared_ptr create_cast_node(result& r, parser* parser, token_t& token)
 ast_node_shared_ptr proc_call_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
 	token_t& token)
 {
-	auto proc_call_node = parser->ast_builder()->proc_call_node();
-	proc_call_node->lhs = lhs;
+	if (lhs->type == ast_node_types_t::symbol) {
+		auto proc_call_node = parser->ast_builder()->proc_call_node();
+		proc_call_node->lhs = lhs;
 
-	if (!parser->peek(token_types_t::right_paren)) {
-		while (true) {
-			auto param_expr = parser->parse_expression(r, 0);
-			if (param_expr->type == ast_node_types_t::block_comment) {
-				proc_call_node->children.push_back(param_expr);
-				continue;
-			} else {
-				proc_call_node->rhs->children.push_back(param_expr);
+		if (!parser->peek(token_types_t::right_paren)) {
+			while (true) {
+				auto param_expr = parser->parse_expression(r, 0);
+				if (param_expr->type == ast_node_types_t::block_comment) {
+					proc_call_node->children.push_back(param_expr);
+					continue;
+				} else {
+					proc_call_node->rhs->children.push_back(param_expr);
+				}
+				if (!parser->peek(token_types_t::comma)) {
+					break;
+				}
+				parser->consume();
 			}
-			if (!parser->peek(token_types_t::comma)) {
-				break;
-			}
-			parser->consume();
 		}
+		token_t right_paren_token;
+		right_paren_token.type = token_types_t::right_paren;
+		if (!parser->expect(r, right_paren_token)) {
+			return nullptr;
+		}
+		return proc_call_node;
+	} else {
+		return create_expression_node(r, parser, lhs, token);
 	}
-	token_t right_paren_token;
-	right_paren_token.type = token_types_t::right_paren;
-	if (!parser->expect(r, right_paren_token)) {
-		return nullptr;
-	}
-	return proc_call_node;
 }
 
 precedence_t proc_call_infix_parser::precedence() const
@@ -198,7 +241,7 @@ ast_node_shared_ptr assignment_infix_parser::parse(result& r, parser* parser, co
 	token_t& token)
 {
 	auto assignment_node = parser->ast_builder()->assignment_node();
-	assignment_node->lhs = lhs;
+	pairs_to_list(assignment_node->lhs, lhs);
 	assignment_node->rhs = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::assignment) - 1);
 	return assignment_node;
 }
@@ -232,5 +275,19 @@ precedence_t cast_infix_parser::precedence() const
 {
 	return precedence_t::cast;
 }
+
+ast_node_shared_ptr comma_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+	token_t& token)
+{
+	auto pair_node = parser->ast_builder()->pair_node();
+	pair_node->lhs = lhs;
+	pair_node->rhs = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::comma));
+	return pair_node;
+}
+
+precedence_t comma_infix_parser::precedence() const {
+	return precedence_t::comma;
+}
+
 
 }

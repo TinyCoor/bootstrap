@@ -89,10 +89,11 @@ set(ELEMENT_SRC
         src/compiler/elements/operator_base.cpp
         src/compiler/elements/unary_operator.cpp
         src/compiler/elements/binary_operator.cpp
-        src/compiler/elements/boolean_literal.cpp
+
         # literal
         src/compiler/elements/float_literal.cpp
         src/compiler/elements/integer_literal.cpp
+        src/compiler/elements/boolean_literal.cpp
         src/compiler/elements/string_literal.cpp
         # type
         src/compiler/elements/type.cpp

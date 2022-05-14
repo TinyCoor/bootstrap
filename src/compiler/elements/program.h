@@ -74,6 +74,14 @@ private:
 
 	namespace_element* make_namespace(element* expr);
 
+	boolean_literal* make_bool(bool value);
+
+	float_literal* make_float(double value);
+
+	integer_literal* make_integer(uint64_t value);
+
+	string_literal* make_string(const std::string& value);
+
 private:
 
 	element* evaluate(result& r, const ast_node_shared_ptr& node);

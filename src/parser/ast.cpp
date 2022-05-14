@@ -90,6 +90,7 @@ ast_node_shared_ptr ast_builder::assignment_node()
 	auto node = std::make_shared<ast_node_t>();
 	node->id= ++id_;
 	node->type = ast_node_types_t::assignment;
+	node->lhs = assignment_target_list_node();
 	return node;
 }
 
@@ -232,8 +233,8 @@ ast_node_shared_ptr ast_builder::proc_expression_node()
 	auto node = std::make_shared<ast_node_t>();
 	node->id =++id_;
 	node->type = ast_node_types_t::proc_expression;
-	node->lhs = symbol_node();
-	node->rhs = argument_list_node();
+	node->lhs = type_list_node();
+	node->rhs = parameter_list_node();
 	return node;
 }
 ast_node_shared_ptr ast_builder::else_if_node()
@@ -263,7 +264,7 @@ ast_node_shared_ptr ast_builder::return_node()
 	auto node = std::make_shared<ast_node_t>();
 	node->id =++id_;
 	node->type  = ast_node_types_t::return_statement;
-	node->rhs = argument_list_node();
+	node->rhs = return_argument_list_node();
 	return node;
 }
 
@@ -383,4 +384,42 @@ ast_node_shared_ptr ast_builder::cast_node(token_t &token)
 	return node;
 }
 
+ast_node_shared_ptr ast_builder::pair_node()
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->id = ++id_;
+	node->type = ast_node_types_t::pair;
+	return node;
+}
+
+ast_node_shared_ptr ast_builder::type_list_node()
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->id = ++id_;
+	node->type = ast_node_types_t::type_list;
+	return node;
+}
+
+ast_node_shared_ptr ast_builder::parameter_list_node()
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->id = ++id_;
+	node->type = ast_node_types_t::parameter_list;
+	return node;
+}
+ast_node_shared_ptr ast_builder::assignment_target_list_node()
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->id = ++id_;
+	node->type = ast_node_types_t::assignment_target_list;
+	return node;
+}
+
+ast_node_shared_ptr ast_builder::return_argument_list_node()
+{
+	auto node = std::make_shared<ast_node_t>();
+	node->id = ++id_;
+	node->type = ast_node_types_t::return_argument_list;
+	return node;
+}
 }

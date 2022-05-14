@@ -6,7 +6,7 @@
 namespace gfx::compiler {
 
 procedure_call::procedure_call(element *parent, compiler::type *procedure_type, element *expr)
-	: element(parent, element_type_t::proc_call), procedure_type_(procedure_type), expression_(expr)
+	: element(parent, element_type_t::proc_call), expression_(expr), procedure_type_(procedure_type)
 {
 
 }

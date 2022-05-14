@@ -9,9 +9,9 @@ namespace gfx {
 //////////////////////////////////////////////////////////////////////////////////////////////
 ast_node_shared_ptr constant_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	auto constant_node = parser->ast_builder()->constant_node(token);
-	constant_node->rhs = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::assignment));
-	return constant_node;
+	auto symbol_node = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::assignment));
+	symbol_node->lhs = parser->ast_builder()->constant_node(token);
+	return symbol_node;
 }
 
 ast_node_shared_ptr with_prefix_parser::parse(result& r, parser* parser, token_t& token)
@@ -86,12 +86,7 @@ ast_node_shared_ptr for_in_prefix_parser::parse(result& r, parser* parser, token
 ast_node_shared_ptr return_prefix_parser::parse(result& r, parser* parser, token_t& token) {
 	auto return_node = parser->ast_builder()->return_node();
 
-	while (true) {
-		return_node->rhs->children.push_back(parser->parse_expression(r, 0));
-		if (!parser->peek(token_types_t::comma))
-			break;
-		parser->consume();
-	}
+	pairs_to_list(return_node->rhs, parser->parse_expression(r, 0));
 
 	return return_node;
 }
@@ -152,20 +147,7 @@ ast_node_shared_ptr proc_expression_prefix_parser::parse(result& r, parser* pars
 	}
 
 	if (!parser->peek(token_types_t::right_paren)) {
-		while (true) {
-			auto param_expr = parser->parse_expression(r, 0);
-			if (param_expr->type ==ast_node_types_t::block_comment) {
-				proc_node->children.push_back(param_expr);
-				continue;
-			} else {
-				proc_node->rhs->children.push_back(param_expr);
-			}
-
-			if (!parser->peek(token_types_t::comma)) {
-				break;
-			}
-			parser->consume();
-		}
+		pairs_to_list(proc_node->rhs, parser->parse_expression(r, 0));
 	}
 
 	token_t right_paren_token;
@@ -176,13 +158,7 @@ ast_node_shared_ptr proc_expression_prefix_parser::parse(result& r, parser* pars
 
 	if (parser->peek(token_types_t::colon)) {
 		parser->consume();
-		while (true) {
-			proc_node->lhs->children.push_back(parser->parse_expression(r, static_cast<uint8_t>(precedence_t::type)));
-			if (!parser->peek(token_types_t::comma)) {
-				break;
-			}
-			parser->consume();
-		}
+		pairs_to_list(proc_node->lhs, parser->parse_expression(r, 0));
 	}
 
 	if (!parser->peek(token_types_t::semi_colon)) {
@@ -196,13 +172,7 @@ ast_node_shared_ptr proc_expression_prefix_parser::parse(result& r, parser* pars
 
 ast_node_shared_ptr group_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	auto expression_node = parser->ast_builder()->expression_node();
-	expression_node->lhs = parser->parse_expression(r, 0);
-	token_t right_paren_token;
-	right_paren_token.type = token_types_t::right_paren;
-	if (!parser->expect(r, right_paren_token))
-		return nullptr;
-	return expression_node;
+	return create_expression_node(r, parser, nullptr, token);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

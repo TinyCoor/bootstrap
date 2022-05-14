@@ -4,7 +4,7 @@
 
 #ifndef COMPILER_ELEMENTS_BOOLEAN_LITERAL_H_
 #define COMPILER_ELEMENTS_BOOLEAN_LITERAL_H_
-#include "type.h"
+#include "element.h"
 
 namespace gfx::compiler {
 class boolean_literal : public element {

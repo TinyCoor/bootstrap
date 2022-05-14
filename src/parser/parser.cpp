@@ -198,7 +198,7 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 		return nullptr;
 	}
 
-	if (token.is_line_comment() || token.is_block_comment() || token.is_label()) {
+	if (token.is_line_comment() || token.is_label()) {
 		return lhs;
 	}
 

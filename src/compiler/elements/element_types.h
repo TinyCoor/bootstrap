@@ -40,6 +40,8 @@ class operator_base;
 class procedure_type;
 class unary_operator;
 class integer_literal;
+class boolean_literal;
+class string_literal;
 class binary_operator;
 class namespace_element;
 class composite_type;

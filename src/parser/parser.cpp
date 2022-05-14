@@ -241,11 +241,11 @@ ast_node_shared_ptr parser::expect_expression(result& r, ast_node_types_t expect
 
 void parser::error(result &r, const std::string &code, const std::string &message, uint32_t line, uint32_t column)
 {
-	std::vector<std::string> source_lines {};
 	source_.seekg(0, std::ios::beg);
-	while (!source_.eof()) {
-		std::string source_line;
-		std::getline(source_, source_line);
+
+	std::vector<std::string> source_lines {};
+	std::string source_line;
+	while (std::getline(source_, source_line)) {
 		source_lines.push_back(source_line);
 	}
 
@@ -265,8 +265,9 @@ void parser::error(result &r, const std::string &code, const std::string &messag
 				   << source_lines[i];
 		}
 
-		if (i < static_cast<int32_t>(stop_line - 1))
+		if (i < static_cast<int32_t>(stop_line - 1)) {
 			stream << "\n";
+		}
 	}
 
 	r.add_message(code, fmt::format("{} @ {}:{}", message, line, column), stream.str(), true);

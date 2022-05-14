@@ -12,11 +12,13 @@ ast_formatter::ast_formatter(const ast_node_shared_ptr& root, FILE* file)
 {
 }
 
-void ast_formatter::format_text() {
+void ast_formatter::format_text()
+{
 	format_text_node(root_, 0);
 }
 
-void ast_formatter::format_text_node(const ast_node_shared_ptr &node, uint32_t level) {
+void ast_formatter::format_text_node(const ast_node_shared_ptr &node, uint32_t level)
+{
 	if (node == nullptr) {
 		fmt::print(file_, "nullptr");
 		return;
@@ -57,7 +59,8 @@ void ast_formatter::format_text_node(const ast_node_shared_ptr &node, uint32_t l
 	}
 }
 
-void ast_formatter::format_graph_viz() {
+void ast_formatter::format_graph_viz()
+{
 	fmt::print(file_, "digraph {{\n");
 	// fmt::print("rankdir=LR\n");
 	// fmt::print(file_, "splines=\"line\";\n");
@@ -65,8 +68,9 @@ void ast_formatter::format_graph_viz() {
 	fmt::print(file_,"}}\n");
 }
 
-void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
-	if (node ==nullptr) {
+void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node)
+{
+	if (node == nullptr) {
 		return;
 	}
 	auto node_vertex_name = get_vertex_name(node);
@@ -147,9 +151,8 @@ void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
 
 		details += "}";
 	}
-
-	fmt::print(file_, "{}[shape={},label=\"<f0> lhs|<f1> {}{}|<f2> rhs\"{}];\n",
-		node_vertex_name, shape, node->name(), details, style);
+	fmt::print(file_, "\t{}[shape={},label=\"{}<f1> {}{}{}\"{}];\n",
+		node_vertex_name, shape, node->lhs !=nullptr ? "<f0> lhs|" : "", node->name(), details, node->rhs != nullptr ? "|<f2> rhs" : "", style);
 	if (node->lhs != nullptr) {
 		format_graph_viz_node(node->lhs);
 		fmt::print(file_, "{}:f0 -> {}:f1;\n", node_vertex_name, get_vertex_name(node->lhs));
@@ -180,7 +183,8 @@ void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node) {
 	}
 }
 
-std::string ast_formatter::get_vertex_name(const ast_node_shared_ptr& node) const {
+std::string ast_formatter::get_vertex_name(const ast_node_shared_ptr& node) const
+{
 	return fmt::format("{}{}", node->name(), node->id);
 }
 

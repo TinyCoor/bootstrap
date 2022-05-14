@@ -58,7 +58,8 @@ private:
 	static inline struct_prefix_parser s_struct_prefix_parser {};
 	static inline for_in_prefix_parser s_for_in_prefix_parser {};
 	static inline return_prefix_parser s_return_prefix_parser {};
-
+	static inline symbol_prefix_parser s_symbol_prefix_parser {};
+	static inline constant_prefix_parser s_constant_prefix_parser {};
 	static inline defer_prefix_parser s_defer_literal_prefix_parser {};
 	static inline namespace_prefix_parser s_namespace_prefix_parser {};
 	static inline attribute_prefix_parser s_attribute_prefix_parser {};
@@ -74,7 +75,6 @@ private:
 	static inline type_identifier_prefix_parser s_type_identifier_prefix_parser {};
 	static inline array_subscript_prefix_parser s_array_subscript_prefix_parser {};
 	static inline proc_expression_prefix_parser s_proc_expression_prefix_parser {};
-	static inline symbol_reference_prefix_parser s_symbol_reference_prefix_parser {};
 	static inline unary_operator_prefix_parser s_negate_prefix_parser {precedence_t::sum};
 	static inline unary_operator_prefix_parser s_not_prefix_parser {precedence_t::prefix};
 	static inline unary_operator_prefix_parser s_binary_not_prefix_parser {precedence_t::prefix};
@@ -88,10 +88,11 @@ private:
 		{token_types_t::left_paren,          &s_group_prefix_parser},
 		{token_types_t::union_literal,       &s_union_prefix_parser},
 		{token_types_t::struct_literal,      &s_struct_prefix_parser},
+		{token_types_t::constant_literal,    &s_constant_prefix_parser},
 		{token_types_t::for_literal,         &s_for_in_prefix_parser},
 		{token_types_t::minus,               &s_negate_prefix_parser},
 		{token_types_t::return_literal,      &s_return_prefix_parser},
-		{token_types_t::proc_literal,        &s_proc_expression_prefix_parser},
+		{token_types_t::identifier,          &s_symbol_prefix_parser},
 		{token_types_t::namespace_literal,   &s_namespace_prefix_parser},
 		{token_types_t::attribute,           &s_attribute_prefix_parser},
 		{token_types_t::directive,           &s_directive_prefix_parser},
@@ -111,15 +112,16 @@ private:
 		{token_types_t::false_literal,       &s_keyword_literal_prefix_parser},
 		{token_types_t::left_square_bracket, &s_array_subscript_prefix_parser},
 		{token_types_t::colon,               &s_type_identifier_prefix_parser},
-		{token_types_t::identifier,          &s_symbol_reference_prefix_parser},
+		{token_types_t::proc_literal,        &s_proc_expression_prefix_parser},
 	};
 
 	static inline cast_infix_parser s_cast_infix_parser {};
+	static inline symbol_infix_parser s_symbol_infix_parser {};
 	static inline proc_call_infix_parser s_proc_call_infix_parser {};
 	static inline assignment_infix_parser s_assignment_infix_parser {};
 	static inline block_comment_infix_parser s_block_comment_infix_parser {};
 	static inline type_identifier_infix_parser s_type_identifier_infix_parser {};
-	static inline symbol_reference_infix_parser s_symbol_reference_infix_parser {};
+
 	static inline binary_operator_infix_parser s_sum_binary_op_parser {precedence_t::sum, false};
 	static inline binary_operator_infix_parser s_product_binary_op_parser {precedence_t::product, false};
 	static inline binary_operator_infix_parser s_bitwise_binary_op_parser {precedence_t::bitwise, false};
@@ -129,6 +131,7 @@ private:
 
 	static inline std::unordered_map<token_types_t, infix_parser*> s_infix_parsers = {
 		{token_types_t::cast_literal,       &s_cast_infix_parser},
+		{token_types_t::identifier,         &s_symbol_infix_parser},
 		{token_types_t::left_paren,         &s_proc_call_infix_parser},
 		{token_types_t::minus,              &s_sum_binary_op_parser},
 		{token_types_t::plus,               &s_sum_binary_op_parser},
@@ -154,7 +157,7 @@ private:
 		{token_types_t::greater_than,       &s_relational_binary_op_parser},
 		{token_types_t::greater_than_equal, &s_relational_binary_op_parser},
 		{token_types_t::colon,              &s_type_identifier_infix_parser},
-		{token_types_t::identifier,         &s_symbol_reference_infix_parser},
+
 	};
 
 private:

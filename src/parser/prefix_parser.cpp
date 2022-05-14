@@ -192,7 +192,7 @@ ast_node_shared_ptr proc_expression_prefix_parser::parse(result& r, parser* pars
 	return proc_node;
 }
 
-///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr group_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
@@ -205,10 +205,10 @@ ast_node_shared_ptr group_prefix_parser::parse(result& r, parser* parser, token_
 	return expression_node;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
 unary_operator_prefix_parser::unary_operator_prefix_parser(precedence_t precedence) noexcept
-	: _precedence(precedence)
+	: precedence_(precedence)
 {
 
 }
@@ -216,7 +216,7 @@ unary_operator_prefix_parser::unary_operator_prefix_parser(precedence_t preceden
 ast_node_shared_ptr unary_operator_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	auto unary_operator_node = parser->ast_builder()->unary_operator_node(token);
-	unary_operator_node->rhs = parser->parse_expression(r,static_cast<uint8_t>(_precedence));
+	unary_operator_node->rhs = parser->parse_expression(r,static_cast<uint8_t>(precedence_));
 	return unary_operator_node;
 }
 
@@ -288,32 +288,9 @@ ast_node_shared_ptr block_comment_prefix_parser::parse(result& r, parser* parser
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr symbol_reference_prefix_parser::parse(result& r, parser* parser, token_t& token)
+ast_node_shared_ptr symbol_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	auto argument_list_node = parser->ast_builder()->argument_list_node();
-
-	auto symbol_reference_node = parser->ast_builder()->qualified_symbol_reference_node();
-
-	while (true) {
-		auto symbol_node = parser->ast_builder()->symbol_reference_node(token);
-		symbol_reference_node->lhs->children.push_back(symbol_node);
-		if (!parser->peek(token_types_t::scope_operator) &&  !parser->peek(token_types_t::period)) {
-			if (parser->peek(token_types_t::comma)) {
-				argument_list_node->children.push_back(symbol_reference_node);
-				goto next_symbol;
-			}
-			break;
-		}
-		next_symbol:
-		parser->consume();
-		if (!parser->expect(r, token)) {
-			return nullptr;
-		}
-	}
-
-	return argument_list_node->children.empty() ?
-		   symbol_reference_node :
-		   argument_list_node;;
+	return create_symbol_node(r, parser, nullptr, token);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,7 +304,8 @@ ast_node_shared_ptr directive_prefix_parser::parse(result& r, parser* parser, to
 	return directive_node;
 }
 
-///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 ast_node_shared_ptr attribute_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	auto attribute_node = parser->ast_builder()->attribute_node(token);
@@ -338,7 +316,7 @@ ast_node_shared_ptr attribute_prefix_parser::parse(result& r, parser* parser, to
 	return attribute_node;
 }
 
-///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr array_subscript_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
@@ -361,7 +339,7 @@ ast_node_shared_ptr label_prefix_parser::parse(result& r, parser* parser,token_t
 	return parser->ast_builder()->label_node(token);
 }
 
-///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr cast_prefix_parser::parse(result& r, parser* parser, token_t& token) {
 	return create_cast_node(r, parser, token);

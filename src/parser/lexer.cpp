@@ -3,6 +3,7 @@
 //
 
 #include "lexer.h"
+#include <unordered_map>
 
 #include <sstream>
 namespace gfx {
@@ -218,26 +219,32 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 };
 
-lexer::lexer(std::istream& source) : source_(source) {
+lexer::lexer(std::istream& source)
+	: source_(source)
+{
 	source_.seekg(0, std::ios::beg);
 }
 
 
-char lexer::peek() {
+char lexer::peek()
+{
 	while (!source_.eof()) {
 		auto ch = static_cast<char>(source_.get());
-		if (!isspace(ch))
+		if (!isspace(ch)) {
 			return ch;
+		}
 	}
 	return 0;
 }
 
-void lexer::mark_position() {
+void lexer::mark_position()
+{
 	mark_ = source_.tellg();
 }
 
 
-void lexer::increment_line() {
+void lexer::increment_line()
+{
 	auto pos = source_.tellg();
 	if (line_breaks_.count(pos) == 0) {
 		line_++;
@@ -246,22 +253,26 @@ void lexer::increment_line() {
 	}
 }
 
-bool lexer::has_next() const {
+bool lexer::has_next() const
+{
 	return has_next_;
 }
 
-void lexer::rewind_one_char() {
+void lexer::rewind_one_char()
+{
 	source_.seekg(-1, std::istream::cur);
 	if (column_ > 0){
 		column_--;
 	}
 }
 
-void lexer::restore_position() {
+void lexer::restore_position()
+{
 	source_.seekg(mark_);
 }
 
-bool lexer::next(token_t& token) {
+bool lexer::next(token_t& token)
+{
 	if (source_.eof()) {
 		has_next_ = false;
 		token.value = "";
@@ -299,7 +310,8 @@ bool lexer::next(token_t& token) {
 	return true;
 }
 
-char lexer::read(bool skip_whitespace) {
+char lexer::read(bool skip_whitespace)
+{
 	while (true) {
 		auto ch = static_cast<char>(source_.get());
 
@@ -315,7 +327,8 @@ char lexer::read(bool skip_whitespace) {
 	}
 }
 
-std::string lexer::read_identifier() {
+std::string lexer::read_identifier()
+{
 	auto ch = read(false);
 	if (ch != '_' && !isalpha(ch)) {
 		return "";
@@ -336,7 +349,8 @@ std::string lexer::read_identifier() {
 	}
 }
 
-bool lexer::alias_literal(token_t& token) {
+bool lexer::alias_literal(token_t& token)
+{
 	if (match_literal("alias")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -348,7 +362,8 @@ bool lexer::alias_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::break_literal(token_t& token) {
+bool lexer::break_literal(token_t& token)
+{
 	if (match_literal("break")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -360,7 +375,8 @@ bool lexer::break_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::while_literal(token_t& token) {
+bool lexer::while_literal(token_t& token)
+{
 	if (match_literal("while")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -372,7 +388,8 @@ bool lexer::while_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::union_literal(token_t &token) {
+bool lexer::union_literal(token_t &token)
+{
 	if (match_literal("union")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -384,19 +401,21 @@ bool lexer::union_literal(token_t &token) {
 	return false;
 }
 
-bool lexer::continue_literal(token_t& token) {
+bool lexer::continue_literal(token_t& token)
+{
 	if (match_literal("continue")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token = s_constant_literal;
+			token = s_continue_literal;
 			return true;
 		}
 	}
 	return false;
 }
 
-bool lexer::left_curly_brace(token_t& token) {
+bool lexer::left_curly_brace(token_t& token)
+{
 	auto ch = read();
 	if (ch == '{') {
 		token = s_left_curly_brace_literal;
@@ -405,7 +424,8 @@ bool lexer::left_curly_brace(token_t& token) {
 	return false;
 }
 
-bool lexer::right_curly_brace(token_t& token) {
+bool lexer::right_curly_brace(token_t& token)
+{
 	auto ch = read();
 	if (ch == '}') {
 		token = s_right_curly_brace_literal;
@@ -414,7 +434,8 @@ bool lexer::right_curly_brace(token_t& token) {
 	return false;
 }
 
-std::string lexer::read_until(char target_ch) {
+std::string lexer::read_until(char target_ch)
+{
 	std::stringstream stream;
 	while (true) {
 		auto ch = read(false);
@@ -426,7 +447,8 @@ std::string lexer::read_until(char target_ch) {
 	return stream.str();
 }
 
-bool lexer::plus(token_t& token) {
+bool lexer::plus(token_t& token)
+{
 	auto ch = read();
 	if (ch == '+') {
 		token =s_plus_literal;
@@ -435,7 +457,8 @@ bool lexer::plus(token_t& token) {
 	return false;
 }
 
-bool lexer::bang(token_t& token) {
+bool lexer::bang(token_t& token)
+{
 	auto ch = read();
 	if (ch == '!') {
 		token = s_bang_literal;
@@ -444,7 +467,8 @@ bool lexer::bang(token_t& token) {
 	return false;
 }
 
-bool lexer::caret(token_t& token) {
+bool lexer::caret(token_t& token)
+{
 	auto ch = read();
 	if (ch == '^') {
 		token = s_caret_literal;
@@ -453,7 +477,8 @@ bool lexer::caret(token_t& token) {
 	return false;
 }
 
-bool lexer::tilde(token_t& token) {
+bool lexer::tilde(token_t& token)
+{
 	auto ch = read();
 	if (ch == '~') {
 		token = s_tilde_literal;
@@ -462,7 +487,8 @@ bool lexer::tilde(token_t& token) {
 	return false;
 }
 
-bool lexer::colon(token_t& token) {
+bool lexer::colon(token_t& token)
+{
 	auto ch = read();
 	if (ch == ':') {
 		token = s_colon_literal;
@@ -471,16 +497,18 @@ bool lexer::colon(token_t& token) {
 	return false;
 }
 
-bool lexer::minus(token_t& token) {
+bool lexer::minus(token_t& token)
+{
 	auto ch = read();
 	if (ch == '-') {
-		token =s_minus_literal;
+		token = s_minus_literal;
 		return true;
 	}
 	return false;
 }
 
-bool lexer::comma(token_t& token) {
+bool lexer::comma(token_t& token)
+{
 	auto ch = read();
 	if (ch == ',') {
 		token = s_comma_literal;
@@ -489,7 +517,8 @@ bool lexer::comma(token_t& token) {
 	return false;
 }
 
-bool lexer::slash(token_t& token) {
+bool lexer::slash(token_t& token)
+{
 	auto ch = read();
 	if (ch == '/') {
 		token = s_slash_literal;
@@ -498,7 +527,8 @@ bool lexer::slash(token_t& token) {
 	return false;
 }
 
-bool lexer::spread(token_t& token) {
+bool lexer::spread(token_t& token)
+{
 	if (match_literal("...")) {
 		token = s_spread_operator_literal;
 		return true;
@@ -506,7 +536,8 @@ bool lexer::spread(token_t& token) {
 	return false;
 }
 
-bool lexer::percent(token_t& token) {
+bool lexer::percent(token_t& token)
+{
 	auto ch = read();
 	if (ch == '%') {
 		token =s_percent_literal;
@@ -515,7 +546,8 @@ bool lexer::percent(token_t& token) {
 	return false;
 }
 
-bool lexer::question(token_t& token) {
+bool lexer::question(token_t& token)
+{
 	auto ch = read();
 	if (ch == '?') {
 		token =s_question_literal;
@@ -524,7 +556,8 @@ bool lexer::question(token_t& token) {
 	return false;
 }
 
-bool lexer::asterisk(token_t& token) {
+bool lexer::asterisk(token_t& token)
+{
 	auto ch = read();
 	if (ch == '*') {
 		token = s_asterisk_literal;
@@ -533,7 +566,8 @@ bool lexer::asterisk(token_t& token) {
 	return false;
 }
 
-bool lexer::attribute(token_t& token) {
+bool lexer::attribute(token_t& token)
+{
 	auto ch = read();
 	if (ch == '@') {
 		token.value = read_identifier();
@@ -547,7 +581,8 @@ bool lexer::attribute(token_t& token) {
 	return false;
 }
 
-bool lexer::identifier(token_t& token) {
+bool lexer::identifier(token_t& token)
+{
 	auto name = read_identifier();
 	if (name.empty()) {
 		return false;
@@ -560,7 +595,8 @@ bool lexer::identifier(token_t& token) {
 	return true;
 }
 
-bool lexer::assignment(token_t& token) {
+bool lexer::assignment(token_t& token)
+{
 	auto ch = read();
 	if (ch == ':') {
 		ch = read();
@@ -572,7 +608,8 @@ bool lexer::assignment(token_t& token) {
 	return false;
 }
 
-bool lexer::left_paren(token_t& token) {
+bool lexer::left_paren(token_t& token)
+{
 	auto ch = read();
 	if (ch == '(') {
 		token =s_left_paren_literal;
@@ -581,7 +618,8 @@ bool lexer::left_paren(token_t& token) {
 	return false;
 }
 
-bool lexer::in_literal(token_t& token) {
+bool lexer::in_literal(token_t& token)
+{
 	auto ch = read();
 	if (ch == 'i') {
 		ch = read();
@@ -593,7 +631,8 @@ bool lexer::in_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::right_paren(token_t& token) {
+bool lexer::right_paren(token_t& token)
+{
 	auto ch = read();
 	if (ch == ')') {
 		token = s_right_paren_literal;
@@ -615,7 +654,8 @@ bool lexer::proc_literal(token_t &token)
 	return false;
 }
 
-bool lexer::ns_literal(token_t& token) {
+bool lexer::ns_literal(token_t& token)
+{
 	if (match_literal("ns")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -627,7 +667,8 @@ bool lexer::ns_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::if_literal(token_t& token) {
+bool lexer::if_literal(token_t& token)
+{
 	if (match_literal("if")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -639,7 +680,8 @@ bool lexer::if_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::else_literal(token_t& token) {
+bool lexer::else_literal(token_t& token)
+{
 	if (match_literal("else")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -651,7 +693,8 @@ bool lexer::else_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::line_comment(token_t& token) {
+bool lexer::line_comment(token_t& token)
+{
 	auto ch = read();
 	if (ch == '/') {
 		ch = read();
@@ -665,7 +708,8 @@ bool lexer::line_comment(token_t& token) {
 	return false;
 }
 
-bool lexer::for_literal(token_t& token) {
+bool lexer::for_literal(token_t& token)
+{
 	if (match_literal("for")) {
 		auto ch = read(false);
 		if (isspace(ch)) {
@@ -677,7 +721,8 @@ bool lexer::for_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::null_literal(token_t& token) {
+bool lexer::null_literal(token_t& token)
+{
 	if (match_literal("null")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -689,7 +734,8 @@ bool lexer::null_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::cast_literal(token_t& token) {
+bool lexer::cast_literal(token_t& token)
+{
 	if (match_literal("cast")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -701,7 +747,8 @@ bool lexer::cast_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::true_literal(token_t& token) {
+bool lexer::true_literal(token_t& token)
+{
 	if (match_literal("true")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -713,7 +760,8 @@ bool lexer::true_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::pipe_literal(token_t& token) {
+bool lexer::pipe_literal(token_t& token)
+{
 	auto ch = read();
 	if (ch == '|') {
 		token = s_pipe_literal;
@@ -722,7 +770,8 @@ bool lexer::pipe_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::string_literal(token_t& token) {
+bool lexer::string_literal(token_t& token)
+{
 	auto ch = read();
 	if (ch == '\"') {
 		token.type = token_types_t::string_literal;
@@ -732,7 +781,8 @@ bool lexer::string_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::false_literal(token_t& token) {
+bool lexer::false_literal(token_t& token)
+{
 	if (match_literal("false")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -744,7 +794,8 @@ bool lexer::false_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::defer_literal(token_t& token) {
+bool lexer::defer_literal(token_t& token)
+{
 	if (match_literal("defer")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -756,8 +807,8 @@ bool lexer::defer_literal(token_t& token) {
 	return false;
 }
 
-
-bool lexer::number_literal(token_t& token) {
+bool lexer::number_literal(token_t& token)
+{
 	std::stringstream stream;
 	token.type = token_types_t::number_literal;
 	token.number_type= number_types_t::integer;
@@ -839,7 +890,8 @@ bool lexer::scope_operator(token_t& token) {
 	return false;
 }
 
-bool lexer::line_terminator(token_t& token) {
+bool lexer::line_terminator(token_t& token)
+{
 	auto ch = read();
 	if (ch == ';') {
 		token = s_semi_colon_literal;
@@ -848,7 +900,8 @@ bool lexer::line_terminator(token_t& token) {
 	return false;
 }
 
-bool lexer::equals_operator(token_t& token) {
+bool lexer::equals_operator(token_t& token)
+{
 	auto ch = read();
 	if (ch == '=') {
 		ch = read();
@@ -860,7 +913,8 @@ bool lexer::equals_operator(token_t& token) {
 	return false;
 }
 
-bool lexer::character_literal(token_t& token) {
+bool lexer::character_literal(token_t& token)
+{
 	auto ch = read();
 	if (ch == '\'') {
 		auto value = read();
@@ -875,7 +929,8 @@ bool lexer::character_literal(token_t& token) {
 }
 
 
-bool lexer::ampersand_literal(token_t& token) {
+bool lexer::ampersand_literal(token_t& token)
+{
 	auto ch = read();
 	if (ch == '&') {
 		token = s_ampersand_literal;
@@ -884,7 +939,8 @@ bool lexer::ampersand_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::less_than_operator(token_t& token) {
+bool lexer::less_than_operator(token_t& token)
+{
 	auto ch = read();
 	if (ch == '<') {
 		token = s_less_than_literal;
@@ -893,7 +949,8 @@ bool lexer::less_than_operator(token_t& token) {
 	return false;
 }
 
-bool lexer::logical_or_operator(token_t& token) {
+bool lexer::logical_or_operator(token_t& token)
+{
 	auto ch = read();
 	if (ch == '|') {
 		ch = read();
@@ -905,7 +962,8 @@ bool lexer::logical_or_operator(token_t& token) {
 	return false;
 }
 
-bool lexer::logical_and_operator(token_t& token) {
+bool lexer::logical_and_operator(token_t& token)
+{
 	auto ch = read();
 	if (ch == '&') {
 		ch = read();
@@ -917,7 +975,8 @@ bool lexer::logical_and_operator(token_t& token) {
 	return false;
 }
 
-bool lexer::not_equals_operator(token_t& token) {
+bool lexer::not_equals_operator(token_t& token)
+{
 	auto ch = read();
 	if (ch == '!') {
 		ch = read();
@@ -929,7 +988,8 @@ bool lexer::not_equals_operator(token_t& token) {
 	return false;
 }
 
-bool lexer::left_square_bracket(token_t& token) {
+bool lexer::left_square_bracket(token_t& token)
+{
 	auto ch = read();
 	if (ch == '[') {
 		token = s_left_square_bracket_literal;
@@ -938,7 +998,8 @@ bool lexer::left_square_bracket(token_t& token) {
 	return false;
 }
 
-bool lexer::right_square_bracket(token_t& token) {
+bool lexer::right_square_bracket(token_t& token)
+{
 	auto ch = read();
 	if (ch == ']') {
 		token= s_right_square_bracket_literal;
@@ -947,7 +1008,8 @@ bool lexer::right_square_bracket(token_t& token) {
 	return false;
 }
 
-bool lexer::greater_than_operator(token_t& token) {
+bool lexer::greater_than_operator(token_t& token)
+{
 	auto ch = read();
 	if (ch == '>') {
 		token = s_greater_than_literal;
@@ -956,7 +1018,8 @@ bool lexer::greater_than_operator(token_t& token) {
 	return false;
 }
 
-bool lexer::less_than_equal_operator(token_t& token) {
+bool lexer::less_than_equal_operator(token_t& token)
+{
 	auto ch = read();
 	if (ch == '<') {
 		ch = read();
@@ -968,7 +1031,8 @@ bool lexer::less_than_equal_operator(token_t& token) {
 	return false;
 }
 
-bool lexer::match_literal(const std::string& literal) {
+bool lexer::match_literal(const std::string& literal)
+{
 	auto ch = read();
 	for (size_t i = 0; i < literal.length(); ++i) {
 		const auto& target_ch = literal[i];
@@ -981,7 +1045,8 @@ bool lexer::match_literal(const std::string& literal) {
 	return true;
 }
 
-bool lexer::greater_than_equal_operator(token_t& token) {
+bool lexer::greater_than_equal_operator(token_t& token)
+{
 	auto ch = read();
 	if (ch == '>') {
 		ch = read();
@@ -1044,8 +1109,9 @@ bool lexer::return_literal(token_t &token)
 	return false;
 }
 
-bool lexer::constant_literal(token_t &token) {
-	if (match_literal("read_only")) {
+bool lexer::constant_literal(token_t &token)
+{
+	if (match_literal("constant")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
@@ -1056,7 +1122,8 @@ bool lexer::constant_literal(token_t &token) {
 	return false;
 }
 
-bool lexer::else_if_literal(token_t& token) {
+bool lexer::else_if_literal(token_t& token)
+{
 	if (match_literal("else if")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -1068,7 +1135,8 @@ bool lexer::else_if_literal(token_t& token) {
 	return false;
 }
 
-bool lexer::period(token_t &token) {
+bool lexer::period(token_t &token)
+{
 	auto ch = read();
 	if (ch == '.') {
 		ch = read();
@@ -1081,7 +1149,8 @@ bool lexer::period(token_t &token) {
 	return false;
 }
 
-bool lexer::with_literal(token_t& token) {
+bool lexer::with_literal(token_t& token)
+{
 	if (match_literal("with")) {
 		auto ch = read(false);
 		if (!isalnum(ch)) {
@@ -1092,6 +1161,7 @@ bool lexer::with_literal(token_t& token) {
 	}
 	return false;
 }
+
 bool lexer::block_comment(token_t &token)
 {
 	if (match_literal("/*")) {

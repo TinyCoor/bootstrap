@@ -32,7 +32,7 @@ alpha::compiler::examples := ns {
         x:f64 := 0;
         y:f64 := 0;
 
-        new := fn(x:f64, y:f64):vector2 {
+        new := proc(x:f64, y:f64):vector2 {
             vec:vector2;
             vec.x := x;
             vec.y := y;

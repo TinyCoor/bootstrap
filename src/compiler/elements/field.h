@@ -4,10 +4,7 @@
 
 #ifndef COMPILER_ELEMENTS_FIELD_H_
 #define COMPILER_ELEMENTS_FIELD_H_
-#include <map>
-#include <string>
-#include <memory>
-#include "type.h"
+
 #include "element.h"
 #include "initializer.h"
 namespace gfx::compiler {
@@ -33,7 +30,6 @@ private:
 	compiler::type* type_ = nullptr;
 	compiler::initializer* initializer_ = nullptr;
 };
-
 
 }
 

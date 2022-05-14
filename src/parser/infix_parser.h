@@ -11,6 +11,7 @@ class parser;
 
 enum class precedence_t : uint8_t {
 	assignment = 1,
+	comma,
 	conditional,
 	sum,
 	product,
@@ -50,9 +51,9 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-class symbol_reference_infix_parser : public infix_parser {
+class symbol_infix_parser : public infix_parser {
 public:
-	symbol_reference_infix_parser() = default;
+	symbol_infix_parser() = default;
 
 	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
@@ -115,8 +116,7 @@ class cast_infix_parser : public infix_parser {
 public:
 	cast_infix_parser() = default;
 
-	ast_node_shared_ptr parse(result& r, parser* parser,
-		const ast_node_shared_ptr& lhs, token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
 	precedence_t precedence() const override;
 };
@@ -125,6 +125,9 @@ public:
 ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token_t& token);
 
 ast_node_shared_ptr create_cast_node(result& r, parser* parser, token_t& token);
+
+ast_node_shared_ptr create_symbol_node(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+	token_t& token);
 
 }
 

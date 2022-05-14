@@ -16,9 +16,7 @@ public:
 	void format_graph_viz();
 
 private:
-	void format_text_node(
-		const ast_node_shared_ptr& node,
-		uint32_t level);
+	void format_text_node(const ast_node_shared_ptr& node, uint32_t level);
 
 	void format_graph_viz_node(const ast_node_shared_ptr& node);
 

@@ -141,7 +141,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			auto count = 0;
 			for (const auto& type_node : node->lhs->children) {
 				switch (type_node->type) {
-					case ast_node_types_t::qualified_symbol_reference: {
+					case ast_node_types_t::symbol: {
 						// XXX: I am a horrible human being
 						auto total_hack_fix_me = type_node->lhs->children[0];
 						proc_type->returns().add(make_field(
@@ -244,9 +244,6 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 				identifier->constant(true);
 			}
 			return identifier;
-		}
-		case ast_node_types_t::qualified_symbol_reference: {
-			return evaluate(r, node->rhs);
 		}
 		default: {
 			break;

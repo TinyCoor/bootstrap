@@ -76,5 +76,6 @@ static inline uint64_t rotr(uint64_t n, uint8_t c)
 	c &= mask;
 	return (n >> c) | (n << ( (-c) & mask) );
 }
+
 }
 #endif // BYTES_H_

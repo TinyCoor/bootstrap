@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/5/2.
 //
 
-#ifndef BOOTSTRAP_SRC_PARSER_PREFIX_PARSER_H_
-#define BOOTSTRAP_SRC_PARSER_PREFIX_PARSER_H_
+#ifndef PARSER_PREFIX_PARSER_H_
+#define PARSER_PREFIX_PARSER_H_
 #include "ast.h"
 #include "src/common/result.h"
 #include "infix_parser.h"
@@ -153,7 +153,7 @@ public:
 	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 
 private:
-	precedence_t _precedence;
+	precedence_t precedence_;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,9 +210,9 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-class symbol_reference_prefix_parser : public prefix_parser {
+class symbol_prefix_parser : public prefix_parser {
 public:
-	symbol_reference_prefix_parser() = default;
+	symbol_prefix_parser() = default;
 
 	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
@@ -263,4 +263,4 @@ public:
 
 }
 
-#endif //BOOTSTRAP_SRC_PARSER_PREFIX_PARSER_H_
+#endif // PARSER_PREFIX_PARSER_H_

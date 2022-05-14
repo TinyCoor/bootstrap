@@ -1125,11 +1125,11 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 					break;
 				}
 				case i_registers_t::fr: {
-					registers_.fr = set_zoned_value(registers_.fr,integer_value, inst.size);;
+					registers_.fr = set_zoned_value(registers_.fr, integer_value, inst.size);;
 					break;
 				}
 				case i_registers_t::sr: {
-					registers_.sr = set_zoned_value(registers_.sr,integer_value, inst.size);;
+					registers_.sr = set_zoned_value(registers_.sr, integer_value, inst.size);;
 					break;
 				}
 				default: {

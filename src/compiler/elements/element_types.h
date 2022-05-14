@@ -29,6 +29,8 @@ class statement;
 class array_type;
 class string_type;
 class numeric_type;
+class if_element;
+class return_element;
 class identifier;
 class expression;
 class initializer;
@@ -56,6 +58,7 @@ enum class element_type_t {
 	label,
 	block,
 	field,
+	if_e,
 	comment,
 	program,
 	any_type,
@@ -63,6 +66,7 @@ enum class element_type_t {
 	directive,
 	attribute,
 	bool_type,
+	return_e,
 	statement,
 	alias_type,
 	array_type,

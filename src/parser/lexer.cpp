@@ -3,7 +3,6 @@
 //
 
 #include "lexer.h"
-#include <unordered_map>
 
 #include <sstream>
 namespace gfx {

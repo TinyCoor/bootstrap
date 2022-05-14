@@ -9,4 +9,9 @@ string_literal::string_literal(element* parent, const std::string& value)
 {
 }
 
+std::string string_literal::value() const
+{
+	return value_;
+}
+
 }

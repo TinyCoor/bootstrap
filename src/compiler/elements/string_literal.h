@@ -10,10 +10,7 @@ class string_literal : public element {
 public:
 	explicit string_literal(element* parent, const std::string& value);
 
-	inline std::string value() const
-	{
-		return value_;
-	}
+	std::string value() const;
 
 private:
 	std::string value_;

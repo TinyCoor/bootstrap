@@ -14,11 +14,14 @@
 #include "string_type.h"
 #include "numeric_type.h"
 #include "procedure_type.h"
+#include "if_element.h"
+#include "return_element.h"
 #include "unary_operator.h"
 #include "composite_type.h"
 #include "binary_operator.h"
-#include "fmt/format.h"
 #include "procedure_instance.h"
+#include <fmt/format.h>
+
 namespace gfx::compiler {
 
 program::program()
@@ -48,10 +51,12 @@ bool program::initialize(result& r, const ast_node_shared_ptr& root)
 	return true;
 }
 
-element* program::find_element(id_t id) {
+element* program::find_element(id_t id)
+{
 	auto it = elements_.find(id);
-	if (it != elements_.end())
+	if (it != elements_.end()) {
 		return it->second;
+	}
 	return nullptr;
 }
 
@@ -98,7 +103,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			break;
 		}
 		case ast_node_types_t::statement:{
-			label_list_t  labels{};
+			label_list_t labels{};
 			if (node->lhs != nullptr) {
 				for (const auto & label: node->lhs->children) {
 					labels.push_back(make_label(label->token.value));
@@ -118,6 +123,16 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 		}
 		case ast_node_types_t::block_comment: {
 			return make_comment(comment_type_t::block, node->token.value);
+		}
+		case ast_node_types_t::else_expression: {
+			return evaluate(r, node->children[0]);
+		}
+		case ast_node_types_t::if_expression:
+		case ast_node_types_t::elseif_expression: {
+			auto predicate = evaluate(r, node->lhs);
+			auto true_branch = evaluate(r, node->children[0]);
+			auto false_branch = evaluate(r, node->rhs);
+			return make_if(predicate, true_branch, false_branch);
 		}
 		case ast_node_types_t::unary_operator: {
 			auto it = s_unary_operators.find(node->token.type);
@@ -238,12 +253,22 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 
 			return type;
 		}
+		case ast_node_types_t::return_statement: {
+			auto return_element = make_return();
+			for (const auto& arg_node : node->rhs->children) {
+				return_element->expressions().push_back(evaluate(r, arg_node));
+			}
+			return return_element;
+		}
 		case ast_node_types_t::constant_expression: {
 			auto identifier = dynamic_cast<class identifier*>(evaluate(r, node->rhs));
 			if (identifier !=nullptr) {
 				identifier->constant(true);
 			}
 			return identifier;
+		}
+		case ast_node_types_t::namespace_expression: {
+			return evaluate(r, node->rhs);
 		}
 		default: {
 			break;
@@ -255,8 +280,9 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 
 bool program::is_subtree_constant(const ast_node_shared_ptr& node)
 {
-	if (node == nullptr)
+	if (node == nullptr) {
 		return false;
+	}
 
 	switch (node->type) {
 		case ast_node_types_t::expression: {
@@ -371,21 +397,24 @@ attribute *program::make_attribute(const std::string &name, element *expr)
 	return attr;
 }
 
-composite_type* program::make_enum() {
+composite_type* program::make_enum()
+{
 	auto type = new composite_type(current_scope(), composite_types_t::enum_type,
 		fmt::format("__enum_{}__", id_pool::instance()->allocate()));
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
 
-composite_type* program::make_union() {
+composite_type* program::make_union()
+{
 	auto type = new composite_type(current_scope(), composite_types_t::union_type,
 		fmt::format("__union_{}__", id_pool::instance()->allocate()));
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
 
-composite_type* program::make_struct() {
+composite_type* program::make_struct()
+{
 	auto type = new composite_type(current_scope(), composite_types_t::struct_type,
 		fmt::format("__struct_{}__", id_pool::instance()->allocate()));
 	elements_.insert(std::make_pair(type->id(), type));
@@ -458,7 +487,8 @@ alias *program::make_alias(element *expr)
 	return alias_type;
 }
 
-procedure_type* program::make_procedure_type() {
+procedure_type* program::make_procedure_type()
+{
 	// XXX: the name of the proc isn't correct here but it works temporarily.
 	auto type = new compiler::procedure_type(current_scope(),
 		 fmt::format("__proc_{}__", id_pool::instance()->allocate()));
@@ -466,20 +496,21 @@ procedure_type* program::make_procedure_type() {
 	return type;
 }
 
-type* program::find_type(const std::string& name) {
+type* program::find_type(const std::string& name)
+{
 	auto scope = current_scope();
 	while (scope != nullptr) {
 		auto type = scope->types().find(name);
-		if (type != nullptr)
+		if (type != nullptr) {
 			return type;
+		}
 		scope = dynamic_cast<block*>(scope->parent());
 	}
 	return nullptr;
 }
 
-procedure_instance* program::make_procedure_instance(
-	compiler::type* procedure_type,
-	compiler::block* scope) {
+procedure_instance* program::make_procedure_instance(compiler::type* procedure_type, compiler::block* scope)
+{
 	auto instance = new compiler::procedure_instance(
 		current_scope(),
 		procedure_type,
@@ -488,17 +519,31 @@ procedure_instance* program::make_procedure_instance(
 	return instance;
 }
 
-initializer* program::make_initializer(element* expr) {
+initializer* program::make_initializer(element* expr)
+{
 	auto initializer = new compiler::initializer(current_scope(), expr);
 	elements_.insert(std::make_pair(initializer->id(), initializer));
 	return initializer;
 }
 
-cast* program::make_cast(compiler::type* type, element* expr) {
+cast* program::make_cast(compiler::type* type, element* expr)
+{
 	auto cast = new compiler::cast(current_scope(), type, expr);
 	elements_.insert(std::make_pair(cast->id(), cast));
 	return cast;
 }
 
+if_element *program::make_if(element *predicate, element *true_branch, element *false_branch)
+{
+	auto if_elem = new compiler::if_element(current_scope(), predicate, true_branch, false_branch);
+	elements_.insert(std::make_pair(if_elem->id(), if_elem));
+	return if_elem;
+}
 
+return_element *program::make_return()
+{
+	auto return_elem = new compiler::return_element(current_scope());
+	elements_.insert(std::make_pair(return_elem->id(), return_elem));
+	return return_elem;
+}
 }

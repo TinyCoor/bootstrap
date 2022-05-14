@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/5/8.
 //
 
-#ifndef BOOTSTRAP_SRC_COMPILER_ELEMENTS_STATEMENT_H_
-#define BOOTSTRAP_SRC_COMPILER_ELEMENTS_STATEMENT_H_
+#ifndef COMPILER_ELEMENTS_STATEMENT_H_
+#define COMPILER_ELEMENTS_STATEMENT_H_
 #include "element.h"
 
 namespace gfx::compiler {
@@ -21,4 +21,4 @@ private:
 };
 }
 
-#endif //BOOTSTRAP_SRC_COMPILER_ELEMENTS_STATEMENT_H_
+#endif // COMPILER_ELEMENTS_STATEMENT_H_

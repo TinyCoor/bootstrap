@@ -63,6 +63,10 @@ private:
 
 	cast* make_cast(compiler::type* type, element* expr);
 
+	if_element* make_if(element* predicate, element* true_branch, element* false_branch);
+
+	return_element* make_return();
+
 private:
 
 	element* evaluate(result& r, const ast_node_shared_ptr& node);

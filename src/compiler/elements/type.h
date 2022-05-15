@@ -8,6 +8,24 @@
 #include "element.h"
 #include "element_types.h"
 namespace gfx::compiler {
+
+/// todo make its template
+// enum class type_t {
+// 	int_t,
+// 	float_t,
+// };
+//
+// template<type_t, template<type_t> DataHolder>
+// class types {
+//   using type = type_t
+// };
+//
+// template<>
+// class types<type_t::int_t>
+// {
+//
+// };
+/// template<>
 class type : public element {
 public:
 	explicit type(element* parent, element_type_t type, const std::string& name);

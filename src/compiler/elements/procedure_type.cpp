@@ -5,7 +5,7 @@
 #include "procedure_type.h"
 namespace gfx::compiler {
 procedure_type::procedure_type(element* parent, const std::string name)
-	: type(parent, element_type_t::proc_type,name)
+	: type(parent, element_type_t::proc_type, name)
 {
 
 }

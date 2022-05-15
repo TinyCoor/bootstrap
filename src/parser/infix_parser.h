@@ -35,7 +35,7 @@ public:
 
 	virtual ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) = 0;
 
-	virtual precedence_t precedence() const = 0;
+	[[nodiscard]] virtual precedence_t precedence() const = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ public:
 
 	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
-	precedence_t precedence() const override;
+	[[nodiscard]] precedence_t precedence() const override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ public:
 
 	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
-	precedence_t precedence() const override;
+	[[nodiscard]] precedence_t precedence() const override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,10 +66,9 @@ class proc_call_infix_parser : public infix_parser {
 public:
 	proc_call_infix_parser() = default;
 
-	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-							  token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
-	precedence_t precedence() const override;
+	[[nodiscard]] precedence_t precedence() const override;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +79,7 @@ public:
 
 	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
-	precedence_t precedence() const override;
+	[[nodiscard]] precedence_t precedence() const override;
 
 private:
 	precedence_t precedence_;
@@ -95,22 +94,21 @@ public:
 
 	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
-	precedence_t precedence() const override;
+	[[nodiscard]] precedence_t precedence() const override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////
 
 class block_comment_infix_parser : public infix_parser {
 public:
 	block_comment_infix_parser() = default;
 
-	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
-	precedence_t precedence() const override;
+	[[nodiscard]] precedence_t precedence() const override;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 class cast_infix_parser : public infix_parser {
 public:
@@ -118,31 +116,28 @@ public:
 
 	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
-	precedence_t precedence() const override;
+	[[nodiscard]] precedence_t precedence() const override;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////
 class comma_infix_parser : public infix_parser {
 public:
 	comma_infix_parser() = default;
 
-	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-		token_t& token) override;
+	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
 
-	precedence_t precedence() const override;
+	[[nodiscard]] precedence_t precedence() const override;
 };
-
 
 ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token_t& token);
 
 ast_node_shared_ptr create_cast_node(result& r, parser* parser, token_t& token);
 
-ast_node_shared_ptr create_symbol_node(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-	token_t& token);
+ast_node_shared_ptr create_symbol_node(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token);
 
 void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr& root);
 
- ast_node_shared_ptr create_expression_node(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-	token_t& token) ;
+ast_node_shared_ptr create_expression_node(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token);
 
 }
 

@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/4/1.
 //
 
-#ifndef BOOTSTRAP_SRC_TOKEN_H_
-#define BOOTSTRAP_SRC_TOKEN_H_
+#ifndef TOKEN_H_
+#define TOKEN_H_
 
 #include <string>
 #include <string_view>
@@ -12,76 +12,75 @@ namespace gfx {
 
 enum class token_types_t {
 	unknown,
-	plus,
-	bang,
-	pipe,
-	minus,
-	slash,
-	caret,
-	tilde,
-	colon,
-	comma,
-	label,
-	equals,
-	period,
-	percent,
-	question,
-	asterisk,
-	ampersand,
-	attribute,
-	directive,
-	less_than,
-	not_equals,
-	left_paren,
-	semi_colon,
-	in_literal,
-	if_literal,
-	identifier,
-	assignment,
-	logical_or,
-	logical_and,
-	right_paren,
-	for_literal,
-	end_of_file,
-	xor_literal,
-	shl_literal,
-	shr_literal,
-	rol_literal,
-	ror_literal,
-	with_literal,
-	greater_than,
-	line_comment,
-	true_literal,
-	enum_literal,
-	proc_literal,
-	null_literal,
-	else_literal,
-	cast_literal,
-	block_comment,
-	false_literal,
-	alias_literal,
-	break_literal,
-	while_literal,
-	defer_literal,
-	struct_literal,
-	number_literal,
-	scope_operator,
-	string_literal,
-	union_literal,
-	return_literal,
-	less_than_equal,
-	spread_operator,
-	else_if_literal,
-	left_curly_brace,
-	continue_literal,
-	constant_literal,
-	right_curly_brace,
-	character_literal,
-	namespace_literal,
-	read_only_literal,
-	greater_than_equal,
-	left_square_bracket,
-	right_square_bracket,
+	plus,						/// '+'
+	bang,						/// '!'
+	pipe,						/// '|'
+	minus,						/// '-'
+	slash,						/// '/'
+	caret,						/// ''
+	tilde,						/// ''
+	colon,						/// ':'
+	comma,						/// ';'
+	label,						///
+	equals,						/// '='
+	period,						/// ''
+	percent,					/// ''
+	question,					/// '?'
+	asterisk,					/// ''
+	ampersand,					/// ''
+	attribute,					/// '@'
+	directive,					///
+	less_than,					///
+	not_equals,					///
+	left_paren,					/// ’(‘
+	semi_colon,					/// ','
+	in_literal,					/// 'in'
+	if_literal,					/// 'if'
+	identifier,					/// '[_a-zA-Z]'
+	assignment,					/// '='
+	logical_or,					/// '||'
+	logical_and,				/// '&&'
+	right_paren,				/// ')'
+	for_literal,				/// 'for'
+	end_of_file,				///
+	xor_literal,				/// 'xor'
+	shl_literal,				/// 'shl'
+	shr_literal,				/// 'shr'
+	rol_literal,				/// 'rol'
+	ror_literal,				/// 'ror'
+	with_literal,				/// 'with'
+	greater_than,				/// '>'
+	line_comment,				/// '//'
+	true_literal,				/// 'true'
+	enum_literal,				/// 'enum'
+	proc_literal,				/// 'proc'
+	null_literal,				/// 'null'
+	else_literal,				/// 'else'
+	cast_literal,				/// 'cast'
+	block_comment,				/// '/* */'
+	false_literal,				/// 'false'
+	alias_literal,				/// 'alias'
+	break_literal,				/// 'break'
+	while_literal,				/// 'while'
+	defer_literal,				/// 'defer'
+	struct_literal,				/// 'struct'
+	number_literal,				///
+	scope_operator,				/// '::'
+	string_literal,				/// '"'
+	union_literal,				/// 'union'
+	return_literal,				/// 'return'
+	less_than_equal,			/// '<'
+	spread_operator,			/// ’...‘
+	else_if_literal,			/// ’else if‘
+	left_curly_brace,			/// '{'
+	continue_literal,			/// 'continue'
+	constant_literal,			/// 'constant'
+	right_curly_brace,			/// '}'
+	character_literal,			/// '''
+	namespace_literal,			/// 'ns'
+	greater_than_equal,			/// '>='
+	left_square_bracket,		/// '['
+	right_square_bracket,		/// ']'
 };
 
 static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name = {
@@ -151,7 +150,6 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::constant_literal, 		"constant_literal"},
 	{token_types_t::while_literal,          "while_literal"},
 	{token_types_t::cast_literal,           "cast_literal"},
-	{token_types_t::read_only_literal,      "read_only_literal"},
 	{token_types_t::defer_literal,          "defer_literal"},
 	{token_types_t::end_of_file,            "end_of_file"},
 	{token_types_t::with_literal, 			"with_literal"},
@@ -171,19 +169,19 @@ enum class number_types_t {
 };
 
 struct token_t {
-	bool as_bool() const;
+	[[nodiscard, maybe_unused]] bool as_bool() const;
 
-	bool is_label() const;
+	[[nodiscard]] bool is_label() const;
 
-	bool is_boolean() const;
+	[[nodiscard, maybe_unused]] bool is_boolean() const;
 
-	bool is_numeric() const;
+	[[nodiscard]] bool is_numeric() const;
 
-	std::string name() const;
+	[[nodiscard]] std::string name() const;
 
-	bool is_line_comment() const;
+	[[nodiscard]] bool is_line_comment() const;
 
-	bool is_block_comment() const;
+	[[nodiscard]] bool is_block_comment() const;
 
 	conversion_result parse(int64_t& out) const;
 
@@ -197,314 +195,6 @@ struct token_t {
 	number_types_t number_type = number_types_t::none;
 };
 
-static inline token_t s_proc_literal = {
-	.type = token_types_t::proc_literal,
-	.value = "proc"
-};
-
-static inline token_t s_if_literal = {
-	.type = token_types_t::if_literal,
-	.value = "if"
-};
-
-static inline token_t s_in_literal = {
-	.type = token_types_t::in_literal,
-	.value = "in"
-};
-
-static inline token_t s_for_literal = {
-	.type = token_types_t::for_literal,
-	.value = "for"
-};
-
-static inline token_t s_else_literal = {
-	.type = token_types_t::else_literal,
-	.value = "else"
-};
-
-static inline token_t s_block_comment = {
-	.type = token_types_t::block_comment,
-	.value = "/*"
-};
-
-static inline token_t s_bang_literal = {
-	.type = token_types_t::bang,
-	.value = "!"
-};
-
-static inline token_t s_plus_literal = {
-	.type = token_types_t::plus,
-	.value = "+"
-};
-
-static inline token_t s_with_literal = {
-	.type = token_types_t::with_literal,
-	.value = "with"
-};
-
-static inline token_t s_pipe_literal = {
-	.type = token_types_t::pipe,
-	.value = "|"
-};
-
-static inline token_t s_colon_literal = {
-	.type = token_types_t::colon,
-	.value = ":"
-};
-
-static inline token_t s_end_of_file = {
-	.type = token_types_t::end_of_file,
-	.value = ""
-};
-
-
-static inline token_t s_enum_literal = {
-	.type = token_types_t::enum_literal,
-	.value = "enum"
-};
-
-static inline token_t s_cast_literal = {
-	.type = token_types_t::cast_literal,
-	.value = "cast"
-};
-
-static inline token_t s_null_literal = {
-	.type = token_types_t::null_literal,
-	.value = "null"
-};
-
-
-static inline token_t s_true_literal = {
-	.type = token_types_t::true_literal,
-	.value = "true"
-};
-
-static inline token_t s_minus_literal = {
-	.type = token_types_t::minus,
-	.value = "-"
-};
-
-static inline token_t s_slash_literal = {
-	.type = token_types_t::slash,
-	.value = "/"
-};
-
-static inline token_t s_comma_literal = {
-	.type = token_types_t::comma,
-	.value = ","
-};
-
-static inline token_t s_defer_literal = {
-	.type = token_types_t::defer_literal,
-	.value = "defer"
-};
-
-static inline token_t s_break_literal = {
-	.type = token_types_t::break_literal,
-	.value = "break"
-};
-
-static inline token_t s_false_literal = {
-	.type = token_types_t::false_literal,
-	.value = "false"
-};
-
-static inline token_t s_while_literal = {
-	.type = token_types_t::while_literal,
-	.value = "while"
-};
-
-static inline token_t s_alias_literal = {
-	.type = token_types_t::alias_literal,
-	.value = "alias"
-};
-
-static inline token_t s_union_literal = {
-	.type = token_types_t::union_literal,
-	.value = "union"
-};
-
-static inline token_t s_caret_literal = {
-	.type = token_types_t::caret,
-	.value = "^"
-};
-
-static inline token_t s_tilde_literal = {
-	.type = token_types_t::tilde,
-	.value = "~"
-};
-
-static inline token_t s_period_literal = {
-	.type = token_types_t::period,
-	.value = "."
-};
-
-static inline token_t s_struct_literal = {
-	.type = token_types_t::struct_literal,
-	.value = "struct"
-};
-
-static inline token_t s_return_literal = {
-	.type = token_types_t::return_literal,
-	.value = "return"
-};
-
-static inline token_t s_else_if_literal = {
-	.type = token_types_t::else_if_literal,
-	.value = "else if"
-};
-
-static inline token_t s_percent_literal = {
-	.type = token_types_t::percent,
-	.value = "%"
-};
-
-static inline token_t s_constant_literal = {
-	.type = token_types_t::constant_literal,
-	.value = "constant"
-};
-
-static inline token_t s_continue_literal = {
-	.type = token_types_t::continue_literal,
-	.value = "continue"
-};
-
-static inline token_t s_asterisk_literal = {
-	.type = token_types_t::asterisk,
-	.value = "*"
-};
-
-static inline token_t s_question_literal = {
-	.type = token_types_t::question,
-	.value = "?"
-};
-
-static inline token_t s_namespace_literal = {
-	.type = token_types_t::namespace_literal,
-	.value = "ns"
-};
-
-static inline token_t s_assignment_literal = {
-	.type = token_types_t::assignment,
-	.value = ":="
-};
-
-static inline token_t s_ampersand_literal = {
-	.type = token_types_t::ampersand,
-	.value = "&"
-};
-
-static inline token_t s_left_paren_literal = {
-	.type = token_types_t::left_paren,
-	.value = "("
-};
-
-static inline token_t s_logical_or_literal = {
-	.type = token_types_t::logical_or,
-	.value = "||"
-};
-
-static inline token_t s_semi_colon_literal = {
-	.type = token_types_t::semi_colon,
-	.value = ";"
-};
-
-static inline token_t s_right_paren_literal = {
-	.type = token_types_t::right_paren,
-	.value = ")"
-};
-
-static inline token_t s_logical_and_literal = {
-	.type = token_types_t::logical_and,
-	.value = "&&"
-};
-
-static inline token_t s_equals_literal = {
-	.type = token_types_t::equals,
-	.value = "=="
-};
-
-static inline token_t s_not_equals_literal = {
-	.type = token_types_t::not_equals,
-	.value = "!="
-};
-
-static inline token_t s_greater_than_literal = {
-	.type = token_types_t::greater_than,
-	.value = ">"
-};
-
-static inline token_t s_less_than_literal = {
-	.type = token_types_t::less_than,
-	.value = "<"
-};
-
-static inline token_t s_greater_than_equal_literal = {
-	.type = token_types_t::greater_than_equal,
-	.value = ">="
-};
-
-static inline token_t s_less_than_equal_literal = {
-	.type = token_types_t::less_than,
-	.value = "<="
-};
-
-static inline token_t s_scope_operator_literal = {
-	.type = token_types_t::scope_operator,
-	.value = "::"
-};
-
-static inline token_t s_spread_operator_literal = {
-	.type = token_types_t::spread_operator,
-	.value = "..."
-};
-
-static inline token_t s_left_curly_brace_literal = {
-	.type = token_types_t::left_curly_brace,
-	.value = "{"
-};
-
-static inline token_t s_right_curly_brace_literal = {
-	.type = token_types_t::right_curly_brace,
-	.value = "}"
-};
-
-static inline token_t s_left_square_bracket_literal = {
-	.type = token_types_t::left_square_bracket,
-	.value = "["
-};
-
-static inline token_t s_right_square_bracket_literal = {
-	.type = token_types_t::right_square_bracket,
-	.value = "]"
-};
-
-static inline token_t s_xor_literal = {
-	.type = token_types_t::xor_literal,
-	.value = "xor"
-};
-
-static inline token_t s_shl_literal = {
-	.type = token_types_t::shl_literal,
-	.value = "shl"
-};
-
-static inline token_t s_shr_literal = {
-	.type = token_types_t::shr_literal,
-	.value = "shr"
-};
-
-static inline token_t s_rol_literal = {
-	.type = token_types_t::rol_literal,
-	.value = "rol"
-};
-
-static inline token_t s_ror_literal = {
-	.type = token_types_t::ror_literal,
-	.value = "ror"
-};
-
-
 }
 
-#endif // BOOTSTRAP_SRC_TOKEN_H_
+#endif // TOKEN_H_

@@ -195,6 +195,10 @@ ast_node_shared_ptr unary_operator_prefix_parser::parse(result& r, parser* parse
 ast_node_shared_ptr keyword_literal_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	switch (token.type) {
+		case token_types_t::cast_literal: {
+			auto cast_node = parser->ast_builder()->cast_node(token);
+			return cast_node;
+		}
 		case token_types_t::alias_literal: {
 			auto alias_node = parser->ast_builder()->alias_node(token);
 			alias_node->lhs = parser->expect_expression(

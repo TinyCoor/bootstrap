@@ -2,15 +2,28 @@
 // Created by 12132 on 2022/5/2.
 //
 
-#ifndef PARSER_PREFIX_PARSER_H_
-#define PARSER_PREFIX_PARSER_H_
+#ifndef PREFIX_PARSER_H_
+#define PREFIX_PARSER_H_
 #include "ast.h"
 #include "src/common/result.h"
 #include "infix_parser.h"
 namespace gfx {
 class parser;
+///
+///
+///
+/// enum class parser_type {
+///
+/// };
+///
+/// template<parser_type, template<parser_type> class Parser>
+/// class GenericParser {
+/// public:
+///
+/// };
 
-/////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 /// 前缀
 class prefix_parser {
 public:
@@ -263,4 +276,4 @@ public:
 
 }
 
-#endif // PARSER_PREFIX_PARSER_H_
+#endif // PREFIX_PARSER_H_

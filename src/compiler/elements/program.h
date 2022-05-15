@@ -18,6 +18,7 @@ public:
 
 private:
 
+	/// template<typename ... Args> make_types(Args &args) {}
 	block* make_block();
 
 	block* push_new_block();
@@ -38,7 +39,7 @@ private:
 
 	numeric_type* make_numeric_type(const std::string& name, int64_t min, uint64_t max);
 
-	field* make_field(const std::string& name, compiler::type* type, compiler::initializer* initializer);
+	field* make_field(const std::string& name, type* type, initializer* initializer);
 
 	attribute* make_attribute(const std::string& name, element* expr);
 
@@ -58,11 +59,9 @@ private:
 
 	initializer* make_initializer(element* expr);
 
-	procedure_instance* make_procedure_instance(compiler::type* procedure_type,
-		compiler::block* scope);
+	procedure_instance* make_procedure_instance(type* procedure_type, block* scope);
 
-	procedure_call* make_procedure_call(compiler::type* procedure_type,
-		element* expr);
+	procedure_call* make_procedure_call(type* procedure_type, element* expr);
 
 	procedure_type* make_procedure_type();
 

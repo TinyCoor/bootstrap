@@ -18,7 +18,7 @@ public:
 
 	explicit lexer(std::istream& source);
 
-	bool has_next() const;
+	[[nodiscard]] bool has_next() const;
 
 	bool next(token_t& token);
 

@@ -11,7 +11,7 @@ add_subdirectory(extern/gtest)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 message(STATUS ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
-# dot -Tpdf ast.dot -oast.pdf
+# dot -Tpdf ast.dot -o ast.pdf
 
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")

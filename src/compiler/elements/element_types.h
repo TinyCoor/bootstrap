@@ -56,12 +56,12 @@ using procedure_instance_list_t = std::vector<procedure_instance*>;
 
 enum class element_type_t {
 	element = 1,
-
 	cast,
 	label,
 	block,
 	field,
 	if_e,
+	else_e,
 	comment,
 	program,
 	any_type,
@@ -73,6 +73,7 @@ enum class element_type_t {
 	return_e,
 	statement,
 	alias_type,
+	else_if_e,
 	array_type,
 	identifier,
 	expression,

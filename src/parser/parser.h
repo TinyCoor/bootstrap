@@ -38,7 +38,6 @@ public:
 
 	ast_node_shared_ptr parse_scope(result& r);
 protected:
-
 	ast_node_shared_ptr parse_statement(result& r);
 
 private:
@@ -50,6 +49,7 @@ private:
 
 private:
 	static inline if_prefix_parser s_if_prefix_parser {};
+	static inline with_prefix_parser s_with_prefix_parser{};
 	static inline cast_prefix_parser s_cast_prefix_parser {};
 	static inline enum_prefix_parser s_enum_prefix_parser {};
 	static inline union_prefix_parser s_union_prefix_parser {};
@@ -64,7 +64,6 @@ private:
 	static inline namespace_prefix_parser s_namespace_prefix_parser {};
 	static inline attribute_prefix_parser s_attribute_prefix_parser {};
 	static inline directive_prefix_parser s_directive_prefix_parser {};
-
 	static inline basic_block_prefix_parser s_basic_block_prefix_parser {};
 	static inline char_literal_prefix_parser s_char_literal_prefix_parser {};
 	static inline line_comment_prefix_parser s_line_comment_prefix_parser {};
@@ -80,6 +79,7 @@ private:
 	static inline unary_operator_prefix_parser s_binary_not_prefix_parser {precedence_t::prefix};
 
 	static inline std::unordered_map<token_types_t, prefix_parser*> s_prefix_parsers = {
+		{token_types_t::with_literal,   	 &s_with_prefix_parser},
 		{token_types_t::if_literal,          &s_if_prefix_parser},
 		{token_types_t::bang,                &s_not_prefix_parser},
 		{token_types_t::label,               &s_label_prefix_parser},
@@ -116,13 +116,12 @@ private:
 	};
 
 	static inline cast_infix_parser s_cast_infix_parser {};
-	static inline symbol_infix_parser s_symbol_infix_parser {};
 	static inline comma_infix_parser s_comma_infix_parser {};
+	static inline symbol_infix_parser s_symbol_infix_parser {};
 	static inline proc_call_infix_parser s_proc_call_infix_parser {};
 	static inline assignment_infix_parser s_assignment_infix_parser {};
 	static inline block_comment_infix_parser s_block_comment_infix_parser {};
 	static inline type_identifier_infix_parser s_type_identifier_infix_parser {};
-
 	static inline binary_operator_infix_parser s_sum_binary_op_parser {precedence_t::sum, false};
 	static inline binary_operator_infix_parser s_product_binary_op_parser {precedence_t::product, false};
 	static inline binary_operator_infix_parser s_bitwise_binary_op_parser {precedence_t::bitwise, false};
@@ -159,7 +158,6 @@ private:
 		{token_types_t::greater_than,       &s_relational_binary_op_parser},
 		{token_types_t::greater_than_equal, &s_relational_binary_op_parser},
 		{token_types_t::colon,              &s_type_identifier_infix_parser},
-
 	};
 
 private:

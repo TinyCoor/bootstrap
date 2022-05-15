@@ -16,6 +16,10 @@
 #include "numeric_type.h"
 #include "procedure_type.h"
 #include "if_element.h"
+#include "boolean_literal.h"
+#include "string_literal.h"
+#include "float_literal.h"
+#include "integer_literal.h"
 #include "return_element.h"
 #include "unary_operator.h"
 #include "composite_type.h"
@@ -126,12 +130,14 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			if (node->lhs->type == ast_node_types_t::constant_expression) {
 				is_constant = true;
 				arg_list = node->lhs->rhs->lhs;
-				if (node->lhs->rhs->rhs != nullptr)
+				if (node->lhs->rhs->rhs != nullptr) {
 					type_name = node->lhs->rhs->rhs->token.value;
+				}
 			} else {
 				arg_list = node->lhs->lhs;
-				if (node->lhs->rhs != nullptr)
+				if (node->lhs->rhs != nullptr)  {
 					type_name = node->lhs->rhs->token.value;
+				}
 			}
 
 			for (size_t i = 0; i < arg_list->children.size() - 1; i++) {
@@ -166,8 +172,6 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			if (!type_name.empty()) {
 				new_identifier->type(find_type(type_name));
 			}
-
-
 			scope->identifiers().add(new_identifier);
 
 			return new_identifier;
@@ -200,8 +204,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			if (it == s_binary_operators.end()) {
 				return nullptr;
 			}
-			return make_binary_operator(it->second, evaluate(r, node->lhs),
-										evaluate(r, node->rhs));
+			return make_binary_operator(it->second, evaluate(r, node->lhs), evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::proc_call: {
 			// XXX: need to evaluate the parts
@@ -217,10 +220,8 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 					case ast_node_types_t::symbol: {
 						// XXX: I am a horrible human being
 						auto total_hack_fix_me = type_node->lhs->children[0];
-						proc_type->returns().add(make_field(
-							fmt::format("_{}", count++),
-							find_type(total_hack_fix_me->token.value),
-							nullptr));
+						proc_type->returns().add(make_field(fmt::format("_{}", count++),
+							find_type(total_hack_fix_me->token.value), nullptr));
 						break;
 					}
 					default: {
@@ -230,8 +231,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			}
 
 			for (const auto& type_node : node->rhs->children) {
-				proc_type->parameters().add(make_field(
-					type_node->token.value,
+				proc_type->parameters().add(make_field(type_node->token.value,
 					find_type(type_node->lhs->token.value),
 					type_node->rhs != nullptr ? make_initializer(evaluate(r, type_node->rhs)) : nullptr));
 			}
@@ -267,21 +267,18 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			auto type = make_enum();
 			scope_types.add(type);
 
-//                for (const auto& child : node->rhs->children) {
-//                    auto field_element = evaluate(r, child);
-//                    auto field = make_field("", nullptr, nullptr);
-//                    type->fields().add(field);
-//                }
+//          for (const auto& child : node->rhs->children) {
+//              auto field_element = evaluate(r, child);
+//              auto field = make_field("", nullptr, nullptr);
+//              type->fields().add(field);
+//          }
 
 			return type;
 		}
 		case ast_node_types_t::cast_expression: {
 			auto type = find_type(node->lhs->token.value);
 			if (type == nullptr) {
-				r.add_message(
-					"P002",
-					fmt::format("unknown type '{}'.", node->lhs->token.value),
-					true);
+				r.add_message("P002", fmt::format("unknown type '{}'.", node->lhs->token.value), true);
 			}
 			return make_cast(type, evaluate(r, node->rhs));
 		}
@@ -570,10 +567,7 @@ type* program::find_type(const std::string& name)
 
 procedure_instance* program::make_procedure_instance(compiler::type* procedure_type, compiler::block* scope)
 {
-	auto instance = new compiler::procedure_instance(
-		current_scope(),
-		procedure_type,
-		scope);
+	auto instance = new compiler::procedure_instance(current_scope(), procedure_type, scope);
 	elements_.insert(std::make_pair(instance->id(), instance));
 	return instance;
 }
@@ -623,6 +617,34 @@ namespace_element *program::make_namespace(element *expr)
 block *program::make_block()
 {
 	auto type = new block(current_scope());
+	elements_.insert(std::make_pair(type->id(), type));
+	return type;
+}
+
+boolean_literal *program::make_bool(bool value)
+{
+	auto type = new boolean_literal(current_scope(), value);
+	elements_.insert(std::make_pair(type->id(), type));
+	return type;
+}
+
+float_literal *program::make_float(double value)
+{
+	auto type = new float_literal(current_scope(), value);
+	elements_.insert(std::make_pair(type->id(), type));
+	return type;
+}
+
+integer_literal *program::make_integer(uint64_t value)
+{
+	auto type = new integer_literal(current_scope(), value);
+	elements_.insert(std::make_pair(type->id(), type));
+	return type;
+}
+
+string_literal *program::make_string(const std::string &value)
+{
+	auto type = new string_literal(current_scope(), value);
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }

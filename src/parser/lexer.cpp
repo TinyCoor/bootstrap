@@ -6,7 +6,315 @@
 
 #include <sstream>
 namespace gfx {
-/// todo use lambda
+
+static inline token_t s_proc_literal = {
+	.type = token_types_t::proc_literal,
+	.value = "proc"
+};
+
+static inline token_t s_if_literal = {
+	.type = token_types_t::if_literal,
+	.value = "if"
+};
+
+static inline token_t s_in_literal = {
+	.type = token_types_t::in_literal,
+	.value = "in"
+};
+
+static inline token_t s_for_literal = {
+	.type = token_types_t::for_literal,
+	.value = "for"
+};
+
+static inline token_t s_else_literal = {
+	.type = token_types_t::else_literal,
+	.value = "else"
+};
+
+static inline token_t s_block_comment = {
+	.type = token_types_t::block_comment,
+	.value = "/*"
+};
+
+static inline token_t s_bang_literal = {
+	.type = token_types_t::bang,
+	.value = "!"
+};
+
+static inline token_t s_plus_literal = {
+	.type = token_types_t::plus,
+	.value = "+"
+};
+
+static inline token_t s_with_literal = {
+	.type = token_types_t::with_literal,
+	.value = "with"
+};
+
+static inline token_t s_pipe_literal = {
+	.type = token_types_t::pipe,
+	.value = "|"
+};
+
+static inline token_t s_colon_literal = {
+	.type = token_types_t::colon,
+	.value = ":"
+};
+
+static inline token_t s_end_of_file = {
+	.type = token_types_t::end_of_file,
+	.value = ""
+};
+
+
+static inline token_t s_enum_literal = {
+	.type = token_types_t::enum_literal,
+	.value = "enum"
+};
+
+static inline token_t s_cast_literal = {
+	.type = token_types_t::cast_literal,
+	.value = "cast"
+};
+
+static inline token_t s_null_literal = {
+	.type = token_types_t::null_literal,
+	.value = "null"
+};
+
+
+static inline token_t s_true_literal = {
+	.type = token_types_t::true_literal,
+	.value = "true"
+};
+
+static inline token_t s_minus_literal = {
+	.type = token_types_t::minus,
+	.value = "-"
+};
+
+static inline token_t s_slash_literal = {
+	.type = token_types_t::slash,
+	.value = "/"
+};
+
+static inline token_t s_comma_literal = {
+	.type = token_types_t::comma,
+	.value = ","
+};
+
+static inline token_t s_defer_literal = {
+	.type = token_types_t::defer_literal,
+	.value = "defer"
+};
+
+static inline token_t s_break_literal = {
+	.type = token_types_t::break_literal,
+	.value = "break"
+};
+
+static inline token_t s_false_literal = {
+	.type = token_types_t::false_literal,
+	.value = "false"
+};
+
+static inline token_t s_while_literal = {
+	.type = token_types_t::while_literal,
+	.value = "while"
+};
+
+static inline token_t s_alias_literal = {
+	.type = token_types_t::alias_literal,
+	.value = "alias"
+};
+
+static inline token_t s_union_literal = {
+	.type = token_types_t::union_literal,
+	.value = "union"
+};
+
+static inline token_t s_caret_literal = {
+	.type = token_types_t::caret,
+	.value = "^"
+};
+
+static inline token_t s_tilde_literal = {
+	.type = token_types_t::tilde,
+	.value = "~"
+};
+
+static inline token_t s_period_literal = {
+	.type = token_types_t::period,
+	.value = "."
+};
+
+static inline token_t s_struct_literal = {
+	.type = token_types_t::struct_literal,
+	.value = "struct"
+};
+
+static inline token_t s_return_literal = {
+	.type = token_types_t::return_literal,
+	.value = "return"
+};
+
+static inline token_t s_else_if_literal = {
+	.type = token_types_t::else_if_literal,
+	.value = "else if"
+};
+
+static inline token_t s_percent_literal = {
+	.type = token_types_t::percent,
+	.value = "%"
+};
+
+static inline token_t s_constant_literal = {
+	.type = token_types_t::constant_literal,
+	.value = "constant"
+};
+
+static inline token_t s_continue_literal = {
+	.type = token_types_t::continue_literal,
+	.value = "continue"
+};
+
+static inline token_t s_asterisk_literal = {
+	.type = token_types_t::asterisk,
+	.value = "*"
+};
+
+static inline token_t s_question_literal = {
+	.type = token_types_t::question,
+	.value = "?"
+};
+
+static inline token_t s_namespace_literal = {
+	.type = token_types_t::namespace_literal,
+	.value = "ns"
+};
+
+static inline token_t s_assignment_literal = {
+	.type = token_types_t::assignment,
+	.value = ":="
+};
+
+static inline token_t s_ampersand_literal = {
+	.type = token_types_t::ampersand,
+	.value = "&"
+};
+
+static inline token_t s_left_paren_literal = {
+	.type = token_types_t::left_paren,
+	.value = "("
+};
+
+static inline token_t s_logical_or_literal = {
+	.type = token_types_t::logical_or,
+	.value = "||"
+};
+
+static inline token_t s_semi_colon_literal = {
+	.type = token_types_t::semi_colon,
+	.value = ";"
+};
+
+static inline token_t s_right_paren_literal = {
+	.type = token_types_t::right_paren,
+	.value = ")"
+};
+
+static inline token_t s_logical_and_literal = {
+	.type = token_types_t::logical_and,
+	.value = "&&"
+};
+
+static inline token_t s_equals_literal = {
+	.type = token_types_t::equals,
+	.value = "=="
+};
+
+static inline token_t s_not_equals_literal = {
+	.type = token_types_t::not_equals,
+	.value = "!="
+};
+
+static inline token_t s_greater_than_literal = {
+	.type = token_types_t::greater_than,
+	.value = ">"
+};
+
+static inline token_t s_less_than_literal = {
+	.type = token_types_t::less_than,
+	.value = "<"
+};
+
+static inline token_t s_greater_than_equal_literal = {
+	.type = token_types_t::greater_than_equal,
+	.value = ">="
+};
+
+static inline token_t s_less_than_equal_literal = {
+	.type = token_types_t::less_than,
+	.value = "<="
+};
+
+static inline token_t s_scope_operator_literal = {
+	.type = token_types_t::scope_operator,
+	.value = "::"
+};
+
+static inline token_t s_spread_operator_literal = {
+	.type = token_types_t::spread_operator,
+	.value = "..."
+};
+
+static inline token_t s_left_curly_brace_literal = {
+	.type = token_types_t::left_curly_brace,
+	.value = "{"
+};
+
+static inline token_t s_right_curly_brace_literal = {
+	.type = token_types_t::right_curly_brace,
+	.value = "}"
+};
+
+static inline token_t s_left_square_bracket_literal = {
+	.type = token_types_t::left_square_bracket,
+	.value = "["
+};
+
+static inline token_t s_right_square_bracket_literal = {
+	.type = token_types_t::right_square_bracket,
+	.value = "]"
+};
+
+static inline token_t s_xor_literal = {
+	.type = token_types_t::xor_literal,
+	.value = "xor"
+};
+
+static inline token_t s_shl_literal = {
+	.type = token_types_t::shl_literal,
+	.value = "shl"
+};
+
+static inline token_t s_shr_literal = {
+	.type = token_types_t::shr_literal,
+	.value = "shr"
+};
+
+static inline token_t s_rol_literal = {
+	.type = token_types_t::rol_literal,
+	.value = "rol"
+};
+
+static inline token_t s_ror_literal = {
+	.type = token_types_t::ror_literal,
+	.value = "ror"
+};
+
+/// todo use lambda and unorder_map
 std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	// attribute
 	{'@', std::bind(&lexer::attribute, std::placeholders::_1, std::placeholders::_2)},
@@ -260,7 +568,7 @@ bool lexer::has_next() const
 void lexer::rewind_one_char()
 {
 	source_.seekg(-1, std::istream::cur);
-	if (column_ > 0){
+	if (column_ > 0) {
 		column_--;
 	}
 }

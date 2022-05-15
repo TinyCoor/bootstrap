@@ -5,6 +5,7 @@
 #include "infix_parser.h"
 #include "parser.h"
 namespace gfx {
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token_t& token)
 {
@@ -42,7 +43,8 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
 	return type_node;
 }
 
-void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr& root) {
+void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr& root)
+{
 	if (root->type != ast_node_types_t::pair) {
 		target->children.push_back(root);
 		return;
@@ -63,14 +65,15 @@ void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr&
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr create_expression_node(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-										   token_t& token) {
+	token_t& token) {
 	auto expression_node = parser->ast_builder()->expression_node();
 	expression_node->lhs = parser->parse_expression(r, 0);
 
 	token_t right_paren_token;
 	right_paren_token.type = token_types_t::right_paren;
-	if (!parser->expect(r, right_paren_token))
+	if (!parser->expect(r, right_paren_token))  {
 		return nullptr;
+	}
 
 	if (lhs != nullptr
 		&&  lhs->type == ast_node_types_t::block_comment) {
@@ -91,7 +94,6 @@ ast_node_shared_ptr create_symbol_node(result& r, parser* parser, const ast_node
 		if (!parser->peek(token_types_t::scope_operator)) {
 			break;
 		}
-
 		parser->consume();
 		if (!parser->expect(r, token)) {
 			return nullptr;
@@ -216,8 +218,7 @@ precedence_t type_identifier_infix_parser::precedence() const
 ///////////////////////////////////////////////////////////////////////////
 
 binary_operator_infix_parser::binary_operator_infix_parser(precedence_t precedence,bool is_right_associative) noexcept
-	: 	precedence_(precedence),
-		 is_right_associative_(is_right_associative)
+	: 	precedence_(precedence), is_right_associative_(is_right_associative)
 {
 }
 
@@ -227,7 +228,7 @@ ast_node_shared_ptr binary_operator_infix_parser::parse(result& r, parser* parse
 	auto associative_precedence = static_cast<uint8_t>(
 		static_cast<uint8_t>(precedence_) - (is_right_associative_ ? 1 : 0));
 	return parser->ast_builder()->binary_operator_node(lhs, token,
-													   parser->parse_expression(r, associative_precedence));
+		parser->parse_expression(r, associative_precedence));
 }
 
 precedence_t binary_operator_infix_parser::precedence() const
@@ -285,7 +286,8 @@ ast_node_shared_ptr comma_infix_parser::parse(result& r, parser* parser, const a
 	return pair_node;
 }
 
-precedence_t comma_infix_parser::precedence() const {
+precedence_t comma_infix_parser::precedence() const
+{
 	return precedence_t::comma;
 }
 

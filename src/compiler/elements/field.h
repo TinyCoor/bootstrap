@@ -10,25 +10,12 @@
 namespace gfx::compiler {
 class field : public element {
 public:
-	field(element* parent, const std::string& name, type* type, initializer* initializer);
+	field(element* parent,  compiler::identifier* identifier);
 
-	compiler::type* type();
-
-	std::string name() const;
-
-	bool inferred_type() const;
-
-	void type(compiler::type* t);
-
-	compiler::initializer* initializer();
-
-	void initializer(compiler::initializer* v);
+	compiler::identifier* identifier();
 
 private:
-	std::string name_;
-	bool inferred_type_ = false;
-	compiler::type* type_ = nullptr;
-	compiler::initializer* initializer_ = nullptr;
+	compiler::identifier* identifier_;
 };
 
 }

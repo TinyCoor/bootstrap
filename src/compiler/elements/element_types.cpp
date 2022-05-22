@@ -36,7 +36,16 @@ void attribute_map_t::add(attribute* value)
 //////////////////////////////////////////////////////////////////////////////////////////
 void field_map_t:: add(field* value)
 {
-	fields_.insert(std::make_pair(value->name(), value));
+	fields_.insert(std::make_pair(value->identifier()->name(), value));
+}
+
+field_list_t field_map_t::as_list()
+{
+	field_list_t list {};
+	for (const auto& it : fields_) {
+		list.push_back(it.second);
+	}
+	return list;
 }
 
 size_t field_map_t:: size() const

@@ -29,11 +29,21 @@ private:
 
 	any_type* make_any_type();
 
-	composite_type* make_enum();
+	void add_enum_fields(result& r, composite_type* enum_type, const ast_node_shared_ptr& block);
 
-	composite_type* make_union();
+	void add_struct_fields(result& r, composite_type* struct_type, const ast_node_shared_ptr& block);
 
-	composite_type* make_struct();
+	void add_union_fields(result& r, composite_type* union_type, const ast_node_shared_ptr& block);
+
+	void add_procedure_instance(result& r, procedure_type* proc_type,const ast_node_shared_ptr& node);
+
+	field* make_field(compiler::identifier* identifier);
+
+	composite_type* make_enum_type();
+
+	composite_type* make_struct_type();
+
+	composite_type* make_union_type();
 
 	string_type* make_string_type();
 
@@ -42,8 +52,6 @@ private:
 	label* make_label(const std::string& name);
 
 	numeric_type* make_numeric_type(const std::string& name, int64_t min, uint64_t max);
-
-	field* make_field(const std::string& name, type* type, initializer* initializer);
 
 	attribute* make_attribute(const std::string& name, element* expr);
 
@@ -62,13 +70,13 @@ private:
 
 	expression* make_expression(element* expr);
 
-	initializer* make_initializer(element* expr);
+	initializer* make_initializer(element* expr, class block* block_scope = nullptr);
 
 	procedure_instance* make_procedure_instance(type* procedure_type, class block* scope);
 
 	procedure_call* make_procedure_call(type* procedure_type, element* expr);
 
-	procedure_type* make_procedure_type();
+	procedure_type* make_procedure_type(compiler::block* block_scope = nullptr);
 
 	cast* make_cast(compiler::type* type, element* expr);
 
@@ -76,7 +84,12 @@ private:
 
 	return_element* make_return();
 
-	namespace_element* make_namespace(element* expr);
+	compiler::identifier* add_identifier_to_scope(result& r, const ast_node_shared_ptr& symbol,
+		const ast_node_shared_ptr& rhs);
+
+	namespace_type* make_namespace_type();
+
+	namespace_element* make_namespace(element* expr, compiler::block* block_scope = nullptr);
 
 	boolean_literal* make_bool(bool value);
 
@@ -85,6 +98,11 @@ private:
 	integer_literal* make_integer(uint64_t value);
 
 	string_literal* make_string(const std::string& value);
+
+	array_type* make_array_type(compiler::type* entry_type, size_t size);
+
+	compiler::type* find_array_type(compiler::type* entry_type, size_t size);
+
 
 private:
 

@@ -9,7 +9,9 @@
 namespace gfx::compiler {
 class procedure_type : public type {
 public:
-	explicit procedure_type(element* parent, const std::string name);
+	explicit procedure_type(element* parent, compiler::block* scope, const std::string name);
+
+	compiler::block* scope();
 
 	field_map_t& returns();
 
@@ -23,6 +25,7 @@ private:
 	field_map_t returns_{};
 	field_map_t parameters_{};
 	type_map_t type_parameters_{};
+	compiler::block* scope_ = nullptr;
 	procedure_instance_list_t instances_ {};
 };
 }

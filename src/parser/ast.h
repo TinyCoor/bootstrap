@@ -153,8 +153,20 @@ struct ast_node_t {
 		return ((flags & flags_t::pointer) != 0);
 	}
 
+	bool is_qualified_symbol() const {
+		return type == ast_node_types_t::symbol && children.size() > 1;
+	}
+
 	bool is_spread() const {
 		return ((flags & flags_t::spread) != 0);
+	}
+
+	bool has_type_identifier() const {
+		return rhs != nullptr && rhs->type == ast_node_types_t::type_identifier;
+	}
+
+	bool is_constant_expression() const {
+		return lhs != nullptr && lhs->type == ast_node_types_t::constant_expression;
 	}
 
 	std::string_view name() const

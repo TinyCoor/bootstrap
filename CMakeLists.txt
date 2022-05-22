@@ -123,7 +123,9 @@ set(ELEMENT_SRC
         src/compiler/elements/statement.cpp
         src/compiler/elements/alias.cpp
         src/compiler/elements/cast.cpp
+        src/compiler/elements/array_type.cpp
         src/compiler/elements/procedure_instance.cpp
+        src/compiler/elements/namespace_type.cpp
 
         src/compiler/code_dom_formatter.cpp
         )

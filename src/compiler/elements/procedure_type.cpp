@@ -4,8 +4,8 @@
 
 #include "procedure_type.h"
 namespace gfx::compiler {
-procedure_type::procedure_type(element* parent, const std::string name)
-	: type(parent, element_type_t::proc_type, name)
+procedure_type::procedure_type(element* parent, compiler::block* scope, const std::string name)
+	: type(parent, element_type_t::proc_type, name), scope_(scope)
 {
 
 }
@@ -24,6 +24,11 @@ type_map_t& procedure_type::type_parameters() {
 
 procedure_instance_list_t& procedure_type::instances() {
 	return instances_;
+}
+
+compiler::block *procedure_type::scope()
+{
+	return scope_;
 }
 
 }

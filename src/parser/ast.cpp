@@ -13,7 +13,8 @@ ast_node_shared_ptr make_ast_node() {
 }
 
 template<ast_node_types_t type>
-ast_node_shared_ptr make_ast_node(const token_t &token) {
+ast_node_shared_ptr make_ast_node(const token_t &token)
+{
 	auto node = std::make_shared<ast_node_t>();
 	node->type = type;
 	node->token = token;

@@ -8,15 +8,9 @@
 #include "field.h"
 namespace gfx::compiler {
 
-enum class composite_types_t {
-	enum_type,
-	union_type,
-	struct_type,
-};
-
 class composite_type : public type {
 public:
-  	explicit composite_type(element* parent, composite_types_t type, const std::string name);
+  	explicit composite_type(element* parent, composite_types_t type, const std::string& name);
 
 	field_map_t& fields();
 

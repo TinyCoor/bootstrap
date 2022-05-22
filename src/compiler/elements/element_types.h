@@ -44,11 +44,13 @@ class boolean_literal;
 class string_literal;
 class binary_operator;
 class namespace_element;
+class namespace_type;
 class composite_type;
 class procedure_instance;
 
 using label_list_t = std::vector<label*>;
 using block_list_t = std::vector<block*>;
+using field_list_t = std::vector<field*>;
 using element_list_t = std::vector<element*>;
 using comment_list_t = std::vector<comment*>;
 using statement_list_t = std::vector<statement*>;
@@ -56,6 +58,27 @@ using identifier_list_t = std::vector<identifier*>;
 using directive_map_t = std::map<std::string, directive*>;
 using element_map_t = std::unordered_map<id_t, element*>;
 using procedure_instance_list_t = std::vector<procedure_instance*>;
+
+///////////////////////////////////////////////////////////////////////////
+
+enum class composite_types_t {
+	enum_type,
+	union_type,
+	struct_type,
+};
+
+static inline std::unordered_map<composite_types_t, std::string> s_composite_type_names = {
+	{composite_types_t::enum_type, "enum_type"},
+	{composite_types_t::union_type, "union_type"},
+	{composite_types_t::struct_type, "struct_type"},
+};
+
+static inline std::string composite_type_name(composite_types_t type) {
+	auto it = s_composite_type_names.find(type);
+	if (it == s_composite_type_names.end())
+		return "unknown_composite_type";
+	return it->second;
+}
 
 
 enum class element_type_t {
@@ -78,6 +101,7 @@ enum class element_type_t {
 	statement,
 	alias_type,
 	else_if_e,
+
 	array_type,
 	identifier,
 	expression,
@@ -93,6 +117,7 @@ enum class element_type_t {
 	boolean_literal,
 	integer_literal,
 	binary_operator,
+	namespace_type,
 };
 
 static inline std::unordered_map<element_type_t, std::string_view> s_element_type_names = {
@@ -257,6 +282,8 @@ private:
 struct field_map_t {
 
 	void add(field* value);
+
+	field_list_t as_list();
 
 	size_t size() const;
 

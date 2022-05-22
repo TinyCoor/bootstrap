@@ -18,7 +18,7 @@ std::string identifier::name() const
 	return name_;
 }
 
-bool identifier::is_constant() const
+bool identifier::constant() const
 {
 	return constant_;
 }

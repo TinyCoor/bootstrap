@@ -72,6 +72,7 @@ add_custom_command(TARGET all-unit-tests
 
 set(COMMON_SRC src/common/ya_getopt.c
         src/common/id_pool.cpp
+
         )
 
 set(VM_SRC
@@ -123,6 +124,8 @@ set(ELEMENT_SRC
         src/compiler/elements/alias.cpp
         src/compiler/elements/cast.cpp
         src/compiler/elements/procedure_instance.cpp
+
+        src/compiler/code_dom_formatter.cpp
         )
 
 set(COMPILER_SRC

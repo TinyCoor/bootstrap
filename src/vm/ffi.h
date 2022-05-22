@@ -8,7 +8,6 @@
 #include <dynload/dynload.h>
 #include <dyncall/dyncall_signature.h>
 #include <dyncall/dyncall_struct.h>
-
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -35,7 +34,7 @@ enum class ffi_types_t : uint16_t {
 };
 
 struct function_value_t {
-	~function_value_t(){
+	~function_value_t() {
 		if (struct_meta_data_ !=nullptr) {
 			delete struct_meta_data_;
 			struct_meta_data_ = nullptr;
@@ -141,7 +140,6 @@ private:
 					dcStructField(dc_struct, DC_SIGCHAR_POINTER, DEFAULT_ALIGNMENT, 1);
 					break;
 				}
-
 				case ffi_types_t::struct_type: {
 					dcStructField(dc_struct, DC_SIGCHAR_STRUCT, DEFAULT_ALIGNMENT, 1);
 					dcSubStruct(dc_struct, value.fields.size(), DEFAULT_ALIGNMENT,  1);
@@ -151,7 +149,6 @@ private:
 				}
 			}
 		}
-
 	}
 
 private:
@@ -162,7 +159,7 @@ private:
 class shared_library;
 
 struct function_signature_t {
-	void apply_calling_convention(DCCallVM* vm ){
+	void apply_calling_convention(DCCallVM* vm ) {
 		switch (calling_mode) {
 			case ffi_calling_mode_t::c_default:
 				dcMode(vm, DC_CALL_C_DEFAULT);
@@ -248,10 +245,8 @@ struct function_signature_t {
 				return reinterpret_cast<uint64_t>(output_value);
 			}
 		}
-
 		return 0;
 	}
-
 
 	std::string symbol;
 	void *func_ptr = nullptr;
@@ -259,8 +254,6 @@ struct function_signature_t {
 	function_value_t return_value {};
 	std::vector<function_value_t> arguments;
 	ffi_calling_mode_t calling_mode = ffi_calling_mode_t::c_default;
-
 };
-///////////////////////////////////////////////////////////////////////////
 }
 #endif //BOOTSTRAP_SRC_VM_FFI_H_

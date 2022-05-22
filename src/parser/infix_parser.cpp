@@ -65,7 +65,8 @@ void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr&
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr create_expression_node(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-	token_t& token) {
+	token_t& token)
+{
 	auto expression_node = parser->ast_builder()->expression_node();
 	expression_node->lhs = parser->parse_expression(r, 0);
 
@@ -85,7 +86,8 @@ ast_node_shared_ptr create_expression_node(result& r, parser* parser, const ast_
 
 
 ast_node_shared_ptr create_symbol_node(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-	token_t& token) {
+	token_t& token)
+{
 	auto symbol_node = parser->ast_builder()->symbol_node();
 
 	while (true) {
@@ -204,7 +206,7 @@ precedence_t symbol_infix_parser::precedence() const
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr type_identifier_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-														token_t& token)
+	token_t& token)
 {
 	lhs->rhs = create_type_identifier_node(r, parser, token);
 	return lhs;
@@ -290,6 +292,4 @@ precedence_t comma_infix_parser::precedence() const
 {
 	return precedence_t::comma;
 }
-
-
 }

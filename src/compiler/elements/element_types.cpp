@@ -71,6 +71,14 @@ size_t identifier_map_t::size() const
 	return identifiers_.size();
 }
 
+identifier_list_t identifier_map_t::as_list() const {
+	identifier_list_t list {};
+	for (const auto& it : identifiers_) {
+		list.push_back(it.second);
+	}
+	return list;
+}
+
 bool identifier_map_t::remove(const std::string& name)
 {
 	return identifiers_.erase(name) > 0;

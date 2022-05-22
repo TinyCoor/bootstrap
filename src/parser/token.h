@@ -30,8 +30,8 @@ enum class token_types_t {
 	ampersand,					/// ''
 	attribute,					/// '@'
 	directive,					///
-	less_than,					///
-	not_equals,					///
+	less_than,					/// '<'
+	not_equals,					///	'!='
 	left_paren,					/// ’(‘
 	semi_colon,					/// ','
 	in_literal,					/// 'in'
@@ -64,7 +64,7 @@ enum class token_types_t {
 	while_literal,				/// 'while'
 	defer_literal,				/// 'defer'
 	struct_literal,				/// 'struct'
-	number_literal,				///
+	number_literal,				/// [0-9]*
 	scope_operator,				/// '::'
 	string_literal,				/// '"'
 	union_literal,				/// 'union'

@@ -4,6 +4,8 @@
 
 #include "bytecode_emitter.h"
 #include "parser/ast_formatter.h"
+#include "compiler/elements/program.h"
+#include "code_dom_formatter.h"
 
 #include <fmt/format.h>
 namespace gfx {
@@ -56,19 +58,38 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input)
 	if (program_node != nullptr && !r.is_failed()) {
 		if (options_.verbose) {
 			auto close_required = false;
-			// FILE* ast_output_file = stdout;
-			FILE* ast_output_file = fopen("ast.dot","w");
+			FILE* ast_output_file = stdout;
 			if (!options_.ast_graph_file_name.empty()) {
 				auto file_name  = options_.ast_graph_file_name.string();
 				ast_output_file = fopen(file_name.c_str(), "wt");
 				close_required = true;
 			}
 			ast_formatter formatter(program_node, ast_output_file);
-			formatter.format_graph_viz();
+			formatter.format(fmt::format("AST Graph: {}", options_.ast_graph_file_name.string()));
 
-			if (close_required){
+			if (close_required) {
 				fclose(ast_output_file);
 			}
+		}
+
+		compiler::program program {};
+		if (program.initialize(r, program_node)) {
+			if (options_.verbose) {
+				auto close_required = false;
+				FILE* code_dom_output_file = stdout;
+				if (!options_.code_dom_graph_file_name.empty()) {
+					code_dom_output_file = fopen(options_.code_dom_graph_file_name.string().c_str(), "wt");
+					close_required = true;
+				}
+
+				compiler::code_dom_formatter formatter(&program, code_dom_output_file);
+				formatter.format(fmt::format("Code DOM Graph: {}", options_.code_dom_graph_file_name.string()));
+
+				if (close_required) {
+					fclose(code_dom_output_file);
+				}
+			}
+
 		}
 	}
 	return !r.is_failed();

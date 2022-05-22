@@ -32,7 +32,8 @@ ast_node_shared_ptr defer_prefix_parser::parse(result& r, parser* parser, token_
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr union_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr union_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	auto union_node = parser->ast_builder()->union_node(token);
 	union_node->rhs = parser->parse_expression(r, 0);
 	return union_node;
@@ -40,7 +41,8 @@ ast_node_shared_ptr union_prefix_parser::parse(result& r, parser* parser, token_
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr namespace_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr namespace_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	auto namespace_node = parser->ast_builder()->namespace_node(token);
 	namespace_node->rhs = parser->parse_expression(r, 0);
 	return namespace_node;
@@ -57,7 +59,8 @@ ast_node_shared_ptr struct_prefix_parser::parse(result& r, parser* parser, token
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr enum_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr enum_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	auto enum_node = parser->ast_builder()->enum_node(token);
 	enum_node->rhs = parser->parse_expression(r, 0);
 	return enum_node;
@@ -65,7 +68,8 @@ ast_node_shared_ptr enum_prefix_parser::parse(result& r, parser* parser, token_t
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr for_in_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr for_in_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	auto for_node = parser->ast_builder()->for_in_node();
 	for_node->lhs = parser->parse_expression(r, 0);
 
@@ -83,14 +87,12 @@ ast_node_shared_ptr for_in_prefix_parser::parse(result& r, parser* parser, token
 
 ///////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr return_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr return_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	auto return_node = parser->ast_builder()->return_node();
-
 	pairs_to_list(return_node->rhs, parser->parse_expression(r, 0));
-
 	return return_node;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -102,8 +104,9 @@ ast_node_shared_ptr if_prefix_parser::parse(result& r, parser* parser, token_t& 
 
 	auto current_branch = if_node;
 	while (true) {
-		if (!parser->peek(token_types_t::else_if_literal))
+		if (!parser->peek(token_types_t::else_if_literal)) {
 			break;
+		}
 		parser->consume();
 		current_branch->rhs = parser->ast_builder()->else_if_node();
 		current_branch->rhs->lhs = parser->parse_expression(r, 0);
@@ -201,10 +204,7 @@ ast_node_shared_ptr keyword_literal_prefix_parser::parse(result& r, parser* pars
 		}
 		case token_types_t::alias_literal: {
 			auto alias_node = parser->ast_builder()->alias_node(token);
-			alias_node->lhs = parser->expect_expression(
-				r,
-				ast_node_types_t::assignment,
-				0);
+			alias_node->lhs = parser->expect_expression(r, ast_node_types_t::assignment, 0);
 			return alias_node;
 		}
 		case token_types_t::break_literal: {
@@ -315,7 +315,8 @@ ast_node_shared_ptr label_prefix_parser::parse(result& r, parser* parser,token_t
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-ast_node_shared_ptr cast_prefix_parser::parse(result& r, parser* parser, token_t& token) {
+ast_node_shared_ptr cast_prefix_parser::parse(result& r, parser* parser, token_t& token)
+{
 	return create_cast_node(r, parser, token);
 }
 

@@ -12,63 +12,17 @@ ast_formatter::ast_formatter(const ast_node_shared_ptr& root, FILE* file)
 {
 }
 
-void ast_formatter::format_text()
-{
-	format_text_node(root_, 0);
-}
-
-void ast_formatter::format_text_node(const ast_node_shared_ptr &node, uint32_t level)
-{
-	if (node == nullptr) {
-		fmt::print(file_, "nullptr");
-		return;
-	}
-	fmt::print(file_, "[type: {} | token: {}]\n", node->name(), node->token.name());
-	fmt::print(file_, "{1:{0}}     value: '{2}'\n", level, "", node->token.value);
-	if (node->token.is_numeric()) {
-		fmt::print(file_,"{1:{0}}     radix: {2}\n", level, "", node->token.radix);
-		switch (node->token.number_type) {
-			case number_types_t::none:
-				fmt::print(file_, "{1:{0}}      type: none\n", level, "");
-				break;
-			case number_types_t::integer:
-				fmt::print(file_, "{1:{0}}      type: integer\n", level, "");
-				break;
-			case number_types_t::floating_point:
-				fmt::print(file_, "{1:{0}}      type: floating_point\n", level, "");
-				break;
-		}
-	}
-	fmt::print(file_, "{1:{0}}is_pointer: {2}\n", level, "", node->is_pointer());
-	fmt::print(file_, "{1:{0}}  is_array: {2}\n", level, "", node->is_array());
-	fmt::print(file_, "{1:{0}}             --\n", level, "");
-	fmt::print(file_, "{1:{0}}       lhs: ", level, "");
-	format_text_node(node->lhs, level + 7);
-	fmt::print(file_, "\n");
-	fmt::print(file_, "{1:{0}}             --\n", level, "");
-	fmt::print(file_, "{1:{0}}       rhs: ", level, "");
-	format_text_node(node->rhs, level + 7);
-	fmt::print(file_, "\n");
-	fmt::print(file_, "{1:{0}}             --\n", level, "");
-
-	auto index = 0;
-	for (auto child : node->children) {
-		fmt::print(file_, "{1:{0}}      [{2:02}] ", level, "", index++);
-		format_text_node(child, level + 6);
-		fmt::print(file_, "\n");
-	}
-}
-
-void ast_formatter::format_graph_viz()
+void ast_formatter::format(const std::string& title)
 {
 	fmt::print(file_, "digraph {{\n");
-	// fmt::print("rankdir=LR\n");
-	// fmt::print(file_, "splines=\"line\";\n");
-	format_graph_viz_node(root_);
-	fmt::print(file_,"}}\n");
+	fmt::print(file_, "graph [ fontsize=22 ];\n");
+	fmt::print(file_, "labelloc=\"t\";\n");
+	fmt::print(file_, "label=\"{}\";\n", title);
+	format_node(root_);
+	fmt::print(file_, "}}\n");
 }
 
-void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node)
+void ast_formatter::format_node(const ast_node_shared_ptr& node)
 {
 	if (node == nullptr) {
 		return;
@@ -154,12 +108,12 @@ void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node)
 	fmt::print(file_, "\t{}[shape={},label=\"{}<f1> {}{}{}\"{}];\n",
 		node_vertex_name, shape, node->lhs !=nullptr ? "<f0> lhs|" : "", node->name(), details, node->rhs != nullptr ? "|<f2> rhs" : "", style);
 	if (node->lhs != nullptr) {
-		format_graph_viz_node(node->lhs);
+		format_node(node->lhs);
 		fmt::print(file_, "{}:f0 -> {}:f1;\n", node_vertex_name, get_vertex_name(node->lhs));
 	}
 
 	if (node->rhs != nullptr) {
-		format_graph_viz_node(node->rhs);
+		format_node(node->rhs);
 		fmt::print(file_, "{}:f2 -> {}:f1;\n", node_vertex_name, get_vertex_name(node->rhs));
 	}
 
@@ -167,7 +121,7 @@ void ast_formatter::format_graph_viz_node(const ast_node_shared_ptr& node)
 	std::set<std::string> edges {};
 
 	for (auto child : node->children) {
-		format_graph_viz_node(child);
+		format_node(child);
 		edges.insert(get_vertex_name(child));
 		index++;
 	}

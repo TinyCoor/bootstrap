@@ -31,4 +31,9 @@ comment_list_t &block::comments()
 	return comments_;
 }
 
+block_list_t &block::blocks()
+{
+	return blocks_;
+}
+
 }

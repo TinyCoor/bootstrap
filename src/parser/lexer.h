@@ -160,7 +160,7 @@ private:
 	bool greater_than_equal_operator(token_t& token);
 
 private:
-	char peek();
+	// char peek();
 
 	void mark_position();
 

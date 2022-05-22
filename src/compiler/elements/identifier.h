@@ -17,7 +17,7 @@ public:
 
 	std::string name() const;
 
-	bool is_constant() const;
+	bool constant() const;
 
 	bool inferred_type() const;
 

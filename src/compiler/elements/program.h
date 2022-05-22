@@ -7,21 +7,25 @@
 #include "block.h"
 #include "parser/ast.h"
 namespace gfx::compiler {
-class program : public block {
+class program : public element {
 public:
 	program();
 	~program() override;
 
 	bool initialize(result& r, const ast_node_shared_ptr& root);
 
+	compiler::block* block();
+
+	const element_map_t& elements() const;
+
 	element* find_element(id_t id);
 
 private:
 
 	/// template<typename ... Args> make_types(Args &args) {}
-	block* make_block();
+	class block* make_block(compiler::block* parent_scope = nullptr);
 
-	block* push_new_block();
+	class block* push_new_block();
 
 	any_type* make_any_type();
 
@@ -49,7 +53,8 @@ private:
 
 	statement* make_statement(label_list_t labels, element* expr);
 
-	identifier* make_identifier(const std::string& name, initializer* expr);
+	identifier* make_identifier(const std::string& name, initializer* expr,
+								compiler::block* block_scope = nullptr);
 
 	unary_operator* make_unary_operator(operator_type_t type, element* rhs);
 
@@ -59,7 +64,7 @@ private:
 
 	initializer* make_initializer(element* expr);
 
-	procedure_instance* make_procedure_instance(type* procedure_type, block* scope);
+	procedure_instance* make_procedure_instance(type* procedure_type, class block* scope);
 
 	procedure_call* make_procedure_call(type* procedure_type, element* expr);
 
@@ -85,21 +90,25 @@ private:
 
 	element* evaluate(result& r, const ast_node_shared_ptr& node);
 
-	block* pop_scope();
+	class block* pop_scope();
 
 	void initialize_core_types();
 
-	block* current_scope() const;
+	class block* current_scope() const;
 
-	void push_scope(block* block);
+	void push_scope(class block* block);
 
 	bool is_subtree_constant(const ast_node_shared_ptr& node);
 
 	type* find_type(const std::string& name);
 
+	compiler::identifier* find_identifier(const ast_node_shared_ptr& node);
+
+
 private:
-	std::stack<block*> scope_stack_ {};
-	std::unordered_map<id_t, element*> elements_ {};
+	element_map_t elements_ {};
+	compiler::block* block_ = nullptr;
+	std::stack<compiler::block*> scope_stack_ {};
 };
 }
 

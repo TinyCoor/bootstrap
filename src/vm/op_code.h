@@ -62,8 +62,8 @@ enum class op_codes : uint8_t {
 	exit,
 };
 
-inline static std::map<op_codes, std::string> s_op_code_names = {
-	{op_codes::nop,    "NOP"},  {op_codes::alloc, "ALLOC"}, {op_codes::free, "FREE"},
+inline static std::map<op_codes, std::string_view> s_op_code_names = {
+	{op_codes::nop,    "NOP"},  {op_codes::alloc,  "ALLOC"}, {op_codes::free, "FREE"},
 	{op_codes::load,   "LOAD"}, {op_codes::store,  "STORE"}, {op_codes::size,"SIZE"},
 	{op_codes::copy,   "COPY"}, {op_codes::fill,   "FILL"}, {op_codes::move,   "MOVE"},
 	{op_codes::push,   "PUSH"}, {op_codes::pop,    "POP"}, {op_codes::inc,    "INC"},
@@ -78,8 +78,8 @@ inline static std::map<op_codes, std::string> s_op_code_names = {
 	{op_codes::beq,    "BEQ"},  {op_codes::bge,    "BGE"}, {op_codes::bg,     "BG"},
 	{op_codes::ble,    "BLE"},  {op_codes::bl,     "BL"},  {op_codes::jsr,    "JSR"},
 	{op_codes::dup,    "DUP"},  {op_codes::rts,    "RTS"}, {op_codes::jmp,    "JMP"},
-	{op_codes::meta,   "META"}, {op_codes::swi,   "SWI"},  {op_codes::trap,  "TRAP"},
-	{op_codes::exit,   "EXIT"}, {op_codes::swap, "SWAP"},
+	{op_codes::meta,   "META"}, {op_codes::swi,    "SWI"},  {op_codes::trap,  "TRAP"},
+	{op_codes::exit,   "EXIT"}, {op_codes::swap,   "SWAP"},
 };
 }
 #endif // OP_CODE_H_

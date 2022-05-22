@@ -407,6 +407,7 @@ ast_node_shared_ptr ast_builder::parameter_list_node()
 	node->type = ast_node_types_t::parameter_list;
 	return node;
 }
+
 ast_node_shared_ptr ast_builder::assignment_target_list_node()
 {
 	auto node = std::make_shared<ast_node_t>();
@@ -422,4 +423,5 @@ ast_node_shared_ptr ast_builder::return_argument_list_node()
 	node->type = ast_node_types_t::return_argument_list;
 	return node;
 }
+
 }

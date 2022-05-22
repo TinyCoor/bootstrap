@@ -13,20 +13,26 @@ using id_t = uint32_t;
 
 class id_interval {
 public:
-	id_interval(id_t ll, id_t uu) : _value(ll, uu) {}
+	id_interval(id_t ll, id_t uu) : value_(ll, uu) {}
 
-	bool operator<(const id_interval& s) const {
-		return
-			(_value.lower() < s._value.lower()) &&
-				(_value.upper() < s._value.lower());
+	bool operator<(const id_interval& s) const
+	{
+		return (value_.lower() < s.value_.lower()) &&
+				(value_.upper() < s.value_.lower());
 	}
 
-	id_t left() const { return _value.lower(); }
+	id_t left() const
+	{
+		return value_.lower();
+	}
 
-	id_t right() const { return _value.upper(); }
+	id_t right() const
+	{
+		return value_.upper();
+	}
 
 private:
-	boost::numeric::interval<id_t> _value;
+	boost::numeric::interval<id_t> value_;
 };
 
 typedef std::set<id_interval> id_set;

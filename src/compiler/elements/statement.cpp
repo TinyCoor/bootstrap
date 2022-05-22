@@ -6,11 +6,11 @@
 namespace gfx::compiler {
 statement::statement(element* parent, element* expr)
 	: element(parent, element_type_t::statement),
-					 expr_(expr) {
+					 expression_(expr) {
 }
 
-element* statement::expr() {
-	return expr_;
+element* statement::expression() {
+	return expression_;
 }
 
 label_list_t& statement::labels() {

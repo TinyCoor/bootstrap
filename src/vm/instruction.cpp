@@ -9,8 +9,8 @@ namespace gfx {
 size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 {
 	if (address % alignment != 0) {
-		r.add_message("B003",fmt::format("instruction alignment violation: alignment = {} bytes, address = ${:016X}",
-			 alignment,address), true);
+		r.add_message("B003", fmt::format("instruction alignment violation: alignment = {} bytes, address = ${:016X}",
+			 alignment, address), true);
 		return 0;
 	}
 	uint8_t encoding_size = base_size;
@@ -36,13 +36,13 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 		} else {
 			switch (size) {
 				case op_sizes::byte: {
-					uint8_t *constant_value_ptr = reinterpret_cast<uint8_t *>(encoding_ptr + offset);
+					auto *constant_value_ptr = reinterpret_cast<uint8_t *>(encoding_ptr + offset);
 					*constant_value_ptr = static_cast<uint8_t>(operands[i].value.u64);
 					offset += sizeof(uint8_t);
 					encoding_size += sizeof(uint8_t);
 				}break;
 				case op_sizes::word: {
-					uint16_t *constant_value_ptr = reinterpret_cast<uint16_t *>(encoding_ptr + offset);
+					auto *constant_value_ptr = reinterpret_cast<uint16_t *>(encoding_ptr + offset);
 					*constant_value_ptr = static_cast<uint16_t>(operands[i].value.u64);
 					offset += sizeof(uint16_t);
 					encoding_size += sizeof(uint16_t);
@@ -50,7 +50,7 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 				}
 				case op_sizes::dword: {
 					if ( operands[i].is_integer()) {
-						uint32_t *constant_value_ptr = reinterpret_cast<uint32_t *>(encoding_ptr + offset);
+						auto *constant_value_ptr = reinterpret_cast<uint32_t *>(encoding_ptr + offset);
 						*constant_value_ptr = static_cast<uint32_t>(operands[i].value.u64);
 						offset += sizeof(uint32_t);
 						encoding_size += sizeof(uint32_t);
@@ -64,7 +64,7 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 				}
 				case op_sizes::qword: {
 					if (operands[i].is_integer()) {
-						uint64_t *constant_value_ptr = reinterpret_cast<uint64_t *>(encoding_ptr + offset);
+						auto *constant_value_ptr = reinterpret_cast<uint64_t *>(encoding_ptr + offset);
 						*constant_value_ptr = static_cast<uint64_t>(operands[i].value.u64);
 						offset += sizeof(uint64_t);
 						encoding_size += sizeof(uint64_t);
@@ -78,9 +78,9 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 				}
 				case op_sizes::none:{
 					if (operands[i].is_integer()) {
-						r.add_message("B009","constant integers cannot have a size of 'none'.", true);
+						r.add_message("B009", "constant integers cannot have a size of 'none'.", true);
 					} else {
-						r.add_message("B009","constant floats cannot have a size of 'none', 'byte', or 'word'.", true);
+						r.add_message("B009", "constant floats cannot have a size of 'none', 'byte', or 'word'.", true);
 					}
 				}break;
 			}
@@ -97,14 +97,14 @@ size_t instruction_t::decode(result& r, uint8_t* heap, uint64_t address)
 {
 	if (address % alignment != 0) {
 		r.add_message("B003", fmt::format("instruction alignment violation: alignment = {} bytes, address = ${:016X}",
-										 alignment,address), true);
+			alignment,address), true);
 		return 0;
 	}
 
 	uint8_t* encoding_ptr = heap + address;
 	uint8_t encoding_size = *encoding_ptr;
 	op = static_cast<op_codes>(*(encoding_ptr +1));
-	uint8_t op_size_and_operands_count = static_cast<uint8_t>(*(encoding_ptr + 2));
+	auto op_size_and_operands_count = static_cast<uint8_t>(*(encoding_ptr + 2));
 	size = static_cast<op_sizes>(get_upper_nybble(op_size_and_operands_count));
 	operands_count = get_lower_nybble(op_size_and_operands_count);
 

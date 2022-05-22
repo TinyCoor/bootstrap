@@ -11,13 +11,13 @@ class statement : public element {
 public:
 	statement(element* parent, element* expr);
 
-	element* expr();
+	element* expression();
 
 	label_list_t& labels();
 
 private:
 	label_list_t labels_ {};
-	compiler::element* expr_ = nullptr;
+	compiler::element* expression_ = nullptr;
 };
 }
 

@@ -34,11 +34,13 @@ bool shared_library::initialize(gfx::result &r, const std::filesystem::path &pat
 //	return true;
 //}
 
-bool shared_library::exports_symbol(const std::string &symbol_name) {
+bool shared_library::exports_symbol(const std::string &symbol_name)
+{
 	return symbols_.count(symbol_name) > 0;
 }
 
-void* shared_library::symbol_address(const std::string &symbol_name) {
+void* shared_library::symbol_address(const std::string &symbol_name)
+{
 	auto it = symbols_.find(symbol_name);
 	if (it == symbols_.end()) {
 		return nullptr;
@@ -49,7 +51,8 @@ void* shared_library::symbol_address(const std::string &symbol_name) {
 	return it->second;
 }
 
-void shared_library::load_symbols(const char *path) {
+void shared_library::load_symbols(const char *path)
+{
 	symbols_.clear();
 	auto symbol_ptr = dlSymsInit(path);
 	if (symbol_ptr != nullptr) {

@@ -533,16 +533,16 @@ lexer::lexer(std::istream& source)
 }
 
 
-char lexer::peek()
-{
-	while (!source_.eof()) {
-		auto ch = static_cast<char>(source_.get());
-		if (!isspace(ch)) {
-			return ch;
-		}
-	}
-	return 0;
-}
+//char lexer::peek()
+//{
+//	while (!source_.eof()) {
+//		auto ch = static_cast<char>(source_.get());
+//		if (!isspace(ch)) {
+//			return ch;
+//		}
+//	}
+//	return 0;
+//}
 
 void lexer::mark_position()
 {
@@ -857,7 +857,7 @@ bool lexer::question(token_t& token)
 {
 	auto ch = read();
 	if (ch == '?') {
-		token =s_question_literal;
+		token = s_question_literal;
 		return true;
 	}
 	return false;

@@ -7,12 +7,12 @@
 #include "src/common/result.h"
 #include "op_code.h"
 
-const uint8_t REGISTER_COUNT  = 64;
+constexpr uint8_t REGISTER_COUNT  = 64;
 namespace gfx {
 
 enum i_registers_t : uint8_t {
-	i0, i1, i2, i3, i4, i5, i6, i7,
-	i8, i9, i10, i11, i12, i13, i14, i15,
+	i0,  i1,  i2,  i3,  i4,  i5,  i6,  i7,
+	i8,  i9,  i10, i11, i12, i13, i14, i15,
 	i16, i17, i18, i19, i20, i21, i22, i23,
 	i24, i25, i26, i27, i28, i29, i30, i31,
 
@@ -25,8 +25,8 @@ enum i_registers_t : uint8_t {
 };
 
 enum f_registers_t : uint8_t {
-	f0, f1, f2, f3, f4, f5, f6, f7,
-	f8, f9, f10, f11, f12, f13, f14, f15,
+	f0,  f1,  f2,  f3,  f4,  f5,  f6,  f7,
+	f8,  f9,  f10, f11, f12, f13, f14, f15,
 	f16, f17, f18, f19, f20, f21, f22, f23,
 	f24, f25, f26, f27, f28, f29, f30, f31,
 
@@ -51,10 +51,11 @@ struct register_file_t {
 	}
 
 	void flags(flags_t f, bool value) {
-		if (value)
+		if (value) {
 			fr |= f;
-		else
+		} else {
 			fr &= ~f;
+		}
 	}
 	uint64_t i[REGISTER_COUNT];
 	double f[REGISTER_COUNT];

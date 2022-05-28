@@ -62,7 +62,7 @@ enum class op_codes : uint8_t {
 	exit,
 };
 
-inline static std::map<op_codes, std::string_view> s_op_code_names = {
+inline static std::map<op_codes, std::string_view> s_op_code_names  = {
 	{op_codes::nop,    "NOP"},  {op_codes::alloc,  "ALLOC"}, {op_codes::free, "FREE"},
 	{op_codes::load,   "LOAD"}, {op_codes::store,  "STORE"}, {op_codes::size,"SIZE"},
 	{op_codes::copy,   "COPY"}, {op_codes::fill,   "FILL"}, {op_codes::move,   "MOVE"},

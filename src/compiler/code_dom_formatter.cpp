@@ -6,6 +6,7 @@
 #include "elements/any_type.h"
 #include "elements/label.h"
 #include "elements/alias.h"
+#include "elements/argument_list.h"
 #include "elements/block.h"
 #include "elements/program.h"
 #include "elements/comment.h"
@@ -55,7 +56,7 @@ void code_dom_formatter::add_primary_edge(element* parent, element* child, const
 	edges_.insert(fmt::format("{} -> {} {};", get_vertex_name(parent), get_vertex_name(child), attributes));
 }
 
-void code_dom_formatter::add_secondary_edge(element* parent,element* child, const std::string& label)
+void code_dom_formatter::add_secondary_edge(element* parent, element* child, const std::string& label)
 {
 	if (parent == nullptr || child == nullptr) {
 		return;
@@ -168,14 +169,25 @@ std::string code_dom_formatter::format_node(element* node)
 			return fmt::format("{}[shape=record,label=\"statement\"{}];",
 				node_vertex_name, style);
 		}
+		case element_type_t::argument_list: {
+			auto args = dynamic_cast<argument_list*>(node);
+			auto style = ", fillcolor=azure, style=\"filled\"";
+			for (auto arg_element : args->elements()) {
+				add_primary_edge(args, arg_element);
+			}
+			return fmt::format(
+				"{}[shape=record,label=\"argument_list\"{}];",
+				node_vertex_name,
+				style);
+		}
 		case element_type_t::proc_call: {
 			auto element = dynamic_cast<procedure_call*>(node);
 			auto style = ", fillcolor=darkorchid1, style=\"filled\"";
-			add_primary_edge(element, element->expression());
-			add_primary_edge(element, element->procedure_type());
-			return fmt::format(
-				"{}[shape=record,label=\"proc_call\"{}];",
+			add_primary_edge(element, element->arguments());
+			add_primary_edge(element, element->identifier()->type());
+			return fmt::format("{}[shape=record,label=\"proc_call|{}\"{}];",
 				node_vertex_name,
+				element->identifier()->name(),
 				style);
 		}
 		case element_type_t::alias_type: {
@@ -337,7 +349,8 @@ std::string code_dom_formatter::format_node(element* node)
 	return "";
 }
 
-void code_dom_formatter::format(const std::string& title) {
+void code_dom_formatter::format(const std::string& title)
+{
 	fmt::print(file_, "digraph {{\n");
 	fmt::print(file_, "rankdir=LR\n");
 	fmt::print(file_, "graph [ fontsize=22 ];\n");
@@ -351,9 +364,9 @@ void code_dom_formatter::format(const std::string& title) {
 
 	for (const auto& pair : program_->elements()) {
 		auto node_def = format_node(pair.second);
-		if (node_def.empty())
+		if (node_def.empty()) {
 			continue;
-
+		}
 		nodes_.insert(node_def);
 
 		add_secondary_edge(pair.second->parent(), pair.second);
@@ -369,7 +382,8 @@ void code_dom_formatter::format(const std::string& title) {
 	fmt::print(file_, "}}\n");
 }
 
-std::string code_dom_formatter::get_vertex_name(element* node) const {
+std::string code_dom_formatter::get_vertex_name(element* node) const
+{
 	return fmt::format("{}_{}", element_type_name(node->element_type()), node->id());
 }
 }

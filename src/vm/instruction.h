@@ -46,15 +46,15 @@ struct register_file_t {
 		subtract = 0b0000000000000000000000000000000000000000000000000000000000100000,
 	};
 
-	bool flags(flags_t f) const {
-		return (fr & f) != 0;
+	bool flags(flags_t flag) const {
+		return (fr & flag) != 0;
 	}
 
-	void flags(flags_t f, bool value) {
+	void flags(flags_t flag, bool value) {
 		if (value) {
-			fr |= f;
+			fr |= flag;
 		} else {
-			fr &= ~f;
+			fr &= ~flag;
 		}
 	}
 	uint64_t i[REGISTER_COUNT];
@@ -72,6 +72,19 @@ enum class op_sizes : uint8_t {
 	dword,
 	qword,
 };
+
+static inline uint8_t op_size_in_bytes(op_sizes size)
+{
+	switch (size) {
+		case op_sizes::none:  return 0u;
+		case op_sizes::byte:  return 1u;
+		case op_sizes::dword: return 2u;
+		case op_sizes::word:  return 4u;
+		case op_sizes::qword: return 8u;
+		default:
+			return 0;
+	}
+}
 
 struct operand_encoding_t {
 	using flags_t = uint8_t;

@@ -109,30 +109,29 @@ public:
 
 	///  add target_register src1_register src2_register
 	void add_int_register_to_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index,
-									  i_registers_t rhs_index);
+		i_registers_t rhs_index);
 
 	///  div target_register src1_register src2_register
 	void divide_int_register_to_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index,
-										 i_registers_t rhs_index);
+		i_registers_t rhs_index);
 
 	///  mul target_register src1_register src2_register
 	void multiply_int_register_to_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index,
-										   i_registers_t rhs_index);
+		i_registers_t rhs_index);
 
 	///  sub target_register src1_register src2_register
 	void subtract_int_register_to_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index,
-										   i_registers_t rhs_index);
+		i_registers_t rhs_index);
 
 	void subtract_int_constant_from_register(op_sizes size, i_registers_t target_index, i_registers_t lhs_index,
-											 uint64_t rhs_value);
+		uint64_t rhs_value);
 
 	/// load target_register source_register offset
 	void load_with_offset_to_register(op_sizes size ,i_registers_t source_index, i_registers_t target_index,
-									  uint64_t offset);
+		uint64_t offset);
 	/// store
 	void store_with_offset_from_register(op_sizes size, i_registers_t source_index, i_registers_t target_index,
-										 uint64_t offset);
-
+		uint64_t offset);
 
 private:
 	uint64_t start_address_ = 0;

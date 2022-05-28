@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/5/3.
 //
 
-#ifndef BOOTSTRAP_SRC_COMPILER_ELEMENTS_COMMENT_H_
-#define BOOTSTRAP_SRC_COMPILER_ELEMENTS_COMMENT_H_
+#ifndef COMPILER_ELEMENTS_COMMENT_H_
+#define COMPILER_ELEMENTS_COMMENT_H_
 #include "element.h"
 namespace gfx::compiler {
 class comment : public element {

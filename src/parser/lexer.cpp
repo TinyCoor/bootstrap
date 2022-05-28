@@ -7,6 +7,19 @@
 #include <sstream>
 namespace gfx {
 
+template<typename Key, typename Value, size_t size>
+struct Map {
+	std::array<std::pair<Key,Value>, size> contents;
+
+	Value At(Key key) {
+		auto iter = std::find(std::begin(contents), std::end(contents), key);
+		if (iter != contents.end()) {
+			return iter.second;
+		}
+	}
+};
+
+
 static inline token_t s_proc_literal = {
 	.type = token_types_t::proc_literal,
 	.value = "proc"

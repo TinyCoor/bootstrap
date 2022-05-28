@@ -9,6 +9,7 @@
 #include "comment.h"
 #include "any_type.h"
 #include "array_type.h"
+#include "if_element.h"
 #include "expression.h"
 #include "attribute.h"
 #include "directive.h"
@@ -16,7 +17,7 @@
 #include "string_type.h"
 #include "numeric_type.h"
 #include "procedure_type.h"
-#include "if_element.h"
+#include "argument_list.h"
 #include "boolean_literal.h"
 #include "string_literal.h"
 #include "float_literal.h"
@@ -176,10 +177,22 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			}
 			return make_binary_operator(it->second, evaluate(r, node->lhs), evaluate(r, node->rhs));
 		}
+		case ast_node_types_t::argument_list: {
+			auto args = make_argument_list();
+			for (const auto& arg : node->children) {
+				args->add(evaluate(r, arg));
+			}
+			return args;
+		}
 		case ast_node_types_t::proc_call: {
 			auto proc_identifier = find_identifier(node->lhs);
 			if (proc_identifier != nullptr) {
-				return make_procedure_call(proc_identifier->type(), evaluate(r, node->rhs));
+				auto args = (argument_list*)nullptr;
+				auto expr = evaluate(r, node->rhs);
+				if (expr != nullptr) {
+					args = dynamic_cast<argument_list*>(expr);
+				}
+				return make_procedure_call(proc_identifier, args);
 			}
 			return nullptr;
 		}
@@ -228,28 +241,6 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 					}
 				}
 			}
-
-//			if (!node->children.empty()) {
-//				for (const auto& child_node : node->children) {
-//					switch (child_node->type) {
-//						case ast_node_types_t::attribute: {
-//							proc_type->attributes().add(make_attribute(
-//								child_node->token.value,
-//								evaluate(r, child_node->lhs)));
-//							break;
-//						}
-//						case ast_node_types_t::basic_block: {
-//							auto basic_block = dynamic_cast<class block*>(evaluate(r, child_node));
-//							// XXX: add identifiers
-//							proc_type->instances().push_back(make_procedure_instance(
-//								proc_type,
-//								basic_block));
-//						}
-//						default:
-//							break;
-//					}
-//				}
-//			}
 
 			pop_scope();
 			return proc_type;
@@ -527,7 +518,7 @@ procedure_type* program::make_procedure_type(compiler::block* block_scope)
 	return type;
 }
 
-type* program::find_type(const std::string& name)
+type* program::find_type(const std::string& name) const
 {
 	auto scope = current_scope();
 	while (scope != nullptr) {
@@ -575,9 +566,17 @@ return_element *program::make_return()
 	return return_elem;
 }
 
-procedure_call *program::make_procedure_call(compiler::type *procedure_type, element *expr)
+argument_list* program::make_argument_list()
 {
-	auto proc_call = new compiler::procedure_call(current_scope(), procedure_type, expr);
+	auto list = new compiler::argument_list(current_scope());
+	elements_.insert(std::make_pair(list->id(), list));
+	return list;
+}
+
+procedure_call *program::make_procedure_call(compiler::identifier* identifier,
+	compiler::argument_list* args)
+{
+	auto proc_call = new compiler::procedure_call(current_scope(), identifier, args);
 	elements_.insert(std::make_pair(proc_call->id(), proc_call));
 	return proc_call;
 }
@@ -653,6 +652,7 @@ const element_map_t &program::elements() const
 {
 	return elements_;
 }
+
 compiler::identifier *program::add_identifier_to_scope(result &r,
 	const ast_node_shared_ptr &symbol, const ast_node_shared_ptr &rhs)
 {
@@ -717,6 +717,10 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 
 	auto new_identifier = make_identifier(final_symbol->token.value, init);
 	if (identifier_type == nullptr && init != nullptr) {
+		identifier_type = init->expression()->infer_type(this);
+		// XXX: this is probably temporary because we may need multiple
+		//      type substitutions per identifier
+		new_identifier->inferred_type(identifier_type != nullptr);
 
 	}
 	new_identifier->type(identifier_type);
@@ -724,7 +728,10 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 
 	scope->identifiers().add(new_identifier);
 	// XXX: if identifier_type is a procedure, we need to call add_procedure_instances
-
+	if (init != nullptr
+		&&  init->expression()->element_type() == element_type_t::proc_type) {
+		add_procedure_instance(r, dynamic_cast<procedure_type*>(init->expression()), rhs);
+	}
 	pop_scope();
 
 	return new_identifier;
@@ -868,6 +875,7 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 	if (node->children.empty()) {
 		return;
 	}
+	push_scope(proc_type->scope());
 	for (const auto& child_node : node->children) {
 		switch (child_node->type) {
 			case ast_node_types_t::attribute: {
@@ -888,6 +896,7 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 				break;
 		}
 	}
+	pop_scope();
 }
 
 }

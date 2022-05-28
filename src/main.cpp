@@ -36,10 +36,9 @@ static void usage() {
 				file\n)";
 	fmt::print(fmt::runtime(fmt_args));
 }
-
+#include <iostream>
 int main(int argc, char** argv) {
 	using namespace std::chrono;
-
 	int opt = -1;
 	bool help_flag = false;
 	bool verbose_flag = false;
@@ -56,7 +55,6 @@ int main(int argc, char** argv) {
 
 	while (true) {
 		int option_index = -1;
-		//todo fix it in windows
 		opt = ya_getopt_long(argc, argv, "?:v:G:H:", long_options, &option_index);
 		if (opt == -1) {
 			break;

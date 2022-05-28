@@ -23,10 +23,10 @@ enum class token_types_t {
 	comma,						/// ';'
 	label,						///
 	equals,						/// '='
-	period,						/// ''
+	period,						/// '.'
 	percent,					/// ''
 	question,					/// '?'
-	asterisk,					/// ''
+	asterisk,					/// '*'
 	ampersand,					/// ''
 	attribute,					/// '@'
 	directive,					///

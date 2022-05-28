@@ -84,10 +84,7 @@ struct function_value_t {
 				break;
 			case ffi_types_t::struct_type: {
 				auto dc_struct = struct_meta_info();
-				dcArgStruct(
-					vm,
-					dc_struct,
-					reinterpret_cast<DCpointer>(value));
+				dcArgStruct(vm, dc_struct, reinterpret_cast<DCpointer>(value));
 				break;
 			}
 		}

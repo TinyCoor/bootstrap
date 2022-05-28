@@ -38,12 +38,12 @@ ast_node_shared_ptr ast_builder::pop_scope()
 	return top;
 }
 
-ast_node_t* ast_builder::current_scope() const
+ast_node_shared_ptr ast_builder::current_scope() const
 {
 	if (scope_stack_.empty()) {
 		return nullptr;
 	}
-	return scope_stack_.top().get();
+	return scope_stack_.top();
 }
 
 ast_node_shared_ptr ast_builder::program_node()

@@ -21,4 +21,4 @@ private:
 };
 }
 
-#endif //BOOTSTRAP_SRC_COMPILER_ELEMENTS_CAST_H_
+#endif // COMPILER_ELEMENTS_CAST_H_

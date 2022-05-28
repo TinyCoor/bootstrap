@@ -4,19 +4,22 @@
 
 #ifndef COMPILER_ELEMENTS_PROCEDURE_CALL_H_
 #define COMPILER_ELEMENTS_PROCEDURE_CALL_H_
-#include "element.h"
+#include "argument_list.h"
 namespace gfx::compiler {
 class procedure_call : public element {
 public:
-	procedure_call(element* parent, compiler::type* procedure_type, element* expr);
+	procedure_call(element* parent, identifier* identifier, argument_list* args);
 
-	element* expression();
+	identifier* identifier();
 
-	compiler::type* procedure_type();
+	argument_list* arguments();
+
+protected:
+	compiler::type* on_infer_type(const compiler::program* program) override;
 
 private:
-	element* expression_ = nullptr;
-	compiler::type* procedure_type_ = nullptr;
+	compiler::argument_list* arguments_ = nullptr;
+	compiler::identifier* identifier_ = nullptr;
 };
 }
 

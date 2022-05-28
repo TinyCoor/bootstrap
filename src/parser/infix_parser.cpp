@@ -219,7 +219,7 @@ precedence_t type_identifier_infix_parser::precedence() const
 
 ///////////////////////////////////////////////////////////////////////////
 
-binary_operator_infix_parser::binary_operator_infix_parser(precedence_t precedence,bool is_right_associative) noexcept
+binary_operator_infix_parser::binary_operator_infix_parser(precedence_t precedence, bool is_right_associative) noexcept
 	: 	precedence_(precedence), is_right_associative_(is_right_associative)
 {
 }

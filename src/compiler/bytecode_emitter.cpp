@@ -10,8 +10,7 @@
 #include <fmt/format.h>
 namespace gfx {
 bytecode_emitter::bytecode_emitter( const bytecode_emitter_options_t& options)
-	: 	terp_(options.heap_size, options.stack_size),
-		options_(options)
+	: terp_(options.heap_size, options.stack_size), options_(options)
 {
 }
 

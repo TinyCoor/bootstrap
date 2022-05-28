@@ -30,6 +30,7 @@ class array_type;
 class string_type;
 class numeric_type;
 class if_element;
+class argument_list;
 class return_element;
 class procedure_call;
 class identifier;
@@ -109,6 +110,7 @@ enum class element_type_t {
 	namespace_e,
 	initializer,
 	numeric_type,
+	argument_list,
 	proc_instance,
 	float_literal,
 	string_literal,
@@ -137,6 +139,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::bool_type, "bool_type"},
 	{element_type_t::statement, "statement"},
 	{element_type_t::proc_call, "proc_call"},
+	{element_type_t::argument_list, "argument_list"},
 	{element_type_t::alias_type, "alias_type"},
 	{element_type_t::array_type, "array_type"},
 	{element_type_t::identifier, "identifier"},

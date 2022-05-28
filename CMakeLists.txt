@@ -126,6 +126,7 @@ set(ELEMENT_SRC
         src/compiler/elements/array_type.cpp
         src/compiler/elements/procedure_instance.cpp
         src/compiler/elements/namespace_type.cpp
+        src/compiler/elements/argument_list.cpp
 
         src/compiler/code_dom_formatter.cpp
         )

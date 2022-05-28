@@ -20,6 +20,8 @@ public:
 
 	element* find_element(id_t id);
 
+	compiler::type* find_type(const std::string& name) const;
+
 private:
 
 	/// template<typename ... Args> make_types(Args &args) {}
@@ -62,7 +64,7 @@ private:
 	statement* make_statement(label_list_t labels, element* expr);
 
 	identifier* make_identifier(const std::string& name, initializer* expr,
-								compiler::block* block_scope = nullptr);
+		compiler::block* block_scope = nullptr);
 
 	unary_operator* make_unary_operator(operator_type_t type, element* rhs);
 
@@ -74,7 +76,10 @@ private:
 
 	procedure_instance* make_procedure_instance(type* procedure_type, class block* scope);
 
-	procedure_call* make_procedure_call(type* procedure_type, element* expr);
+	argument_list* make_argument_list();
+
+	procedure_call* make_procedure_call(compiler::identifier* identifier,
+										 compiler::argument_list* args);
 
 	procedure_type* make_procedure_type(compiler::block* block_scope = nullptr);
 
@@ -103,7 +108,6 @@ private:
 
 	compiler::type* find_array_type(compiler::type* entry_type, size_t size);
 
-
 private:
 
 	element* evaluate(result& r, const ast_node_shared_ptr& node);
@@ -118,10 +122,7 @@ private:
 
 	bool is_subtree_constant(const ast_node_shared_ptr& node);
 
-	type* find_type(const std::string& name);
-
 	compiler::identifier* find_identifier(const ast_node_shared_ptr& node);
-
 
 private:
 	element_map_t elements_ {};

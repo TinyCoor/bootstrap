@@ -8,11 +8,14 @@
 #include "element_types.h"
 
 namespace gfx::compiler {
-class unary_operator : public  operator_base {
+class unary_operator : public operator_base {
 public:
 	unary_operator(element* parent, operator_type_t type, element* rhs);
 
 	element* rhs();
+
+protected:
+	compiler::type* on_infer_type(const compiler::program* program) override;
 
 private:
 	element* rhs_ = nullptr;

@@ -70,10 +70,9 @@ add_custom_command(TARGET all-unit-tests
         COMMAND ctest -C $<CONFIGURATION> --output-on-failure
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set(COMMON_SRC src/common/ya_getopt.c
-        src/common/id_pool.cpp
-
-        )
+set(COMMON_SRC
+        src/common/ya_getopt.c
+        src/common/id_pool.cpp)
 
 set(VM_SRC
         src/vm/terp.cpp
@@ -128,13 +127,12 @@ set(ELEMENT_SRC
         src/compiler/elements/namespace_type.cpp
         src/compiler/elements/argument_list.cpp
 
-        src/compiler/code_dom_formatter.cpp
+
         )
 
 set(COMPILER_SRC
-        src/compiler/scope.cpp
-        src/compiler/symbol_table.cpp
         ${ELEMENT_SRC}
+        src/compiler/code_dom_formatter.cpp
         src/compiler/bytecode_emitter.cpp)
 
 

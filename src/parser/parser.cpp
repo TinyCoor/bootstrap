@@ -4,6 +4,7 @@
 
 #include "parser.h"
 #include "fmt/format.h"
+#include "ast_formatter.h"
 #include <ostream>
 #include <sstream>
 namespace gfx {
@@ -271,6 +272,23 @@ void parser::error(result &r, const std::string &code, const std::string &messag
 	}
 
 	r.add_message(code, fmt::format("{} @ {}:{}", message, line, column), stream.str(), true);
+}
+
+void parser::write_ast_graph(const std::filesystem::path &path, const ast_node_shared_ptr &program_node)
+{
+	auto close_required = false;
+	FILE* ast_output_file = stdout;
+	if (!path.empty()) {
+		ast_output_file = fopen(path.string().c_str(),"wt");
+		close_required = true;
+	}
+
+	ast_formatter formatter(program_node, ast_output_file);
+	formatter.format(fmt::format("AST Graph: {}", path.string()));
+
+	if (close_required) {
+		fclose(ast_output_file);
+	}
 }
 
 }

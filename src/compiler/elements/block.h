@@ -8,6 +8,7 @@
 #include "element.h"
 #include "element_types.h"
 #include "identifier.h"
+#include <vm/instruction_emitter.h>
 
 namespace gfx::compiler {
 
@@ -21,11 +22,17 @@ public:
 
 	block_list_t& blocks();
 
+	bool emit(result& r);
+
 	comment_list_t& comments();
 
 	statement_list_t& statements();
 
 	identifier_map_t& identifiers();
+protected:
+	friend class program;
+
+	instruction_emitter* emitter();
 
 private:
 	type_map_t types_ {};
@@ -33,6 +40,7 @@ private:
 	block_list_t blocks_ {};
 	statement_list_t statements_{};
 	identifier_map_t identifiers_ {};
+	instruction_emitter emitter_;
 };
 }
 

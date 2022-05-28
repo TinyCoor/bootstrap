@@ -3,12 +3,11 @@
 //
 
 #include "bytecode_emitter.h"
-#include "parser/ast_formatter.h"
-#include "compiler/elements/program.h"
 #include "code_dom_formatter.h"
-
+#include "parser/ast_formatter.h"
+#include "elements/program.h"
 #include <fmt/format.h>
-namespace gfx {
+namespace gfx::compiler {
 bytecode_emitter::bytecode_emitter( const bytecode_emitter_options_t& options)
 	: terp_(options.heap_size, options.stack_size), options_(options)
 {
@@ -56,42 +55,36 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input)
 	auto program_node = alpha_parser.parse(r);
 	if (program_node != nullptr && !r.is_failed()) {
 		if (options_.verbose) {
-			auto close_required = false;
-			FILE* ast_output_file = stdout;
-			if (!options_.ast_graph_file_name.empty()) {
-				auto file_name  = options_.ast_graph_file_name.string();
-				ast_output_file = fopen(file_name.c_str(), "wt");
-				close_required = true;
-			}
-			ast_formatter formatter(program_node, ast_output_file);
-			formatter.format(fmt::format("AST Graph: {}", options_.ast_graph_file_name.string()));
-
-			if (close_required) {
-				fclose(ast_output_file);
-			}
+			alpha_parser.write_ast_graph(options_.ast_graph_file_name, program_node);
 		}
 
-		compiler::program program {};
+		compiler::program program(&terp_);
 		if (program.initialize(r, program_node)) {
 			if (options_.verbose) {
-				auto close_required = false;
-				FILE* code_dom_output_file = stdout;
-				if (!options_.code_dom_graph_file_name.empty()) {
-					code_dom_output_file = fopen(options_.code_dom_graph_file_name.string().c_str(), "wt");
-					close_required = true;
-				}
-
-				compiler::code_dom_formatter formatter(&program, code_dom_output_file);
-				formatter.format(fmt::format("Code DOM Graph: {}", options_.code_dom_graph_file_name.string()));
-
-				if (close_required) {
-					fclose(code_dom_output_file);
-				}
+				write_code_dom_graph(options_.code_dom_graph_file_name, &program);
 			}
 
 		}
 	}
 	return !r.is_failed();
+}
+
+void bytecode_emitter::write_code_dom_graph(const std::filesystem::path &path, const program *program)
+{
+	auto close_required = false;
+	FILE* code_dom_output_file = stdout;
+	if (!path.empty()) {
+		code_dom_output_file = fopen(path.string().c_str(), "wt");
+		close_required = true;
+	}
+
+	code_dom_formatter formatter(program, code_dom_output_file);
+	formatter.format(fmt::format("Code DOM Graph: {}", path.string()));
+
+	if (close_required) {
+		fclose(code_dom_output_file);
+	}
+
 }
 
 }

@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class code_dom_formatter {
 public:
-	code_dom_formatter(compiler::program* program_element, FILE* file);
+	code_dom_formatter(const compiler::program* program_element, FILE* file);
 
 	void format(const std::string& title);
 
@@ -26,7 +26,7 @@ private:
 	FILE* file_ = nullptr;
 	std::set<std::string> edges_ {};
 	std::set<std::string> nodes_ {};
-	compiler::program* program_ = nullptr;
+	const compiler::program* program_ = nullptr;
 };
 }
 

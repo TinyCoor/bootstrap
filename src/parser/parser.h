@@ -4,6 +4,7 @@
 #ifndef PARSER_H_
 #define PARSER_H_
 #include "prefix_parser.h"
+#include <filesystem>
 #include "lexer.h"
 #include <map>
 #include <stack>
@@ -21,6 +22,9 @@ public:
 	bool consume();
 
 	bool consume(token_t& token);
+
+	void write_ast_graph(const std::filesystem::path& path,
+						 const ast_node_shared_ptr& program_node);
 
 	bool look_ahead(size_t count);
 

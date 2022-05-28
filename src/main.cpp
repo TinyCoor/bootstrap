@@ -104,14 +104,14 @@ int main(int argc, char** argv) {
 	verbose_flag = true;
 
 	high_resolution_clock::time_point start = high_resolution_clock::now();
-	bytecode_emitter_options_t compiler_options {
+	compiler::bytecode_emitter_options_t compiler_options {
 		.verbose = verbose_flag,
 		.heap_size = heap_size,
 		.stack_size = stack_size,
 		.ast_graph_file_name = ast_graph_file_name,
 		.code_dom_graph_file_name = code_dom_graph_file_name,
 	};
-	bytecode_emitter compiler(compiler_options);
+	compiler::bytecode_emitter compiler(compiler_options);
 	result r;
 	int rc = 0;
 

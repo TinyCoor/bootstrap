@@ -37,7 +37,7 @@
 
 
 namespace gfx::compiler {
-code_dom_formatter::code_dom_formatter(compiler::program* program_element,FILE* file)
+code_dom_formatter::code_dom_formatter(const compiler::program* program_element,FILE* file)
 	: file_(file), program_(program_element)
 {
 }
@@ -360,7 +360,7 @@ void code_dom_formatter::format(const std::string& title)
 	nodes_.clear();
 	edges_.clear();
 
-	nodes_.insert(format_node(program_));
+	nodes_.insert(format_node(const_cast<compiler::program*>(program_)));
 
 	for (const auto& pair : program_->elements()) {
 		auto node_def = format_node(pair.second);

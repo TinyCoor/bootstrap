@@ -20,6 +20,13 @@ public:
 		return start_address_ + size();
 	}
 
+	void clear()
+	{
+		inst_.clear();
+		meta_information_list_.clear();
+		start_address_ = 0;
+	}
+
 	uint64_t start_address() const
 	{
 		return start_address_;

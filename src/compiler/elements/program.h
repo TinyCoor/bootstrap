@@ -6,10 +6,13 @@
 #define COMPILER_ELEMENTS_PROGRAM_H_
 #include "block.h"
 #include "parser/ast.h"
+#include "../bytecode_emitter.h"
+#include "vm/instruction_emitter.h"
 namespace gfx::compiler {
 class program : public element {
 public:
-	program();
+	explicit program(terp* terp);
+
 	~program() override;
 
 	bool initialize(result& r, const ast_node_shared_ptr& root);
@@ -17,6 +20,10 @@ public:
 	compiler::block* block();
 
 	const element_map_t& elements() const;
+
+	bool run(result& r);
+
+	bool emit(result& r);
 
 	element* find_element(id_t id);
 
@@ -110,6 +117,8 @@ private:
 
 private:
 
+	instruction_emitter* emitter();
+
 	element* evaluate(result& r, const ast_node_shared_ptr& node);
 
 	class block* pop_scope();
@@ -125,8 +134,10 @@ private:
 	compiler::identifier* find_identifier(const ast_node_shared_ptr& node);
 
 private:
+	terp* terp_ = nullptr;
 	element_map_t elements_ {};
 	compiler::block* block_ = nullptr;
+	bytecode_emitter_options_t options_;
 	std::stack<compiler::block*> scope_stack_ {};
 };
 }

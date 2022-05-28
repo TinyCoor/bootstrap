@@ -34,17 +34,37 @@
 
 namespace gfx::compiler {
 
-program::program()
-	: element(nullptr,element_type_t::program)
+program::program(terp* terp)
+	: element(nullptr,element_type_t::program), terp_(terp)
 {
 
 }
 
-program::~program() {
+program::~program()
+{
 	for (auto element : elements_) {
 		delete element.second;
 	}
 	elements_.clear();
+}
+
+bool program::run(result& r)
+{
+	while (!terp_->has_exited()) {
+		if (!terp_->step(r)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool program::emit(result& r) {
+	return block()->emit(r);
+}
+
+instruction_emitter* program::emitter()
+{
+	return block()->emitter();
 }
 
 compiler::block* program::block()
@@ -57,6 +77,11 @@ bool program::initialize(result& r, const ast_node_shared_ptr& root)
 
 	if (root->type != ast_node_types_t::program) {
 		r.add_message("P001","The root AST node must be of type 'program'.", true);
+		return false;
+	}
+
+	if (!terp_->initialize(r)) {
+		r.add_message("P002", "Unable to initialize the interpreter.", true);
 		return false;
 	}
 
@@ -625,25 +650,34 @@ string_literal *program::make_string(const std::string &value)
 
 compiler::identifier *program::find_identifier(const ast_node_shared_ptr &node)
 {
-	compiler::block* block_scope = nullptr;
-	if (node->children.size() == 1) {
-		block_scope = current_scope();
+	auto ident = (identifier*) nullptr;
+	if (node->is_qualified_symbol()) {
+		auto block_scope = block();
+		for (const auto& symbol_node : node->children) {
+			ident = block_scope->identifiers().find(symbol_node->token.value);
+			if (ident == nullptr || ident->initializer() == nullptr)
+				return nullptr;
+			auto expr = ident->initializer()->expression();
+			if (expr->element_type() == element_type_t::namespace_e) {
+				auto ns = dynamic_cast<namespace_element*>(expr);
+				block_scope = dynamic_cast<compiler::block*>(ns->expression());
+			} else {
+				break;
+			}
+		}
 	} else {
-		block_scope = block();
-	}
-	auto ident = (identifier*)nullptr;
-	for (const auto& symbol_node : node->children) {
-		ident = block_scope->identifiers().find(symbol_node->token.value);
-		if (ident == nullptr || ident->initializer() == nullptr) {
-			return nullptr;
+		const auto& symbol_part = node->children[0];
+		auto block_scope = current_scope();
+		while (block_scope != nullptr) {
+//                fmt::print("block_scope: {}\n", block_scope->id());
+//                block_scope->identifiers().dump();
+//                fmt::print("-----------------------------------------\n");
+			ident = block_scope->identifiers().find(symbol_part->token.value);
+			if (ident != nullptr)
+				return ident;
+			block_scope = dynamic_cast<compiler::block*>(block_scope->parent());
 		}
-		auto expr = ident->initializer()->expression();
-		if (expr->element_type() == element_type_t::namespace_e) {
-			auto ns = dynamic_cast<namespace_element*>(expr);
-			block_scope = dynamic_cast<compiler::block*>(ns->expression());
-		} else {
-			break;
-		}
+		return nullptr;
 	}
 	return ident;
 }

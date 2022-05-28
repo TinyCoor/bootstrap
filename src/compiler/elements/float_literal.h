@@ -12,6 +12,9 @@ public:
 
 	double value() const;
 
+protected:
+	compiler::type* on_infer_type(const compiler::program* program) override;
+
 private:
 	double value_;
 };

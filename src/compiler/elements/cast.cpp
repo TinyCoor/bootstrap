@@ -18,4 +18,9 @@ compiler::type* cast::type() {
 	return type_;
 }
 
+compiler::type *cast::on_infer_type(const compiler::program *program)
+{
+	return type_;
+}
+
 }

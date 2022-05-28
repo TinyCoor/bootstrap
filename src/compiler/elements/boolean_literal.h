@@ -13,6 +13,9 @@ public:
 
 	bool value() const;
 
+protected:
+	compiler::type* on_infer_type(const compiler::program* program) override;
+
 private:
 	bool value_ = false;
 };

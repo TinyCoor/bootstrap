@@ -12,6 +12,9 @@ public:
 
 	uint64_t value() const ;
 
+protected:
+	compiler::type* on_infer_type(const compiler::program* program) override;
+
 private:
 	uint64_t value_;
 };

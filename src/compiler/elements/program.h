@@ -79,7 +79,7 @@ private:
 	argument_list* make_argument_list();
 
 	procedure_call* make_procedure_call(compiler::identifier* identifier,
-										 compiler::argument_list* args);
+		compiler::argument_list* args);
 
 	procedure_type* make_procedure_type(compiler::block* block_scope = nullptr);
 
@@ -106,7 +106,7 @@ private:
 
 	array_type* make_array_type(compiler::type* entry_type, size_t size);
 
-	compiler::type* find_array_type(compiler::type* entry_type, size_t size);
+	compiler::type* find_array_type(compiler::type* entry_type, size_t size) const;
 
 private:
 

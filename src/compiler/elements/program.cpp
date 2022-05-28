@@ -663,11 +663,11 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 		auto type_name = symbol->rhs->token.value;
 		if (!type_name.empty()) {
 			identifier_type = find_type(type_name);
-
 			if (symbol->rhs->is_array()) {
 				auto array_type = find_array_type(identifier_type, 0);
-				if (array_type == nullptr)
+				if (array_type == nullptr) {
 					array_type = make_array_type(identifier_type, 0);
+				}
 				identifier_type = array_type;
 			}
 		}
@@ -680,11 +680,8 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 		auto ident = scope->identifiers().find(symbol_node->token.value);
 		if (ident == nullptr) {
 			auto new_scope = make_block(scope);
-			auto ns_identifier = make_identifier(
-				symbol_node->token.value,
-				make_initializer(
-					make_namespace(new_scope, new_scope),
-					new_scope),
+			auto ns_identifier = make_identifier(symbol_node->token.value,
+				make_initializer(make_namespace(new_scope, new_scope), new_scope),
 				new_scope);
 			ns_identifier->type(namespace_type);
 			ns_identifier->inferred_type(true);
@@ -746,7 +743,7 @@ array_type *program::make_array_type(compiler::type *entry_type, size_t size)
 	return type;
 }
 
-compiler::type *program::find_array_type(compiler::type *entry_type, size_t size)
+compiler::type *program::find_array_type(compiler::type *entry_type, size_t size) const
 {
 	return find_type(fmt::format("__array_{}_{}__", entry_type->name(), size));
 }

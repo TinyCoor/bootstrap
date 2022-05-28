@@ -152,6 +152,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::float_literal, "float_literal"},
 	{element_type_t::string_literal, "string_literal"},
 	{element_type_t::composite_type, "composite_type"},
+	{element_type_t::namespace_type, "namespace_type"},
 	{element_type_t::unary_operator, "unary_operator"},
 	{element_type_t::boolean_literal, "boolean_literal"},
 	{element_type_t::integer_literal, "integer_literal"},

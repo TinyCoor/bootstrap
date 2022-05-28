@@ -14,4 +14,12 @@ element *expression::root()
 	return root_;
 }
 
+compiler::type *expression::on_infer_type(const compiler::program *program)
+{
+	if (root_ == nullptr) {
+		return nullptr;
+	}
+	return root_->infer_type(program);
+}
+
 }

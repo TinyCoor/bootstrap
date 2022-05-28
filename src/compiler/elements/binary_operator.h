@@ -17,6 +17,9 @@ public:
 
 	element* rhs();
 
+protected:
+	compiler::type* on_infer_type(const compiler::program* program) override;
+
 private:
 	element* lhs_ = nullptr;
 	element* rhs_ = nullptr;

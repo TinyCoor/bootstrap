@@ -15,6 +15,9 @@ public:
 
 	element* expression();
 
+protected:
+	compiler::type* on_infer_type(const compiler::program* program) override;
+
 private:
 	element* expression_ = nullptr;
 	compiler::type* type_ = nullptr;

@@ -133,7 +133,7 @@ static inline std::string_view ast_node_type_name(ast_node_types_t type) {
 	}
 	return it->second;
 }
-
+/// todo refractor use template
 struct ast_node_t {
 	using flags_value_t = uint8_t;
 	enum flags_t : uint8_t {

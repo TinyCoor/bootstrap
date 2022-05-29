@@ -35,7 +35,8 @@
 namespace gfx::compiler {
 
 program::program(terp* terp)
-	: element(nullptr,element_type_t::program), terp_(terp)
+	: element(nullptr,element_type_t::program),
+	  assembler_(terp), terp_(terp)
 {
 
 }
@@ -46,25 +47,6 @@ program::~program()
 		delete element.second;
 	}
 	elements_.clear();
-}
-
-bool program::run(result& r)
-{
-	while (!terp_->has_exited()) {
-		if (!terp_->step(r)) {
-			return false;
-		}
-	}
-	return true;
-}
-
-bool program::emit(result& r) {
-	return block()->emit(r);
-}
-
-instruction_emitter* program::emitter()
-{
-	return block()->emitter();
 }
 
 compiler::block* program::block()
@@ -125,8 +107,6 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			if (node->type == ast_node_types_t::program) {
 				block_ = scope_block;
 				initialize_core_types();
-			} else {
-				current_scope()->blocks().push_back(scope_block);
 			}
 
 			for (auto it = node->children.begin(); it != node->children.end(); ++it) {
@@ -360,9 +340,14 @@ bool program::is_subtree_constant(const ast_node_shared_ptr& node)
 
 block *program::push_new_block()
 {
-	auto type = make_block();
-	push_scope(type);
-	return type;
+	auto scope_block = make_block();
+
+	auto parent_scope = current_scope();
+	if (parent_scope != nullptr)
+		parent_scope->blocks().push_back(scope_block);
+
+	push_scope(scope_block);
+	return scope_block;
 }
 
 any_type *program::make_any_type()
@@ -691,10 +676,10 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 	const ast_node_shared_ptr &symbol, const ast_node_shared_ptr &rhs)
 {
 	auto namespace_type = find_type("namespace");
-
+	std::string type_name;
 	compiler::type* identifier_type = nullptr;
 	if (symbol->rhs != nullptr) {
-		auto type_name = symbol->rhs->token.value;
+		type_name = symbol->rhs->token.value;
 		if (!type_name.empty()) {
 			identifier_type = find_type(type_name);
 			if (symbol->rhs->is_array()) {
@@ -749,12 +734,16 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 	auto new_identifier = make_identifier(final_symbol->token.value, init);
 	if (identifier_type == nullptr && init != nullptr) {
 		identifier_type = init->expression()->infer_type(this);
-		// XXX: this is probably temporary because we may need multiple
-		//      type substitutions per identifier
 		new_identifier->inferred_type(identifier_type != nullptr);
 
 	}
 	new_identifier->type(identifier_type);
+	if (identifier_type == nullptr) {
+		if (!type_name.empty()) {
+			new_identifier->unknown_type_name(type_name);
+		}
+		identifiers_pending_type_inference_.push_back(new_identifier);
+	}
 	new_identifier->constant(symbol->is_constant_expression());
 
 	scope->identifiers().add(new_identifier);
@@ -837,11 +826,12 @@ void program::add_struct_fields(result &r, composite_type *struct_type, const as
 		switch (expr_node->type) {
 			case ast_node_types_t::assignment: {
 				compiler::type* field_type = nullptr;
-				if (expr_node->lhs->rhs != nullptr) {
-					field_type = find_type(expr_node->lhs->rhs->token.value);
+				auto symbol_node = expr_node->lhs->children[0];
+				if (symbol_node->rhs != nullptr) {
+					field_type = find_type(symbol_node->rhs->token.value);
 				}
 				auto field_identifier = make_identifier(
-					expr_node->lhs->children[0]->token.value,
+					symbol_node->children[0]->token.value,
 					make_initializer(evaluate(r, expr_node->rhs)));
 				field_identifier->type(field_type);
 				struct_type->fields().add(make_field(field_identifier));
@@ -928,6 +918,83 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 		}
 	}
 	pop_scope();
+}
+
+bool program::compile(result &r, const ast_node_shared_ptr &root)
+{
+	if (root->type != ast_node_types_t::program) {
+		r.add_message(
+			"P001",
+			"The root AST node must be of type 'program'.",
+			true);
+		return false;
+	}
+
+	evaluate(r, root);
+	resolve_pending_type_inference();
+
+	return true;
+}
+
+bool program::run(result &r)
+{
+	while (!terp_->has_exited()) {
+		if (!terp_->step(r)) {
+			return false;
+		}
+	}
+	return true;
+}
+compiler::type *program::find_type_for_identifier(const std::string &name)
+{
+	std::function<compiler::type* (compiler::block*)> recursive_find =
+		[&](compiler::block* scope) -> compiler::type* {
+		  auto type_identifier = scope->identifiers().find(name);
+		  if (type_identifier != nullptr) {
+			  return type_identifier->type();
+		  }
+		  for (auto block : scope->blocks()) {
+			  return recursive_find(block);
+		  }
+		  return nullptr;
+		};
+	return recursive_find(block());
+}
+
+void program::resolve_pending_type_inference()
+{
+	for (auto var : identifiers_pending_type_inference_) {
+		if (var->type() != nullptr)
+			continue;
+
+		compiler::type* identifier_type = nullptr;
+		if (var->initializer() == nullptr) {
+			auto type_name = var->unknown_type_name();
+			if (!type_name.empty()) {
+				identifier_type = find_type_for_identifier(type_name);
+				var->type(identifier_type);
+//                    if (symbol->rhs->is_array()) {
+//                        auto array_type = find_array_type(identifier_type, 0);
+//                        if (array_type == nullptr)
+//                            array_type = make_array_type(identifier_type, 0);
+//                        identifier_type = array_type;
+//                    }
+			}
+		} else {
+			identifier_type = var
+				->initializer()
+				->expression()
+				->infer_type(this);
+			var->type(identifier_type);
+		}
+
+		var->inferred_type(identifier_type != nullptr);
+	}
+
+	// XXX: check for unresolved identifiers
+	//      issue errors.
+	identifiers_pending_type_inference_.clear();
+
 }
 
 }

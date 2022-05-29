@@ -5,6 +5,11 @@
 #include "instruction_emitter.h"
 namespace gfx {
 
+instruction_emitter::instruction_emitter()
+{
+
+}
+
 size_t instruction_emitter::size() const
 {
 	size_t size = 0;
@@ -12,6 +17,11 @@ size_t instruction_emitter::size() const
 		size += inst.encoding_size();
 	}
 	return size;
+}
+
+void instruction_emitter::clear()
+{
+
 }
 
 void instruction_emitter::nop()
@@ -330,11 +340,11 @@ void instruction_emitter::push_int_constant(op_sizes size, uint64_t value)
 }
 
 
-bool instruction_emitter::encode(result &r, terp &terp)
+bool instruction_emitter::encode(result &r, terp &terp, uint64_t address)
 {
 	size_t offset = 0;
 	for (auto& inst : inst_ ) {
-		auto inst_size = inst.encode(r, terp.heap(), start_address_ + offset);
+		auto inst_size = inst.encode(r, terp.heap(), address + offset);
 		if (inst_size == 0){
 			return false;
 		}

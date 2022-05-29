@@ -5,7 +5,7 @@
 #include "block.h"
 namespace gfx::compiler {
 block::block(block* parent,element_type_t type)
-	: element(parent, type), emitter_(0)
+	: element(parent, type)
 {
 }
 
@@ -13,16 +13,7 @@ block::~block()
 {
 }
 
-bool block::emit(result& r)
-{
-	emitter_.clear();
-	return false;
-}
 
-instruction_emitter* block::emitter()
-{
-	return &emitter_;
-}
 
 type_map_t& block::types()
 {
@@ -47,6 +38,11 @@ comment_list_t &block::comments()
 block_list_t &block::blocks()
 {
 	return blocks_;
+}
+
+bool block::emit(result &r, assembler &ass)
+{
+	return false;
 }
 
 }

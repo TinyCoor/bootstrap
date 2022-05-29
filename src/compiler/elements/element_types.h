@@ -34,6 +34,7 @@ class argument_list;
 class return_element;
 class procedure_call;
 class identifier;
+class unknown_type;
 class expression;
 class initializer;
 class float_literal;
@@ -103,6 +104,7 @@ enum class element_type_t {
 	alias_type,
 	else_if_e,
 
+
 	array_type,
 	identifier,
 	expression,
@@ -110,16 +112,18 @@ enum class element_type_t {
 	namespace_e,
 	initializer,
 	numeric_type,
+	unknown_type,
 	argument_list,
 	proc_instance,
 	float_literal,
 	string_literal,
+	namespace_type,
 	composite_type,
 	unary_operator,
 	boolean_literal,
 	integer_literal,
 	binary_operator,
-	namespace_type,
+	unknown_identifier,
 };
 
 static inline std::unordered_map<element_type_t, std::string_view> s_element_type_names = {
@@ -147,6 +151,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::string_type, "string_type"},
 	{element_type_t::namespace_e, "namespace"},
 	{element_type_t::initializer, "initializer"},
+	{element_type_t::unknown_type, "unknown_type"},
 	{element_type_t::numeric_type, "numeric_type"},
 	{element_type_t::proc_instance, "proc_instance"},
 	{element_type_t::float_literal, "float_literal"},
@@ -157,6 +162,8 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::boolean_literal, "boolean_literal"},
 	{element_type_t::integer_literal, "integer_literal"},
 	{element_type_t::binary_operator, "binary_operator"},
+	{element_type_t::unknown_identifier, "unknown_identifier"},
+
 };
 
 static inline std::string_view element_type_name(element_type_t type) {

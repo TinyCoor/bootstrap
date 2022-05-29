@@ -11,26 +11,11 @@ namespace gfx {
 
 class instruction_emitter {
 public:
-	explicit instruction_emitter(uint64_t address) : start_address_(address) {}
+	instruction_emitter();
 
 	size_t size() const;
 
-	uint64_t end_address() const
-	{
-		return start_address_ + size();
-	}
-
-	void clear()
-	{
-		inst_.clear();
-		meta_information_list_.clear();
-		start_address_ = 0;
-	}
-
-	uint64_t start_address() const
-	{
-		return start_address_;
-	}
+	void clear();
 
 	size_t index() const
 	{
@@ -42,7 +27,7 @@ public:
 		return inst_[index];
 	}
 
-	bool encode(result& r, terp& terp);
+	bool encode(result& r, terp& terp, uint64_t address);
 
 	void rts();
 
@@ -141,7 +126,6 @@ public:
 		uint64_t offset);
 
 private:
-	uint64_t start_address_ = 0;
 	std::vector<instruction_t> inst_{};
 	std::vector<meta_information_t> meta_information_list_ {};
 };

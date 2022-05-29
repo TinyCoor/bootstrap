@@ -219,6 +219,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto details = fmt::format( "identifier|{}|{{type: {} | inferred: {} | constant: {} }}",
 				identifier_element->name(), type_name, identifier_element->inferred_type(),
 				identifier_element->constant());
+			add_primary_edge(identifier_element, identifier_element->type());
 			add_primary_edge(identifier_element, identifier_element->initializer());
 			return fmt::format("{}[shape=record,label=\"{}\"{}];",
 				node_vertex_name, details, style);

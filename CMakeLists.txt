@@ -97,6 +97,7 @@ set(ELEMENT_SRC
         src/compiler/elements/string_literal.cpp
         # type
         src/compiler/elements/type.cpp
+        src/compiler/elements/unknown_type.cpp
         src/compiler/elements/any_type.cpp
         src/compiler/elements/element_types.cpp
         src/compiler/elements/string_type.cpp

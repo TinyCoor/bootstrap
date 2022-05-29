@@ -155,7 +155,7 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::with_literal, 			"with_literal"},
 };
 
-enum class conversion_result {
+enum class conversion_result_t {
 	success,
 	overflow,
 	underflow,
@@ -183,9 +183,11 @@ struct token_t {
 
 	[[nodiscard]] bool is_block_comment() const;
 
-	conversion_result parse(int64_t& out) const;
+	conversion_result_t parse(double& out) const;
 
-	conversion_result parse(uint64_t& out) const;
+	conversion_result_t parse(int64_t& out) const;
+
+	conversion_result_t parse(uint64_t& out) const;
 
 	token_types_t type = token_types_t::unknown;
 	std::string value;

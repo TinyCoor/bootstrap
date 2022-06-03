@@ -16,7 +16,7 @@ static void print_results(result& r) {
 	}
 
 	for (const auto& msg : r.messages()) {
-		fmt::print("[{}] {}{}\n", msg.code(), msg.is_error() ? "ERROR: " : " ", msg.message());
+		fmt::print("[{}] {}{}\n", msg.code(), msg.is_error() ? "ERROR: " : "WARNING: ", msg.message());
 		if (!msg.details().empty()) {
 			fmt::print("{}\n", msg.details());
 		}

@@ -6,7 +6,7 @@
 #include "program.h"
 namespace gfx::compiler{
 boolean_literal::boolean_literal(element* parent, bool value)
-	: element(parent, element_type_t::boolean_literal) ,value_(value)
+	: element(parent, element_type_t::boolean_literal), value_(value)
 {
 
 }

@@ -3,7 +3,7 @@
 //
 
 #include "argument_list.h"
-namespace gfx::compiler{
+namespace gfx::compiler {
 argument_list::argument_list(element* parent)
 	: element(parent, element_type_t::argument_list)
 {

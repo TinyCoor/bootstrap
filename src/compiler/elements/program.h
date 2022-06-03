@@ -15,11 +15,11 @@ public:
 
 	~program() override;
 
-	bool initialize(result& r, const ast_node_shared_ptr& root);
-
 	compiler::block* block();
 
 	bool compile(result& r, const ast_node_shared_ptr& root);
+
+	bool compile_module(result& r, const ast_node_shared_ptr& root);
 
 	bool run(result& r);
 
@@ -130,8 +130,9 @@ private:
 
 	compiler::type* find_array_type(compiler::type* entry_type, size_t size) const;
 
+	void add_expression_to_scope(compiler::block* scope, compiler::element* expr);
 
-
+	void apply_attributes(result& r, compiler::element* element, const ast_node_shared_ptr& node);
 private:
 
 	element* evaluate(result& r, const ast_node_shared_ptr& node);

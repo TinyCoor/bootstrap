@@ -57,6 +57,7 @@ using element_list_t = std::vector<element*>;
 using comment_list_t = std::vector<comment*>;
 using statement_list_t = std::vector<statement*>;
 using identifier_list_t = std::vector<identifier*>;
+using attribute_list_t = std::vector<attribute*>;
 using directive_map_t = std::map<std::string, directive*>;
 using element_map_t = std::unordered_map<id_t, element*>;
 using procedure_instance_list_t = std::vector<procedure_instance*>;
@@ -281,6 +282,8 @@ struct attribute_map_t {
 	size_t size() const;
 
 	void add(attribute* value);
+
+	attribute_list_t as_list() const;
 
 	bool remove(const std::string& name);
 

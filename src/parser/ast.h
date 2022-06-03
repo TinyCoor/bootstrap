@@ -20,7 +20,7 @@ enum class ast_node_types_t : uint32_t {
 	pair,
 	label,
 	symbol,
-	program,
+	module,
 	proc_call,
 	statement,
 	attribute,
@@ -75,7 +75,7 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
 	{ast_node_types_t::pair, 						"pair"},
 	{ast_node_types_t::label, 						"label"},
 	{ast_node_types_t::symbol, 						"symbol"},
-	{ast_node_types_t::program, 					"program"},
+	{ast_node_types_t::module, 					    "module"},
 	{ast_node_types_t::block_comment, 				"comment"},
 	{ast_node_types_t::type_list, 					"type_list"},
 	{ast_node_types_t::symbol_part, 				"symbol_part"},
@@ -196,6 +196,7 @@ struct ast_node_t {
 	ast_node_shared_ptr rhs = nullptr;
 	flags_value_t flags = flags_t::none;
 	ast_node_shared_ptr parent = nullptr;
+	ast_node_list pending_attributes {};
 };
 
 class ast_builder {
@@ -224,7 +225,7 @@ public:
 
 	ast_node_shared_ptr current_scope() const;
 
-	ast_node_shared_ptr program_node();
+	ast_node_shared_ptr module_node();
 
 	ast_node_shared_ptr proc_call_node();
 

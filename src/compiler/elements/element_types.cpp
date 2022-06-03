@@ -19,13 +19,22 @@ bool attribute_map_t::remove(const std::string &name)
 {
 	return attrs_.erase(name) > 0;
 }
+
+attribute_list_t attribute_map_t::as_list() const
+{
+	attribute_list_t list {};
+	for (const auto& it : attrs_) {
+		list.push_back(it.second);
+	}
+	return list;
+}
+
 compiler::attribute *attribute_map_t::find(const std::string &name)
 {
 	auto it = attrs_.find(name);
 	if (it != attrs_.end()) {
 		return it->second;
 	}
-
 	return nullptr;
 }
 void attribute_map_t::add(attribute* value)

@@ -37,7 +37,7 @@ void ast_formatter::format_node(const ast_node_shared_ptr& node)
 			style = ", fillcolor=green, style=\"filled\"";
 			details = fmt::format("|{{ token: '{}' }}", node->token.value);
 			break;
-		case ast_node_types_t::program:
+		case ast_node_types_t::module:
 			style = ", fillcolor=cadetblue, style=\"filled\"";
 			break;
 		case ast_node_types_t::binary_operator:

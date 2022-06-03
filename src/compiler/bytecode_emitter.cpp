@@ -52,16 +52,16 @@ bool bytecode_emitter::compile(result& r, std::istream& input)
 bool bytecode_emitter::compile_stream(result& r, std::istream& input)
 {
 	parser alpha_parser(input);
-	auto program_node = alpha_parser.parse(r);
-	if (program_node != nullptr && !r.is_failed()) {
+	auto module_node = alpha_parser.parse(r);
+	if (module_node != nullptr && !r.is_failed()) {
 		if (options_.verbose) {
-			alpha_parser.write_ast_graph(options_.ast_graph_file_name, program_node);
+			alpha_parser.write_ast_graph(options_.ast_graph_file_name, module_node);
 		}
 
-		compiler::program program(&terp_);
-		if (program.initialize(r, program_node)) {
+		compiler::program program_element(&terp_);
+		if (program_element.compile(r, module_node)) {
 			if (options_.verbose) {
-				write_code_dom_graph(options_.code_dom_graph_file_name, &program);
+				write_code_dom_graph(options_.code_dom_graph_file_name, &program_element);
 			}
 
 		}

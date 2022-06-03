@@ -33,11 +33,9 @@ public:
 	bool compile(result &r, std::istream &input);
 
 	bool compile_stream(result &r, std::istream &input);
+
 private:
-private:
-	void write_code_dom_graph(
-		const std::filesystem::path& path,
-		const program* program);
+	void write_code_dom_graph(const std::filesystem::path& path, const program* program);
 private:
 	terp terp_;
 	bytecode_emitter_options_t options_{};

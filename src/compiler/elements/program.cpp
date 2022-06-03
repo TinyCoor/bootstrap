@@ -27,7 +27,6 @@
 #include "return_element.h"
 #include "unary_operator.h"
 #include "composite_type.h"
-#include "composite_type.h"
 #include "procedure_call.h"
 #include "binary_operator.h"
 #include "namespace_element.h"
@@ -38,7 +37,7 @@
 namespace gfx::compiler {
 
 program::program(class terp* terp)
-	: element(nullptr,element_type_t::program),
+	: element(nullptr,  element_type_t::program),
 	  assembler_(terp), terp_(terp)
 {
 
@@ -55,24 +54,6 @@ program::~program()
 compiler::block* program::block()
 {
 	return block_;
-}
-
-bool program::initialize(result& r, const ast_node_shared_ptr& root)
-{
-
-	if (root->type != ast_node_types_t::program) {
-		r.add_message("P001","The root AST node must be of type 'program'.", true);
-		return false;
-	}
-
-	if (!terp_->initialize(r)) {
-		r.add_message("P002", "Unable to initialize the interpreter.", true);
-		return false;
-	}
-
-	evaluate(r, root);
-
-	return true;
 }
 
 element* program::find_element(id_t id)
@@ -98,37 +79,26 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			}
 		}
 		case ast_node_types_t::attribute: {
-			return make_attribute(current_scope(), node->token.value, evaluate(r, node->rhs));
+			return make_attribute(current_scope(), node->token.value, evaluate(r, node->lhs));
 		}
 		case ast_node_types_t::directive: {
-			return make_directive(current_scope(), node->token.value, evaluate(r,node->lhs));
+			auto expression = evaluate(r, node->lhs);
+			auto directive_element = make_directive(current_scope(), node->token.value, expression);
+			apply_attributes(r, directive_element, node);
+			directive_element->evaluate(r, this);
+			return directive_element;
 		}
-		case ast_node_types_t::program:
-		case ast_node_types_t::basic_block: {
-			auto active_block = current_scope();
-		 auto scope_block = push_new_block();
-
-			if (node->type == ast_node_types_t::program) {
-				block_ = active_block =scope_block;
-				initialize_core_types();
+		case ast_node_types_t::module: {
+			for (auto &it : node->children) {
+				add_expression_to_scope(block_, evaluate(r, it));
 			}
+			return block_;
+		}
+		case ast_node_types_t::basic_block: {
+			auto active_block =push_new_block();
 
-			for (auto it = node->children.begin(); it != node->children.end(); ++it) {
-				auto expr = evaluate(r, *it);
-				switch (expr->element_type()) {
-					case element_type_t::comment:
-						active_block->comments().push_back(dynamic_cast<comment*>(expr));
-						break;
-					case element_type_t::attribute:
-						active_block->attributes().add(dynamic_cast<attribute*>(expr));
-						break;
-					case element_type_t::statement: {
-						active_block->statements().push_back(dynamic_cast<statement*>(expr));
-						break;
-					}
-					default:
-						break;
-				}
+			for (auto &it : node->children) {
+				add_expression_to_scope(active_block, evaluate(r, it));
 			}
 			return pop_scope();
 		}
@@ -240,7 +210,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			for (const auto& type_node : node->lhs->children) {
 				switch (type_node->type) {
 					case ast_node_types_t::symbol: {
-						auto return_identifier = make_identifier(block_scope ,fmt::format("_{}", count++), nullptr);
+						auto return_identifier = make_identifier(block_scope, fmt::format("_{}", count++), nullptr);
 						return_identifier->type(find_type(type_node->children[0]->token.value));
 						proc_type->returns().add(make_field(block_scope, return_identifier));
 						break;
@@ -256,10 +226,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 					case ast_node_types_t::assignment: {
 						// XXX: in the parameter list, multiple targets is an error
 						const auto& symbol_node = param_node->lhs->children[0];
-						auto param_identifier = add_identifier_to_scope(
-							r,
-							symbol_node,
-							param_node->rhs);
+						auto param_identifier = add_identifier_to_scope(r, symbol_node, param_node->rhs);
 						auto field = make_field(current_scope(), param_identifier);
 						proc_type->parameters().add(field);
 						break;
@@ -879,12 +846,14 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 
 bool program::compile(result &r, const ast_node_shared_ptr &root)
 {
-	if (root->type != ast_node_types_t::program) {
-		r.add_message("P001", "The root AST node must be of type 'program'.", true);
+	block_ = push_new_block();
+
+	initialize_core_types();
+
+	if (!compile_module(r, root)) {
 		return false;
 	}
 
-	evaluate(r, root);
 	if (!execute_directives(r)) {
 		return false;
 	}
@@ -892,10 +861,17 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
 	if (!resolve_unknown_identifiers(r)) {
 		return false;
 	}
-	if (!resolve_unknown_types(r))
+	if (!resolve_unknown_types(r)) {
 		return false;
+	}
 
-	return true;
+	return !r.is_failed();
+}
+
+bool program::compile_module(result &r, const ast_node_shared_ptr &root)
+{
+	evaluate(r, root);
+	return !r.is_failed();
 }
 
 bool program::run(result &r)
@@ -907,6 +883,7 @@ bool program::run(result &r)
 	}
 	return true;
 }
+
 compiler::type *program::find_type_for_identifier(const std::string &name)
 {
 	std::function<compiler::type* (compiler::block*)> recursive_find =
@@ -927,6 +904,7 @@ bool program::resolve_unknown_identifiers(result &r)
 {
 	return false;
 }
+
 unknown_type *program::make_unknown_type(compiler::block *parent_scope, const std::string &name,
 	bool is_array, size_t array_size)
 {
@@ -936,6 +914,7 @@ unknown_type *program::make_unknown_type(compiler::block *parent_scope, const st
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
+
 void program::remove_element(id_t id)
 {
 	auto item = find_element(id);
@@ -952,8 +931,7 @@ bool program::resolve_unknown_types(result& r)
 	while (it != identifiers_with_unknown_types_.end()) {
 		auto var = *it;
 
-		if (var->type() != nullptr
-			&&  var->type()->element_type() != element_type_t::unknown_type) {
+		if (var->type() != nullptr &&  var->type()->element_type() != element_type_t::unknown_type) {
 			it = identifiers_with_unknown_types_.erase(it);
 			continue;
 		}
@@ -963,14 +941,10 @@ bool program::resolve_unknown_types(result& r)
 			auto unknown_type = dynamic_cast<compiler::unknown_type*>(var->type());
 			identifier_type = find_type_for_identifier(unknown_type->name());
 			if (unknown_type->is_array()) {
-				auto array_type = find_array_type(
-					identifier_type,
-					unknown_type->array_size());
+				auto array_type = find_array_type(identifier_type, unknown_type->array_size());
 				if (array_type == nullptr) {
-					array_type = make_array_type(
-						dynamic_cast<compiler::block*>(var->parent()),
-						identifier_type,
-						unknown_type->array_size());
+					array_type = make_array_type(dynamic_cast<compiler::block*>(var->parent()),
+						identifier_type, unknown_type->array_size());
 				}
 				identifier_type = array_type;
 			}
@@ -980,10 +954,7 @@ bool program::resolve_unknown_types(result& r)
 				remove_element(unknown_type->id());
 			}
 		} else {
-			identifier_type = var
-				->initializer()
-				->expression()
-				->infer_type(this);
+			identifier_type = var->initializer()->expression()->infer_type(this);
 			var->type(identifier_type);
 		}
 
@@ -992,10 +963,7 @@ bool program::resolve_unknown_types(result& r)
 			it = identifiers_with_unknown_types_.erase(it);
 		} else {
 			++it;
-			r.add_message(
-				"P004",
-				fmt::format("unable to resolve type for identifier: {}", var->name()),
-				true);
+			r.add_message("P004", fmt::format("unable to resolve type for identifier: {}", var->name()), true);
 		}
 	}
 
@@ -1008,24 +976,51 @@ terp *program::terp()
 
 bool program::execute_directives(result &r)
 {
-	std::function<bool (compiler::block*)> recursive_execute =
-		[&](compiler::block* scope) -> bool {
-		  for (auto stmt : scope->statements()) {
-			  if (stmt->expression()->element_type() == element_type_t::directive) {
-				  auto directive_element = dynamic_cast<compiler::directive*>(stmt->expression());
-				  if (!directive_element->execute(r, this)) {
-					  return false;
-				  }
-			  }
-		  }
-		  for (auto block : scope->blocks()) {
-			  if (!recursive_execute(block)) {
-				  return false;
-			  }
-		  }
+	std::function<bool (compiler::block*)> recursive_execute =[&](compiler::block* scope) -> bool {
+		for (auto stmt : scope->statements()) {
+			if (stmt->expression()->element_type() == element_type_t::directive) {
+				auto directive_element = dynamic_cast<compiler::directive*>(stmt->expression());
+				if (!directive_element->execute(r, this)) {
+					return false;
+			  	}
+			}
+		}
+		for (auto block : scope->blocks()) {
+			if (!recursive_execute(block)) {
+			  	return false;
+			}
+		}
 		  return true;
-		};
+	};
 	return recursive_execute(block());
+}
+
+void program::add_expression_to_scope(compiler::block *scope, compiler::element *expr)
+{
+	switch (expr->element_type()) {
+		case element_type_t::comment:
+			scope->comments().push_back(dynamic_cast<comment*>(expr));
+			break;
+		case element_type_t::attribute:
+			scope->attributes().add(dynamic_cast<attribute*>(expr));
+			break;
+		case element_type_t::statement: {
+			scope->statements().push_back(dynamic_cast<statement*>(expr));
+			break;
+		}
+		default:
+			break;
+	}
+}
+
+void program::apply_attributes(result& r, compiler::element* element, const ast_node_shared_ptr& node)
+{
+	for (auto it = node->children.begin(); it != node->children.end(); ++it) {
+		const auto& child_node = *it;
+		if (child_node->type == ast_node_types_t::attribute) {
+			element->attributes().add(dynamic_cast<attribute*>(evaluate(r, child_node)));
+		}
+	}
 }
 
 }

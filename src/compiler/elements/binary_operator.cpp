@@ -10,7 +10,6 @@ binary_operator::binary_operator(element* parent, operator_type_t type, element*
 {
 }
 
-
 element* binary_operator::lhs()
 {
 	return lhs_;

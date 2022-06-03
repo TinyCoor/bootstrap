@@ -6,7 +6,7 @@
 #include "fmt/format.h"
 #include "ast_formatter.h"
 #include <ostream>
-#include <sstream>
+
 namespace gfx {
 parser::parser(std::istream &source)
 	: source_(source), lexer_(source)
@@ -116,6 +116,13 @@ ast_node_shared_ptr parser::parse_scope(result& r)
 				break;
 			}
 		}
+
+		if (!scope->pending_attributes.empty()) {
+			for (const auto& attr_node : scope->pending_attributes) {
+				node->rhs->children.push_back(attr_node);
+			}
+			scope->pending_attributes.clear();
+		}
 	}
 
 	if (peek(token_types_t::attribute)) {
@@ -136,10 +143,20 @@ ast_node_shared_ptr parser::parse_statement(result& r)
 		if (expression == nullptr) {
 			return nullptr;
 		}
+		if (expression->type == ast_node_types_t::attribute) {
+			ast_builder_.current_scope()->pending_attributes.push_back(expression);
+			token_t line_terminator_token;
+			line_terminator_token.type = token_types_t::semi_colon;
+			if (!expect(r, line_terminator_token)) {
+				break;
+			}
+			continue;
+		}
 		if (expression->type == ast_node_types_t::label) {
 			pending_labels.push_back(expression);
 			continue;
 		}
+
 		if (expression->type == ast_node_types_t::line_comment
 			||  expression->type == ast_node_types_t::block_comment
 			||  expression->type == ast_node_types_t::basic_block) {

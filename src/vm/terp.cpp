@@ -1670,7 +1670,7 @@ shared_library *terp::shared_library(const std::filesystem::path &path)
 void terp::dump_shared_libraries()
 {
 	fmt::print("\n{:32}{:64}{:17}\n", "Image Name", "Symbol Name", "Address");
-	fmt::print("{}\n", std::string(180, '-'));
+	fmt::print("{}\n", std::string(120, '-'));
 	for (const auto& kvp : shared_libraries_) {
 		auto index = 0;
 		for (const auto& entry : kvp.second.symbols()) {

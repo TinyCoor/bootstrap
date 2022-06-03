@@ -59,8 +59,9 @@ void shared_library::load_symbols(const char *path)
 		int count = dlSymsCount(symbol_ptr);
 		for (int i = 0; i < count; i++) {
 			const char* symbol_name = dlSymsName(symbol_ptr, i);
-			if (symbol_name != nullptr)
+			if (symbol_name != nullptr) {
 				symbols_.insert(std::make_pair(symbol_name, nullptr));
+			}
 		}
 		dlSymsCleanup(symbol_ptr);
 	}

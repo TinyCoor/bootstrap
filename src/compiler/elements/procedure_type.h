@@ -15,6 +15,10 @@ public:
 
 	field_map_t& returns();
 
+	bool is_foreign() const;
+
+	void is_foreign(bool value);
+
 	field_map_t& parameters();
 
 	[[maybe_unused]] type_map_t& type_parameters();
@@ -26,6 +30,7 @@ private:
 	field_map_t returns_{};
 	field_map_t parameters_{};
 	type_map_t type_parameters_{};
+	bool is_foreign_ = false;
 	compiler::block* scope_ = nullptr;
 	procedure_instance_list_t instances_ {};
 };

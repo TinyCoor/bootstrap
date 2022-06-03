@@ -37,7 +37,7 @@
 
 namespace gfx::compiler {
 
-program::program(terp* terp)
+program::program(class terp* terp)
 	: element(nullptr,element_type_t::program),
 	  assembler_(terp), terp_(terp)
 {
@@ -572,7 +572,7 @@ type* program::find_type(const std::string& name) const
 }
 
 procedure_instance* program::make_procedure_instance(compiler::block* parent_scope,
-				 compiler::type* procedure_type, compiler::block* scope)
+	compiler::type* procedure_type, compiler::block* scope)
 {
 	auto instance = new compiler::procedure_instance(parent_scope, procedure_type, scope);
 	elements_.insert(std::make_pair(instance->id(), instance));
@@ -853,7 +853,6 @@ void program::add_composite_type_fields(result &r, composite_type *type, const a
 	}
 }
 
-
 void program::add_procedure_instance(result &r, procedure_type *proc_type, const ast_node_shared_ptr &node)
 {
 	if (node->children.empty()) {
@@ -863,18 +862,14 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 	for (const auto& child_node : node->children) {
 		switch (child_node->type) {
 			case ast_node_types_t::attribute: {
-				proc_type->attributes().add(make_attribute(
-					proc_type->scope(),
-					child_node->token.value,
-					evaluate(r, child_node->lhs)));
+				proc_type->attributes().add(make_attribute(proc_type->scope(),
+					child_node->token.value, evaluate(r, child_node->lhs)));
 				break;
 			}
 			case ast_node_types_t::basic_block: {
 				auto basic_block = dynamic_cast<compiler::block*>(evaluate(r,child_node));
 				proc_type->instances().push_back(make_procedure_instance(
-					proc_type->scope(),
-					proc_type,
-					basic_block));
+					proc_type->scope(), proc_type, basic_block));
 			}
 			default:
 				break;
@@ -885,14 +880,15 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 bool program::compile(result &r, const ast_node_shared_ptr &root)
 {
 	if (root->type != ast_node_types_t::program) {
-		r.add_message(
-			"P001",
-			"The root AST node must be of type 'program'.",
-			true);
+		r.add_message("P001", "The root AST node must be of type 'program'.", true);
 		return false;
 	}
 
 	evaluate(r, root);
+	if (!execute_directives(r)) {
+		return false;
+	}
+
 	if (!resolve_unknown_identifiers(r)) {
 		return false;
 	}
@@ -1004,6 +1000,32 @@ bool program::resolve_unknown_types(result& r)
 	}
 
 	return identifiers_with_unknown_types_.empty();
+}
+terp *program::terp()
+{
+	return terp_;
+}
+
+bool program::execute_directives(result &r)
+{
+	std::function<bool (compiler::block*)> recursive_execute =
+		[&](compiler::block* scope) -> bool {
+		  for (auto stmt : scope->statements()) {
+			  if (stmt->expression()->element_type() == element_type_t::directive) {
+				  auto directive_element = dynamic_cast<compiler::directive*>(stmt->expression());
+				  if (!directive_element->execute(r, this)) {
+					  return false;
+				  }
+			  }
+		  }
+		  for (auto block : scope->blocks()) {
+			  if (!recursive_execute(block)) {
+				  return false;
+			  }
+		  }
+		  return true;
+		};
+	return recursive_execute(block());
 }
 
 }

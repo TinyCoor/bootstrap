@@ -1667,4 +1667,21 @@ shared_library *terp::shared_library(const std::filesystem::path &path)
 	return &it->second;
 }
 
+void terp::dump_shared_libraries()
+{
+	fmt::print("\n{:32}{:64}{:17}\n", "Image Name", "Symbol Name", "Address");
+	fmt::print("{}\n", std::string(180, '-'));
+	for (const auto& kvp : shared_libraries_) {
+		auto index = 0;
+		for (const auto& entry : kvp.second.symbols()) {
+			fmt::print("{:32}{:64}${:016X}\n",
+				index == 0 ? kvp.first.substr(0, std::min<size_t>(32, kvp.first.length())) : "",
+				entry.first.substr(0, std::min<size_t>(64, entry.first.length())),
+				reinterpret_cast<uint64_t>(entry.second));
+			++index;
+		}
+	}
+	fmt::print("\n");
+}
+
 }

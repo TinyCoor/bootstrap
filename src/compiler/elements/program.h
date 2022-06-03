@@ -30,8 +30,16 @@ public:
 	compiler::type* find_type(const std::string& name) const;
 
 	compiler::type* find_type_for_identifier(const std::string& name);
+
+protected:
+	friend class directive;
+
+	terp* terp();
+
 private:
 	void initialize_core_types();
+
+	bool execute_directives(result& r);
 
 	bool resolve_unknown_types(result& r);
 
@@ -142,7 +150,7 @@ private:
 
 private:
 	assembler assembler_;
-	terp* terp_ = nullptr;
+	class terp* terp_ = nullptr;
 	element_map_t elements_ {};
 	compiler::block* block_ = nullptr;
 	bytecode_emitter_options_t options_;

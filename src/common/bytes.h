@@ -46,7 +46,6 @@ inline uint64_t endian_swap_qword(uint64_t value) {
 		((value & 0xff00000000000000u) >> 56);
 }
 
-
 inline uint8_t set_lower_nybble(uint8_t original, uint8_t value)
 {
 	uint8_t res = original;
@@ -65,17 +64,16 @@ inline uint8_t set_upper_nybble(uint8_t original, uint8_t value)
 
 static inline uint64_t rotl(uint64_t n, uint8_t c)
 {
-	const unsigned int mask = (CHAR_BIT *sizeof(n) -1);
+	const unsigned int mask = (CHAR_BIT * sizeof(n) -1);
 	c &= mask;
 	return (n << c) | (n >>( (-c) & mask) );
 }
 
 static inline uint64_t rotr(uint64_t n, uint8_t c)
 {
-	const unsigned int mask = (CHAR_BIT *sizeof(n) -1);
+	const unsigned int mask = (CHAR_BIT * sizeof(n) -1);
 	c &= mask;
 	return (n >> c) | (n << ( (-c) & mask) );
 }
-
 }
 #endif // BYTES_H_

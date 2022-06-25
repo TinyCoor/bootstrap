@@ -3,6 +3,7 @@
 //
 
 // N.B. this is how we define 'external' function prototypes
+
 @library "ffmpeg.dll";
 #foreign print := proc(format:string, values:...any) @alias "printf";
 
@@ -13,7 +14,11 @@ alpha::compiler::config := ns {
 };
 
 alpha::compiler::examples := ns {
-    magick_number:u16 := 42;
+    count:u32;
+    max: u16 := 32767;
+    name:string := "this is a test";
+
+    count := 1;
 
     fib := proc(n:u64 := 10):u64 {
         if n == 0 || n == 1 {

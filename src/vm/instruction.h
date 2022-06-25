@@ -82,7 +82,7 @@ static inline uint8_t op_size_in_bytes(op_sizes size)
 		case op_sizes::word:  return 4u;
 		case op_sizes::qword: return 8u;
 		default:
-			return 0;
+			return 0u;
 	}
 }
 

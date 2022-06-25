@@ -9,11 +9,7 @@ block::block(block* parent,element_type_t type)
 {
 }
 
-block::~block()
-{
-}
-
-
+block::~block() = default;
 
 type_map_t& block::types()
 {

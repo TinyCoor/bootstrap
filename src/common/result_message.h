@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/3/26.
 //
 
-#ifndef BOOTSTRAP__RESULT_MESSAGE_H_
-#define BOOTSTRAP__RESULT_MESSAGE_H_
+#ifndef BOOTSTRAP_RESULT_MESSAGE_H_
+#define BOOTSTRAP_RESULT_MESSAGE_H_
 #include <vector>
 #include <string>
 
@@ -22,6 +22,11 @@ public:
 		: type_(type), code_(code), message_(message), details_(details)
 	{}
 
+	result_message(std::string&& code, std::string&& message, std::string&& details = "",
+		types type = types::info)
+		: type_(type), code_(std::move(code)), message_(std::move(message)), details_(std::move(details))
+	{}
+
 	inline types type() const
 	{
 		return type_;
@@ -31,6 +36,7 @@ public:
 	{
 		return type_== types::error;
 	}
+
 	inline const std::string& code() const
 	{
 		return code_;
@@ -57,4 +63,4 @@ using result_message_list = std::vector<result_message> ;
 
 }
 
-#endif //BOOTSTRAP__RESULT_MESSAGE_H_
+#endif // BOOTSTRAP_RESULT_MESSAGE_H_

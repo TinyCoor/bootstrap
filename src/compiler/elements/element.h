@@ -31,7 +31,6 @@ protected:
 
 	virtual compiler::type* on_infer_type(const compiler::program* program);
 
-
 private:
 	id_t id_;
 	element* parent_ = nullptr;

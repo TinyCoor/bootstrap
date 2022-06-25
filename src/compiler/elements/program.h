@@ -36,6 +36,9 @@ protected:
 
 	terp* terp();
 
+	bool build_data_segments(result& r);
+
+
 private:
 	void initialize_core_types();
 

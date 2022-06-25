@@ -13,7 +13,7 @@ using symbol_address_map = std::unordered_map<std::string, void*>;
 
 class shared_library {
 public:
-	shared_library() =default;
+	shared_library() = default;
 	~shared_library() {
 		if (library_) {
 			dlFreeLibrary(library_);

@@ -17,7 +17,8 @@ terp::terp(size_t heap_size, size_t stack_size)
 {
 }
 
-terp::~terp() {
+terp::~terp()
+{
 	if (heap_) {
 		delete heap_;
 		heap_ = nullptr;
@@ -68,12 +69,13 @@ void terp::reset()
 	exited_ = false;
 }
 
-void terp::dump_state(uint8_t count) {
+void terp::dump_state(uint8_t count)
+{
 	fmt::print("-------------------------------------------------------------\n");
 	fmt::print("PC =${:08x} | SP =${:08x} | FR =${:08x} | SR =${:08x}\n",
 			   registers_.pc, registers_.sp, registers_.fr, registers_.sr);
 	fmt::print("-------------------------------------------------------------\n");
-	for (int index = 0; index < count ; ++index) {
+	for (int index = 0; index < count; ++index) {
 		fmt::print("I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x}\n",
 			index, registers_.i[index],
 			index + 1, registers_.i[index + 1],
@@ -82,12 +84,12 @@ void terp::dump_state(uint8_t count) {
 		index += 4;
 	}
 	fmt::print("-------------------------------------------------------------\n");
-	for (int index = 0; index < count ; ++index) {
+	for (int index = 0; index < count; ++index) {
 		fmt::print("F{:02}=${:08x} | F{:02}=${:08x} | F{:02}=${:08x} | F{:02}=${:08x}\n",
-				   index, static_cast<uint64_t >(registers_.f[index]),
-				   index + 1, static_cast<uint64_t >(registers_.f[index + 1]),
-				   index + 2, static_cast<uint64_t >(registers_.f[index + 2]),
-				   index + 3, static_cast<uint64_t >(registers_.f[index + 3]));
+		   index, static_cast<uint64_t >(registers_.f[index]),
+		   index + 1, static_cast<uint64_t >(registers_.f[index + 1]),
+		   index + 2, static_cast<uint64_t >(registers_.f[index + 2]),
+		   index + 3, static_cast<uint64_t >(registers_.f[index + 3]));
 		index += 4;
 	}
 
@@ -597,7 +599,7 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::zero, result == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 
-		} break;
+		}break;
 		case op_codes::or_op:{
 			uint64_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
@@ -617,7 +619,7 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::zero, result == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 
-		} break;
+		}break;
 		case op_codes::xor_op: {
 			uint64_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
@@ -636,7 +638,7 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::zero, result == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
-		} break;
+		}break;
 		case op_codes::not_op:{
 			uint64_t value;
 			if (!get_operand_value(r, inst, 1, value)) {
@@ -849,12 +851,10 @@ bool terp::step(result &r)
 			}
 
 			if (!registers_.flags(register_file_t::flags_t::carry)
-				&&  !registers_.flags(register_file_t::flags_t::zero)) {
+				&& !registers_.flags(register_file_t::flags_t::zero)) {
 				registers_.pc = address;
 			}
-
-			break;
-		}
+		}break;
 		case op_codes::bge: {
 			uint64_t address;
 
@@ -876,11 +876,10 @@ bool terp::step(result &r)
 			}
 
 			if (registers_.flags(register_file_t::flags_t::carry)
-				||  registers_.flags(register_file_t::flags_t::zero)) {
+				|| registers_.flags(register_file_t::flags_t::zero)) {
 				registers_.pc = address;
 			}
-			break;
-		}
+		}break;
 		case op_codes::ble:{
 			uint64_t address;
 
@@ -892,9 +891,7 @@ bool terp::step(result &r)
 			if (registers_.flags(register_file_t::flags_t::carry)) {
 				registers_.pc = address;
 			}
-			break;
-		}
-
+		}break;
 		case op_codes::jsr: {
 			push(registers_.pc);
 			uint64_t address;
@@ -966,7 +963,6 @@ bool terp::step(result &r)
 			if (func_signature->return_value.type != ffi_types_t::void_type) {
 				push(result_value);
 			}
-
 		}break;
 		case op_codes::meta: {
 			uint64_t meta_data_size;
@@ -974,13 +970,13 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 0, meta_data_size)) {
 				return false;
 			}
-		}break;
 
+		}break;
 		case op_codes::exit: {
 			exited_ = true;
+		}break;
+		default:
 			break;
-		}
-		default:break;
 	}
 
 	return !r.is_failed();
@@ -1108,7 +1104,8 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 	return true;
 }
 
-bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index, double value) {
+bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index, double value)
+{
 	auto& operand = inst.operands[operand_index];
 
 	if (operand.is_reg()) {
@@ -1125,11 +1122,11 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 					break;
 				}
 				case i_registers_t::fr: {
-					registers_.fr = set_zoned_value(registers_.fr, integer_value, inst.size);;
+					registers_.fr = set_zoned_value(registers_.fr, integer_value, inst.size);
 					break;
 				}
 				case i_registers_t::sr: {
-					registers_.sr = set_zoned_value(registers_.sr, integer_value, inst.size);;
+					registers_.sr = set_zoned_value(registers_.sr, integer_value, inst.size);
 					break;
 				}
 				default: {
@@ -1155,16 +1152,16 @@ std::string terp::disassemble(result &r, uint64_t address)
 		instruction_t inst{};
 
 		auto inst_size = inst_cache_.fetch_at(r, inst, address);
-		if (inst_size == 0)
+		if (inst_size == 0) {
 			break;
-
+		}
 		stream << fmt::format("${:016X}: ", address)
 			   << disassemble(inst)
 			   << fmt::format(" (${:02X} bytes)\n", inst_size);
 
-		if (inst.op == op_codes::exit)
+		if (inst.op == op_codes::exit) {
 			break;
-
+		}
 		address += inst_size;
 	}
 	return stream.str();
@@ -1436,7 +1433,8 @@ bool terp::get_constant_address_or_pc_with_offset(result &r, const instruction_t
 	return true;
 }
 
-class shared_library* terp::load_shared_library(result &r, const std::filesystem::path &path) {
+class shared_library* terp::load_shared_library(result &r, const std::filesystem::path &path)
+{
 	auto it = shared_libraries_.find(path.string());
 	if (it != shared_libraries_.end()) {
 		return &it->second;
@@ -1450,7 +1448,8 @@ class shared_library* terp::load_shared_library(result &r, const std::filesystem
 	return &(*pair.first).second;
 }
 
-uint64_t terp::alloc(uint64_t size) {
+uint64_t terp::alloc(uint64_t size)
+{
 	uint64_t size_delta = size;
 	heap_block_t* best_sized_block = nullptr;
 	auto current_block = head_heap_block_;
@@ -1507,7 +1506,9 @@ uint64_t terp::alloc(uint64_t size) {
 
 	return 0;
 }
-uint64_t terp::free(uint64_t address) {
+
+uint64_t terp::free(uint64_t address)
+{
 	auto it = address_blocks_.find(address);
 	if (it == address_blocks_.end()) {
 		return 0;

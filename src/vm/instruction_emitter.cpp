@@ -5,10 +5,9 @@
 #include "instruction_emitter.h"
 namespace gfx {
 
-instruction_emitter::instruction_emitter()
-{
+instruction_emitter::instruction_emitter() = default;
 
-}
+instruction_emitter::~instruction_emitter() =default;
 
 size_t instruction_emitter::size() const
 {
@@ -19,9 +18,19 @@ size_t instruction_emitter::size() const
 	return size;
 }
 
+size_t instruction_emitter::index() const
+{
+	return inst_.size() -1;
+}
+
+instruction_t& instruction_emitter::operator[](size_t index)
+{
+	return inst_[index];
+}
+
 void instruction_emitter::clear()
 {
-
+	inst_.clear();
 }
 
 void instruction_emitter::nop()
@@ -45,11 +54,12 @@ void instruction_emitter::rts()
 	inst_.emplace_back(rts_op);
 }
 
-void instruction_emitter::swi(uint8_t index) {
+void instruction_emitter::swi(uint8_t index)
+{
 	instruction_t swi_op;
 	swi_op.op = op_codes::swi;
 	swi_op.size = op_sizes::byte;
-	swi_op.operands_count =1;
+	swi_op.operands_count = 1u;
 	swi_op.operands[0].type = operand_encoding_t::flags::integer;
 	swi_op.operands[0].value.u64 = index;
 	inst_.emplace_back(swi_op);
@@ -74,7 +84,7 @@ void instruction_emitter::exit()
 }
 
 void instruction_emitter::load_with_offset_to_register(op_sizes size, i_registers_t source_index,
-													   i_registers_t target_index, uint64_t offset)
+	i_registers_t target_index, uint64_t offset)
 {
 	instruction_t load_op;
 	load_op.op = op_codes::load;
@@ -89,9 +99,8 @@ void instruction_emitter::load_with_offset_to_register(op_sizes size, i_register
 	inst_.push_back(load_op);
 }
 
-
 void instruction_emitter::add_int_register_to_register(op_sizes size, i_registers_t target_index,
-													   i_registers_t lhs_index, i_registers_t rhs_index)
+	i_registers_t lhs_index, i_registers_t rhs_index)
 {
 	instruction_t add_op;
 	add_op.op = op_codes::add;
@@ -137,7 +146,7 @@ void instruction_emitter::store_register_to_stack_offset(op_sizes size ,i_regist
 }
 
 void instruction_emitter::divide_int_register_to_register(op_sizes size, i_registers_t target_index,
-														  i_registers_t lhs_index, i_registers_t rhs_index)
+	i_registers_t lhs_index, i_registers_t rhs_index)
 {
 	instruction_t div_op;
 	div_op.op = op_codes::div;
@@ -153,7 +162,7 @@ void instruction_emitter::divide_int_register_to_register(op_sizes size, i_regis
 }
 
 void instruction_emitter::store_with_offset_from_register(op_sizes size ,i_registers_t source_index,
-														  i_registers_t target_index, uint64_t offset)
+	i_registers_t target_index, uint64_t offset)
 {
 	instruction_t store_op;
 	store_op.op = op_codes::store;
@@ -169,7 +178,7 @@ void instruction_emitter::store_with_offset_from_register(op_sizes size ,i_regis
 }
 
 void instruction_emitter::subtract_int_register_to_register(op_sizes size, i_registers_t target_index,
-															i_registers_t lhs_index, i_registers_t rhs_index)
+	i_registers_t lhs_index, i_registers_t rhs_index)
 {
 	instruction_t sub_op;
 	sub_op.op = op_codes::sub;
@@ -185,7 +194,7 @@ void instruction_emitter::subtract_int_register_to_register(op_sizes size, i_reg
 }
 
 void instruction_emitter::subtract_int_constant_from_register(op_sizes size, i_registers_t target_index,
-															  i_registers_t lhs_index, uint64_t rhs_value)
+	i_registers_t lhs_index, uint64_t rhs_value)
 {
 	instruction_t sub_op;
 	sub_op.op = op_codes::sub;
@@ -229,6 +238,7 @@ void instruction_emitter::move_int_constant_to_register(op_sizes size, uint64_t 
 	move_op.operands[1].type = operand_encoding_t::integer | operand_encoding_t::reg;
 	inst_.emplace_back(move_op);
 }
+
 void instruction_emitter::jump_direct(uint64_t address)
 {
 	instruction_t jmp_op;
@@ -260,7 +270,6 @@ void instruction_emitter::push_float_constant(double value)
 	inst_.emplace_back(push_op);
 }
 
-
 void instruction_emitter::dec(op_sizes size, i_registers_t index)
 {
 	instruction_t dec_op;
@@ -282,7 +291,6 @@ void instruction_emitter::inc(op_sizes size, i_registers_t index)
 	inc_op.operands[0].type = operand_encoding_t::integer | operand_encoding_t::reg;
 	inst_.emplace_back(inc_op);
 }
-
 
 void instruction_emitter::jump_subroutine_indirect(i_registers_t index)
 {
@@ -339,13 +347,12 @@ void instruction_emitter::push_int_constant(op_sizes size, uint64_t value)
 	inst_.emplace_back(push);
 }
 
-
 bool instruction_emitter::encode(result &r, terp &terp, uint64_t address)
 {
 	size_t offset = 0;
 	for (auto& inst : inst_ ) {
 		auto inst_size = inst.encode(r, terp.heap(), address + offset);
-		if (inst_size == 0){
+		if (inst_size == 0) {
 			return false;
 		}
 		offset += inst_size;
@@ -354,7 +361,7 @@ bool instruction_emitter::encode(result &r, terp &terp, uint64_t address)
 }
 
 void instruction_emitter::compare_int_register_to_register(op_sizes size, i_registers_t lhs_index,
-														   i_registers_t rhs_index)
+	i_registers_t rhs_index)
 {
 	instruction_t compare_op;
 	compare_op.op = op_codes::cmp;
@@ -366,7 +373,6 @@ void instruction_emitter::compare_int_register_to_register(op_sizes size, i_regi
 	compare_op.operands[1].value.r8= rhs_index;
 	inst_.push_back(compare_op);
 }
-
 
 void instruction_emitter::compare_int_register_to_constant(op_sizes sizes, i_registers_t index, uint64_t value)
 {
@@ -380,7 +386,6 @@ void instruction_emitter::compare_int_register_to_constant(op_sizes sizes, i_reg
 	compare_op.operands[1].value.u64 = value;
 	inst_.push_back(compare_op);
 }
-
 
 void instruction_emitter::branch_if_equal(uint64_t address)
 {
@@ -404,7 +409,9 @@ void instruction_emitter::branch_if_not_equal(uint64_t address)
 	inst_.push_back(branch_op);
 }
 
-void instruction_emitter::jump_subroutine_pc_relative(op_sizes size, operand_encoding_t::flags offset_type, uint64_t offset) {
+void instruction_emitter::jump_subroutine_pc_relative(op_sizes size, operand_encoding_t::flags offset_type,
+	uint64_t offset)
+{
 	instruction_t jsr_op;
 	jsr_op.op = op_codes::jsr;
 	jsr_op.size = size;
@@ -415,7 +422,9 @@ void instruction_emitter::jump_subroutine_pc_relative(op_sizes size, operand_enc
 	jsr_op.operands[1].value.u64 = offset;
 	inst_.push_back(jsr_op);
 }
-void instruction_emitter::branch_if_greater(uint64_t address) {
+
+void instruction_emitter::branch_if_greater(uint64_t address)
+{
 	instruction_t branch_op;
 	branch_op.op = op_codes::bg;
 	branch_op.size = op_sizes::qword;
@@ -425,7 +434,8 @@ void instruction_emitter::branch_if_greater(uint64_t address) {
 	inst_.push_back(branch_op);
 }
 
-void instruction_emitter::branch_if_lesser(uint64_t address) {
+void instruction_emitter::branch_if_lesser(uint64_t address)
+{
 	instruction_t branch_op;
 	branch_op.op = op_codes::bl;
 	branch_op.size = op_sizes::qword;
@@ -435,7 +445,8 @@ void instruction_emitter::branch_if_lesser(uint64_t address) {
 	inst_.push_back(branch_op);
 }
 
-void instruction_emitter::branch_if_lesser_or_equal(uint64_t address) {
+void instruction_emitter::branch_if_lesser_or_equal(uint64_t address)
+{
 	instruction_t branch_op;
 	branch_op.op = op_codes::ble;
 	branch_op.size = op_sizes::qword;
@@ -456,7 +467,8 @@ void instruction_emitter::branch_if_greater_or_equal(uint64_t address)
 	inst_.push_back(branch_op);
 }
 
-void instruction_emitter::meta(uint32_t line, uint16_t column, const std::string &file_name, const std::string &symbol_name)
+void instruction_emitter::meta(uint32_t line, uint16_t column, const std::string &file_name,
+	const std::string &symbol_name)
 {
 	instruction_t meta_op;
 	meta_op.op = op_codes::meta;
@@ -464,7 +476,7 @@ void instruction_emitter::meta(uint32_t line, uint16_t column, const std::string
 	meta_op.operands_count = 1;
 	meta_op.operands[0].type = operand_encoding_t::flags::integer;
 	meta_op.operands[0].value.u64 = 6 + file_name.length() + symbol_name.length();
-	meta_information_list_.push_back(meta_information_t{
+	meta_information_list_.push_back(meta_information_t {
 		.line_number = line,
 		.column_number = column,
 		.symbol = symbol_name,
@@ -473,7 +485,8 @@ void instruction_emitter::meta(uint32_t line, uint16_t column, const std::string
 	inst_.push_back(meta_op);
 }
 
-void instruction_emitter::swap_int_register(op_sizes size, i_registers_t target_index, i_registers_t source_index) {
+void instruction_emitter::swap_int_register(op_sizes size, i_registers_t target_index, i_registers_t source_index)
+{
 	instruction_t swap_op;
 	swap_op.op = op_codes::swap;
 	swap_op.size = size;
@@ -497,8 +510,9 @@ void instruction_emitter::jump_pc_relative(op_sizes size, operand_encoding_t::fl
 	jmp_op.operands[1].value.u64 = offset;
 	inst_.push_back(jmp_op);
 }
+
 void instruction_emitter::branch_pc_relative_if_equal(op_sizes size,operand_encoding_t::flags offset_type,
-													  uint64_t offset)
+	uint64_t offset)
 {
 	instruction_t branch_op;
 	branch_op.op = op_codes::beq;
@@ -510,8 +524,10 @@ void instruction_emitter::branch_pc_relative_if_equal(op_sizes size,operand_enco
 	branch_op.operands[1].value.u64 = offset;
 	inst_.push_back(branch_op);
 }
+
 void instruction_emitter::branch_pc_relative_if_not_equal(op_sizes size, operand_encoding_t::flags offset_type,
-														  uint64_t offset) {
+	uint64_t offset)
+{
 	instruction_t branch_op;
 	branch_op.op = op_codes::bne;
 	branch_op.size = size;

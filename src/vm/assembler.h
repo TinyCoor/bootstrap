@@ -8,6 +8,7 @@
 #include "terp.h"
 #include "instruction_emitter.h"
 #include <istream>
+#include <variant>
 
 namespace gfx {
 enum class segment_type_t {
@@ -17,7 +18,39 @@ enum class segment_type_t {
 	constant,
 };
 
-static inline std::unordered_map<segment_type_t, std::string_view>  segment_type_names= {
+enum class symbol_type_t {
+	u8,
+	u16,
+	u32,
+	u64,
+	f32,
+	f64,
+	bytes,
+};
+
+static inline size_t sizeof_symbol_type(symbol_type_t type)
+{
+	switch (type) {
+		case symbol_type_t::u8:
+			return 1u;
+		case symbol_type_t::u16:
+			return 2u;
+		case symbol_type_t::u32:
+			return 4u;
+		case symbol_type_t::u64:
+			return 8u;
+		case symbol_type_t::f32:
+			return 4u;
+		case symbol_type_t::f64:
+			return 8u;
+		case symbol_type_t::bytes:
+			return 8u;
+		default:
+			return 0;
+	}
+}
+
+static inline std::unordered_map<segment_type_t, std::string_view> segment_type_names = {
 	{segment_type_t::code,     "code"},
 	{segment_type_t::data,     "data"},
 	{segment_type_t::stack,    "stack"},
@@ -33,26 +66,44 @@ static inline std::string_view segment_type_name(segment_type_t type)
 	return it->second;
 }
 
-struct segment_t {
-	uint64_t size;
-	uint64_t address;
-	segment_type_t type;
-};
+struct symbol_t {
+	symbol_t(const std::string& name, symbol_type_t type, uint64_t address, size_t size =0);
+	~symbol_t() = default;
 
-struct symbol_t{
 	uint64_t address;
 	std::string name;
-	segment_type_t type;
+	symbol_type_t type;
+	size_t size;
+	// std::variant<double, uint64_t, std::string> value;
+	union {
+		double float_value;
+		uint64_t int_value;
+		void* byte_array_value;
+	}value{};
 };
 
+struct segment_t {
+	uint64_t address =0;
+	uint64_t offset = 0;
+	std::string name;
+	segment_type_t type;
+
+	segment_t(const std::string &name, segment_type_t type, uint64_t address);
+
+	size_t size() const;
+
+	symbol_t* symbol(const std::string& name);
+
+	symbol_t* symbol(const std::string& name, symbol_type_t type, size_t size = 0);
+private:
+	std::unordered_map<std::string, symbol_t> symbols_{};
+};
 
 class assembler {
 public:
 	explicit assembler(terp* terp);
 
 	virtual ~assembler();
-
-	void symbol(const std::string& name, segment_type_t type, uint64_t address);
 
 	bool assemble(result& r, std::istream& source);
 
@@ -72,21 +123,19 @@ public:
 
 	void define_string(const std::string& value);
 
-	void segment(segment_type_t type, uint64_t address);
-
 	void location_counter(uint64_t value);
-
-	symbol_t* symbol(const std::string& name);
 
 	uint64_t location_counter() const;
 
-	segment_t* segment(segment_type_t type) ;
+	segment_t* segment(const std::string& name);
+
+	void segment(const std::string &name, segment_type_t type, uint64_t address);
+
 private:
 	terp* terp_ = nullptr;
 	instruction_emitter emitter_;
 	uint64_t location_counter_;
-	std::unordered_map<std::string, symbol_t> symbols_{};
-	std::unordered_map<segment_type_t,segment_t> segments_{};
+	std::unordered_map<std::string, segment_t> segments_{};
 };
 }
 #endif // ASSEMBLER_H_

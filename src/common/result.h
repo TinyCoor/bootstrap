@@ -21,8 +21,9 @@ public:
 	{
 		messages_.emplace_back(code, message, std::string(),
 	   	error ?  result_message::types::error :  result_message::types::info);
-		if (error)
+		if (error) {
 			fail();
+		}
 	}
 
 	inline void add_message(const std::string& code, const std::string& message, const std::string& details, bool error)
@@ -52,9 +53,9 @@ public:
 
 	inline const result_message* find_code(const std::string& code) const
 	{
-		for (auto it =messages_.begin(); it != messages_.end(); ++it ) {
-			if ((*it).code() == code) {
-				return &(*it);
+		for (const auto & message : messages_) {
+			if (message.code() == code) {
+				return &message;
 			}
 		}
 		return nullptr;

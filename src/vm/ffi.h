@@ -183,14 +183,12 @@ struct function_signature_t {
 			}
 			case ffi_types_t::char_type: {
 				auto value = static_cast<uint64_t>(dcCallChar(
-					vm,
-					reinterpret_cast<DCpointer>(address)));
+					vm, reinterpret_cast<DCpointer>(address)));
 				return value;
 			}
 			case ffi_types_t::short_type: {
 				auto value = static_cast<uint64_t>(dcCallShort(
-					vm,
-					reinterpret_cast<DCpointer>(address)));
+					vm, reinterpret_cast<DCpointer>(address)));
 				return value;
 			}
 			case ffi_types_t::int_type: {
@@ -201,43 +199,35 @@ struct function_signature_t {
 			}
 			case ffi_types_t::long_type: {
 				auto value = static_cast<uint64_t>(dcCallLong(
-					vm,
-					reinterpret_cast<DCpointer>(address)));
+					vm, reinterpret_cast<DCpointer>(address)));
 				return value;
 			}
 			case ffi_types_t::long_long_type: {
 				auto value = static_cast<uint64_t>(dcCallLongLong(
-					vm,
-					reinterpret_cast<DCpointer>(address)));
+					vm, reinterpret_cast<DCpointer>(address)));
 				return value;
 			}
 			case ffi_types_t::float_type: {
 				auto value = static_cast<uint64_t>(dcCallFloat(
-					vm,
-					reinterpret_cast<DCpointer>(address)));
+					vm, reinterpret_cast<DCpointer>(address)));
 				return value;
 			}
 			case ffi_types_t::double_type: {
 				auto value = static_cast<uint64_t>(dcCallDouble(
-					vm,
-					reinterpret_cast<DCpointer>(address)));
+					vm, reinterpret_cast<DCpointer>(address)));
 				return value;
 			}
 			case ffi_types_t::pointer_type: {
 				auto value = reinterpret_cast<uint64_t>(dcCallPointer(
-					vm,
-					reinterpret_cast<DCpointer>(address)));
+					vm, reinterpret_cast<DCpointer>(address)));
 				return value;
 			}
 			case ffi_types_t::struct_type: {
 				auto dc_struct = return_value.struct_meta_info();
 
 				DCpointer output_value;
-				dcCallStruct(
-					vm,
-					reinterpret_cast<DCpointer>(address),
-					dc_struct,
-					&output_value);
+				dcCallStruct(vm, reinterpret_cast<DCpointer>(address),
+					dc_struct, &output_value);
 
 				return reinterpret_cast<uint64_t>(output_value);
 			}

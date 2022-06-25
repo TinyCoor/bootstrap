@@ -7,7 +7,7 @@
 
 namespace gfx::compiler {
 element::element(element* parent, element_type_t type)
-	:  id_(id_pool::instance()->allocate()), parent_(parent),element_type_(type)
+	:  id_(id_pool::instance()->allocate()), parent_(parent), element_type_(type)
 {
 }
 

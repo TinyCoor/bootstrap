@@ -45,7 +45,7 @@ program::program(class terp* terp)
 
 program::~program()
 {
-	for (auto element : elements_) {
+	for (auto& element : elements_) {
 		delete element.second;
 	}
 	elements_.clear();
@@ -122,7 +122,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 				auto new_identifier = add_identifier_to_scope(r, symbol, node->rhs);
 				list.push_back(new_identifier);
 			}
-			// XXX: handle proper multi-assignment
+			// TODO: handle proper multi-assignment
 
 			return list.front();
 		}
@@ -141,13 +141,13 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 					uint64_t value;
 					if (node->token.parse(value) == conversion_result_t::success)
 						return make_integer(current_scope(), value);
-					// XXX: need to handle conversion failures
+					// TODO: need to handle conversion failures
 				}
 				case number_types_t::floating_point: {
 					double value;
 					if (node->token.parse(value) == conversion_result_t::success)
 						return make_float(current_scope(), value);
-					// XXX: need to handle conversion failures
+					// TODO: need to handle conversion failures
 				}
 				default:
 					break;
@@ -719,6 +719,10 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 		}
 	}
 
+	// todo  fix
+	// count : u32;
+	// count := 1;
+	// first lookup identifier
 	const auto& final_symbol = symbol->children.back();
 
 	compiler::initializer * init = nullptr;
@@ -743,7 +747,6 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 	new_identifier->constant(symbol->is_constant_expression());
 
 	scope->identifiers().add(new_identifier);
-	// XXX: if identifier_type is a procedure, we need to call add_procedure_instances
 	if (init != nullptr
 		&&  init->expression()->element_type() == element_type_t::proc_type) {
 		add_procedure_instance(r, dynamic_cast<procedure_type*>(init->expression()), rhs);
@@ -779,7 +782,7 @@ void program::add_composite_type_fields(result &r, composite_type *type, const a
 
 	for (const auto& child : block->children) {
 		if (child->type != ast_node_types_t::statement) {
-			// XXX: this is an error!
+			// TODO: this is an error!
 			break;
 		}
 		auto expr_node = child->rhs;
@@ -865,7 +868,16 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
 		return false;
 	}
 
+	if (!build_data_segments(r)) {
+		return false;
+	}
+
 	return !r.is_failed();
+}
+
+bool program::build_data_segments(result& r)
+{
+	return false;
 }
 
 bool program::compile_module(result &r, const ast_node_shared_ptr &root)
@@ -902,7 +914,7 @@ compiler::type *program::find_type_for_identifier(const std::string &name)
 
 bool program::resolve_unknown_identifiers(result &r)
 {
-	return false;
+	return true;
 }
 
 unknown_type *program::make_unknown_type(compiler::block *parent_scope, const std::string &name,
@@ -969,6 +981,7 @@ bool program::resolve_unknown_types(result& r)
 
 	return identifiers_with_unknown_types_.empty();
 }
+
 terp *program::terp()
 {
 	return terp_;
@@ -977,7 +990,7 @@ terp *program::terp()
 bool program::execute_directives(result &r)
 {
 	std::function<bool (compiler::block*)> recursive_execute =[&](compiler::block* scope) -> bool {
-		for (auto stmt : scope->statements()) {
+		for (auto &stmt : scope->statements()) {
 			if (stmt->expression()->element_type() == element_type_t::directive) {
 				auto directive_element = dynamic_cast<compiler::directive*>(stmt->expression());
 				if (!directive_element->execute(r, this)) {
@@ -985,7 +998,7 @@ bool program::execute_directives(result &r)
 			  	}
 			}
 		}
-		for (auto block : scope->blocks()) {
+		for (auto &block : scope->blocks()) {
 			if (!recursive_execute(block)) {
 			  	return false;
 			}
@@ -1022,5 +1035,7 @@ void program::apply_attributes(result& r, compiler::element* element, const ast_
 		}
 	}
 }
+
+
 
 }

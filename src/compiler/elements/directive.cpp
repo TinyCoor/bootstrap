@@ -25,7 +25,8 @@ element *directive::expression()
 	return expression_;
 }
 
-bool directive::evaluate(result& r, compiler::program* program) {
+bool directive::evaluate(result& r, compiler::program* program)
+{
 	auto it = s_evaluate_handlers.find(name_);
 	if (it == s_evaluate_handlers.end()) {
 		return true;
@@ -78,8 +79,7 @@ bool directive::on_evaluate_foreign(result &r, compiler::program *program)
 bool directive::on_execute_foreign(result &r, compiler::program *program)
 {
 	auto terp = program->terp();
-
-	std::string library_name = "bootstrap";
+	std::string library_name = "bootstrap.dll";
 	auto library_attribute = attributes().find("library");
 	if (library_attribute != nullptr) {
 		library_name = dynamic_cast<compiler::string_literal*>(library_attribute->expression())->value();

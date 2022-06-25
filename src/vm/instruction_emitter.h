@@ -13,33 +13,29 @@ class instruction_emitter {
 public:
 	instruction_emitter();
 
+	~instruction_emitter();
+
 	size_t size() const;
 
 	void clear();
 
-	size_t index() const
-	{
-		return inst_.size() -1;
-	}
-
-	inline instruction_t& operator[](size_t index)
-	{
-		return inst_[index];
-	}
-
-	bool encode(result& r, terp& terp, uint64_t address);
+	size_t index() const;
 
 	void rts();
 
 	void dup();
 
-	void swi(uint8_t index);
+	void exit();
 
 	void nop();
 
 	void trap(uint8_t index);
 
-	void exit();
+	void swi(uint8_t index);
+
+	instruction_t& operator[](size_t index);
+
+	bool encode(result& r, terp& terp, uint64_t address);
 
 	/// dec r0
 	void dec(op_sizes size, i_registers_t index);
@@ -75,13 +71,13 @@ public:
 
 	void jump_subroutine_pc_relative(op_sizes size, operand_encoding_t::flags offset_type, uint64_t offset);
 
-	void push_float_constant(double value);
-
-	void pop_float_register(i_registers_t index);
-
 	void jump_subroutine_direct(uint64_t address);
 
 	void jump_subroutine_indirect(i_registers_t index);
+
+	void push_float_constant(double value);
+
+	void pop_float_register(i_registers_t index);
 
 	void pop_int_register(op_sizes size, i_registers_t index);
 
@@ -119,7 +115,7 @@ public:
 		uint64_t rhs_value);
 
 	/// load target_register source_register offset
-	void load_with_offset_to_register(op_sizes size ,i_registers_t source_index, i_registers_t target_index,
+	void load_with_offset_to_register(op_sizes size, i_registers_t source_index, i_registers_t target_index,
 		uint64_t offset);
 	/// store
 	void store_with_offset_from_register(op_sizes size, i_registers_t source_index, i_registers_t target_index,

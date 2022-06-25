@@ -34,7 +34,7 @@ private:
 	bool on_evaluate_foreign(result& r, compiler::program* program);
 
 private:
-	inline static std::unordered_map<std::string, directive_callable> s_evaluate_handlers = {
+	static inline std::unordered_map<std::string, directive_callable> s_evaluate_handlers = {
 		{"run",     std::bind(&directive::on_evaluate_run,     std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
 		{"load",    std::bind(&directive::on_evaluate_load,    std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
 		{"foreign", std::bind(&directive::on_evaluate_foreign, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},

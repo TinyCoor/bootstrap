@@ -8,10 +8,9 @@
 #include "element.h"
 #include "element_types.h"
 #include "identifier.h"
-#include <vm/assembler.h>
+#include "vm/assembler.h"
 
 namespace gfx::compiler {
-
 class block : public element {
 public:
 	explicit block(block* parent, element_type_t type = element_type_t::block);
@@ -22,7 +21,7 @@ public:
 
 	block_list_t& blocks();
 
-	bool emit(result& r,assembler& ass);
+	bool emit(result& r, assembler& ass);
 
 	comment_list_t& comments();
 

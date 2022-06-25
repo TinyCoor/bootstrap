@@ -10,7 +10,7 @@
 #include "instruction.h"
 namespace gfx {
 class terp;
-struct inst_cache_entry_t{
+struct inst_cache_entry_t {
 	size_t size;
 	instruction_t inst;
 };

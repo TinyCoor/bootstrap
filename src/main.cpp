@@ -8,7 +8,8 @@ using namespace gfx;
 static constexpr size_t heap_size = (1024 * 1024) * 32;
 static constexpr size_t stack_size = (1024 * 1024) * 8;
 
-static void print_results(result& r) {
+static void print_results(result& r)
+{
 	auto has_messages = !r.messages().empty();
 
 	if (has_messages) {
@@ -27,7 +28,8 @@ static void print_results(result& r) {
 	}
 }
 
-static void usage() {
+static void usage()
+{
 	constexpr std::string_view fmt_args = R"(usage: bootstrap
 			   	[-?|--help]
 				[-v|--verbose]
@@ -36,7 +38,7 @@ static void usage() {
 				file\n)";
 	fmt::print(fmt::runtime(fmt_args));
 }
-#include <iostream>
+
 int main(int argc, char** argv) {
 	using namespace std::chrono;
 	int opt = -1;

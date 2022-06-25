@@ -12,7 +12,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 message(STATUS ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
 # dot -Tpdf ast.dot -o ast.pdf
-
+# ../../examples/example.gfx -Gast.dot -Hcode_dom.dot --verbose
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override")
@@ -47,7 +47,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 add_custom_target(dummy-target ALL DEPENDS custom-output)
 add_custom_command(OUTPUT custom-output COMMAND ${CMAKE_COMMAND} -E echo DEPENDS always-rebuild)
 add_custom_command(OUTPUT always-rebuild COMMAND ${CMAKE_COMMAND} -E echo )
-
 
 #find-package
 #find_package(FMT REQUIRED)
@@ -127,8 +126,6 @@ set(ELEMENT_SRC
         src/compiler/elements/procedure_instance.cpp
         src/compiler/elements/namespace_type.cpp
         src/compiler/elements/argument_list.cpp
-
-
         )
 
 set(COMPILER_SRC

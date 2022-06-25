@@ -58,7 +58,7 @@ using comment_list_t = std::vector<comment*>;
 using statement_list_t = std::vector<statement*>;
 using identifier_list_t = std::vector<identifier*>;
 using attribute_list_t = std::vector<attribute*>;
-using directive_map_t = std::map<std::string, directive*>;
+using directive_map_t [[maybe_unused]] = std::map<std::string, directive*>;
 using element_map_t = std::unordered_map<id_t, element*>;
 using procedure_instance_list_t = std::vector<procedure_instance*>;
 
@@ -78,11 +78,11 @@ static inline std::unordered_map<composite_types_t, std::string> s_composite_typ
 
 static inline std::string composite_type_name(composite_types_t type) {
 	auto it = s_composite_type_names.find(type);
-	if (it == s_composite_type_names.end())
+	if (it == s_composite_type_names.end()) {
 		return "unknown_composite_type";
+	}
 	return it->second;
 }
-
 
 enum class element_type_t {
 	element = 1,
@@ -91,7 +91,6 @@ enum class element_type_t {
 	block,
 	field,
 	if_e,
-	else_e,
 	comment,
 	program,
 	any_type,
@@ -103,9 +102,6 @@ enum class element_type_t {
 	return_e,
 	statement,
 	alias_type,
-	else_if_e,
-
-
 	array_type,
 	identifier,
 	expression,
@@ -128,42 +124,42 @@ enum class element_type_t {
 };
 
 static inline std::unordered_map<element_type_t, std::string_view> s_element_type_names = {
-	{element_type_t::element, "element"},
-	{element_type_t::cast, "cast"},
-	{element_type_t::if_e, "if"},
-	{element_type_t::label, "label"},
-	{element_type_t::block, "block"},
-	{element_type_t::field, "field"},
-	{element_type_t::comment, "comment"},
-	{element_type_t::program, "program"},
-	{element_type_t::any_type, "any_type"},
-	{element_type_t::return_e, "return"},
-	{element_type_t::proc_type, "proc_type"},
-	{element_type_t::directive, "directive"},
-	{element_type_t::attribute, "attribute"},
-	{element_type_t::bool_type, "bool_type"},
-	{element_type_t::statement, "statement"},
-	{element_type_t::proc_call, "proc_call"},
-	{element_type_t::argument_list, "argument_list"},
-	{element_type_t::alias_type, "alias_type"},
-	{element_type_t::array_type, "array_type"},
-	{element_type_t::identifier, "identifier"},
-	{element_type_t::expression, "expression"},
-	{element_type_t::string_type, "string_type"},
-	{element_type_t::namespace_e, "namespace"},
-	{element_type_t::initializer, "initializer"},
-	{element_type_t::unknown_type, "unknown_type"},
-	{element_type_t::numeric_type, "numeric_type"},
-	{element_type_t::proc_instance, "proc_instance"},
-	{element_type_t::float_literal, "float_literal"},
-	{element_type_t::string_literal, "string_literal"},
-	{element_type_t::composite_type, "composite_type"},
-	{element_type_t::namespace_type, "namespace_type"},
-	{element_type_t::unary_operator, "unary_operator"},
-	{element_type_t::boolean_literal, "boolean_literal"},
-	{element_type_t::integer_literal, "integer_literal"},
-	{element_type_t::binary_operator, "binary_operator"},
-	{element_type_t::unknown_identifier, "unknown_identifier"},
+	{element_type_t::if_e, 					"if"},
+	{element_type_t::cast, 					"cast"},
+	{element_type_t::label, 				"label"},
+	{element_type_t::block, 				"block"},
+	{element_type_t::field, 				"field"},
+	{element_type_t::return_e, 				"return"},
+	{element_type_t::element, 				"element"},
+	{element_type_t::comment, 				"comment"},
+	{element_type_t::program, 				"program"},
+	{element_type_t::any_type, 				"any_type"},
+	{element_type_t::proc_type, 			"proc_type"},
+	{element_type_t::directive, 			"directive"},
+	{element_type_t::attribute, 			"attribute"},
+	{element_type_t::bool_type, 			"bool_type"},
+	{element_type_t::statement, 			"statement"},
+	{element_type_t::namespace_e, 			"namespace"},
+	{element_type_t::proc_call, 			"proc_call"},
+	{element_type_t::alias_type, 			"alias_type"},
+	{element_type_t::array_type, 			"array_type"},
+	{element_type_t::identifier, 			"identifier"},
+	{element_type_t::expression, 			"expression"},
+	{element_type_t::string_type, 			"string_type"},
+	{element_type_t::initializer, 			"initializer"},
+	{element_type_t::unknown_type, 			"unknown_type"},
+	{element_type_t::numeric_type, 			"numeric_type"},
+	{element_type_t::argument_list, 		"argument_list"},
+	{element_type_t::proc_instance, 		"proc_instance"},
+	{element_type_t::float_literal, 		"float_literal"},
+	{element_type_t::string_literal,		"string_literal"},
+	{element_type_t::composite_type, 		"composite_type"},
+	{element_type_t::namespace_type, 		"namespace_type"},
+	{element_type_t::unary_operator, 		"unary_operator"},
+	{element_type_t::boolean_literal, 		"boolean_literal"},
+	{element_type_t::integer_literal, 		"integer_literal"},
+	{element_type_t::binary_operator, 		"binary_operator"},
+	{element_type_t::unknown_identifier, 	"unknown_identifier"},
 
 };
 
@@ -187,7 +183,6 @@ static inline std::string_view comment_type_name(comment_type_t type) {
 	}
 	return "unknown";
 }
-
 
 enum class operator_type_t {
 	unknown,
@@ -308,7 +303,6 @@ struct field_map_t {
 private:
 	std::unordered_map<std::string, field*> fields_ {};
 };
-
 
 struct identifier_map_t {
 	void add(identifier* value);

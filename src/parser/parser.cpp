@@ -13,6 +13,7 @@ parser::parser(std::istream &source)
 {
 
 }
+
 parser::~parser() = default;
 
 bool parser::consume()

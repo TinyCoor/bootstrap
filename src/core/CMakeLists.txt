@@ -39,7 +39,6 @@ add_custom_command(OUTPUT always-rebuild COMMAND ${CMAKE_COMMAND} -E echo )
 
 #find-package
 #find_package(FMT REQUIRED)
-
 include_directories(
         ${PROJECT_BINARY_DIR}
         ${PROJECT_SOURCE_DIR}
@@ -145,6 +144,7 @@ target_link_libraries(compiler-rt PUBLIC
         dyncall_s
         dynload_s
         )
+#set_target_properties(compiler-rt PUBLIC )
 
 add_custom_target(bootstrap-configured DEPENDS dummy-target bootstrap)
 add_dependencies(bootstrap-configured all-unit-tests)

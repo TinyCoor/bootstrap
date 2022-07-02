@@ -85,7 +85,7 @@ bool directive::on_execute_foreign(result &r, compiler::program *program)
 	std::string library_path = "compiler-rt.dll";
 	auto library_attribute = attributes().find("library");
 	if (library_attribute != nullptr) {
-		library_path = dynamic_cast<compiler::string_literal*>(library_attribute->expression())->value();
+		library_path = library_attribute->as_string();
 	}
 	auto library = terp->load_shared_library(r, library_path);
 	if (library == nullptr) {
@@ -98,7 +98,7 @@ bool directive::on_execute_foreign(result &r, compiler::program *program)
 	std::string symbol_name = ffi_identifier->name();
 	auto alias_attribute = attributes().find("alias");
 	if (alias_attribute != nullptr) {
-		symbol_name = dynamic_cast<compiler::string_literal*>(alias_attribute->expression())->value();
+		symbol_name = alias_attribute->as_string();
 	}
 
 	function_signature_t signature {

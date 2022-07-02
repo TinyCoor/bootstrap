@@ -8,7 +8,6 @@
 #include "element.h"
 
 namespace gfx::compiler {
-
 class argument_list : public element {
 public:
 	explicit argument_list(element* parent);
@@ -24,8 +23,5 @@ public:
 private:
 	element_list_t elements_ {};
 };
-
 }
-
-
 #endif // COMPILER_ELEMENTS_ARGUMENT_LIST_H_

@@ -9,9 +9,25 @@ add_subdirectory(extern/gtest)
 include_directories(extern/fmt/include)
 include_directories(extern/dyncall)
 include_directories(extern/boost-1.79)
+# conan configuration
+#set(CONAN_DISABLE_CHECK_COMPILER true)
+#include(conanbuildinfo.cmake)
+#conan_basic_setup(KEEP_RPATHS)
+if ($<CONFIG:Debug>)
+    message(STATUS "Debug Build")
+endif()
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(EXECUTABLE_OUTPUT_PATH  ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+message(STATUS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<$<CONFIG:Release>: ${CMAKE_BINARY_DIR}/Release>)
+#set(EXECUTABLE_OUTPUT_PATH  $<$<CONFIG:Release>: ${CMAKE_BINARY_DIR}/Release>)
+#
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
-message(STATUS ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
+
 
 # dot -Tpdf ast.dot -o ast.pdf
 # ../../examples/example.gfx -Gast.dot -Hcode_dom.dot --verbose

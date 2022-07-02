@@ -122,7 +122,9 @@ enum class element_type_t {
 	boolean_literal,
 	integer_literal,
 	binary_operator,
+	proc_type_block,
 	unknown_identifier,
+	proc_instance_block,
 };
 
 static inline std::unordered_map<element_type_t, std::string_view> s_element_type_names = {
@@ -162,7 +164,9 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::boolean_literal, 		"boolean_literal"},
 	{element_type_t::integer_literal, 		"integer_literal"},
 	{element_type_t::binary_operator, 		"binary_operator"},
+	{element_type_t::proc_type_block, 		"proc_type_block"},
 	{element_type_t::unknown_identifier, 	"unknown_identifier"},
+	{element_type_t::proc_instance_block, 	"proc_instance_block"},
 
 };
 
@@ -312,11 +316,17 @@ struct identifier_map_t {
 
 	size_t size() const;
 
+	bool empty() const {return identifiers_.empty();}
+
 	bool remove(const std::string& name);
 
 	identifier* find(const std::string& name);
 
 	identifier_list_t as_list() const;
+
+	identifier_list_t globals(bool initialized);
+
+	identifier_list_t constants(bool initialized);
 
 private:
 	std::unordered_multimap<std::string, identifier*> identifiers_ {};

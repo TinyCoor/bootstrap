@@ -8,7 +8,6 @@
 #include "terp.h"
 #include <vector>
 namespace gfx {
-
 class instruction_emitter {
 public:
 	instruction_emitter();

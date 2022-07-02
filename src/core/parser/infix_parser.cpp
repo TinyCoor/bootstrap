@@ -84,7 +84,6 @@ ast_node_shared_ptr create_expression_node(result& r, parser* parser, const ast_
 	return expression_node;
 }
 
-
 ast_node_shared_ptr create_symbol_node(result& r, parser* parser, const ast_node_shared_ptr& lhs,
 	token_t& token)
 {

@@ -36,7 +36,6 @@
 #include "core/compiler/elements/namespace_element.h"
 #include "core/compiler/elements/procedure_instance.h"
 
-
 namespace gfx::compiler {
 code_dom_formatter::code_dom_formatter(const compiler::program* program_element,FILE* file)
 	: file_(file), program_(program_element)
@@ -118,6 +117,16 @@ std::string code_dom_formatter::format_node(element* node)
 		case element_type_t::block: {
 			auto style = ", fillcolor=floralwhite, style=\"filled\"";
 			return fmt::format("{}[shape=record,label=\"block\"{}];", node_vertex_name, style);
+		}
+		case element_type_t::proc_type_block: {
+			auto style = ", fillcolor=floralwhite, style=\"filled\"";
+			return fmt::format("{}[shape=record,label=\"block|proc_type\"{}];",
+				node_vertex_name, style);
+		}
+		case element_type_t::proc_instance_block: {
+			auto style = ", fillcolor=floralwhite, style=\"filled\"";
+			return fmt::format("{}[shape=record,label=\"block|proc_instance\"{}];",
+				node_vertex_name, style);
 		}
 		case element_type_t::field:{
 			auto element = dynamic_cast<field*>(node);
@@ -213,8 +222,9 @@ std::string code_dom_formatter::format_node(element* node)
 			auto identifier_element = dynamic_cast<identifier*>(node);
 			auto style = ", fillcolor=deepskyblue1, style=\"filled\"";
 			std::string type_name = "unknown";
-			if (identifier_element->type() != nullptr)
+			if (identifier_element->type() != nullptr) {
 				type_name = identifier_element->type()->name();
+			}
 			auto details = fmt::format( "identifier|{}|{{type: {} | inferred: {} | constant: {} }}",
 				identifier_element->name(), type_name, identifier_element->inferred_type(),
 				identifier_element->constant());
@@ -337,7 +347,6 @@ void code_dom_formatter::format(const std::string& title)
 			continue;
 		}
 		nodes_.insert(node_def);
-
 		add_secondary_edge(pair.second->parent(), pair.second);
 	}
 

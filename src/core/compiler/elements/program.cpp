@@ -66,7 +66,7 @@ element* program::find_element(id_t id)
 	return nullptr;
 }
 
-element* program::evaluate(result& r, const ast_node_shared_ptr& node)
+element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_type_t default_block_type)
 {
 	if (node == nullptr) {
 		return nullptr;
@@ -96,8 +96,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 			return block_;
 		}
 		case ast_node_types_t::basic_block: {
-			auto active_block =push_new_block();
-
+			auto active_block = push_new_block(default_block_type);
 			for (auto &it : node->children) {
 				add_expression_to_scope(active_block, evaluate(r, it));
 			}
@@ -214,7 +213,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 		}
 		case ast_node_types_t::proc_expression: {
 			auto active_scope = current_scope();
-			auto block_scope = make_block(active_scope);
+			auto block_scope = make_block(active_scope, element_type_t::proc_type_block);
 			auto proc_type = make_procedure_type(active_scope, block_scope);
 			current_scope()->types().add(proc_type);
 
@@ -238,13 +237,13 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node)
 					case ast_node_types_t::assignment: {
 						// XXX: in the parameter list, multiple targets is an error
 						const auto& symbol_node = param_node->lhs->children[0];
-						auto param_identifier = add_identifier_to_scope(r, symbol_node, param_node->rhs);
+						auto param_identifier = add_identifier_to_scope(r, symbol_node, param_node->rhs, block_scope);
 						auto field = make_field(current_scope(), param_identifier);
 						proc_type->parameters().add(field);
 						break;
 					}
 					case ast_node_types_t ::symbol: {
-						auto param_identifier = add_identifier_to_scope(r, param_node, nullptr);
+						auto param_identifier = add_identifier_to_scope(r, param_node, nullptr, block_scope);
 						auto field = make_field(block_scope, param_identifier);
 						proc_type->parameters().add(field);
 						break;
@@ -346,10 +345,10 @@ bool program::is_subtree_constant(const ast_node_shared_ptr& node)
 	}
 }
 
-block *program::push_new_block()
+block *program::push_new_block(element_type_t type)
 {
 	auto parent_scope = current_scope();
-	auto scope_block = make_block(parent_scope);
+	auto scope_block = make_block(parent_scope, type);
 
 	if (parent_scope != nullptr) {
 		parent_scope->blocks().push_back(scope_block);
@@ -609,11 +608,11 @@ namespace_element *program::make_namespace(compiler::block* parent_scope, elemen
 	return ns;
 }
 
-class block *program::make_block(compiler::block* parent_scope)
+class block *program::make_block(compiler::block* parent_scope, element_type_t block_type)
 {
-	auto type = new class block(parent_scope == nullptr ? current_scope() : parent_scope);
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+	auto block_element = new class block(parent_scope, block_type);
+	elements_.insert(std::make_pair(block_element->id(), block_element));
+	return block_element;
 }
 
 boolean_literal *program::make_bool(compiler::block* parent_scope, bool value)
@@ -680,8 +679,8 @@ const element_map_t &program::elements() const
 	return elements_;
 }
 
-compiler::identifier *program::add_identifier_to_scope(result &r,
-	const ast_node_shared_ptr &symbol, const ast_node_shared_ptr &rhs)
+compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node_shared_ptr &symbol,
+	const ast_node_shared_ptr &rhs, compiler::block* parent_scope)
 {
 	auto namespace_type = find_type("namespace");
 	std::string type_name;
@@ -705,13 +704,14 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 		}
 	}
 
-	auto scope = symbol->is_qualified_symbol() ? block() : current_scope();
+	auto scope = symbol->is_qualified_symbol() ? block()
+		: (parent_scope != nullptr ? parent_scope : current_scope());
 
 	for (size_t i = 0; i < symbol->children.size() - 1; i++) {
 		const auto& symbol_node = symbol->children[i];
 		auto var = scope->identifiers().find(symbol_node->token.value);
 		if (var == nullptr) {
-			auto new_scope = make_block(scope);
+			auto new_scope = make_block(scope, element_type_t::block);
 			auto ns_identifier = make_identifier(new_scope, symbol_node->token.value,
 				make_initializer(new_scope, make_namespace(new_scope, new_scope)));
 			ns_identifier->type(namespace_type);
@@ -731,10 +731,6 @@ compiler::identifier *program::add_identifier_to_scope(result &r,
 		}
 	}
 
-	// todo  fix
-	// count : u32;
-	// count := 1;
-	// first lookup identifier
 	const auto& final_symbol = symbol->children.back();
 
 	compiler::initializer * init = nullptr;
@@ -849,7 +845,8 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 				break;
 			}
 			case ast_node_types_t::basic_block: {
-				auto basic_block = dynamic_cast<compiler::block*>(evaluate(r,child_node));
+				auto basic_block = dynamic_cast<compiler::block*>(evaluate(r, child_node,
+					 element_type_t::proc_instance_block));
 				proc_type->instances().push_back(make_procedure_instance(
 					proc_type->scope(), proc_type, basic_block));
 			}
@@ -889,7 +886,21 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
 
 bool program::build_data_segments(result& r)
 {
-	return false;
+	std::function<bool (compiler::block*)> recursive_execute =
+		[&](compiler::block* scope) -> bool {
+		  if (scope->element_type() == element_type_t::proc_type_block ||
+		  	scope->element_type() == element_type_t::proc_instance_block) {
+			  return true;
+		  }
+		  scope->define_data(r, assembler_);
+		  for (auto block : scope->blocks()) {
+			  if (!recursive_execute(block)) {
+				  return false;
+			  }
+		  }
+		  return true;
+	};
+	return recursive_execute(block());
 }
 
 bool program::compile_module(result &r, const ast_node_shared_ptr &root)

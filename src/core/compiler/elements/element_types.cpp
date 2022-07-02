@@ -97,6 +97,54 @@ identifier_list_t identifier_map_t::as_list() const {
 	return list;
 }
 
+identifier_list_t identifier_map_t::globals(bool initialized)
+{
+	identifier_list_t list {};
+	for (const auto& it : identifiers_) {
+		if (it.second->constant()) {
+			continue;
+		}
+
+		auto init = it.second->initializer();
+		if (!initialized) {
+			if (init == nullptr) {
+				list.push_back(it.second);
+			}
+		}
+		else {
+			if (init != nullptr) {
+				if (init->expression()->element_type() == element_type_t::namespace_e
+					||  init->expression()->element_type() == element_type_t::proc_type) {
+					continue;
+				}
+				list.push_back(it.second);
+			}
+		}
+	}
+	return list;
+}
+
+identifier_list_t identifier_map_t::constants(bool initialized)
+{
+	identifier_list_t list {};
+	for (const auto& it : identifiers_) {
+		if (!it.second->constant()) {
+			continue;
+		}
+		auto init = it.second->initializer();
+		if (!initialized) {
+			if (init == nullptr) {
+				list.push_back(it.second);
+			}
+		} else {
+			if (init != nullptr) {
+				list.push_back(it.second);
+			}
+		}
+	}
+	return list;
+}
+
 bool identifier_map_t::remove(const std::string& name)
 {
 	return identifiers_.erase(name) > 0;

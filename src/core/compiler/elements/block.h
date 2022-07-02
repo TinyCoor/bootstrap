@@ -23,6 +23,8 @@ public:
 
 	bool emit(result& r, assembler& ass);
 
+	bool define_data(result& r, assembler& assembler);
+
 	comment_list_t& comments();
 
 	statement_list_t& statements();

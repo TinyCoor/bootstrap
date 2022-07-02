@@ -87,7 +87,7 @@ struct segment_t {
 	uint64_t offset = 0;
 	std::string name;
 	segment_type_t type;
-
+	bool initialized = false;
 	segment_t(const std::string &name, segment_type_t type, uint64_t address);
 
 	size_t size() const;
@@ -129,7 +129,7 @@ public:
 
 	segment_t* segment(const std::string& name);
 
-	void segment(const std::string &name, segment_type_t type, uint64_t address);
+	segment_t* segment(const std::string &name, segment_type_t type, uint64_t address);
 
 private:
 	terp* terp_ = nullptr;

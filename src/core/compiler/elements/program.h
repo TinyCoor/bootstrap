@@ -38,7 +38,6 @@ protected:
 
 	bool build_data_segments(result& r);
 
-
 private:
 	void initialize_core_types();
 
@@ -52,7 +51,7 @@ private:
 	void add_composite_type_fields(result& r, composite_type* struct_type, const ast_node_shared_ptr& block);
 
 	compiler::identifier* add_identifier_to_scope(result& r, const ast_node_shared_ptr& symbol,
-		const ast_node_shared_ptr& rhs);
+		const ast_node_shared_ptr& rhs, compiler::block* parent_scope = nullptr);
 
 	void add_procedure_instance(result& r, compiler::procedure_type* proc_type, const ast_node_shared_ptr& node);
 private:
@@ -99,10 +98,17 @@ private:
 
 	namespace_element* make_namespace( compiler::block* parent_scope, element* expr);
 
-	/// template<typename ... Args> make_types(Args &args) {}
-	class block* make_block(compiler::block* parent_scope);
+	template<typename T, typename ... Args>
+	T make_element(Args&& ...args)
+	{
+		auto element = T(std::forward<Args>(args)...);
+		elements_.insert(element->id(), element);
+		return element;
+	}
 
-	class block* push_new_block();
+	class block* make_block(compiler::block* parent_scope, element_type_t type);
+
+	class block* push_new_block(element_type_t type = element_type_t::block);
 
 	composite_type* make_enum_type(compiler::block* parent_scope);
 
@@ -140,7 +146,8 @@ private:
 	void apply_attributes(result& r, compiler::element* element, const ast_node_shared_ptr& node);
 private:
 
-	element* evaluate(result& r, const ast_node_shared_ptr& node);
+	element* evaluate(result& r, const ast_node_shared_ptr& node,
+					  element_type_t default_block_type = element_type_t::block);
 
 	class block* pop_scope();
 

@@ -5,6 +5,7 @@
 #ifndef COMPILER_ELEMENTS_NUMERIC_TYPE_H_
 #define COMPILER_ELEMENTS_NUMERIC_TYPE_H_
 #include "type.h"
+#include "vm/assembler.h"
 namespace gfx::compiler {
 
 class numeric_type : public type {
@@ -14,6 +15,8 @@ public:
 	int64_t min() const;
 
 	uint64_t max() const;
+
+	symbol_type_t symbol_type() const;
 
 private:
 	int64_t min_;

@@ -109,9 +109,10 @@ void assembler::define_string(const std::string &value)
 	location_counter_ += value.length();
 }
 
-void assembler::segment(const std::string &name, segment_type_t type, uint64_t address)
+segment_t *assembler::segment(const std::string &name, segment_type_t type, uint64_t address)
 {
 	segments_.insert(std::make_pair(name, segment_t(name, type, address)));
+	return segment(name);
 }
 
 void assembler::location_counter(uint64_t value)

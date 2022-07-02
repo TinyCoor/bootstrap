@@ -20,4 +20,9 @@ uint64_t numeric_type::max() const
 	return max_;
 }
 
+symbol_type_t numeric_type::symbol_type() const
+{
+	return symbol_type_t::u64;
+}
+
 }

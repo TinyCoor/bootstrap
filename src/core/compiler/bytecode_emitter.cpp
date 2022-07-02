@@ -20,7 +20,7 @@ bytecode_emitter::~bytecode_emitter()
 bool bytecode_emitter::compile_files(result& r, const std::vector<std::filesystem::path>& source_files)
 {
 	for (const auto& source_file : source_files) {
-		fmt::print("Compile: {} ... ", source_file.string());
+		fmt::print("Compile: {} ... \n", source_file.string());
 		if (!std::filesystem::exists(source_file)) {
 			fmt::print("FAILED, file does not exist.\n");
 			continue;

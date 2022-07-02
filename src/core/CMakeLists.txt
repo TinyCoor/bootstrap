@@ -1,0 +1,153 @@
+cmake_minimum_required(VERSION 3.21)
+project(compiler-rt CXX C ASM)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include_directories(${PROJECT_SOURCE_DIR}/src)
+message(STATUS ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
+
+# dot -Tpdf ast.dot -o ast.pdf
+# ../../examples/example.gfx -Gast.dot -Hcode_dom.dot --verbose
+
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override")
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+    set(CMAKE_CXX_FLAGS "-Wall" CACHE STRING "compile flags" FORCE)
+else()
+    message(STATUS "Unknown Compiler: ${CMAKE_CXX_COMPILER_ID}")
+endif()
+
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_INSTALL_RPATH "/usr/local/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+
+enable_testing()
+set_property(GLOBAL PROPERTY UNIT_TEST_TARGETS "")
+macro(add_unit_test target test_name args)
+    set_property(GLOBAL PROPERTY UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} ${CMAKE_CURRENT_BINARY_DIR}/${target})
+    add_test(NAME ${test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${target} ${args})
+endmacro()
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+
+add_custom_target(dummy-target ALL DEPENDS custom-output)
+add_custom_command(OUTPUT custom-output COMMAND ${CMAKE_COMMAND} -E echo DEPENDS always-rebuild)
+add_custom_command(OUTPUT always-rebuild COMMAND ${CMAKE_COMMAND} -E echo )
+
+#find-package
+#find_package(FMT REQUIRED)
+
+include_directories(
+        ${PROJECT_BINARY_DIR}
+        ${PROJECT_SOURCE_DIR}
+        ${FMT_INCLUDE_DIRS}
+        extern/fmt/include
+        extern/dyncall
+        extern/boost-1.79
+)
+
+#all unit test
+get_property(test_targets GLOBAL PROPERTY UNIT_TEST_NAME)
+add_custom_target(all-unit-tests ALL DEPENDS ${test_targets})
+add_custom_command(TARGET all-unit-tests
+        COMMENT "Exec All unit test"
+        POST_BUILD
+        COMMAND ctest -C $<CONFIGURATION> --output-on-failure
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+set(COMMON_SRC
+        ../common/id_pool.cpp)
+
+set(VM_SRC
+        vm/terp.cpp
+        vm/instruction_emitter.cpp
+        vm/instruction.cpp
+        vm/instruction_cache.cpp
+        vm/shared_library.cpp
+        vm/assembler.cpp
+        )
+
+set(ELEMENT_SRC
+        compiler/elements/attribute.cpp
+        # operator
+        compiler/elements/operator_base.cpp
+        compiler/elements/unary_operator.cpp
+        compiler/elements/binary_operator.cpp
+
+        # literal
+        compiler/elements/float_literal.cpp
+        compiler/elements/integer_literal.cpp
+        compiler/elements/boolean_literal.cpp
+        compiler/elements/string_literal.cpp
+        # type
+        compiler/elements/type.cpp
+        compiler/elements/unknown_type.cpp
+        compiler/elements/any_type.cpp
+        compiler/elements/element_types.cpp
+        compiler/elements/string_type.cpp
+        compiler/elements/composite_type.cpp
+        compiler/elements/numeric_type.cpp
+        compiler/elements/procedure_type.cpp
+
+        compiler/elements/if_element.cpp
+        compiler/elements/return_element.cpp
+        compiler/elements/procedure_call.cpp
+        compiler/elements/block.cpp
+        compiler/elements/directive.cpp
+        compiler/elements/element.cpp
+        compiler/elements/expression.cpp
+        compiler/elements/field.cpp
+        compiler/elements/identifier.cpp
+        compiler/elements/initializer.cpp
+        compiler/elements/namespace_element.cpp
+        compiler/elements/program.cpp
+
+        compiler/elements/label.cpp
+        compiler/elements/comment.cpp
+        compiler/elements/statement.cpp
+        compiler/elements/alias.cpp
+        compiler/elements/cast.cpp
+        compiler/elements/array_type.cpp
+        compiler/elements/procedure_instance.cpp
+        compiler/elements/namespace_type.cpp
+        compiler/elements/argument_list.cpp
+        compiler/elements/import.cpp
+        )
+
+set(COMPILER_SRC
+        ${ELEMENT_SRC}
+        compiler/code_dom_formatter.cpp
+        compiler/bytecode_emitter.cpp
+       )
+
+set(PARSER_SRC
+        parser/lexer.cpp
+        parser/token.cpp
+        parser/parser.cpp
+        parser/ast.cpp
+        parser/infix_parser.cpp
+        parser/prefix_parser.cpp
+        parser/ast_formatter.cpp)
+
+add_library(compiler-rt SHARED
+        ${COMMON_SRC}
+        ${VM_SRC}
+        ${PARSER_SRC}
+        ${COMPILER_SRC}
+        )
+target_link_directories(compiler-rt PUBLIC ../../lib)
+target_link_libraries(compiler-rt PUBLIC
+        fmt
+        dyncallback_s
+        dyncall_s
+        dynload_s
+        )
+
+add_custom_target(bootstrap-configured DEPENDS dummy-target bootstrap)
+add_dependencies(bootstrap-configured all-unit-tests)
+add_custom_command(
+        TARGET bootstrap-configured
+        COMMAND ${CMAKE_COMMAND} -E echo "placeholder")

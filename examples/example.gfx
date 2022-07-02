@@ -4,7 +4,7 @@
 
 // N.B. this is how we define 'external' function prototypes
 
-@library "ffmpeg.dll";
+@library "libcompiler-rt.dll";
 #foreign print := proc(format:string, values:...any) @alias "printf";
 
 alpha::compiler::config := ns {
@@ -31,6 +31,7 @@ alpha::compiler::examples := ns {
     };
 
     main := proc():u32 {
+        import alpha::compiler::config::fibonacci;
         final_fib_value := cast<u32>(fib(alpha::compiler::config::fibonacci::length_of_sequence));
     'the_end:
         return final_fib_value;

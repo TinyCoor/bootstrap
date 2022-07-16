@@ -99,7 +99,6 @@ struct symbol_t {
 	std::string name;
 	symbol_type_t type;
 	size_t size;
-	// std::variant<double, uint64_t, std::string> value;
 	union {
 		double float_value;
 		uint64_t int_value;

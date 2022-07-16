@@ -365,32 +365,17 @@ block *program::push_new_block(element_type_t type)
 
 any_type *program::make_any_type(result &r, compiler::block* parent_scope)
 {
-	auto type = new any_type(parent_scope);
-	if (!type->initialize(r)){
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    return make_type<any_type>(r, parent_scope);
 }
 
 string_type *program::make_string_type(result &r, compiler::block* parent_scope)
 {
-	auto type = new string_type(parent_scope);
-	if (!type->initialize(r)) {
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    return make_type<string_type>(r, parent_scope);
 }
 
 numeric_type *program::make_numeric_type(result &r, compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max)
 {
-	auto type = new numeric_type(parent_scope, name, min, max);
-	if (!type->initialize(r)) {
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    return make_type<numeric_type>(r, parent_scope, name, min, max);
 }
 
 block *program::pop_scope()
@@ -445,49 +430,30 @@ attribute *program::make_attribute(compiler::block* parent_block, const std::str
 
 composite_type* program::make_enum_type(result &r, compiler::block* parent_block)
 {
-	auto type = new composite_type(parent_block, composite_types_t::enum_type,
-		fmt::format("__enum_{}__", id_pool::instance()->allocate()));
-	if (!type->initialize(r)) {
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    std::string name = fmt::format("__enum_{}__", id_pool::instance()->allocate());
+    return make_type<composite_type>(r, parent_block, composite_types_t::enum_type, name);
 }
 
 composite_type* program::make_union_type(result& r, compiler::block* parent_block)
 {
-	auto type = new composite_type(parent_block, composite_types_t::union_type,
-		fmt::format("__union_{}__", id_pool::instance()->allocate()));
-	if (!type->initialize(r)) {
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    std::string name = fmt::format("__union_{}__", id_pool::instance()->allocate());
+    return make_type<composite_type>(r, parent_block, composite_types_t::union_type, name);
 }
 
 composite_type* program::make_struct_type(result& r, compiler::block* parent_scope)
 {
-	auto type = new composite_type(parent_scope, composite_types_t::struct_type,
-		fmt::format("__struct_{}__", id_pool::instance()->allocate()));
-	if (!type->initialize(r)) {
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    std::string name = fmt::format("__struct_{}__", id_pool::instance()->allocate());
+    return make_type<composite_type>(r, parent_scope, composite_types_t::struct_type, name);
 }
 
 comment *program::make_comment(compiler::block* parent_scope, comment_type_t type, const std::string &value)
 {
-	auto comment = new compiler::comment(parent_scope, type, value);
-	elements_.insert(std::make_pair(comment->id(), comment));
-	return comment;
+    return make_element<comment>(parent_scope, type, value);
 }
 
 directive *program::make_directive(compiler::block* parent_scope, const std::string &name, element *expr)
 {
-	auto directive1 = new compiler::directive(parent_scope, name, expr);
-	elements_.insert(std::make_pair(directive1->id(), directive1));
-	return directive1;
+    return make_element<directive>(parent_scope, name, expr);
 }
 
 statement *program::make_statement(compiler::block* parent_scope, label_list_t labels, element *expr)
@@ -502,56 +468,39 @@ statement *program::make_statement(compiler::block* parent_scope, label_list_t l
 
 label *program::make_label(compiler::block* parent_scope, const std::string &name)
 {
-	auto label = new compiler::label(current_scope(), name);
-	elements_.insert(std::make_pair(label->id(), label));
-	return label;
+    return make_element<label>(parent_scope, name);
 }
 
 identifier* program::make_identifier(compiler::block* parent_scope, const std::string& name, initializer* expr)
 {
-	auto identifier = new compiler::identifier(parent_scope, name, expr);
-	elements_.insert(std::make_pair(identifier->id(), identifier));
-	return identifier;
+    return make_element<identifier>(parent_scope, name, expr);
 }
 
 unary_operator* program::make_unary_operator(compiler::block* parent_scope, operator_type_t type, element* rhs)
 {
-	auto unary_operator = new compiler::unary_operator(parent_scope, type, rhs);
-	elements_.insert(std::make_pair(unary_operator->id(), unary_operator));
-	return unary_operator;
+    return make_element<unary_operator>(parent_scope, type, rhs);
 }
 
 binary_operator* program::make_binary_operator(compiler::block* parent_scope, operator_type_t type, element* lhs, element* rhs)
 {
-	auto binary_operator = new compiler::binary_operator(parent_scope, type, lhs, rhs);
-	elements_.insert(std::make_pair(binary_operator->id(), binary_operator));
-	return binary_operator;
+    return make_element<binary_operator>(parent_scope, type, lhs, rhs);
 }
 
 expression* program::make_expression(compiler::block* parent_scope, element* expr)
 {
-	auto expression = new compiler::expression(parent_scope, expr);
-	elements_.insert(std::make_pair(expression->id(), expression));
-	return expression;
+    return make_element<expression>(parent_scope, expr);
 }
 
 alias *program::make_alias(compiler::block* parent_scope, element *expr)
 {
-	auto alias_type = new compiler::alias(parent_scope, expr);
-	elements_.insert(std::make_pair(alias_type->id(), alias_type));
-	return alias_type;
+    return make_element<alias>(parent_scope, expr);
 }
 
 procedure_type* program::make_procedure_type(result &r, compiler::block* parent_scope, compiler::block* block_scope)
 {
 	// XXX: the name of the proc isn't correct here but it works temporarily.
-	auto type = new compiler::procedure_type(parent_scope, block_scope,
-		 fmt::format("__proc_{}__", id_pool::instance()->allocate()));
-	if (!type->initialize(r)) {
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    std::string name = fmt::format("__proc_{}__", id_pool::instance()->allocate());
+    return make_type<procedure_type>(r, parent_scope, block_scope, name);
 }
 
 type* program::find_type(const std::string& name) const
@@ -570,95 +519,69 @@ type* program::find_type(const std::string& name) const
 procedure_instance* program::make_procedure_instance(compiler::block* parent_scope,
 	compiler::type* procedure_type, compiler::block* scope)
 {
-	auto instance = new compiler::procedure_instance(parent_scope, procedure_type, scope);
-	elements_.insert(std::make_pair(instance->id(), instance));
-	return instance;
+    return make_element<procedure_instance>(parent_scope, procedure_type, scope);
 }
 
 initializer* program::make_initializer(compiler::block* parent_scope, element* expr)
 {
-	auto initializer = new compiler::initializer(parent_scope, expr);
-	elements_.insert(std::make_pair(initializer->id(), initializer));
-	return initializer;
+    return make_element<initializer>(parent_scope, expr);
 }
 
 cast* program::make_cast(compiler::block* parent_scope, compiler::type* type, element* expr)
 {
-	auto cast = new compiler::cast(parent_scope, type, expr);
-	elements_.insert(std::make_pair(cast->id(), cast));
-	return cast;
+    return make_element<cast>(parent_scope, type, expr);
 }
 
 if_element *program::make_if(compiler::block* parent_scope, element *predicate,
 	element *true_branch, element *false_branch)
 {
-	auto if_elem = new compiler::if_element(parent_scope, predicate, true_branch, false_branch);
-	elements_.insert(std::make_pair(if_elem->id(), if_elem));
-	return if_elem;
+    return make_element<if_element>(parent_scope, predicate, true_branch, false_branch);
 }
 
 return_element *program::make_return(compiler::block* parent_scope)
 {
-	auto return_elem = new compiler::return_element(parent_scope);
-	elements_.insert(std::make_pair(return_elem->id(), return_elem));
-	return return_elem;
+    return make_element<return_element>(parent_scope);
 }
 
 argument_list* program::make_argument_list(compiler::block* parent_scope)
 {
-	auto list = new compiler::argument_list(parent_scope);
-	elements_.insert(std::make_pair(list->id(), list));
-	return list;
+    return make_element<argument_list>(parent_scope);
 }
 
 procedure_call *program::make_procedure_call(compiler::block* parent_scope, compiler::identifier* identifier,
 	compiler::argument_list* args)
 {
-	auto proc_call = new compiler::procedure_call(parent_scope, identifier, args);
-	elements_.insert(std::make_pair(proc_call->id(), proc_call));
-	return proc_call;
+    return make_element<procedure_call>(parent_scope, identifier, args);
 }
 
 namespace_element *program::make_namespace(compiler::block* parent_scope, element *expr)
 {
-	auto ns = new compiler::namespace_element(parent_scope, expr);
-	elements_.insert(std::make_pair(ns->id(), ns));
-	return ns;
+    return make_element<namespace_element>(parent_scope, expr);
 }
 
 class block *program::make_block(compiler::block* parent_scope, element_type_t block_type)
 {
-	auto block_element = new class block(parent_scope, block_type);
-	elements_.insert(std::make_pair(block_element->id(), block_element));
-	return block_element;
+    return make_element<class block>(parent_scope, block_type);
 }
 
 boolean_literal *program::make_bool(compiler::block* parent_scope, bool value)
 {
-	auto type = new boolean_literal(parent_scope, value);
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    return make_element<boolean_literal>(parent_scope, value);
 }
 
 float_literal *program::make_float(compiler::block* parent_scope, double value)
 {
-	auto type = new float_literal(parent_scope, value);
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    return make_element<float_literal>(parent_scope, value);
 }
 
 integer_literal *program::make_integer(compiler::block* parent_scope, uint64_t value)
 {
-	auto type = new integer_literal(parent_scope, value);
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    return make_element<integer_literal>(parent_scope, value);
 }
 
 string_literal *program::make_string(compiler::block* parent_scope, const std::string &value)
 {
-	auto type = new string_literal(parent_scope, value);
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    return make_element<string_literal>(parent_scope, value);
 }
 
 compiler::identifier *program::find_identifier(const ast_node_shared_ptr &node)
@@ -783,16 +706,8 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 
 array_type *program::make_array_type(result &r, compiler::block* parent_scope, compiler::type *entry_type, size_t size)
 {
-//    std::string name = fmt::format("__array_{}_{}__", entry_type->name(), size);
-//    return make_type<array_type>(r, parent_scope, name, entry_type);
-	auto type = new compiler::array_type(parent_scope,
-		fmt::format("__array_{}_{}__", entry_type->name(), size), entry_type);
-	type->size(size);
-	if (!type->initialize(r)) {
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    std::string name = fmt::format("__array_{}_{}__", entry_type->name(), size);
+    return make_type<array_type>(r, parent_scope, name, entry_type);
 }
 
 compiler::type *program::find_array_type(compiler::type *entry_type, size_t size) const
@@ -802,13 +717,7 @@ compiler::type *program::find_array_type(compiler::type *entry_type, size_t size
 
 namespace_type *program::make_namespace_type(result &r, compiler::block* parent_block)
 {
-//  return make_type<namespace_type>(r, parent_block);
-	auto type = new compiler::namespace_type(parent_block);
-	if (!type->initialize(r)) {
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    return make_type<namespace_type>(r, parent_block);
 }
 
 void program::add_composite_type_fields(result &r, composite_type *type, const ast_node_shared_ptr &block)
@@ -970,14 +879,7 @@ bool program::resolve_unknown_identifiers(result &r)
 unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scope, const std::string &name,
 	bool is_array, size_t array_size)
 {
-	auto type = new compiler::unknown_type(parent_scope, name);
-	type->is_array(is_array);
-	type->array_size(array_size);
-	if (!type->initialize(r)) {
-		return nullptr;
-	}
-	elements_.insert(std::make_pair(type->id(), type));
-	return type;
+    return make_type<unknown_type>(r, parent_scope, name);
 }
 
 void program::remove_element(id_t id)

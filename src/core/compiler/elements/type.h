@@ -5,7 +5,6 @@
 #ifndef COMPILER_ELEMENTS_TYPE_H_
 #define COMPILER_ELEMENTS_TYPE_H_
 #include <string>
-#include "vm/assembler.h"
 #include "element.h"
 #include "element_types.h"
 namespace gfx::compiler {

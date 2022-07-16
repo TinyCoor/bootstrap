@@ -9,4 +9,9 @@ string_type::string_type(element* parent)
 {
 
 }
+
+bool string_type::on_initialize(result &r)
+{
+	return true;
+}
 }

@@ -9,7 +9,10 @@ namespace gfx::compiler {
 class string_type : public type {
 public:
 	explicit string_type(element* parent);
-private:
+
+protected:
+    bool on_initialize(result& r) override;
+
 
 };
 }

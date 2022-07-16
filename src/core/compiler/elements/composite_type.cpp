@@ -24,4 +24,9 @@ composite_types_t composite_type::type() const
 {
 	return type_;
 }
+
+bool composite_type::on_initialize(result &r)
+{
+	return true;
+}
 }

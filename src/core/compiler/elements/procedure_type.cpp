@@ -41,4 +41,9 @@ void procedure_type::is_foreign(bool value)
 	is_foreign_ = value;
 }
 
+bool procedure_type::on_initialize(result &r)
+{
+	return true;
+}
+
 }

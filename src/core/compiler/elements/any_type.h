@@ -10,8 +10,14 @@ class any_type : public type {
 public:
 	explicit any_type(element * parent);
 
-private:
+	compiler::type* underlying_type();
 
+	void underlying_type(compiler::type* value);
+protected:
+	bool on_initialize(result& r) override;
+
+private:
+	compiler::type* underlying_type_ = nullptr;
 };
 }
 

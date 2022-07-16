@@ -51,49 +51,64 @@ bool block::define_data(result &r, assembler &assembler)
 
 	auto constant_init = identifiers_.constants(true);
 	if (!constant_init.empty()) {
-		auto section = assembler.segment(fmt::format("bss_{}", id()),segment_type_t::constant,
+		auto section = assembler.segment(fmt::format("rodata_{}", id()),segment_type_t::constant,
 			assembler.location_counter());
 		section->initialized = true;
-		for (auto var: constant_init) {
-			switch (var->type()->element_type()) {
-				case element_type_t::numeric_type: {
-					auto symbol = section->symbol(var->name(),
-						dynamic_cast<numeric_type *>(var->type())->symbol_type());
-					symbol->value.int_value = 0;
-					break;
-				}
-				case element_type_t::string_type: {
-					break;
-				}
-				case element_type_t::array_type: {
-					break;
-				}
-				default:
-					break;
-			}
-		}
+		add_symbols(r, section, constant_init);
 	}
+
 	auto constant_uninit = identifiers_.constants(false);
 	if (!constant_uninit.empty()) {
 		auto section = assembler.segment(fmt::format("bss_{}", id()), segment_type_t::constant,
 			assembler.location_counter());
-		for (auto var : constant_uninit) {
-		}
+		add_symbols(r, section, constant_init);
 	}
 
 	auto global_init = identifiers_.globals(true);
 	if (!global_init.empty()) {
-		for (auto var : global_init) {
-		}
+		auto section = assembler.segment(fmt::format("data_{}", id()), segment_type_t::data,
+			assembler.location_counter());
+		add_symbols(r, section, global_init);
 	}
 
 	auto global_uninit = identifiers_.globals(false);
 	if (!global_uninit.empty()) {
-		for (auto var : global_uninit) {
-		}
+		auto section = assembler.segment(fmt::format("bss_data_{}", id()), segment_type_t::data,
+			assembler.location_counter());
+		add_symbols(r, section, global_uninit);
 	}
 
 	return !r.is_failed();
+}
+
+void block::add_symbols(result& r, segment_t *segment, const identifier_list_t &list)
+{
+	for (auto& var: list) {
+		switch (var->type()->element_type()) {
+			case element_type_t::numeric_type: {
+				auto symbol = segment->symbol(var->name(),
+					integer_symbol_type_for_size(var->type()->size_in_bytes()));
+				symbol->value.int_value = 0;
+				break;
+			}
+			case element_type_t::string_type: {
+				break;
+			}
+			case element_type_t::array_type: {
+				break;
+			}
+			case element_type_t::bool_type: {
+				break;
+			}
+			case element_type_t::composite_type: {
+				break;
+			}
+			default: {
+				break;
+			}
+
+		}
+	}
 }
 
 }

@@ -214,7 +214,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 		case ast_node_types_t::proc_expression: {
 			auto active_scope = current_scope();
 			auto block_scope = make_block(active_scope, element_type_t::proc_type_block);
-			auto proc_type = make_procedure_type(active_scope, block_scope);
+			auto proc_type = make_procedure_type(r, active_scope, block_scope);
 			current_scope()->types().add(proc_type);
 
 			auto count = 0;
@@ -258,9 +258,11 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 		}
 		case ast_node_types_t::enum_expression: {
 			auto active_scope =current_scope();
-			auto enum_type = make_enum_type(active_scope);
-			current_scope()->types().add(enum_type);
-			add_composite_type_fields(r, enum_type, node->rhs);
+			auto enum_type = make_enum_type(r, active_scope);
+			if (enum_type !=nullptr) {
+				current_scope()->types().add(enum_type);
+				add_composite_type_fields(r, enum_type, node->rhs);
+			}
 			return enum_type;
 		}
 		case ast_node_types_t::cast_expression: {
@@ -273,17 +275,20 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 		case ast_node_types_t::alias_expression: {
 			return make_alias(current_scope(), evaluate(r, node->lhs));
 		}
-
 		case ast_node_types_t::union_expression: {
-			auto union_type = make_union_type(current_scope());
-			current_scope()->types().add(union_type);
-			add_composite_type_fields(r, union_type, node->rhs);
+			auto union_type = make_union_type(r, current_scope());
+			if (union_type != nullptr) {
+				current_scope()->types().add(union_type);
+				add_composite_type_fields(r, union_type, node->rhs);
+			}
 			return union_type;
 		}
 		case ast_node_types_t::struct_expression: {
-			auto struct_type = make_struct_type(current_scope());
-			current_scope()->types().add(struct_type);
-			add_composite_type_fields(r, struct_type, node->rhs);
+			auto struct_type = make_struct_type(r, current_scope());
+			if (struct_type !=nullptr) {
+				current_scope()->types().add(struct_type);
+				add_composite_type_fields(r, struct_type, node->rhs);
+			}
 			return struct_type;
 		}
 		case ast_node_types_t::return_statement: {
@@ -358,23 +363,32 @@ block *program::push_new_block(element_type_t type)
 	return scope_block;
 }
 
-any_type *program::make_any_type(compiler::block* parent_scope)
+any_type *program::make_any_type(result &r, compiler::block* parent_scope)
 {
 	auto type = new any_type(parent_scope);
+	if (!type->initialize(r)){
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
 
-string_type *program::make_string_type(compiler::block* parent_scope)
+string_type *program::make_string_type(result &r, compiler::block* parent_scope)
 {
 	auto type = new string_type(parent_scope);
+	if (!type->initialize(r)) {
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
 
-numeric_type *program::make_numeric_type(compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max)
+numeric_type *program::make_numeric_type(result &r, compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max)
 {
 	auto type = new numeric_type(parent_scope, name, min, max);
+	if (!type->initialize(r)) {
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
@@ -389,25 +403,17 @@ block *program::pop_scope()
 	return top;
 }
 
-void program::initialize_core_types()
+void program::initialize_core_types(result &r)
 {
 	auto parent_scope = current_scope();
-	auto& scope_types = parent_scope->types();
-	scope_types.add(make_any_type(parent_scope));
-	scope_types.add(make_string_type(parent_scope));
-	scope_types.add(make_namespace_type(parent_scope));
-	scope_types.add(make_numeric_type(parent_scope, "bool",    0,         1));
-	scope_types.add(make_numeric_type(parent_scope, "u8",      0,         UINT8_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "u16",     0,         UINT16_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "u32",     0,         UINT32_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "u64",     0,         UINT64_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "s8",      INT8_MIN,  INT8_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "s16",     INT16_MIN, INT16_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "s32",     INT32_MIN, INT32_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "s64",     INT64_MIN, INT64_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "f32",     0,         UINT32_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "f64",     0,         UINT64_MAX));
-	scope_types.add(make_numeric_type(parent_scope, "address", 0,         UINTPTR_MAX));
+	add_type_to_scope(make_any_type(r, parent_scope));
+	add_type_to_scope(make_string_type(r, parent_scope));
+	add_type_to_scope(make_namespace_type(r, parent_scope));
+    auto numeric_types = numeric_type::make_types(r, parent_scope);
+    for (auto &numeric_type : numeric_types) {
+        elements_.insert(std::make_pair(numeric_type->id(), numeric_type));
+        add_type_to_scope(numeric_type);
+    }
 }
 
 block *program::current_scope() const
@@ -437,26 +443,35 @@ attribute *program::make_attribute(compiler::block* parent_block, const std::str
 	return attr;
 }
 
-composite_type* program::make_enum_type(compiler::block* parent_block)
+composite_type* program::make_enum_type(result &r, compiler::block* parent_block)
 {
 	auto type = new composite_type(parent_block, composite_types_t::enum_type,
 		fmt::format("__enum_{}__", id_pool::instance()->allocate()));
+	if (!type->initialize(r)) {
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
 
-composite_type* program::make_union_type(compiler::block* parent_block)
+composite_type* program::make_union_type(result& r, compiler::block* parent_block)
 {
 	auto type = new composite_type(parent_block, composite_types_t::union_type,
 		fmt::format("__union_{}__", id_pool::instance()->allocate()));
+	if (!type->initialize(r)) {
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
 
-composite_type* program::make_struct_type(compiler::block* parent_scope)
+composite_type* program::make_struct_type(result& r, compiler::block* parent_scope)
 {
 	auto type = new composite_type(parent_scope, composite_types_t::struct_type,
 		fmt::format("__struct_{}__", id_pool::instance()->allocate()));
+	if (!type->initialize(r)) {
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
@@ -527,11 +542,14 @@ alias *program::make_alias(compiler::block* parent_scope, element *expr)
 	return alias_type;
 }
 
-procedure_type* program::make_procedure_type(compiler::block* parent_scope, compiler::block* block_scope)
+procedure_type* program::make_procedure_type(result &r, compiler::block* parent_scope, compiler::block* block_scope)
 {
 	// XXX: the name of the proc isn't correct here but it works temporarily.
 	auto type = new compiler::procedure_type(parent_scope, block_scope,
 		 fmt::format("__proc_{}__", id_pool::instance()->allocate()));
+	if (!type->initialize(r)) {
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
@@ -697,7 +715,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 			if (is_array) {
 				auto array_type = find_array_type(identifier_type, array_size);
 				if (array_type == nullptr) {
-					array_type = make_array_type(current_scope(), identifier_type, array_size);
+					array_type = make_array_type(r, current_scope(), identifier_type, array_size);
 				}
 				identifier_type = array_type;
 			}
@@ -749,7 +767,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 	}
 	new_identifier->type(identifier_type);
 	if (identifier_type == nullptr) {
-		new_identifier->type(make_unknown_type(scope, type_name, is_array, array_size));
+		new_identifier->type(make_unknown_type(r, scope, type_name, is_array, array_size));
 		identifiers_with_unknown_types_.push_back(new_identifier);
 	}
 	new_identifier->constant(symbol->is_constant_expression());
@@ -763,11 +781,16 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 	return new_identifier;
 }
 
-array_type *program::make_array_type(compiler::block* parent_scope, compiler::type *entry_type, size_t size)
+array_type *program::make_array_type(result &r, compiler::block* parent_scope, compiler::type *entry_type, size_t size)
 {
+//    std::string name = fmt::format("__array_{}_{}__", entry_type->name(), size);
+//    return make_type<array_type>(r, parent_scope, name, entry_type);
 	auto type = new compiler::array_type(parent_scope,
 		fmt::format("__array_{}_{}__", entry_type->name(), size), entry_type);
 	type->size(size);
+	if (!type->initialize(r)) {
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
@@ -777,9 +800,13 @@ compiler::type *program::find_array_type(compiler::type *entry_type, size_t size
 	return find_type(fmt::format("__array_{}_{}__", entry_type->name(), size));
 }
 
-namespace_type *program::make_namespace_type(compiler::block* parent_block)
+namespace_type *program::make_namespace_type(result &r, compiler::block* parent_block)
 {
+//  return make_type<namespace_type>(r, parent_block);
 	auto type = new compiler::namespace_type(parent_block);
+	if (!type->initialize(r)) {
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
@@ -860,7 +887,7 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
 {
 	block_ = push_new_block();
 
-	initialize_core_types();
+	initialize_core_types(r);
 
 	if (!compile_module(r, root)) {
 		return false;
@@ -940,12 +967,15 @@ bool program::resolve_unknown_identifiers(result &r)
 	return true;
 }
 
-unknown_type *program::make_unknown_type(compiler::block *parent_scope, const std::string &name,
+unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scope, const std::string &name,
 	bool is_array, size_t array_size)
 {
 	auto type = new compiler::unknown_type(parent_scope, name);
 	type->is_array(is_array);
 	type->array_size(array_size);
+	if (!type->initialize(r)) {
+		return nullptr;
+	}
 	elements_.insert(std::make_pair(type->id(), type));
 	return type;
 }
@@ -978,7 +1008,7 @@ bool program::resolve_unknown_types(result& r)
 			if (unknown_type->is_array()) {
 				auto array_type = find_array_type(identifier_type, unknown_type->array_size());
 				if (array_type == nullptr) {
-					array_type = make_array_type(dynamic_cast<compiler::block*>(var->parent()),
+					array_type = make_array_type(r, dynamic_cast<compiler::block*>( var->parent()),
 						identifier_type, unknown_type->array_size());
 				}
 				identifier_type = array_type;
@@ -1059,11 +1089,16 @@ void program::apply_attributes(result& r, compiler::element* element, const ast_
 	}
 }
 
-import* program::make_import(compiler::block* parent_scope, element* expr) {
+import* program::make_import(compiler::block* parent_scope, element* expr)
+{
 	auto import_element = new compiler::import(parent_scope, expr);
 	elements_.insert(std::make_pair(import_element->id(), import_element));
 	return import_element;
 }
 
+void program::add_type_to_scope(compiler::type *value)
+{
+    current_scope()->types().add(value);
+}
 
 }

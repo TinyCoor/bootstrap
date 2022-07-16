@@ -6,5 +6,12 @@
 namespace gfx::compiler{
 namespace_type::namespace_type(element *parent)
 	: type(parent, element_type_t::namespace_type, "namespace")
-{}
+{
+
+}
+
+bool namespace_type::on_initialize(result &r)
+{
+	return true;
+}
 }

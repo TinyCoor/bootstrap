@@ -10,6 +10,8 @@ class namespace_type : public type {
 public:
 	explicit namespace_type(element* parent);
 
+protected:
+	bool on_initialize(result& r) override;
 private:
 };
 }

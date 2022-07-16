@@ -9,9 +9,7 @@
 namespace gfx::compiler {
 class unknown_type : public type {
 public:
-	explicit unknown_type(
-		element* parent,
-		const std::string& name);
+    unknown_type(element* parent, const std::string& name);
 
 	bool is_array() const;
 
@@ -20,6 +18,9 @@ public:
 	size_t array_size() const;
 
 	void array_size(size_t value);
+
+protected:
+	bool on_initialize(result& r) override;
 
 private:
 	size_t array_size_ = 0;

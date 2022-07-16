@@ -16,8 +16,10 @@ public:
 
 	type_map_t& type_parameters();
 
-	composite_types_t type() const ;
+	composite_types_t type() const;
 
+protected:
+	bool on_initialize(result& r);
 private:
 	field_map_t fields_{};
 	composite_types_t type_;

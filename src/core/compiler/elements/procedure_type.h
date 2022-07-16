@@ -25,6 +25,9 @@ public:
 
 	procedure_instance_list_t& instances();
 
+protected:
+	bool on_initialize(result& r) override;
+
 private:
 	field_map_t returns_{};
 	field_map_t parameters_{};

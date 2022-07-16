@@ -39,7 +39,7 @@ protected:
 	bool build_data_segments(result& r);
 
 private:
-	void initialize_core_types();
+	void initialize_core_types(result &r);
 
 	bool execute_directives(result& r);
 
@@ -54,8 +54,11 @@ private:
 		const ast_node_shared_ptr& rhs, compiler::block* parent_scope = nullptr);
 
 	void add_procedure_instance(result& r, compiler::procedure_type* proc_type, const ast_node_shared_ptr& node);
-private:
 
+    void add_expression_to_scope(compiler::block* scope, compiler::element* expr);
+
+    void add_type_to_scope(compiler::type* value);
+private:
 	cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
 
 	alias* make_alias(compiler::block* parent_scope, element* expr);
@@ -83,42 +86,58 @@ private:
 
 	string_literal* make_string(compiler::block* parent_scope, const std::string& value);
 
-	array_type* make_array_type(compiler::block* parent_scope, compiler::type* entry_type, size_t size);
-
 	initializer* make_initializer(compiler::block* parent_scope, element* expr);
 
 	expression* make_expression(compiler::block* parent_scope, element* expr);
 
 	identifier* make_identifier(compiler::block* parent_scope, const std::string& name, initializer* expr);
 
-	unknown_type* make_unknown_type(compiler::block* parent_scope, const std::string& name,
-		bool is_array, size_t array_size);
-
-	numeric_type* make_numeric_type(compiler::block* parent_scope, const std::string& name, int64_t min, uint64_t max);
-
 	namespace_element* make_namespace( compiler::block* parent_scope, element* expr);
 
 	template<typename T, typename ... Args>
-	T make_element(Args&& ...args)
+	auto make_element(Args&& ...args) -> decltype(new T(std::forward<Args>(args)...))
 	{
-		auto element = T(std::forward<Args>(args)...);
-		elements_.insert(element->id(), element);
+		auto element = new T(std::forward<Args>(args)...);
+		elements_.insert(std::make_pair(element->id(), element));
 		return element;
 	}
+
+    template<typename T, typename Result, typename ... Args>
+    auto make_type(Result r, Args&& ...args) -> decltype(new T(std::forward<Args>(args)...))
+    {
+        auto type = new T(std::forward<Args>(args)...);
+        if (!type->initialize(r)) {
+            return nullptr;
+        }
+        elements_.insert(std::make_pair(type->id(), type));
+        return type;
+    }
 
 	class block* make_block(compiler::block* parent_scope, element_type_t type);
 
 	class block* push_new_block(element_type_t type = element_type_t::block);
 
-	composite_type* make_enum_type(compiler::block* parent_scope);
+	unknown_type* make_unknown_type(result &r, compiler::block* parent_scope, const std::string& name,
+		bool is_array, size_t array_size);
 
-	composite_type* make_struct_type(compiler::block* parent_scope);
+	numeric_type* make_numeric_type(result &r, compiler::block* parent_scope, const std::string& name,
+		int64_t min, uint64_t max);
 
-	composite_type* make_union_type(compiler::block* parent_scope);
+	array_type* make_array_type(result &r, compiler::block* parent_scope, compiler::type* entry_type, size_t size);
 
-	string_type* make_string_type(compiler::block* parent_scope);
+	composite_type* make_enum_type(result &r, compiler::block* parent_scope);
 
-	any_type* make_any_type(compiler::block* parent_scope);
+	composite_type* make_struct_type(result &r, compiler::block* parent_scope);
+
+	composite_type* make_union_type(result &r, compiler::block* parent_scope);
+
+	string_type* make_string_type(result& r, compiler::block* parent_scope);
+
+	any_type* make_any_type(result&r, compiler::block* parent_scope);
+
+	procedure_type* make_procedure_type(result& r, compiler::block* parent_scope, compiler::block* block_scope);
+
+	namespace_type* make_namespace_type(result &r, compiler::block* parent_scope);
 
 	attribute* make_attribute(compiler::block* parent_scope, const std::string& name, element* expr);
 
@@ -133,21 +152,15 @@ private:
 	procedure_call* make_procedure_call(compiler::block* parent_scope, compiler::identifier* identifier,
 		compiler::argument_list* args);
 
-	procedure_type* make_procedure_type(compiler::block* parent_scope, compiler::block* block_scope);
-
-	namespace_type* make_namespace_type(compiler::block* parent_scope);
-
 	return_element* make_return(compiler::block* parent_scope);
 
 	compiler::type* find_array_type(compiler::type* entry_type, size_t size) const;
-
-	void add_expression_to_scope(compiler::block* scope, compiler::element* expr);
 
 	void apply_attributes(result& r, compiler::element* element, const ast_node_shared_ptr& node);
 private:
 
 	element* evaluate(result& r, const ast_node_shared_ptr& node,
-					  element_type_t default_block_type = element_type_t::block);
+		element_type_t default_block_type = element_type_t::block);
 
 	class block* pop_scope();
 
@@ -169,7 +182,6 @@ private:
 	bytecode_emitter_options_t options_;
 	std::stack<compiler::block*> scope_stack_ {};
 	identifier_list_t identifiers_with_unknown_types_ {};
-
 };
 }
 

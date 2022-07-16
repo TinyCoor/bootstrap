@@ -30,6 +30,8 @@ public:
 	statement_list_t& statements();
 
 	identifier_map_t& identifiers();
+private:
+	void add_symbols(result& r, segment_t* segment, const identifier_list_t &list);
 
 private:
 	type_map_t types_ {};

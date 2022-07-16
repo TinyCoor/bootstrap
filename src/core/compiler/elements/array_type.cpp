@@ -21,4 +21,9 @@ void array_type::size(uint64_t value)
 compiler::type* array_type::entry_type() {
 	return entry_type_;
 }
+
+bool array_type::on_initialize(result &r)
+{
+	return true;
+}
 }

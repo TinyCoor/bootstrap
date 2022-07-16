@@ -16,6 +16,9 @@ public:
 
 	compiler::type* entry_type();
 
+protected:
+	bool on_initialize(result& r) override;
+
 private:
 	uint64_t size_ = 0;
 	compiler::type* entry_type_ = nullptr;

@@ -4,7 +4,7 @@
 
 #include "unknown_type.h"
 gfx::compiler::unknown_type::unknown_type(gfx::compiler::element *parent, const std::string &name)
-	: type(parent, element_type_t::unknown_type,name)
+	: type(parent, element_type_t::unknown_type, name)
 {
 
 }
@@ -23,4 +23,8 @@ size_t gfx::compiler::unknown_type::array_size() const
 void gfx::compiler::unknown_type::array_size(size_t value)
 {
 
+}
+bool gfx::compiler::unknown_type::on_initialize(gfx::result &r)
+{
+	return true;
 }

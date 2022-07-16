@@ -5,6 +5,7 @@
 #ifndef COMPILER_ELEMENTS_TYPE_H_
 #define COMPILER_ELEMENTS_TYPE_H_
 #include <string>
+#include "vm/assembler.h"
 #include "element.h"
 #include "element_types.h"
 namespace gfx::compiler {
@@ -28,7 +29,7 @@ namespace gfx::compiler {
 /// template<>
 class type : public element {
 public:
-	explicit type(element* parent, element_type_t type, const std::string& name);
+    type(element* parent, element_type_t type, const std::string& name);
 
 	~type() override;
 
@@ -36,8 +37,16 @@ public:
 
 	void name(const std::string& value);
 
+    size_t size_in_bytes() const;
+
+    bool initialize(result &r);
+protected:
+	void size_in_bytes(size_t value);
+
+	virtual bool on_initialize(result& r);
 private:
 	std::string name_;
+	size_t size_in_bytes_ {};
 };
 
 }

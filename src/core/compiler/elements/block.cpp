@@ -3,6 +3,7 @@
 //
 
 #include "block.h"
+#include "initializer.h"
 #include "fmt/format.h"
 #include "numeric_type.h"
 namespace gfx::compiler {
@@ -55,6 +56,7 @@ bool block::define_data(result &r, assembler &assembler)
 			assembler.location_counter());
 		section->initialized = true;
 		add_symbols(r, section, constant_init);
+        assembler.location_counter(assembler.location_counter() + section->offset);
 	}
 
 	auto constant_uninit = identifiers_.constants(false);
@@ -62,6 +64,7 @@ bool block::define_data(result &r, assembler &assembler)
 		auto section = assembler.segment(fmt::format("bss_{}", id()), segment_type_t::constant,
 			assembler.location_counter());
 		add_symbols(r, section, constant_init);
+        assembler.location_counter(assembler.location_counter() + section->offset);
 	}
 
 	auto global_init = identifiers_.globals(true);
@@ -69,6 +72,7 @@ bool block::define_data(result &r, assembler &assembler)
 		auto section = assembler.segment(fmt::format("data_{}", id()), segment_type_t::data,
 			assembler.location_counter());
 		add_symbols(r, section, global_init);
+        assembler.location_counter(assembler.location_counter() + section->offset);
 	}
 
 	auto global_uninit = identifiers_.globals(false);
@@ -76,6 +80,7 @@ bool block::define_data(result &r, assembler &assembler)
 		auto section = assembler.segment(fmt::format("bss_data_{}", id()), segment_type_t::data,
 			assembler.location_counter());
 		add_symbols(r, section, global_uninit);
+        assembler.location_counter(assembler.location_counter() + section->offset);
 	}
 
 	return !r.is_failed();
@@ -88,8 +93,11 @@ void block::add_symbols(result& r, segment_t *segment, const identifier_list_t &
 			case element_type_t::numeric_type: {
 				auto symbol = segment->symbol(var->name(),
 					integer_symbol_type_for_size(var->type()->size_in_bytes()));
-				symbol->value.int_value = 0;
-				break;
+                uint64_t value = 0;
+                if (var->as_integer(value)) {
+                    symbol->value.int_value = value;
+                }
+                break;
 			}
 			case element_type_t::string_type: {
 				break;
@@ -110,5 +118,4 @@ void block::add_symbols(result& r, segment_t *segment, const identifier_list_t &
 		}
 	}
 }
-
 }

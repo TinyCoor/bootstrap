@@ -7,8 +7,7 @@
 #include "common/result.h"
 #include "terp.h"
 #include "instruction_emitter.h"
-#include <istream>
-#include <variant>
+#include <vector>
 
 namespace gfx {
 enum class segment_type_t {
@@ -28,6 +27,25 @@ enum class symbol_type_t {
 	f64,
 	bytes,
 };
+
+static inline std::unordered_map<symbol_type_t, std::string_view> symbol_type_names = {
+    {symbol_type_t::u8,      "u8"},
+    {symbol_type_t::u16,     "u16"},
+    {symbol_type_t::u32,     "u32"},
+    {symbol_type_t::u64,     "u64"},
+    {symbol_type_t::f32,     "f32"},
+    {symbol_type_t::f64,     "f64"},
+    {symbol_type_t::bytes,   "bytes"},
+};
+
+static inline std::string_view symbol_type_name(symbol_type_t type)
+{
+    auto it = symbol_type_names.find(type);
+    if (it == symbol_type_names.end()) {
+        return "unknown";
+    }
+    return it->second;
+}
 
 static inline size_t sizeof_symbol_type(symbol_type_t type)
 {
@@ -106,6 +124,8 @@ struct symbol_t {
 	}value{};
 };
 
+using symbol_list_t = std::vector<symbol_t>;
+
 struct segment_t {
 	uint64_t address =0;
 	uint64_t offset = 0;
@@ -118,11 +138,13 @@ struct segment_t {
 
 	symbol_t* symbol(const std::string& name);
 
+    symbol_list_t symbols();
+
 	symbol_t* symbol(const std::string& name, symbol_type_t type, size_t size = 0);
 private:
 	std::unordered_map<std::string, symbol_t> symbols_{};
 };
-
+using segment_list_t = std::vector<segment_t>;
 class assembler {
 public:
 	explicit assembler(terp* terp);
@@ -151,7 +173,9 @@ public:
 
 	uint64_t location_counter() const;
 
-	segment_t* segment(const std::string& name);
+    segment_list_t segments() const;
+
+    segment_t* segment(const std::string& name);
 
 	segment_t* segment(const std::string &name, segment_type_t type, uint64_t address);
 

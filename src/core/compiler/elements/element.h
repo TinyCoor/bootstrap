@@ -7,6 +7,7 @@
 #include "common/id_pool.h"
 #include "common/result.h"
 #include "element_types.h"
+
 namespace gfx::compiler {
 class element {
 public:
@@ -20,6 +21,14 @@ public:
 
 	element* parent();
 
+    bool as_bool(bool &value);
+
+    bool as_float(double &value);
+
+    bool as_integer(uint64_t &value);
+
+    bool as_string(std::string &value);
+
 	attribute_map_t& attributes();
 
 	element_type_t element_type() const;
@@ -28,6 +37,14 @@ public:
 
 protected:
 	virtual bool on_fold(result& result);
+
+    virtual bool on_as_bool(bool &value) const;
+
+    virtual bool on_as_float(double &value) const;
+
+    virtual bool on_as_integer(uint64_t &value) const;
+
+    virtual bool on_as_string(std::string &value) const;
 
 	virtual compiler::type* on_infer_type(const compiler::program* program);
 

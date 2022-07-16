@@ -27,4 +27,36 @@ compiler::procedure_type *initializer::procedure_type()
 	return dynamic_cast<class procedure_type*>(expr_);
 }
 
+bool initializer::on_as_integer(uint64_t &value) const
+{
+    if (!expr_) {
+        return false;
+    }
+    return expr_->as_integer(value);
+}
+
+bool initializer::on_as_string(std::string &value) const
+{
+    if (!expr_) {
+        return false;
+    }
+    return expr_->as_string(value);
+}
+
+bool initializer::on_as_bool(bool &value) const
+{
+    if (!expr_) {
+        return false;
+    }
+    return expr_->as_bool(value);
+}
+
+bool initializer::on_as_float(double &value) const
+{
+    if (!expr_) {
+        return false;
+    }
+    return expr_->as_float(value);
+}
+
 }

@@ -114,6 +114,7 @@ set(ELEMENT_SRC
         compiler/elements/namespace_type.cpp
         compiler/elements/argument_list.cpp
         compiler/elements/import.cpp
+        compiler/extern.cpp
         )
 
 set(COMPILER_SRC

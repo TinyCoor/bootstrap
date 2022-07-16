@@ -14,14 +14,15 @@ public:
 	void format(const std::string& title);
 
 private:
-	void add_primary_edge(element* parent, element* child, const std::string& label = "");
-
-	void add_secondary_edge(element* parent, element* child, const std::string& label = "");
-
 	std::string format_node(element* node);
 
-	std::string get_vertex_name(element* node) const;
+    static std::string get_vertex_name(element* node);
 
+    static std::string escape_quotes(const std::string& value);
+
+    void add_primary_edge(element* parent, element* child, const std::string& label = "");
+
+    void add_secondary_edge(element* parent, element* child, const std::string& label = "");
 private:
 	FILE* file_ = nullptr;
 	std::set<std::string> edges_ {};

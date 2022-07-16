@@ -82,23 +82,30 @@ bool directive::on_evaluate_foreign(result &r, compiler::program *program)
 bool directive::on_execute_foreign(result &r, compiler::program *program)
 {
 	auto terp = program->terp();
-	std::string library_path = "compiler-rt.dll";
+	std::string library_name = "compiler-rt.dll";
 	auto library_attribute = attributes().find("library");
 	if (library_attribute != nullptr) {
-		library_path = library_attribute->as_string();
+        if (!library_attribute->as_string(library_name)) {
+            r.add_message("P005",
+              "unable to convert library attribute's name.", true);
+            return false;
+        }
 	}
+    std::filesystem::path library_path(library_name);
 	auto library = terp->load_shared_library(r, library_path);
 	if (library == nullptr) {
 		return false;
 	}
 
-//	terp->dump_shared_libraries();
-
 	auto ffi_identifier = dynamic_cast<compiler::identifier*>(expression_);
 	std::string symbol_name = ffi_identifier->name();
 	auto alias_attribute = attributes().find("alias");
 	if (alias_attribute != nullptr) {
-		symbol_name = alias_attribute->as_string();
+        if (!alias_attribute->as_string(symbol_name)) {
+            r.add_message("P006",
+                "unable to convert alias attribute's name.", true);
+            return false;
+        }
 	}
 
 	function_signature_t signature {

@@ -37,6 +37,15 @@ symbol_t* segment_t::symbol(const std::string &name, symbol_type_t type, size_t 
 	return symbol(name);
 }
 
+symbol_list_t segment_t::symbols()
+{
+    symbol_list_t list{};
+    for (const auto& it : symbols_) {
+        list.emplace_back(it.second);
+    }
+    return list;
+}
+
 assembler::assembler(terp* terp)
 	: terp_(terp)
 {
@@ -132,6 +141,15 @@ segment_t *assembler::segment(const std::string &name)
 		return nullptr;
 	}
 	return &it->second;
+}
+
+segment_list_t assembler::segments() const
+{
+    segment_list_t list {};
+    for (const auto& it: segments_) {
+        list.push_back(it.second);
+    }
+    return list;
 }
 
 }

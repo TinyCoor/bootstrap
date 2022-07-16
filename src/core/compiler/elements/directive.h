@@ -6,11 +6,11 @@
 #define COMPILER_ELEMENTS_DIRECTIVE_H_
 #include "block.h"
 namespace gfx::compiler {
-
 class directive : public element {
 public:
-	using directive_callable = std::function<bool (compiler::directive*, result&, compiler::program*)>;
-	directive(block* parent, const std::string& name, element* expression);
+	using directive_callable = std::function<bool(compiler::directive*, result&, compiler::program*)>;
+
+    directive(block* parent, const std::string& name, element* expression);
 
 	element* expression();
 

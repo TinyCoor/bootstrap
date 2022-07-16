@@ -13,7 +13,9 @@ public:
 	std::string value() const;
 
 protected:
-	compiler::type* on_infer_type(const compiler::program* program) override;
+    bool on_as_string(std::string &value) const override;
+
+    compiler::type* on_infer_type(const compiler::program* program) override;
 
 private:
 	std::string value_;

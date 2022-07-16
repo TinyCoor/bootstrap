@@ -7,6 +7,7 @@
 #include "element.h"
 
 namespace gfx::compiler {
+
 class boolean_literal : public element {
 public:
 	boolean_literal(element* parent, bool value);
@@ -15,6 +16,8 @@ public:
 
 protected:
 	compiler::type* on_infer_type(const compiler::program* program) override;
+
+    bool on_as_bool(bool &value) const override;
 
 private:
 	bool value_ = false;

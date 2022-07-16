@@ -20,4 +20,10 @@ compiler::type *float_literal::on_infer_type(const compiler::program *program)
 	return program->find_type("f64");
 }
 
+bool float_literal::on_as_float(double &value) const
+{
+    value = value_;
+    return true;
+}
+
 }

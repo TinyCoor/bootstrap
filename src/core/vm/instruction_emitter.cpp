@@ -7,7 +7,7 @@ namespace gfx {
 
 instruction_emitter::instruction_emitter() = default;
 
-instruction_emitter::~instruction_emitter() =default;
+instruction_emitter::~instruction_emitter() = default;
 
 size_t instruction_emitter::size() const
 {

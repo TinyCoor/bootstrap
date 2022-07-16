@@ -13,14 +13,12 @@ bytecode_emitter::bytecode_emitter( const bytecode_emitter_options_t& options)
 {
 }
 
-bytecode_emitter::~bytecode_emitter()
-{
-}
+bytecode_emitter::~bytecode_emitter() = default;
 
 bool bytecode_emitter::compile_files(result& r, const std::vector<std::filesystem::path>& source_files)
 {
 	for (const auto& source_file : source_files) {
-		fmt::print("Compile: {} ... \n", source_file.string());
+		fmt::print("Compile: {} ... ", source_file.string());
 		if (!std::filesystem::exists(source_file)) {
 			fmt::print("FAILED, file does not exist.\n");
 			continue;
@@ -57,13 +55,11 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input)
 		if (options_.verbose) {
 			alpha_parser.write_ast_graph(options_.ast_graph_file_name, module_node);
 		}
-
 		compiler::program program_element(&terp_);
 		if (program_element.compile(r, module_node)) {
 			if (options_.verbose) {
 				write_code_dom_graph(options_.code_dom_graph_file_name, &program_element);
 			}
-
 		}
 	}
 	return !r.is_failed();
@@ -84,7 +80,6 @@ void bytecode_emitter::write_code_dom_graph(const std::filesystem::path &path, c
 	if (close_required) {
 		fclose(code_dom_output_file);
 	}
-
 }
 
 }

@@ -7,7 +7,6 @@
 #include "core/compiler/elements/label.h"
 #include "core/compiler/elements/alias.h"
 #include "core/compiler/elements/import.h"
-#include "core/compiler/elements/block.h"
 #include "core/compiler/elements/program.h"
 #include "core/compiler/elements/comment.h"
 #include "core/compiler/elements/any_type.h"
@@ -84,7 +83,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto comment_element = dynamic_cast<comment*>(node);
 			auto style = ", fillcolor=green, style=\"filled\"";
 			auto details = fmt::format("comment|{{type: {} | value: '{}' }}",
-				comment_type_name(comment_element->type()), comment_element->value());
+				comment_type_name(comment_element->type()), escape_quotes(comment_element->value()));
 			return fmt::format("{}[shape=record,label=\"{}\"{}];", node_vertex_name, details, style);
 		}
 		case element_type_t::cast: {
@@ -273,20 +272,20 @@ std::string code_dom_formatter::format_node(element* node)
 		case element_type_t::float_literal: {
 			auto element = dynamic_cast<float_literal*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"float_literal|{}\"{}];", node_vertex_name, element->value(),
-				style);
+			return fmt::format("{}[shape=record,label=\"float_literal|{}\"{}];", node_vertex_name,
+               element->value(), style);
 		}
 		case element_type_t::string_literal: {
 			auto element = dynamic_cast<string_literal*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"string_literal|{}\"{}];", node_vertex_name, element->value(),
-				style);
+			return fmt::format("{}[shape=record,label=\"string_literal|{}\"{}];", node_vertex_name,
+                escape_quotes(element->value()), style);
 		}
 		case element_type_t::composite_type: {
 			auto element = dynamic_cast<composite_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"composite_type|{}\"{}];", node_vertex_name, element->name(),
-				style);
+			return fmt::format("{}[shape=record,label=\"composite_type|{}\"{}];", node_vertex_name,
+                element->name(), style);
 		}
 		case element_type_t::unary_operator: {
 			auto element = dynamic_cast<unary_operator*>(node);
@@ -298,14 +297,14 @@ std::string code_dom_formatter::format_node(element* node)
 		case element_type_t::boolean_literal: {
 			auto element = dynamic_cast<boolean_literal*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"boolean_literal|{}\"{}];", node_vertex_name, element->value(),
-				style);
+			return fmt::format("{}[shape=record,label=\"boolean_literal|{}\"{}];", node_vertex_name,
+                  element->value(), style);
 		}
 		case element_type_t::integer_literal: {
 			auto element = dynamic_cast<integer_literal*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"integer_literal|{}\"{}];", node_vertex_name, element->value(),
-				style);
+			return fmt::format("{}[shape=record,label=\"integer_literal|{}\"{}];", node_vertex_name,
+                 element->value(), style);
 		}
 		case element_type_t::binary_operator: {
 			auto element = dynamic_cast<binary_operator*>(node);
@@ -318,8 +317,8 @@ std::string code_dom_formatter::format_node(element* node)
 		case element_type_t::namespace_type: {
 			auto element = dynamic_cast<namespace_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"namespace_type|{}\"{}];", node_vertex_name, element->name(),
-				style);
+			return fmt::format("{}[shape=record,label=\"namespace_type|{}\"{}];", node_vertex_name,
+                 element->name(), style);
 		}
 		default:
 			break;
@@ -360,8 +359,21 @@ void code_dom_formatter::format(const std::string& title)
 	fmt::print(file_, "}}\n");
 }
 
-std::string code_dom_formatter::get_vertex_name(element* node) const
+std::string code_dom_formatter::get_vertex_name(element* node)
 {
 	return fmt::format("{}_{}", element_type_name(node->element_type()), node->id());
+}
+
+std::string code_dom_formatter::escape_quotes(const std::string& value)
+{
+    std::string buffer;
+    for (const auto &c : value) {
+        if (c == '\"') {
+            buffer += "\\\"";
+        } else {
+          buffer += c;
+        }
+    }
+    return buffer;
 }
 }

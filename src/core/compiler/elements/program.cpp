@@ -795,28 +795,32 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 bool program::compile(result &r, const ast_node_shared_ptr &root)
 {
 	block_ = push_new_block();
-
 	initialize_core_types(r);
-
 	if (!compile_module(r, root)) {
 		return false;
 	}
-
 	if (!execute_directives(r)) {
 		return false;
 	}
-
 	if (!resolve_unknown_identifiers(r)) {
 		return false;
 	}
 	if (!resolve_unknown_types(r)) {
 		return false;
 	}
-
 	if (!build_data_segments(r)) {
 		return false;
 	}
-
+    auto segments = assembler_.segments();
+    fmt::print("\n");
+    for (auto &segment : segments) {
+        fmt::print("segment: {}, type: {}\n", segment.name, segment_type_name(segment.type));
+        for(auto &symbol: segment.symbols()) {
+            fmt::print("\taddress: {:08x}, symbol: {}, type: {}, size: {}\n",
+                       symbol.address, symbol.name, symbol_type_name(symbol.type), symbol.size);
+        }
+        fmt::print("\n");
+    }
 	return !r.is_failed();
 }
 
@@ -879,7 +883,7 @@ bool program::resolve_unknown_identifiers(result &r)
 unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scope, const std::string &name,
 	bool is_array, size_t array_size)
 {
-    return make_type<unknown_type>(r, parent_scope, name);
+    return make_type<unknown_type>(r, parent_scope, name, is_array, array_size);
 }
 
 void program::remove_element(id_t id)
@@ -897,7 +901,6 @@ bool program::resolve_unknown_types(result& r)
 	auto it = identifiers_with_unknown_types_.begin();
 	while (it != identifiers_with_unknown_types_.end()) {
 		auto var = *it;
-
 		if (var->type() != nullptr &&  var->type()->element_type() != element_type_t::unknown_type) {
 			it = identifiers_with_unknown_types_.erase(it);
 			continue;

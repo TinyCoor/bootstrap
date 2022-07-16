@@ -12,8 +12,6 @@ public:
 
 protected:
     bool on_initialize(result& r) override;
-
-
 };
 }
 

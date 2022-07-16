@@ -13,7 +13,9 @@ public:
 	double value() const;
 
 protected:
-	compiler::type* on_infer_type(const compiler::program* program) override;
+    bool on_as_float(double &value) const override;
+
+    compiler::type* on_infer_type(const compiler::program* program) override;
 
 private:
 	double value_;

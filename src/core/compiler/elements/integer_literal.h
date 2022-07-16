@@ -15,6 +15,8 @@ public:
 protected:
 	compiler::type* on_infer_type(const compiler::program* program) override;
 
+    bool on_as_integer(uint64_t &value) const override;
+
 private:
 	uint64_t value_;
 };

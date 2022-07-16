@@ -24,20 +24,35 @@ std::string attribute::name() const
 	return name_;
 }
 
-std::string attribute::as_string() const
+bool attribute::on_as_string(std::string& value) const
 {
-	switch (expr_->element_type()) {
-		case element_type_t::float_literal:
-			return std::to_string(dynamic_cast<float_literal*>(expr_)->value());
-		case element_type_t::string_literal:
-			return dynamic_cast<string_literal*>(expr_)->value();
-		case element_type_t::boolean_literal:
-			return std::to_string(dynamic_cast<boolean_literal*>(expr_)->value());
-		case element_type_t::integer_literal:
-			return std::to_string(dynamic_cast<integer_literal*>(expr_)->value());
-		default:
-			break;
-	}
-	return "";
+    if (expr_ == nullptr) {
+        return false;
+    }
+    return expr_->as_string(value);
+}
+
+bool attribute::on_as_bool(bool &value) const
+{
+    if (!expr_) {
+        return false;
+    }
+    return expr_->as_bool(value);
+}
+
+bool attribute::on_as_float(double &value) const
+{
+    if (!expr_) {
+        return false;
+    }
+    return expr_->as_float(value);
+}
+
+bool attribute::on_as_integer(uint64_t &value) const
+{
+    if (!expr_) {
+        return false;
+    }
+    return expr_->as_integer(value);
 }
 }

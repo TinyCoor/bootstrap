@@ -11,9 +11,7 @@ element::element(element* parent, element_type_t type)
 {
 }
 
-element::~element()
-{
-}
+element::~element() = default;
 
 id_t element::id() const
 {
@@ -66,6 +64,46 @@ compiler::type *element::infer_type(const compiler::program *program)
 compiler::type *element::on_infer_type(const compiler::program *program)
 {
 	return nullptr;
+}
+
+bool element::as_bool(bool &value)
+{
+    return on_as_bool(value);
+}
+
+bool element::as_float(double &value)
+{
+    return on_as_float(value);
+}
+
+bool element::as_integer(uint64_t &value)
+{
+    return on_as_integer(value);
+}
+
+bool element::as_string(std::string &value)
+{
+    return on_as_string(value);
+}
+
+bool element::on_as_string(std::string &value) const
+{
+    return false;
+}
+
+bool element::on_as_bool(bool &value) const
+{
+    return false;
+}
+
+bool element::on_as_float(double &value) const
+{
+    return false;
+}
+
+bool element::on_as_integer(uint64_t &value) const
+{
+    return false;
 }
 
 }

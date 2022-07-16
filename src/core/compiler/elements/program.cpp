@@ -707,7 +707,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 array_type *program::make_array_type(result &r, compiler::block* parent_scope, compiler::type *entry_type, size_t size)
 {
     std::string name = fmt::format("__array_{}_{}__", entry_type->name(), size);
-    return make_type<array_type>(r, parent_scope, name, entry_type);
+    return make_type<array_type>(r, parent_scope, name, entry_type, size);
 }
 
 compiler::type *program::find_array_type(compiler::type *entry_type, size_t size) const

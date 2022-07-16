@@ -4,8 +4,9 @@
 
 #include "array_type.h"
 namespace gfx::compiler {
-array_type::array_type(element* parent, const std::string& name, compiler::type* entry_type)
-	: type(parent,element_type_t::array_type, name), entry_type_(entry_type) {
+array_type::array_type(element* parent, const std::string& name, compiler::type* entry_type, size_t size)
+	: type(parent,element_type_t::array_type, name), size_(size), entry_type_(entry_type)
+{
 }
 
 uint64_t array_type::size() const

@@ -14,6 +14,10 @@ alpha::compiler::config := ns {
 };
 
 alpha::compiler::examples := ns {
+    point := struct {
+        x  := 1.0;
+        y  := 1.0;
+    };
     count:u32;
     max: u16 := 32767;
     name:string := "this is a test";

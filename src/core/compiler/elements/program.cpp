@@ -366,7 +366,7 @@ void program::initialize_core_types(result &r)
     auto string_type = make_string_type(r, parent_scope);
     string_type->initialize(r, this);
 	add_type_to_scope(string_type);
-    auto namespace_type = make_string_type(r, parent_scope);
+    auto namespace_type = make_namespace_type(r, parent_scope);
     namespace_type->initialize(r, this);
     add_type_to_scope(namespace_type);
 }
@@ -664,14 +664,17 @@ void program::add_composite_type_fields(result &r, composite_type *type, const a
 		auto expr_node = child->rhs;
 		switch (expr_node->type) {
 			case ast_node_types_t::assignment: {
-				compiler::type* field_type = nullptr;
 				auto symbol_node = expr_node->lhs->children[0];
-				if (symbol_node->rhs != nullptr) {
-					field_type = find_type(symbol_node->rhs->token.value);
-				}
-				auto field_identifier = make_identifier(current_scope(), symbol_node->children[0]->token.value,
-					make_initializer(current_scope(), evaluate(r, expr_node->rhs)));
-				field_identifier->type(field_type);
+                auto type_find_result = find_identifier_type(r, symbol_node);
+                auto init = make_initializer(current_scope(), evaluate(r, expr_node->rhs));
+                auto field_identifier = make_identifier(current_scope(), symbol_node->children[0]->token.value,
+					init);
+                if (type_find_result.type ==nullptr) {
+                    type_find_result.type = init->expression()->infer_type(this);
+                    field_identifier->inferred_type(type_find_result.type != nullptr);
+                }
+                field_identifier->type(type_find_result.type);
+
 				type->fields().add(make_field(
 					current_scope(),
 					field_identifier));
@@ -962,7 +965,7 @@ void program::add_type_to_scope(compiler::type *value)
 
 type_find_result_t program::find_identifier_type(result& r, const ast_node_shared_ptr &symbol)
 {
-    type_find_result_t result;
+    type_find_result_t result{};
     if (symbol->rhs != nullptr) {
         result.type_name = symbol->rhs->token.value;
         result.is_array= symbol->rhs->is_array();
@@ -985,7 +988,7 @@ unknown_type *program::unknown_type_from_result(result &r,compiler::block *scope
     compiler::identifier *identifier, type_find_result_t &result)
 {
     auto type = make_unknown_type(r, scope, result.type_name, result.is_array, result.array_size);
-    identifiers_with_unknown_types_.push_back(new_identifier);
+    identifiers_with_unknown_types_.push_back(identifier);
     return type;
 }
 }

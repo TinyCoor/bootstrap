@@ -90,6 +90,7 @@ set(ELEMENT_SRC
         compiler/elements/composite_type.cpp
         compiler/elements/numeric_type.cpp
         compiler/elements/procedure_type.cpp
+        compiler/elements/struct_type.cpp
 
         compiler/elements/if_element.cpp
         compiler/elements/return_element.cpp

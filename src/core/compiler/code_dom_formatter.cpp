@@ -143,6 +143,9 @@ std::string code_dom_formatter::format_node(element* node)
 		case element_type_t::any_type:{
 			auto element = dynamic_cast<any_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
+            for (auto &field : element->fields().as_list()) {
+                add_primary_edge(element,field);
+            }
 			return fmt::format("{}[shape=record,label=\"any_type|{}\"{}];",node_vertex_name, element->name(),
 				style);
 		}
@@ -214,6 +217,9 @@ std::string code_dom_formatter::format_node(element* node)
 				entry_type_name = element->entry_type()->name();
 			}
 			add_primary_edge(element, element->entry_type());
+            for (auto &field : element->fields().as_list()) {
+                add_primary_edge(element,field);
+            }
 			return fmt::format("{}[shape=record,label=\"array_type|size: {}|type: {}\"{}];",
 				node_vertex_name, element->size(), entry_type_name, style);
 		}
@@ -240,6 +246,9 @@ std::string code_dom_formatter::format_node(element* node)
 		case element_type_t::string_type: {
 			auto element = dynamic_cast<string_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
+            for (auto &field : element->fields().as_list()) {
+                add_primary_edge(element,field);
+            }
 			return fmt::format("{}[shape=record,label=\"string_type|{}\"{}];", node_vertex_name, element->name(),
 				style);
 		}

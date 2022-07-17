@@ -10,7 +10,7 @@ namespace_type::namespace_type(element *parent)
 
 }
 
-bool namespace_type::on_initialize(result &r)
+bool namespace_type::on_initialize(result &r, compiler::program* program)
 {
 	return true;
 }

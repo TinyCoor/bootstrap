@@ -7,10 +7,10 @@
 #include "type.h"
 #include "field.h"
 namespace gfx::compiler {
-
 class composite_type : public type {
 public:
-  	explicit composite_type(element* parent, composite_types_t type, const std::string& name);
+  	explicit composite_type(element* parent, composite_types_t type, const std::string& name,
+       element_type_t element = element_type_t::composite_type);
 
 	field_map_t& fields();
 
@@ -19,7 +19,8 @@ public:
 	composite_types_t type() const;
 
 protected:
-	bool on_initialize(result& r);
+	bool on_initialize(result& r, compiler::program* program) override;
+
 private:
 	field_map_t fields_{};
 	composite_types_t type_;

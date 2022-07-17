@@ -144,6 +144,7 @@ struct segment_t {
 private:
 	std::unordered_map<std::string, symbol_t> symbols_{};
 };
+
 using segment_list_t = std::vector<segment_t>;
 class assembler {
 public:

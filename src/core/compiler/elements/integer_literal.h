@@ -10,7 +10,7 @@ class integer_literal : public element {
 public:
 	explicit integer_literal(element* parent, uint64_t value);
 
-	uint64_t value() const ;
+	uint64_t value() const;
 
 protected:
 	compiler::type* on_infer_type(const compiler::program* program) override;

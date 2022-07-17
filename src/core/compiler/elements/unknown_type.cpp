@@ -25,7 +25,7 @@ void gfx::compiler::unknown_type::array_size(size_t value)
 {
 
 }
-bool gfx::compiler::unknown_type::on_initialize(gfx::result &r)
+bool gfx::compiler::unknown_type::on_initialize(result &r, compiler::program* program)
 {
 	return true;
 }

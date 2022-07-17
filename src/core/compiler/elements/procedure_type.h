@@ -26,7 +26,7 @@ public:
 	procedure_instance_list_t& instances();
 
 protected:
-	bool on_initialize(result& r) override;
+	bool on_initialize(result& r, compiler::program* program) override;
 
 private:
 	field_map_t returns_{};

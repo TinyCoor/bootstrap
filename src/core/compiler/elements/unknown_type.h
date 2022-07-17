@@ -20,7 +20,7 @@ public:
 	void array_size(size_t value);
 
 protected:
-	bool on_initialize(result& r) override;
+	bool on_initialize(result& r, compiler::program* program) override;
 
 private:
 	size_t array_size_ = 0;

@@ -21,6 +21,8 @@ public:
 
 	element* parent();
 
+    bool is_constant() const;
+
     bool as_bool(bool &value);
 
     bool as_float(double &value);
@@ -36,6 +38,8 @@ public:
 	compiler::type* infer_type(const compiler::program* program);
 
 protected:
+    virtual bool on_is_constant() const;
+
 	virtual bool on_fold(result& result);
 
     virtual bool on_as_bool(bool &value) const;
@@ -51,8 +55,8 @@ protected:
 private:
 	id_t id_;
 	element* parent_ = nullptr;
-	attribute_map_t attributes_ {};
 	element_type_t element_type_ = element_type_t::element;
+    attribute_map_t attributes_ {};
 };
 }
 

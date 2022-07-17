@@ -5,7 +5,8 @@
 #include "array_type.h"
 namespace gfx::compiler {
 array_type::array_type(element* parent, const std::string& name, compiler::type* entry_type, size_t size)
-	: type(parent,element_type_t::array_type, name), size_(size), entry_type_(entry_type)
+	:   composite_type(parent,composite_types_t::struct_type, name, element_type_t::array_type),
+        size_(size), entry_type_(entry_type)
 {
 }
 
@@ -19,11 +20,12 @@ void array_type::size(uint64_t value)
 	size_ = value;
 }
 
-compiler::type* array_type::entry_type() {
+compiler::type* array_type::entry_type()
+{
 	return entry_type_;
 }
 
-bool array_type::on_initialize(result &r)
+bool array_type::on_initialize(result &r, compiler::program* program)
 {
 	return true;
 }

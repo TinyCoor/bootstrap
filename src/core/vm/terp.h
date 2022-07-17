@@ -142,19 +142,6 @@ namespace gfx {
 		bool get_constant_address_or_pc_with_offset(result& r, const instruction_t& inst, uint8_t operand_index,
 			uint64_t inst_size, uint64_t& address);
 
-		inline uint8_t op_size_in_bytes(op_sizes size) const
-		{
-			switch (size) {
-				case op_sizes::none:  return 0u;
-				case op_sizes::byte:  return 1u;
-				case op_sizes::dword: return 2u;
-				case op_sizes::word:  return 4u;
-				case op_sizes::qword: return 8u;
-				default:
-					return 0;
-			}
-		}
-
 	private:
 		inline uint64_t* qword_ptr(uint64_t address) const
 		{

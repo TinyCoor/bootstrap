@@ -106,4 +106,14 @@ bool element::on_as_integer(uint64_t &value) const
     return false;
 }
 
+bool element::is_constant() const
+{
+    return on_is_constant();
+}
+
+bool element::on_is_constant() const
+{
+    return false;
+}
+
 }

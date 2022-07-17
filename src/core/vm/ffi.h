@@ -91,7 +91,7 @@ struct function_value_t {
 	}
 
 	std::string name;
-	ffi_types_t type;
+	ffi_types_t type {};
 	std::vector<function_value_t> fields;
 
 private:
@@ -150,13 +150,12 @@ private:
 
 private:
 	DCstruct *struct_meta_data_ = nullptr;
-
 };
 
 class shared_library;
 
 struct function_signature_t {
-	void apply_calling_convention(DCCallVM* vm ) {
+	void apply_calling_convention(DCCallVM* vm ) const {
 		switch (calling_mode) {
 			case ffi_calling_mode_t::c_default:
 				dcMode(vm, DC_CALL_C_DEFAULT);
@@ -182,7 +181,7 @@ struct function_signature_t {
 				return value;
 			}
 			case ffi_types_t::char_type: {
-				auto value = static_cast<uint64_t>(dcCallChar(
+				auto value = static_cast<uint64_t>((int64_t)dcCallChar(
 					vm, reinterpret_cast<DCpointer>(address)));
 				return value;
 			}

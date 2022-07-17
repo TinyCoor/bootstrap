@@ -47,7 +47,6 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH "/usr/local/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-
 add_subdirectory(src/core)
 add_executable(bootstrap src/bst/main.cpp src/common/ya_getopt.c)
 target_include_directories(bootstrap PRIVATE src/core)

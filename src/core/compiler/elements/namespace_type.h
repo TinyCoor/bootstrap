@@ -11,7 +11,7 @@ public:
 	explicit namespace_type(element* parent);
 
 protected:
-	bool on_initialize(result& r) override;
+	bool on_initialize(result& r, compiler::program* program) override;
 private:
 };
 }

@@ -4,14 +4,14 @@
 
 #ifndef COMPILER_ELEMENTS_STRING_TYPE_H_
 #define COMPILER_ELEMENTS_STRING_TYPE_H_
-#include "type.h"
+#include "composite_type.h"
 namespace gfx::compiler {
-class string_type : public type {
+class string_type : public composite_type {
 public:
 	explicit string_type(element* parent);
 
 protected:
-    bool on_initialize(result& r) override;
+    bool on_initialize(result& r, compiler::program* program) override;
 };
 }
 

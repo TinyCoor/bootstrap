@@ -4,9 +4,9 @@
 
 #ifndef COMPILER_ELEMENTS_ARRAY_TYPE_H_
 #define COMPILER_ELEMENTS_ARRAY_TYPE_H_
-#include "type.h"
+#include "composite_type.h"
 namespace gfx::compiler {
-class array_type : public type {
+class array_type : public composite_type {
 public:
 	array_type(element* parent, const std::string& name, compiler::type* entry_type, size_t size);
 
@@ -17,7 +17,7 @@ public:
 	compiler::type* entry_type();
 
 protected:
-	bool on_initialize(result& r) override;
+	bool on_initialize(result& r, compiler::program* program) override;
 
 private:
 	uint64_t size_ = 0;

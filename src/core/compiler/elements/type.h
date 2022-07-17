@@ -38,11 +38,11 @@ public:
 
     size_t size_in_bytes() const;
 
-    bool initialize(result &r);
+    bool initialize(result &r, compiler::program* program);
 protected:
 	void size_in_bytes(size_t value);
 
-	virtual bool on_initialize(result& r);
+	virtual bool on_initialize(result& r, compiler::program* program);
 private:
 	std::string name_;
 	size_t size_in_bytes_ {};

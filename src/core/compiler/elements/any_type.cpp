@@ -5,7 +5,7 @@
 #include "any_type.h"
 namespace gfx::compiler {
 any_type::any_type(element * parent)
-	: type(parent, element_type_t::any_type ,"any")
+	: composite_type(parent, composite_types_t::struct_type ,"any", element_type_t::any_type)
 {
 
 }
@@ -20,7 +20,7 @@ void any_type::underlying_type(compiler::type *value)
 	underlying_type_ = value;
 }
 
-bool any_type::on_initialize(result &r)
+bool any_type::on_initialize(result &r, compiler::program* program)
 {
 	return true;
 }

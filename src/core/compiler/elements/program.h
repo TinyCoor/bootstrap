@@ -9,6 +9,13 @@
 #include "core/compiler/bytecode_emitter.h"
 #include "vm/instruction_emitter.h"
 namespace gfx::compiler {
+struct type_find_result_t {
+    std::string type_name{};
+    bool is_array{false};
+    size_t array_size{0};
+    compiler::type* type = nullptr;
+};
+
 class program : public element {
 public:
 	explicit program(terp* terp);
@@ -29,7 +36,7 @@ public:
 
 	compiler::type* find_type(const std::string& name) const;
 
-	compiler::type* find_type_for_identifier(const std::string& name);
+    compiler::type* find_type_down(const std::string& name) ;
 
 protected:
 	friend class directive;
@@ -59,6 +66,11 @@ private:
 
     void add_type_to_scope(compiler::type* value);
 private:
+    friend class any_type;
+    friend class array_type;
+    friend class string_type;
+    friend class numeric_type;
+
 	cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
 
 	alias* make_alias(compiler::block* parent_scope, element* expr);
@@ -106,7 +118,7 @@ private:
     auto make_type(Result r, Args&& ...args) -> decltype(new T(std::forward<Args>(args)...))
     {
         auto type = new T(std::forward<Args>(args)...);
-        if (!type->initialize(r)) {
+        if (!type->initialize(r, this)) {
             return nullptr;
         }
         elements_.insert(std::make_pair(type->id(), type));
@@ -157,8 +169,10 @@ private:
 	compiler::type* find_array_type(compiler::type* entry_type, size_t size) const;
 
 	void apply_attributes(result& r, compiler::element* element, const ast_node_shared_ptr& node);
-private:
 
+    unknown_type* unknown_type_from_result(result& r, compiler::block* scope, compiler::identifier* identifier,
+       type_find_result_t& result);
+private:
 	element* evaluate(result& r, const ast_node_shared_ptr& node,
 		element_type_t default_block_type = element_type_t::block);
 
@@ -170,9 +184,9 @@ private:
 
 	void push_scope(class block* block);
 
-	bool is_subtree_constant(const ast_node_shared_ptr& node);
-
 	compiler::identifier* find_identifier(const ast_node_shared_ptr& node);
+
+    type_find_result_t find_identifier_type(result& r, const ast_node_shared_ptr& symbol);
 
 private:
 	assembler assembler_;

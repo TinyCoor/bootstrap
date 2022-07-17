@@ -26,7 +26,7 @@ public:
 
 	symbol_type_t symbol_type() const;
 
-	static type_list_t make_types(result& r, element* parent);
+	static type_list_t make_types(result& r, compiler::block* parent, compiler::program* program);
 protected:
 	static inline numeric_type_map_t s_types_map = {
 		{"bool",    {0,         1,           1}},
@@ -43,7 +43,7 @@ protected:
 		{"address", {0,         UINTPTR_MAX, 8}},
 	};
 
-	bool on_initialize(result& r) override;
+	bool on_initialize(result& r, compiler::program* program) override;
 
 private:
 	int64_t min_;

@@ -4,9 +4,9 @@
 
 #ifndef COMPILER_ELEMENTS_ANY_TYPE_H_
 #define COMPILER_ELEMENTS_ANY_TYPE_H_
-#include "type.h"
+#include "composite_type.h"
 namespace gfx::compiler {
-class any_type : public type {
+class any_type : public composite_type {
 public:
 	explicit any_type(element * parent);
 
@@ -14,7 +14,7 @@ public:
 
 	void underlying_type(compiler::type* value);
 protected:
-	bool on_initialize(result& r) override;
+	bool on_initialize(result& r, compiler::program* program) override;
 
 private:
 	compiler::type* underlying_type_ = nullptr;

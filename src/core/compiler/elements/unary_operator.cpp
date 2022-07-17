@@ -29,4 +29,9 @@ compiler::type *unary_operator::on_infer_type(const compiler::program *program)
 			return nullptr;
 	}
 }
+
+bool unary_operator::on_is_constant() const
+{
+    return rhs_ != nullptr && rhs_->is_constant();
+}
 }

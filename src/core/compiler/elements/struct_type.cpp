@@ -9,4 +9,9 @@ struct_type::struct_type(element *parent, const std::string &name)
 {
 
 }
+
+bool struct_type::on_initialize(result &r, compiler::program *program)
+{
+    return true;
+}
 }

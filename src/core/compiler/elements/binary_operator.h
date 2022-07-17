@@ -16,6 +16,8 @@ public:
 	element* rhs();
 
 protected:
+    bool on_is_constant() const override;
+
 	compiler::type* on_infer_type(const compiler::program* program) override;
 
 private:

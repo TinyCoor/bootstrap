@@ -67,6 +67,7 @@ private:
     void add_type_to_scope(compiler::type* value);
 private:
     friend class any_type;
+    friend class type_info;
     friend class array_type;
     friend class string_type;
     friend class numeric_type;
@@ -144,6 +145,8 @@ private:
 	composite_type* make_union_type(result &r, compiler::block* parent_scope);
 
 	string_type* make_string_type(result& r, compiler::block* parent_scope);
+
+    type_info* make_type_info_type(result& r, compiler::block* parent_scope);
 
 	any_type* make_any_type(result&r, compiler::block* parent_scope);
 

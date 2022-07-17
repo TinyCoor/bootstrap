@@ -11,6 +11,7 @@
 #include "core/compiler/elements/comment.h"
 #include "core/compiler/elements/any_type.h"
 #include "core/compiler/elements/attribute.h"
+#include "core/compiler/elements/type_info.h"
 #include "core/compiler/elements/directive.h"
 #include "core/compiler/elements/statement.h"
 #include "core/compiler/elements/expression.h"
@@ -93,6 +94,14 @@ std::string code_dom_formatter::format_node(element* node)
 			return fmt::format("{}[shape=record,label=\"cast|{}\"{}];", node_vertex_name,
 				element->type()->name(), style);
 		}
+        case element_type_t::type_info: {
+            auto element = dynamic_cast<type_info*>(node);
+            auto style = ", fillcolor=gainsboro, style=\"filled\"";
+            for (auto fld : element->fields().as_list())
+                add_primary_edge(element, fld);
+            return fmt::format("{}[shape=record,label=\"type_info|{}\"{}];",
+                node_vertex_name, element->name(), style);
+        }
 		case element_type_t::if_e: {
 			auto element = dynamic_cast<if_element*>(node);
 			auto style = ", fillcolor=cornsilk1, style=\"filled\"";

@@ -22,4 +22,12 @@ compiler::type *expression::on_infer_type(const compiler::program *program)
 	return root_->infer_type(program);
 }
 
+bool expression::on_is_constant() const
+{
+    if (root_ == nullptr) {
+        return false;
+    }
+    return root_->is_constant();
+}
+
 }

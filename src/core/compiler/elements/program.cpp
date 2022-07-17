@@ -16,6 +16,7 @@
 #include "directive.h"
 #include "statement.h"
 #include "import.h"
+#include "type_info.h"
 #include "string_type.h"
 #include "numeric_type.h"
 #include "procedure_type.h"
@@ -34,7 +35,7 @@
 #include "namespace_type.h"
 #include "procedure_instance.h"
 #include "fmt/format.h"
-
+#include <array>
 namespace gfx::compiler {
 
 program::program(class terp* terp)
@@ -360,15 +361,19 @@ void program::initialize_core_types(result &r)
 {
 	auto parent_scope = current_scope();
     auto numeric_types = numeric_type::make_types(r, parent_scope, this);
-    auto any_type = make_any_type(r, parent_scope);
-    any_type->initialize(r, this);
-    add_type_to_scope(any_type);
+
     auto string_type = make_string_type(r, parent_scope);
     string_type->initialize(r, this);
 	add_type_to_scope(string_type);
     auto namespace_type = make_namespace_type(r, parent_scope);
     namespace_type->initialize(r, this);
     add_type_to_scope(namespace_type);
+    auto type_info_type = make_type_info_type(r, parent_scope);
+    type_info_type->initialize(r, this);
+    add_type_to_scope(type_info_type);
+    auto any_type = make_any_type(r, parent_scope);
+    any_type->initialize(r, this);
+    add_type_to_scope(any_type);
 }
 
 block *program::current_scope() const
@@ -990,5 +995,10 @@ unknown_type *program::unknown_type_from_result(result &r,compiler::block *scope
     auto type = make_unknown_type(r, scope, result.type_name, result.is_array, result.array_size);
     identifiers_with_unknown_types_.push_back(identifier);
     return type;
+}
+
+type_info *program::make_type_info_type(result &r, compiler::block *parent_scope)
+{
+    return make_type<type_info>(r, parent_scope);
 }
 }

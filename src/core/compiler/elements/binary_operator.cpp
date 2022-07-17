@@ -55,4 +55,10 @@ compiler::type *binary_operator::on_infer_type(const compiler::program *program)
 	}
 }
 
+bool binary_operator::on_is_constant() const
+{
+    return (lhs_ != nullptr && lhs_->is_constant())
+        && (rhs_ != nullptr && rhs_->is_constant());
+}
+
 }

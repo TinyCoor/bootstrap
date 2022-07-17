@@ -11,6 +11,8 @@ class struct_type : public composite_type {
 public:
     struct_type(element* parent, const std::string &name);
 private:
+protected:
+    bool on_initialize(result &r, compiler::program *program) override;
 
 };
 }

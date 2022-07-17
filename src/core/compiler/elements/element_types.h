@@ -24,6 +24,7 @@ class element;
 class program;
 class comment;
 class any_type;
+class type_info;
 class directive;
 class attribute;
 class statement;
@@ -96,6 +97,7 @@ enum class element_type_t {
 	comment,
 	program,
 	any_type,
+    type_info,
 	proc_type,
 	directive,
 	attribute,
@@ -141,13 +143,14 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::comment, 				"comment"},
 	{element_type_t::program, 				"program"},
 	{element_type_t::any_type, 				"any_type"},
+    {element_type_t::type_info, 			"type_info"},
 	{element_type_t::proc_type, 			"proc_type"},
 	{element_type_t::directive, 			"directive"},
 	{element_type_t::attribute, 			"attribute"},
 	{element_type_t::bool_type, 			"bool_type"},
 	{element_type_t::statement, 			"statement"},
-	{element_type_t::namespace_e, 			"namespace"},
 	{element_type_t::proc_call, 			"proc_call"},
+    {element_type_t::namespace_e, 			"namespace"},
 	{element_type_t::alias_type, 			"alias_type"},
 	{element_type_t::array_type, 			"array_type"},
 	{element_type_t::identifier, 			"identifier"},

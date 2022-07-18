@@ -7,7 +7,7 @@
 #include "common/id_pool.h"
 #include "common/result.h"
 #include "element_types.h"
-
+#include "vm/assembler.h"
 namespace gfx::compiler {
 class element {
 public:
@@ -20,6 +20,8 @@ public:
 	bool fold(result& r);
 
 	element* parent();
+
+    bool emit(result& r, assembler& assembler);
 
     bool is_constant() const;
 
@@ -38,6 +40,8 @@ public:
 	compiler::type* infer_type(const compiler::program* program);
 
 protected:
+    virtual bool on_emit(result& r, assembler& assembler);
+
     virtual bool on_is_constant() const;
 
 	virtual bool on_fold(result& result);

@@ -15,6 +15,9 @@ public:
 
 	label_list_t& labels();
 
+protected:
+    bool on_emit(result& r, assembler& assembler) override;
+
 private:
 	label_list_t labels_ {};
 	compiler::element* expression_ = nullptr;

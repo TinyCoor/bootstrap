@@ -753,27 +753,30 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
 		return false;
 	}
     auto segments = assembler_.segments();
-    fmt::print("\n");
     for (auto &segment : segments) {
-        fmt::print("segment: {}, type: {}\n", segment.name, segment_type_name(segment.type));
+        fmt::print("segment: {}, type: {}\n", segment.name(), segment_type_name(segment.type()));
         for(auto &symbol: segment.symbols()) {
-            fmt::print("\taddress: {:08x}, symbol: {}, type: {}, size: {}\n",
-                       symbol.address, symbol.name, symbol_type_name(symbol.type), symbol.size);
+            fmt::print("\toffset: {:04x}, symbol: {}, type: {}, size: {}\n",
+                symbol.offset(), symbol.name(), symbol_type_name(symbol.type()), symbol.size());
         }
-        fmt::print("\n");
     }
+    if (!emit_code_blocks(r)) {
+        return false;
+    }
+
 	return !r.is_failed();
 }
 
 bool program::build_data_segments(result& r)
 {
+    string_set_t interned_strings {};
 	std::function<bool (compiler::block*)> recursive_execute =
 		[&](compiler::block* scope) -> bool {
 		  if (scope->element_type() == element_type_t::proc_type_block ||
 		  	scope->element_type() == element_type_t::proc_instance_block) {
 			  return true;
 		  }
-		  scope->define_data(r, assembler_);
+		  scope->define_data(r, interned_strings, assembler_);
 		  for (auto block : scope->blocks()) {
 			  if (!recursive_execute(block)) {
 				  return false;
@@ -1000,5 +1003,21 @@ unknown_type *program::unknown_type_from_result(result &r,compiler::block *scope
 type_info *program::make_type_info_type(result &r, compiler::block *parent_scope)
 {
     return make_type<type_info>(r, parent_scope);
+}
+
+bool program::emit_code_blocks(result &r)
+{
+    std::function<bool (compiler::block*)> recursive_emit =
+        [&](compiler::block* scope) -> bool {
+          scope->emit(r, assembler_);
+          for (auto block : scope->blocks()) {
+              if (!recursive_emit(block)) {
+                  return false;
+              }
+          }
+          return true;
+        };
+    // auto program_instruction_block = _assembler.new_instruction_block("some_lbl");
+    return recursive_emit(block());
 }
 }

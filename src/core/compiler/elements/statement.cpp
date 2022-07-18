@@ -13,7 +13,18 @@ element* statement::expression() {
 	return expression_;
 }
 
-label_list_t& statement::labels() {
+label_list_t& statement::labels()
+{
 	return labels_;
+}
+
+bool statement::on_emit(result &r, assembler &assembler)
+{
+    if (expression_ == nullptr)
+        return true;
+    //
+    // need to loop over labels and add them to the assembler here
+    //
+    return expression_->emit(r, assembler);
 }
 }

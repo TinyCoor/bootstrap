@@ -24,11 +24,13 @@ bool token_t::is_boolean() const
 		|| type == token_types_t::false_literal;
 }
 
-bool token_t::is_line_comment() const {
+bool token_t::is_line_comment() const
+{
 	return type == token_types_t::line_comment;
 }
 
-bool token_t::is_block_comment() const {
+bool token_t::is_block_comment() const
+{
 	return type == token_types_t::block_comment;
 }
 
@@ -40,8 +42,9 @@ bool token_t::is_numeric() const
 std::string token_t::name() const
 {
 	auto it = s_type_to_name.find(type);
-	if (it == s_type_to_name.end())
-		return "unknown";
+	if (it == s_type_to_name.end()) {
+        return "unknown";
+    }
 	return it->second.data();
 }
 
@@ -50,10 +53,12 @@ conversion_result_t token_t::parse(double& out) const {
 	char* end;
 	errno = 0;
 	out = strtod(s, &end);
-	if (errno == ERANGE)
-		return conversion_result_t::overflow;
-	if (*s == '\0' || *end != '\0')
-		return conversion_result_t::inconvertible;
+	if (errno == ERANGE) {
+        return conversion_result_t::overflow;
+    }
+	if (*s == '\0' || *end != '\0') {
+        return conversion_result_t::inconvertible;
+    }
 	return conversion_result_t::success;
 }
 
@@ -83,9 +88,6 @@ conversion_result_t token_t::parse(uint64_t& out) const
 	out = strtoul(s, &end, radix);
 	if ((errno == ERANGE && out == LONG_MAX) || out > UINT_MAX) {
 		return conversion_result_t::overflow;
-	}
-	if ((errno == ERANGE && out == LONG_MIN)) {
-		return conversion_result_t::underflow;
 	}
 	if (*s == '\0' || *end != '\0') {
 		return conversion_result_t::inconvertible;

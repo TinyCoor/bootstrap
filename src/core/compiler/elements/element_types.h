@@ -4,6 +4,7 @@
 
 #ifndef COMPILER_ELEMENTS_ELEMENT_TYPES_H_
 #define COMPILER_ELEMENTS_ELEMENT_TYPES_H_
+#include <set>
 #include <map>
 #include <vector>
 #include <string>
@@ -52,6 +53,7 @@ class namespace_type;
 class composite_type;
 class procedure_instance;
 
+using string_set_t = std::set<std::string>;
 using type_list_t = std::vector<type*>;
 using label_list_t = std::vector<label*>;
 using block_list_t = std::vector<block*>;
@@ -283,7 +285,6 @@ static inline std::unordered_map<token_types_t, operator_type_t> s_binary_operat
 	{ token_types_t::assignment, operator_type_t::assignment},
 	{ token_types_t::logical_or, operator_type_t::logical_or}
 };
-
 
 struct attribute_map_t {
 

@@ -4,6 +4,7 @@
 #include "common/id_pool.h"
 #include "element.h"
 #include "type.h"
+#include "vm/assembler.h"
 
 namespace gfx::compiler {
 element::element(element* parent, element_type_t type)
@@ -115,5 +116,13 @@ bool element::on_is_constant() const
 {
     return false;
 }
-
+bool element::emit(result &r, assembler &assembler)
+{
+    return on_emit(r, assembler);
 }
+bool compiler::element::on_emit(gfx::result &r, gfx::assembler &assembler)
+{
+    return true;
+}
+}
+

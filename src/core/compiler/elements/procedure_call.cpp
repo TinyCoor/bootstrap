@@ -26,4 +26,15 @@ compiler::type *procedure_call::on_infer_type(const compiler::program *program)
 	auto returns_list = proc_type->returns().as_list();
 	return returns_list.front()->identifier()->type();
 }
+bool procedure_call::on_emit(result &r, assembler &assembler)
+{
+    auto instruction_block = assembler.current_block();
+
+    if (arguments_ != nullptr) {
+        arguments_->emit(r, assembler);
+    }
+    instruction_block->call(identifier()->name());
+
+    return true;
+}
 }

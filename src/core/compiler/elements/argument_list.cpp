@@ -34,8 +34,19 @@ element* argument_list::find(id_t id)
 	return *it;
 }
 
-const element_list_t& argument_list::elements() const {
+const element_list_t& argument_list::elements() const
+{
 	return elements_;
+}
+
+bool argument_list::on_emit(result &r, assembler &assembler)
+{
+    auto instruction_block = assembler.current_block();
+    for (auto &arg : elements_) {
+        uint64_t value = 0;
+        instruction_block->push(value);
+    }
+    return true;
 }
 
 }

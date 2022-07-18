@@ -3,12 +3,11 @@
 //
 #ifndef PARSER_H_
 #define PARSER_H_
-#include "prefix_parser.h"
-#include <filesystem>
 #include "lexer.h"
+#include "prefix_parser.h"
 #include <map>
-#include <stack>
 #include <string>
+#include <filesystem>
 
 namespace gfx {
 class parser {
@@ -21,26 +20,26 @@ public:
 
 	bool consume();
 
+    ast_builder* ast_builder();
+
 	bool consume(token_t& token);
 
-	void write_ast_graph(const std::filesystem::path& path,
-						 const ast_node_shared_ptr& program_node);
-
 	bool look_ahead(size_t count);
-
-	ast_builder* ast_builder();
 
 	ast_node_shared_ptr parse(result& r);
 
 	bool expect(result& r, token_t& token);
 
+    ast_node_shared_ptr parse_scope(result& r);
+
 	ast_node_shared_ptr parse_expression(result& r, uint8_t precedence);
 
-	void error(result& r, const std::string& code, const std::string& message, uint32_t line, uint32_t column);
+    void write_ast_graph(const std::filesystem::path& path, const ast_node_shared_ptr& program_node);
 
 	ast_node_shared_ptr expect_expression(result& r,ast_node_types_t expected_type, uint8_t precedence);
 
-	ast_node_shared_ptr parse_scope(result& r);
+    void error(result& r, const std::string& code, const std::string& message, uint32_t line, uint32_t column);
+
 protected:
 	ast_node_shared_ptr parse_statement(result& r);
 

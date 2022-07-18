@@ -13,7 +13,8 @@ public:
 	block *scope();
 
 	compiler::type *procedure_type();
-
+protected:
+    bool on_emit(result& r, assembler& assembler)  override;
 private:
 	block * scope_ = nullptr;
 	compiler::type *procedure_type_ = nullptr;

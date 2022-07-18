@@ -18,4 +18,9 @@ compiler::type* procedure_instance::procedure_type()
 {
 	return procedure_type_;
 }
+
+bool procedure_instance::on_emit(result &r, assembler &assembler)
+{
+    return element::on_emit(r, assembler);
+}
 }

@@ -46,6 +46,8 @@ protected:
 	bool build_data_segments(result& r);
 
 private:
+    bool emit_code_blocks(result& r);
+
 	void initialize_core_types(result &r);
 
 	bool execute_directives(result& r);

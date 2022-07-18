@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/4/15.
 //
 
-#ifndef BOOTSTRAP_SRC_VM_FFI_H_
-#define BOOTSTRAP_SRC_VM_FFI_H_
+#ifndef FFI_H_
+#define FFI_H_
 #include "dyncall/dyncall.h"
 #include "dynload/dynload.h"
 #include "dyncall/dyncall_signature.h"
@@ -242,4 +242,4 @@ struct function_signature_t {
 	ffi_calling_mode_t calling_mode = ffi_calling_mode_t::c_default;
 };
 }
-#endif //BOOTSTRAP_SRC_VM_FFI_H_
+#endif // FFI_H_

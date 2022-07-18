@@ -17,8 +17,8 @@ enum class token_types_t {
 	pipe,						/// '|'
 	minus,						/// '-'
 	slash,						/// '/'
-	caret,						/// ''
-	tilde,						/// ''
+	caret,						/// '^'
+	tilde,						/// '~'
 	colon,						/// ':'
 	comma,						/// ';'
 	label,						///
@@ -29,7 +29,7 @@ enum class token_types_t {
 	asterisk,					/// '*'
 	ampersand,					/// ''
 	attribute,					/// '@'
-	directive,					///
+	directive,					/// '#'
 	less_than,					/// '<'
 	not_equals,					///	'!='
 	left_paren,					/// ’(‘

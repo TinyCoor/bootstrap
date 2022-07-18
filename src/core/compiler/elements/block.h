@@ -21,9 +21,7 @@ public:
 
 	block_list_t& blocks();
 
-	bool emit(result& r, assembler& ass);
-
-	bool define_data(result& r, assembler& assembler);
+	bool define_data(result& r, string_set_t& interned_strings, assembler& assembler);
 
 	comment_list_t& comments();
 
@@ -31,8 +29,9 @@ public:
 
 	identifier_map_t& identifiers();
 private:
-	static void add_symbols(result& r, segment_t* segment, const identifier_list_t &list);
+	static void add_symbols(result& r, segment* segment, const identifier_list_t &list);
 
+    bool on_emit(result& r, assembler& assembler) override;
 private:
 	type_map_t types_ {};
 	comment_list_t comments_{};

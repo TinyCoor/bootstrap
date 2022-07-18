@@ -62,11 +62,16 @@ set(COMMON_SRC
 
 set(VM_SRC
         vm/terp.cpp
-        vm/instruction_emitter.cpp
-        vm/instruction.cpp
-        vm/instruction_cache.cpp
-        vm/shared_library.cpp
+        vm/label.cpp
+        vm/symbol.cpp
+        vm/segment.cpp
         vm/assembler.cpp
+        vm/instruction.cpp
+        vm/shared_library.cpp
+        vm/instruction_block.cpp
+        vm/instruction_cache.cpp
+        vm/instruction_emitter.cpp
+
         )
 
 set(ELEMENT_SRC

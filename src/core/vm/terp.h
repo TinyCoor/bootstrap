@@ -76,7 +76,8 @@ namespace gfx {
 			return stack_size_;
 		}
 
-		const meta_information_t& meta_information() const {
+		const meta_information_t& meta_information() const
+        {
 			return meta_information_;
 		}
 

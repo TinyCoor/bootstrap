@@ -8,9 +8,7 @@
 #include <cstdint>
 #include <boost/numeric/interval.hpp>
 namespace gfx {
-
 using id_t = uint32_t;
-
 class id_interval {
 public:
 	id_interval(id_t ll, id_t uu) : value_(ll, uu) {}

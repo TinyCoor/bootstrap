@@ -15,6 +15,8 @@ public:
 	argument_list* arguments();
 
 protected:
+    bool on_emit(result& r, assembler& assembler)  override;
+
 	compiler::type* on_infer_type(const compiler::program* program) override;
 
 private:

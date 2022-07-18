@@ -43,5 +43,13 @@ inline static std::map<op_codes, std::string_view> s_op_code_names  = {
 	{op_codes::meta,   "META"}, {op_codes::swi,    "SWI"},   {op_codes::trap,  "TRAP"},
 	{op_codes::exit,   "EXIT"}, {op_codes::swap,   "SWAP"},
 };
+
+inline static std::string_view op_code_name(op_codes type) {
+    auto it = s_op_code_names.find(type);
+    if (it != s_op_code_names.end()) {
+        return it->second;
+    }
+    return "";
+}
 }
 #endif // OP_CODE_H_

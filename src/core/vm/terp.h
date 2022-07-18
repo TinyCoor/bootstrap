@@ -118,8 +118,6 @@ namespace gfx {
 
 		std::string disassemble(result& r, uint64_t address);
 
-		std::string disassemble(const instruction_t& inst) const;
-
 		void dump_shared_libraries();
 
 		void register_trap(uint8_t index, const trap_callable& callable);

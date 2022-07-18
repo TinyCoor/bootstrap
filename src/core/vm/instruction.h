@@ -4,12 +4,12 @@
 
 #ifndef INSTRUCTION_H_
 #define INSTRUCTION_H_
-#include "../src/common/result.h"
+#include "common/result.h"
 #include "op_code.h"
+#include <functional>
 
 constexpr uint8_t REGISTER_COUNT  = 64;
 namespace gfx {
-
 enum i_registers_t : uint8_t {
 	i0,  i1,  i2,  i3,  i4,  i5,  i6,  i7,
 	i8,  i9,  i10, i11, i12, i13, i14, i15,
@@ -97,6 +97,7 @@ struct operand_encoding_t {
 		negative = 0b00000100,
 		prefix   = 0b00001000,
 		postfix  = 0b00010000,
+        unresolved  = 0b00100000,
 	};
 	inline bool is_reg() const {
 		return (type & flags::reg) != 0;
@@ -118,7 +119,11 @@ struct operand_encoding_t {
 		return (type & flags::negative) != 0;
 	}
 
-	flags_t type = flags::reg | flags::integer;
+    inline bool is_unresolved() const {
+        return (type & flags::unresolved) != 0;
+    }
+
+    flags_t type = flags::reg | flags::integer;
 	union {
 		uint8_t r8 = 0;
 		uint64_t u64;
@@ -133,6 +138,8 @@ struct meta_information_t {
 	std::string source_file;
 };
 
+using id_resolve_callable = std::function<std::string (uint64_t)>;
+
 struct instruction_t {
 	static constexpr size_t base_size = 3;
 	static constexpr size_t alignment = 4;
@@ -145,7 +152,9 @@ struct instruction_t {
 
 	size_t encoding_size() const;
 
-	void patch_branch_address(uint64_t address, uint8_t index = 0u);
+    std::string disassemble(const id_resolve_callable& id_resolver = nullptr) const;
+
+    void patch_branch_address(uint64_t address, uint8_t index = 0u);
 
 	op_codes op = op_codes::nop;
 	op_sizes size = op_sizes::none;

@@ -50,19 +50,53 @@ segment_list_t assembler::segments() const
 
 instruction_block *assembler::current_block()
 {
-    return current_block_;
-}
-
-instruction_block *assembler::make_new_block()
-{
-    auto block = new instruction_block();
-    blocks_.push_back(block);
-    return block;
+    if (block_stack_.empty()) {
+        return nullptr;
+    }
+    return block_stack_.top();
 }
 
 gfx::segment *assembler::segment(const std::string &name, segment_type_t type)
 {
     segments_.insert(std::make_pair(name, gfx::segment(name, type)));
     return segment(name);
+}
+
+void assembler::push_block(instruction_block *block)
+{
+    block_stack_.push(block);
+}
+
+instruction_block *assembler::pop_block()
+{
+    if (block_stack_.empty()) {
+        return nullptr;
+    }
+    auto top = block_stack_.top();
+    block_stack_.pop();
+    return top;
+}
+
+instruction_block *assembler::make_implicit_block(instruction_block* parent)
+{
+    auto block = new instruction_block(parent, instruction_block_type_t::implicit);
+    add_new_block(block);
+    return block;
+}
+
+instruction_block *assembler::make_procedure_block(instruction_block* parent)
+{
+    auto block = new instruction_block(parent, instruction_block_type_t::procedure);
+    add_new_block(block);
+    return block;
+}
+
+void assembler::add_new_block(instruction_block *block)
+{
+    blocks_.push_back(block);
+    auto top_block = current_block();
+    if (top_block != nullptr) {
+        top_block->add_block(block);
+    }
 }
 }

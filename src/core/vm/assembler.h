@@ -11,6 +11,7 @@
 #include "common/id_pool.h"
 #include "instruction_emitter.h"
 #include "instruction_block.h"
+#include <stack>
 
 namespace gfx {
 class assembler {
@@ -23,22 +24,31 @@ public:
 
     bool assemble_from_source(result& r, std::istream& source);
 
+    void push_block(instruction_block* block);
+
+    instruction_block* pop_block();
+
     segment_list_t segments() const;
+
+    instruction_block* current_block();
 
     gfx::segment* segment(const std::string& name);
 
 	gfx::segment* segment(const std::string &name, segment_type_t type);
 
-    instruction_block* current_block();
+    instruction_block* make_implicit_block(instruction_block* parent = nullptr);
 
-    instruction_block* make_new_block();
+    instruction_block* make_procedure_block(instruction_block* parent = nullptr);
+
+private:
+    void add_new_block(instruction_block* block);
 
 private:
 	terp* terp_ = nullptr;
     uint64_t location_counter_ = 0;
     std::vector<instruction_block*> blocks_ {};
-    instruction_block* current_block_ = nullptr;
+    std::stack<instruction_block*> block_stack_{};
 	std::unordered_map<std::string, gfx::segment> segments_{};
 };
 }
-#endif // ASSEMBLER_H_
+#endif // ASSEMBLER_H_ +

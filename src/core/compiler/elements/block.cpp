@@ -111,9 +111,9 @@ void block::add_symbols(result& r, segment *segment, const identifier_list_t &li
 
 bool block::on_emit(result &r, assembler &assembler)
 {
-    auto instruction_block = assembler.make_new_block();
-    instruction_block->make_label(fmt::format("block_{}", id()));
-//  assembler.push_block(instruction_block);
+    auto instruction_block = assembler.make_implicit_block();
+    instruction_block->make_label(fmt::format("implicit_block_{}", id()));
+    assembler.push_block(instruction_block);
 
     for (auto stmt : statements_) {
         stmt->emit(r, assembler);
@@ -123,7 +123,7 @@ bool block::on_emit(result &r, assembler &assembler)
         blk->emit(r, assembler);
     }
 
-//  assembler.pop_block();
+    assembler.pop_block();
     return !r.is_failed();
 }
 }

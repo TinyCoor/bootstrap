@@ -1156,118 +1156,13 @@ std::string terp::disassemble(result &r, uint64_t address)
 			break;
 		}
 		stream << fmt::format("${:016X}: ", address)
-			   << disassemble(inst)
+			   << inst.disassemble()
 			   << fmt::format(" (${:02X} bytes)\n", inst_size);
 
 		if (inst.op == op_codes::exit) {
 			break;
 		}
 		address += inst_size;
-	}
-	return stream.str();
-}
-
-std::string terp::disassemble(const instruction_t &inst) const
-{
-	std::stringstream stream;
-	auto it = s_op_code_names.find(inst.op);
-	if (it != s_op_code_names.end()) {
-		std::stringstream mnemonic;
-
-		std::string format_spec;
-		mnemonic <<  it->second;
-		switch (inst.size) {
-			case op_sizes::byte:
-				mnemonic << ".B";
-				format_spec = "#${:02X}";
-				break;
-			case op_sizes::word:
-				mnemonic << ".W";
-				format_spec = "#${:04X}";
-				break;
-			case op_sizes::dword:
-				mnemonic << ".DW";
-				format_spec = "#${:08X}";
-				break;
-			case op_sizes::qword:
-				mnemonic << ".QW";
-				format_spec = "#${:016X}";
-				break;
-			default: {
-				break;
-			}
-		}
-		stream << std::left << std::setw(10) << mnemonic.str();
-		std::stringstream operands_stream;
-		for (size_t i = 0; i < inst.operands_count; i++) {
-			if (i > 0 && i < inst.operands_count) {
-				operands_stream << ", ";
-			}
-
-			const auto& operand = inst.operands[i];
-			std::string prefix, postfix;
-
-			if (operand.is_negative()) {
-				if (operand.is_prefix())
-					prefix = "--";
-				else
-					prefix = "-";
-
-				if (operand.is_postfix())
-					postfix = "--";
-			} else {
-				if (operand.is_prefix())
-					prefix = "++";
-
-				if (operand.is_postfix())
-					postfix = "++";
-			}
-
-			if (operand.is_reg()) {
-				if (operand.is_integer()) {
-					switch (operand.value.r8) {
-						case i_registers_t::sp: {
-							operands_stream << prefix << "SP" << postfix;
-							break;
-						}
-						case i_registers_t::pc: {
-							operands_stream << prefix << "PC" << postfix;
-							break;
-						}
-						case i_registers_t::fr: {
-							operands_stream << "FR";
-							break;
-						}
-						case i_registers_t::sr: {
-							operands_stream << "SR";
-							break;
-						}
-						default: {
-							operands_stream << prefix
-											<< "I"
-											<< std::to_string(operand.value.r8)
-											<< postfix;
-							break;
-						}
-					}
-				} else {
-					operands_stream << "F" << std::to_string(operand.value.r8);
-				}
-			} else {
-				if (operand.is_integer()) {
-					operands_stream << prefix
-									<< fmt::format(fmt::runtime(format_spec), operand.value.u64)
-									<< postfix;
-				} else {
-					operands_stream << prefix
-									<< fmt::format(fmt::runtime(format_spec), operand.value.d64)
-									<< postfix;
-				}
-			}
-		}
-		stream << std::left << std::setw(24) << operands_stream.str();
-	} else {
-		stream << "UNKNOWN";
 	}
 	return stream.str();
 }

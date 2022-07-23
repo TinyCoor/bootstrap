@@ -15,7 +15,7 @@ public:
 	argument_list* arguments();
 
 protected:
-    bool on_emit(result& r, assembler& assembler)  override;
+    bool on_emit(result& r, assembler& assembler, const emit_context_t& context)  override;
 
 	compiler::type* on_infer_type(const compiler::program* program) override;
 

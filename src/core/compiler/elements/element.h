@@ -9,6 +9,17 @@
 #include "element_types.h"
 #include "vm/assembler.h"
 namespace gfx::compiler {
+enum class emit_context_type_t {
+    empty,
+    procedure_type
+};
+
+struct emit_context_t {
+    emit_context_type_t type = emit_context_type_t::empty;
+
+    std::string procedure_identifier;
+};
+
 class element {
 public:
 	element(element* parent, element_type_t type);
@@ -21,7 +32,7 @@ public:
 
 	element* parent();
 
-    bool emit(result& r, assembler& assembler);
+    bool emit(result& r, assembler& assembler, const emit_context_t& context);
 
     bool is_constant() const;
 
@@ -40,7 +51,7 @@ public:
 	compiler::type* infer_type(const compiler::program* program);
 
 protected:
-    virtual bool on_emit(result& r, assembler& assembler);
+    virtual bool on_emit(result& r, assembler& assembler, const emit_context_t& context);
 
     virtual bool on_is_constant() const;
 

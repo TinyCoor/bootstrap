@@ -16,7 +16,8 @@ public:
 	label_list_t& labels();
 
 protected:
-    bool on_emit(result& r, assembler& assembler) override;
+    bool on_emit(result &r, assembler &assembler, const emit_context_t &context) override;
+
 
 private:
 	label_list_t labels_ {};

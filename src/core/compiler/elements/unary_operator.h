@@ -17,7 +17,7 @@ public:
 protected:
 	compiler::type* on_infer_type(const compiler::program* program) override;
     bool on_is_constant() const override;
-    bool on_emit(result &r, assembler &assembler) override;
+    bool on_emit(result &r, assembler &assembler, const emit_context_t& context) override;
 private:
 	element* rhs_ = nullptr;
 };

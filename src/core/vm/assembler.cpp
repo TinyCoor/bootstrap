@@ -99,4 +99,8 @@ void assembler::add_new_block(instruction_block *block)
         top_block->add_block(block);
     }
 }
+instruction_block *assembler::root_block()
+{
+    return blocks_.front();
+}
 }

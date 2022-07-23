@@ -342,6 +342,8 @@ private:
 struct type_map_t {
 	void add(compiler::type* type);
 
+    type_list_t as_list() const;
+
 	size_t size() const;
 
 	bool remove(const std::string& name);

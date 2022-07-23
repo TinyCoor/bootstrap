@@ -3,6 +3,7 @@
 //
 
 #include "identifier.h"
+#include "type.h"
 #include "initializer.h"
 namespace gfx::compiler {
 identifier::identifier(element *parent, const std::string& name, compiler::initializer* initializer)
@@ -79,6 +80,21 @@ bool identifier::on_as_float(double &value) const
         return false;
     }
     return initializer_->as_float(value);
+}
+
+bool identifier::on_emit(result &r, assembler &assembler, const emit_context_t &context)
+{
+    if (type_->element_type() == element_type_t::namespace_type) {
+        return true;
+    }
+
+    auto instruction_block = assembler.current_block();
+    auto target_reg = instruction_block->current_target_register();
+    if (target_reg == nullptr) {
+        return true;
+    }
+    instruction_block->move_label_to_ireg(target_reg->reg.i, name_);
+    return true;
 }
 
 }

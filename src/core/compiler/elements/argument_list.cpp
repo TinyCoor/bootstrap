@@ -42,7 +42,7 @@ const element_list_t& argument_list::elements() const
 	return elements_;
 }
 
-bool argument_list::on_emit(result &r, assembler &assembler)
+bool argument_list::on_emit(result &r, assembler &assembler, const emit_context_t& context)
 {
     auto instruction_block = assembler.current_block();
     for (auto &arg : elements_) {
@@ -51,42 +51,47 @@ bool argument_list::on_emit(result &r, assembler &assembler)
             case element_type_t::expression:
             case element_type_t::unary_operator:
             case element_type_t::binary_operator: {
-                arg->emit(r, assembler);
+                auto target_reg = instruction_block->allocate_ireg();
+                instruction_block->push_target_register(target_reg);
+                arg->emit(r, assembler, context);
+                instruction_block->pop_target_register();
+                instruction_block->push<uint64_t>(target_reg);
                 break;
             }
             case element_type_t::identifier: {
-                auto ident = dynamic_cast<compiler::identifier*>(arg);
-                auto reg = instruction_block->allocate_ireg();
-                instruction_block->move_label_to_ireg(reg, ident->name());
-                instruction_block->push_u64(reg);
-                instruction_block->free_ireg(reg);
+                auto target_reg = instruction_block->allocate_ireg();
+                instruction_block->push_target_register(target_reg);
+                arg->emit(r, assembler, context);
+                instruction_block->pop_target_register();
+                instruction_block->push<uint64_t>(target_reg);
+                instruction_block->free_ireg(target_reg);
                 break;
             }
             case element_type_t::string_literal: {
                 auto reg = instruction_block->allocate_ireg();
                 instruction_block->move_label_to_ireg(reg, fmt::format("_str_constant_{}", arg->id()));
-                instruction_block->push_u64(reg);
+                instruction_block->push<uint64_t>(reg);
                 instruction_block->free_ireg(reg);
                 break;
             }
             case element_type_t::float_literal:{
                 double value;
                 if (arg->as_float(value)) {
-                    instruction_block->push_f64(value);
+                    instruction_block->push_constant(value);
                 }
                 break;
             }
             case element_type_t::boolean_literal:{
                 bool value;
                 if (arg->as_bool(value)) {
-                    instruction_block->push_u8(static_cast<uint8_t>(value ? 1 : 0));
+                    instruction_block->push_constant(static_cast<uint8_t>(value ? 1 : 0));
                 }
                 break;
             }
             case element_type_t::integer_literal:{
                 uint64_t value;
                 if (arg->as_integer(value)) {
-                    instruction_block->push_u64(value);
+                    instruction_block->push_constant(value);
                 }
                 break;
             }

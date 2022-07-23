@@ -300,10 +300,7 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
                             break;
                         }
                         default: {
-                            operands_stream << prefix
-                                            << "I"
-                                            << std::to_string(operand.value.r8)
-                                            << postfix;
+                            operands_stream << prefix << "I" << std::to_string(operand.value.r8) << postfix;
                             break;
                         }
                     }
@@ -313,19 +310,18 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
             } else {
                 if (operand.is_integer()) {
                     if (operand.is_unresolved()) {
-                        if (id_resolver == nullptr)
+                        if (id_resolver == nullptr) {
                             operands_stream << fmt::format("id({})", operand.value.u64);
-                        else
+                        }else {
                             operands_stream << id_resolver(operand.value.u64);
+                        }
                     } else {
-                        operands_stream << prefix
-                                        << fmt::format(fmt::runtime(format_spec), operand.value.u64)
-                                        << postfix;
+                        operands_stream << prefix << fmt::format(fmt::runtime(format_spec), operand.value.u64)
+                            << postfix;
                     }
                 } else {
-                    operands_stream << prefix
-                                    << fmt::format(fmt::runtime(format_spec), operand.value.d64)
-                                    << postfix;
+                    operands_stream << prefix << fmt::format(fmt::runtime(format_spec), operand.value.d64)
+                         << postfix;
                 }
             }
         }

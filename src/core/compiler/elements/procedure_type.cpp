@@ -46,4 +46,23 @@ bool procedure_type::on_initialize(result &r, compiler::program* program)
 	return true;
 }
 
+bool procedure_type::on_emit(result &r, assembler &assembler, const emit_context_t &context)
+{
+    if (is_foreign())  {
+        return true;
+    }
+
+    auto instruction_block = assembler.make_procedure_block();
+    auto proc_label = name();
+    if (!context.procedure_identifier.empty()) {
+        proc_label = context.procedure_identifier;
+    }
+    instruction_block->make_label(proc_label);
+    assembler.push_block(instruction_block);
+    scope_->emit(r, assembler, context);
+    assembler.pop_block();
+
+    return true;
+}
+
 }

@@ -42,9 +42,9 @@ private:
 
 public:
     template<typename T>
-    static constexpr op_sizes ToOpSize(T val)
+    static constexpr op_sizes ToOpSize()
     {
-        return TypeToOpSizeImpl(val);
+        return TypeToOpSizeImpl(T{});
     }
 };
 

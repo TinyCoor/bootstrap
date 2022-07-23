@@ -9,11 +9,11 @@
 namespace gfx::compiler {
 class return_element : public element {
 public:
-	return_element(element* parent);
+	 explicit return_element(element* parent);
 
 	element_list_t& expressions();
 protected:
-    bool on_emit(result &r, assembler &assembler) override;
+    bool on_emit(result &r, assembler &assembler, const emit_context_t &context ) override;
 
 private:
 	element_list_t expressions_ {};

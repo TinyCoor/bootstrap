@@ -17,7 +17,7 @@ protected:
 
     bool on_as_integer(uint64_t &value) const override;
 
-    bool on_emit(result &r, assembler &assembler) override;
+    bool on_emit(result &r, assembler &assembler, const emit_context_t& context) override;
 
 private:
 	uint64_t value_;

@@ -20,7 +20,7 @@ public:
 
 	const element_list_t& elements() const;
 protected:
-    bool on_emit(result& r, assembler& assembler) override;
+    bool on_emit(result& r, assembler& assembler, const emit_context_t& context) override;
 
 private:
 	element_list_t elements_ {};

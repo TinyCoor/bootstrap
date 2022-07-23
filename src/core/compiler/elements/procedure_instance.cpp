@@ -1,7 +1,7 @@
 //
 // Created by 12132 on 2022/5/8.
 //
-
+#include "block.h"
 #include "procedure_instance.h"
 namespace gfx::compiler {
 procedure_instance::procedure_instance(element* parent, compiler::type* procedure_type, block* scope)
@@ -19,8 +19,8 @@ compiler::type* procedure_instance::procedure_type()
 	return procedure_type_;
 }
 
-bool procedure_instance::on_emit(result &r, assembler &assembler)
+bool procedure_instance::on_emit(result &r, assembler &assembler, const emit_context_t& context)
 {
-    return element::on_emit(r, assembler);
+    return scope_->emit(r, assembler, context);
 }
 }

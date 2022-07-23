@@ -19,8 +19,9 @@ protected:
     bool on_is_constant() const override;
 
 	compiler::type* on_infer_type(const compiler::program* program) override;
-    bool on_emit(result &r, assembler &assembler) override;
-
+    bool on_emit(result &r, assembler &assembler, const emit_context_t& context) override;
+    void emit_relational_operator(result& r, assembler& assembler, const emit_context_t& context,
+        instruction_block* instruction_block);
 private:
 	element* lhs_ = nullptr;
 	element* rhs_ = nullptr;

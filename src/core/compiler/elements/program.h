@@ -46,7 +46,7 @@ protected:
 	bool build_data_segments(result& r);
 
 private:
-    bool emit_code_blocks(result& r);
+    bool emit_code_blocks(result& r, const emit_context_t& context);
 
 	void initialize_core_types(result &r);
 

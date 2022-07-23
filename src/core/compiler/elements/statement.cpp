@@ -18,13 +18,15 @@ label_list_t& statement::labels()
 	return labels_;
 }
 
-bool statement::on_emit(result &r, assembler &assembler)
+bool statement::on_emit(result &r, assembler &assembler, const emit_context_t &context)
 {
-    if (expression_ == nullptr)
+    if (expression_ == nullptr) {
         return true;
+    }
+
     //
     // need to loop over labels and add them to the assembler here
     //
-    return expression_->emit(r, assembler);
+    return expression_->emit(r, assembler, context);
 }
 }

@@ -142,41 +142,6 @@ void instruction_block::trap(uint8_t index)
     instructions_.push_back(trap_op);
 }
 
-void instruction_block::move_f32_to_freg(f_registers_t dest_reg, float immediate)
-{
-    make_move_instruction(op_sizes::dword, dest_reg, immediate);
-}
-
-void instruction_block::move_f64_to_freg(f_registers_t dest_reg, double immediate)
-{
-    make_move_instruction(op_sizes::qword, dest_reg, immediate);
-}
-
-void instruction_block::move_u8_to_ireg(i_registers_t dest_reg, uint8_t immediate)
-{
-    make_move_instruction(op_sizes::byte, dest_reg, immediate);
-}
-
-void instruction_block::move_u16_to_ireg(i_registers_t dest_reg, uint16_t immediate)
-{
-    make_move_instruction(op_sizes::word, dest_reg, immediate);
-}
-
-void instruction_block::move_u32_to_ireg(i_registers_t dest_reg, uint32_t immediate)
-{
-    make_move_instruction(op_sizes::word, dest_reg, immediate);
-}
-
-void instruction_block::move_u64_to_ireg(i_registers_t dest_reg, uint64_t immediate)
-{
-    make_move_instruction(op_sizes::qword, dest_reg, immediate);
-}
-
-void instruction_block::move_ireg_to_ireg(i_registers_t dest_reg, i_registers_t src_reg)
-{
-    make_move_instruction(op_sizes::qword, dest_reg, src_reg);
-}
-
 i_registers_t instruction_block::allocate_ireg()
 {
     if (!used_integer_registers_.empty()) {
@@ -198,81 +163,6 @@ f_registers_t instruction_block::allocate_freg()
     return *used_float_registers_.begin();
 }
 
-void instruction_block::push_u8(i_registers_t reg)
-{
-    make_push_instruction(op_sizes::byte, reg);
-}
-
-void instruction_block::push_u16(i_registers_t reg)
-{
-    make_push_instruction(op_sizes::byte, reg);
-}
-void instruction_block::push_f32(f_registers_t reg)
-{
-    make_push_instruction(op_sizes::byte, reg);
-}
-void instruction_block::push_u32(i_registers_t reg)
-{
-    make_push_instruction(op_sizes::word, reg);
-}
-void instruction_block::push_f64(f_registers_t reg)
-{
-    make_push_instruction(op_sizes::dword, reg);
-}
-void instruction_block::push_u64(i_registers_t reg)
-{
-    make_push_instruction(op_sizes::qword, reg);
-}
-void instruction_block::push_f32(float value)
-{
-    make_float_constant_push_instruction(op_sizes::dword, value);
-}
-void instruction_block::push_f64(double value)
-{
-    make_float_constant_push_instruction(op_sizes::qword, value);
-}
-void instruction_block::push_u8(uint8_t value)
-{
-    make_integer_constant_push_instruction(op_sizes::byte, value);
-}
-void instruction_block::push_u16(uint16_t value)
-{
-    make_integer_constant_push_instruction(op_sizes::word, value);
-}
-void instruction_block::push_u32(uint32_t value)
-{
-    make_integer_constant_push_instruction(op_sizes::qword, value);
-}
-
-void instruction_block::pop_f32(f_registers_t reg)
-{
-    make_pop_instruction(op_sizes::dword, reg);
-}
-void instruction_block::pop_f64(f_registers_t reg)
-{
-    make_pop_instruction(op_sizes::qword, reg);
-}
-void instruction_block::push_u64(uint64_t value)
-{
-    make_integer_constant_push_instruction(op_sizes::dword, value);
-}
-void instruction_block::pop_u8(i_registers_t reg)
-{
-    make_pop_instruction(op_sizes::byte, reg);
-}
-
-void instruction_block::pop_u16(i_registers_t reg)
-{
-    make_pop_instruction(op_sizes::word, reg);
-}
-void instruction_block::pop_u32(i_registers_t reg)
-{
-    make_pop_instruction(op_sizes::dword, reg);
-}
-void instruction_block::pop_u64(i_registers_t reg)
-{
-    make_pop_instruction(op_sizes::qword, reg);
-}
 bool instruction_block::reserve_ireg(i_registers_t reg)
 {
     if (used_integer_registers_.count(reg) > 0) {
@@ -310,242 +200,6 @@ void instruction_block::jump_direct(const std::string &label_name)
 void instruction_block::disassemble()
 {
     disassemble(this);
-}
-
-void instruction_block::load_to_ireg_u8(i_registers_t dest_reg, i_registers_t address_reg, int64_t offset)
-{
-    make_load_instruction(op_sizes::byte, dest_reg, address_reg, offset);
-}
-void instruction_block::load_to_ireg_u16(i_registers_t dest_reg, i_registers_t address_reg, int64_t offset)
-{
-    make_load_instruction(op_sizes::word, dest_reg, address_reg, offset);
-}
-void instruction_block::load_to_ireg_u32(i_registers_t dest_reg, i_registers_t address_reg, int64_t offset)
-{
-    make_load_instruction(op_sizes::dword, dest_reg, address_reg, offset);
-}
-void instruction_block::load_to_ireg_u64(i_registers_t dest_reg, i_registers_t address_reg, int64_t offset)
-{
-    make_load_instruction(op_sizes::qword, dest_reg, address_reg, offset);
-}
-
-void instruction_block::store_from_ireg_u8(i_registers_t src_reg, i_registers_t address_reg, int64_t offset)
-{
-    make_store_instruction(op_sizes::byte, src_reg, address_reg, offset);
-}
-void instruction_block::store_from_ireg_u16(i_registers_t src_reg, i_registers_t address_reg, int64_t offset)
-{
-    make_store_instruction(op_sizes::word, src_reg, address_reg, offset);
-}
-void instruction_block::store_from_ireg_u32(i_registers_t src_reg, i_registers_t address_reg, int64_t offset)
-{
-    make_store_instruction(op_sizes::dword, src_reg, address_reg, offset);
-}
-void instruction_block::store_from_ireg_u64(i_registers_t src_reg, i_registers_t address_reg, int64_t offset)
-{
-    make_store_instruction(op_sizes::qword, src_reg, address_reg, offset);
-}
-void instruction_block::inc_u8(i_registers_t reg)
-{
-    make_inc_instruction(op_sizes::byte, reg);
-}
-void instruction_block::inc_u16(i_registers_t reg)
-{
-    make_inc_instruction(op_sizes::word, reg);
-}
-void instruction_block::inc_u32(i_registers_t reg)
-{
-    make_inc_instruction(op_sizes::dword, reg);
-}
-void instruction_block::inc_u64(i_registers_t reg)
-{
-    make_inc_instruction(op_sizes::qword, reg);
-}
-void instruction_block::dec_u8(i_registers_t reg)
-{
-    make_dec_instruction(op_sizes::byte, reg);
-}
-void instruction_block::dec_u16(i_registers_t reg)
-{
-    make_dec_instruction(op_sizes::word, reg);
-}
-void instruction_block::dec_u32(i_registers_t reg)
-{
-    make_dec_instruction(op_sizes::dword, reg);
-}
-void instruction_block::dec_u64(i_registers_t reg)
-{
-    make_dec_instruction(op_sizes::qword, reg);
-}
-void instruction_block::mul_ireg_by_ireg_u8(i_registers_t dest_reg,
-     i_registers_t multiplicand_reg, i_registers_t multiplier_reg)
-{
-}
-void instruction_block::mul_ireg_by_ireg_u16(i_registers_t dest_reg,
-    i_registers_t multiplicand_reg, i_registers_t multiplier_reg)
-{
-
-}
-void instruction_block::mul_ireg_by_ireg_u32(i_registers_t dest_reg,
-    i_registers_t multiplicand_reg, i_registers_t multiplier_reg)
-{
-
-}
-void instruction_block::mul_ireg_by_ireg_u64(i_registers_t dest_reg,
-    i_registers_t multiplicand_reg, i_registers_t multiplier_reg)
-{
-
-}
-void instruction_block::add_ireg_by_ireg_u8(i_registers_t dest_reg, i_registers_t augend_reg, i_registers_t addened_reg)
-{
-    make_add_instruction(op_sizes::byte, dest_reg ,augend_reg, addened_reg);
-}
-
-void instruction_block::add_ireg_by_ireg_u16(i_registers_t dest_reg,
-    i_registers_t augend_reg, i_registers_t addened_reg)
-{
-    make_add_instruction(op_sizes::word, dest_reg ,augend_reg, addened_reg);
-
-}
-void instruction_block::add_ireg_by_ireg_u32(i_registers_t dest_reg,
-    i_registers_t augend_reg, i_registers_t addened_reg)
-{
-    make_add_instruction(op_sizes::dword, dest_reg ,augend_reg, addened_reg);
-
-}
-void instruction_block::add_ireg_by_ireg_u64(i_registers_t dest_reg,
-    i_registers_t augend_reg, i_registers_t addened_reg)
-{
-    make_add_instruction(op_sizes::qword, dest_reg ,augend_reg, addened_reg);
-}
-void instruction_block::sub_ireg_by_ireg_u8(i_registers_t dest_reg, i_registers_t augend_reg, i_registers_t addened_reg)
-{
-    make_sub_instruction(op_sizes::byte, dest_reg ,augend_reg, addened_reg);
-}
-void instruction_block::sub_ireg_by_ireg_u16(i_registers_t dest_reg,
-    i_registers_t augend_reg, i_registers_t addened_reg)
-{
-    make_sub_instruction(op_sizes::word, dest_reg ,augend_reg, addened_reg);
-}
-void instruction_block::sub_ireg_by_ireg_u32(i_registers_t dest_reg,
-    i_registers_t augend_reg, i_registers_t addened_reg)
-{
-    make_sub_instruction(op_sizes::dword, dest_reg ,augend_reg, addened_reg);
-}
-void instruction_block::sub_ireg_by_ireg_u64(i_registers_t dest_reg,
-    i_registers_t augend_reg, i_registers_t addened_reg)
-{
-    make_sub_instruction(op_sizes::qword, dest_reg ,augend_reg, addened_reg);
-}
-void instruction_block::div_ireg_by_ireg_u8(i_registers_t dest_reg,
-    i_registers_t dividend_reg, i_registers_t divisor_reg)
-{
-
-}
-void instruction_block::div_ireg_by_ireg_u16(i_registers_t dest_reg,
-                                             i_registers_t dividend_reg,
-                                             i_registers_t divisor_reg)
-{
-
-}
-void instruction_block::div_ireg_by_ireg_u32(i_registers_t dest_reg,
-    i_registers_t dividend_reg, i_registers_t divisor_reg)
-{
-
-}
-void instruction_block::div_ireg_by_ireg_u64(i_registers_t dest_reg,
-                                             i_registers_t dividend_reg,
-                                             i_registers_t divisor_reg)
-{
-
-}
-void instruction_block::mod_ireg_by_ireg_u8(i_registers_t dest_reg,
-                                            i_registers_t dividend_reg,
-                                            i_registers_t divisor_reg)
-{
-
-}
-void instruction_block::mod_ireg_by_ireg_u16(i_registers_t dest_reg,
-                                             i_registers_t dividend_reg,
-                                             i_registers_t divisor_reg)
-{
-
-}
-void instruction_block::mod_ireg_by_ireg_u32(i_registers_t dest_reg,
-                                             i_registers_t dividend_reg,
-                                             i_registers_t divisor_reg)
-{
-
-}
-void instruction_block::mod_ireg_by_ireg_u64(i_registers_t dest_reg,
-                                             i_registers_t dividend_reg,
-                                             i_registers_t divisor_reg)
-{
-
-}
-void instruction_block::swap_ireg_with_ireg_u8(i_registers_t dest_reg, i_registers_t src_reg)
-{
-    make_swap_instruction(op_sizes::byte, dest_reg, src_reg);
-}
-void instruction_block::swap_ireg_with_ireg_u16(i_registers_t dest_reg, i_registers_t src_reg)
-{
-    make_swap_instruction(op_sizes::word, dest_reg, src_reg);
-}
-void instruction_block::swap_ireg_with_ireg_u32(i_registers_t dest_reg, i_registers_t src_reg)
-{
-    make_swap_instruction(op_sizes::dword, dest_reg, src_reg);
-}
-void instruction_block::swap_ireg_with_ireg_u64(i_registers_t dest_reg, i_registers_t src_reg)
-{
-    make_swap_instruction(op_sizes::qword, dest_reg, src_reg);
-}
-void instruction_block::test_mask_branch_if_zero_u8(i_registers_t value_reg,
-                                                    i_registers_t mask_reg,
-                                                    i_registers_t address_reg)
-{
-
-}
-void instruction_block::test_mask_branch_if_zero_u16(i_registers_t value_reg,
-                                                     i_registers_t mask_reg,
-                                                     i_registers_t address_reg)
-{
-
-}
-void instruction_block::test_mask_branch_if_zero_u32(i_registers_t value_reg,
-                                                     i_registers_t mask_reg,
-                                                     i_registers_t address_reg)
-{
-
-}
-void instruction_block::test_mask_branch_if_zero_u64(i_registers_t value_reg,
-                                                     i_registers_t mask_reg,
-                                                     i_registers_t address_reg)
-{
-
-}
-void instruction_block::test_mask_branch_if_not_zero_u8(i_registers_t value_reg,
-                                                        i_registers_t mask_reg,
-                                                        i_registers_t address_reg)
-{
-
-}
-void instruction_block::test_mask_branch_if_not_zero_u16(i_registers_t value_reg,
-                                                         i_registers_t mask_reg,
-                                                         i_registers_t address_reg)
-{
-
-}
-void instruction_block::test_mask_branch_if_not_zero_u32(i_registers_t value_reg,
-                                                         i_registers_t mask_reg,
-                                                         i_registers_t address_reg)
-{
-
-}
-void instruction_block::test_mask_branch_if_not_zero_u64(i_registers_t value_reg,
-                                                         i_registers_t mask_reg,
-                                                         i_registers_t address_reg)
-{
-
 }
 
 void instruction_block::free_ireg(i_registers_t reg)
@@ -717,6 +371,11 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
 
 void instruction_block::disassemble(instruction_block *block)
 {
+    for (const auto& it : block->comments_) {
+        for (const auto& line : it.second.lines) {
+            fmt::print("; {}\n", line);
+        }
+    }
     for (const auto& it : block->labels_) {
         fmt::print("{}:\n", it.first);
     }
@@ -850,24 +509,6 @@ instruction_block *instruction_block::parent()
     return parent_;
 }
 
-void instruction_block::neg_u8(i_registers_t dest_reg, i_registers_t src_reg)
-{
-    make_neg_instruction(op_sizes::byte, dest_reg, src_reg);
-}
-
-void instruction_block::neg_u16(i_registers_t dest_reg, i_registers_t src_reg)
-{
-    make_neg_instruction(op_sizes::word, dest_reg, src_reg);
-}
-void instruction_block::neg_u32(i_registers_t dest_reg, i_registers_t src_reg)
-{
-    make_neg_instruction(op_sizes::dword, dest_reg, src_reg);
-}
-void instruction_block::neg_u64(i_registers_t dest_reg, i_registers_t src_reg)
-{
-    make_neg_instruction(op_sizes::qword, dest_reg, src_reg);
-}
-
 void instruction_block::make_neg_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg)
 {
     instruction_t neg_op;
@@ -889,14 +530,13 @@ void instruction_block::make_add_instruction(op_sizes size,
     add_op.size = size;
     add_op.operands_count = 3;
     add_op.operands[0].type = operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::reg;
+        | operand_encoding_t::flags::reg;
     add_op.operands[0].value.r8 = dest_reg;
     add_op.operands[1].type = operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::reg;
+        | operand_encoding_t::flags::reg;
     add_op.operands[1].value.r8 = augend_reg;
-    add_op.operands[2].type =
-        operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::reg;
+    add_op.operands[2].type = operand_encoding_t::flags::integer
+        | operand_encoding_t::flags::reg;
     add_op.operands[2].value.r8 = addend_reg;
     instructions_.push_back(add_op);
 }
@@ -908,15 +548,115 @@ void instruction_block::make_sub_instruction(op_sizes size, i_registers_t dest_r
     sub_op.size = size;
     sub_op.operands_count = 3;
     sub_op.operands[0].type = operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::reg;
+        | operand_encoding_t::flags::reg;
     sub_op.operands[0].value.r8 = dest_reg;
     sub_op.operands[1].type = operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::reg;
+        | operand_encoding_t::flags::reg;
     sub_op.operands[1].value.r8 = minuend_reg;
     sub_op.operands[2].type = operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::reg;
+        | operand_encoding_t::flags::reg;
     sub_op.operands[2].value.r8 = subtrahend_reg;
     instructions_.push_back(sub_op);
+}
+
+void instruction_block::move_ireg_to_ireg(i_registers_t dest_reg, i_registers_t src_reg)
+{
+    make_move_instruction(op_sizes::qword, dest_reg, src_reg);
+}
+
+void instruction_block::make_cmp_instruction(op_sizes size, i_registers_t lhs_reg, i_registers_t rhs_reg)
+{
+    instruction_t cmp_op;
+    cmp_op.op = op_codes::cmp;
+    cmp_op.size = size;
+    cmp_op.operands_count = 2;
+    cmp_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    cmp_op.operands[0].value.r8 = lhs_reg;
+    cmp_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    cmp_op.operands[1].value.r8 = rhs_reg;
+    instructions_.push_back(cmp_op);
+}
+
+void instruction_block::make_not_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg)
+{
+    instruction_t not_op;
+    not_op.op = op_codes::not_op;
+    not_op.size = size;
+    not_op.operands_count = 2;
+    not_op.operands[0].type = operand_encoding_t::flags::reg | operand_encoding_t::flags::integer;
+    not_op.operands[0].value.r8 = dest_reg;
+    not_op.operands[1].type = operand_encoding_t::flags::reg | operand_encoding_t::flags::integer;
+    not_op.operands[1].value.r8 = src_reg;
+    instructions_.push_back(not_op);
+}
+
+void instruction_block::pop_target_register()
+{
+
+}
+
+void instruction_block::beq(const std::string &label_name)
+{
+    auto label_ref = make_unresolved_label_ref(label_name);
+    instruction_t branch_op;
+    branch_op.op = op_codes::beq;
+    branch_op.size = op_sizes::qword;
+    branch_op.operands_count = 1;
+    branch_op.operands[0].type = operand_encoding_t::flags::integer
+        | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
+    branch_op.operands[0].value.u64 = label_ref->id;
+    instructions_.push_back(branch_op);
+}
+
+void instruction_block::comment(const std::string &value)
+{
+    auto index = instructions_.size();
+    auto it = comments_.find(index);
+    if (it == comments_.end()) {
+        instruction_comments_t comments {};
+        comments.lines.push_back(value);
+        comments_.insert(std::make_pair(index, comments));
+    } else {
+        auto& comments = it->second;
+        comments.lines.push_back(value);
+    }
+}
+
+target_register_t *instruction_block::current_target_register()
+{
+    if (target_registers_.empty()) {
+        return nullptr;
+    }
+    return &target_registers_.top();
+}
+
+void instruction_block::push_target_register(i_registers_t reg)
+{
+    target_register_t target {
+        .type = target_register_type_t::integer,
+        .reg = {
+            .i = reg
+        }
+    };
+    target_registers_.push(target);
+}
+
+void instruction_block::push_target_register(f_registers_t reg)
+{
+    target_register_t target {
+        .type = target_register_type_t::floating_point,
+        .reg = {
+            .f = reg
+        }
+    };
+    target_registers_.push(target);
+}
+
+void instruction_block::cmp_u64(i_registers_t lhs_reg, i_registers_t rhs_reg)
+{
+    make_cmp_instruction(op_sizes::qword, lhs_reg, rhs_reg);
 }
 
 }

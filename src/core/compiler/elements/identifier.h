@@ -29,6 +29,8 @@ public:
 
 	compiler::initializer* initializer() const;
 protected:
+    bool on_emit(result& r, assembler& assembler, const emit_context_t& context) override;
+
     bool on_as_bool(bool &value) const override;
 
     bool on_as_float(double &value) const override;

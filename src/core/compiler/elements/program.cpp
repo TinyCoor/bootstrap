@@ -164,7 +164,6 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 		case ast_node_types_t::boolean_literal: {
 			return make_bool(current_scope(), node->token.as_bool());
 		}
-
 		case ast_node_types_t::else_expression: {
 			return evaluate(r, node->children[0]);
 		}
@@ -190,7 +189,9 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			if (it == s_binary_operators.end()) {
 				return nullptr;
 			}
-			return make_binary_operator(current_scope(), it->second, evaluate(r, node->lhs), evaluate(r, node->rhs));
+            auto lhs = evaluate(r, node->lhs);
+            auto rhs = evaluate(r, node->rhs);
+			return make_binary_operator(current_scope(), it->second, lhs, rhs);
 		}
 		case ast_node_types_t::argument_list: {
 			auto args = make_argument_list(current_scope());
@@ -474,7 +475,6 @@ procedure_type* program::make_procedure_type(result &r, compiler::block* parent_
     return make_type<procedure_type>(r, parent_scope, block_scope, name);
 }
 
-
 procedure_instance* program::make_procedure_instance(compiler::block* parent_scope,
 	compiler::type* procedure_type, compiler::block* scope)
 {
@@ -545,14 +545,16 @@ string_literal *program::make_string(compiler::block* parent_scope, const std::s
 
 compiler::identifier *program::find_identifier(const ast_node_shared_ptr &node)
 {
-	auto ident = (identifier*) nullptr;
+	auto var = (identifier*) nullptr;
 	if (node->is_qualified_symbol()) {
 		auto block_scope = block();
 		for (const auto& symbol_node : node->children) {
-			ident = block_scope->identifiers().find(symbol_node->token.value);
-			if (ident == nullptr || ident->initializer() == nullptr)
-				return nullptr;
-			auto expr = ident->initializer()->expression();
+			var = block_scope->identifiers().find(symbol_node->token.value);
+			if (var == nullptr || var->initializer() == nullptr) {
+                return nullptr;
+            }
+
+			auto expr = var->initializer()->expression();
 			if (expr->element_type() == element_type_t::namespace_e) {
 				auto ns = dynamic_cast<namespace_element*>(expr);
 				block_scope = dynamic_cast<compiler::block*>(ns->expression());
@@ -564,14 +566,15 @@ compiler::identifier *program::find_identifier(const ast_node_shared_ptr &node)
 		const auto& symbol_part = node->children[0];
 		auto block_scope = current_scope();
 		while (block_scope != nullptr) {
-			ident = block_scope->identifiers().find(symbol_part->token.value);
-			if (ident != nullptr)
-				return ident;
+			var = block_scope->identifiers().find(symbol_part->token.value);
+			if (var != nullptr) {
+                return var;
+            }
 			block_scope = dynamic_cast<compiler::block*>(block_scope->parent());
 		}
 		return nullptr;
 	}
-	return ident;
+	return var;
 }
 
 const element_map_t &program::elements() const
@@ -722,8 +725,10 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 				break;
 			}
 			case ast_node_types_t::basic_block: {
+                push_scope(proc_type->scope());
 				auto basic_block = dynamic_cast<compiler::block*>(evaluate(r, child_node,
 					 element_type_t::proc_instance_block));
+                pop_scope();
 				proc_type->instances().push_back(make_procedure_instance(
 					proc_type->scope(), proc_type, basic_block));
 			}
@@ -760,9 +765,13 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
                 symbol.offset(), symbol.name(), symbol_type_name(symbol.type()), symbol.size());
         }
     }
-    if (!emit_code_blocks(r)) {
+    emit_context_t context {};
+    if (!emit_code_blocks(r, context)) {
         return false;
     }
+
+    auto root_block = assembler_.root_block();
+    root_block->disassemble();
 
 	return !r.is_failed();
 }
@@ -1005,11 +1014,11 @@ type_info *program::make_type_info_type(result &r, compiler::block *parent_scope
     return make_type<type_info>(r, parent_scope);
 }
 
-bool program::emit_code_blocks(result &r)
+bool program::emit_code_blocks(result &r, const emit_context_t& context)
 {
     std::function<bool (compiler::block*)> recursive_emit =
         [&](compiler::block* scope) -> bool {
-          scope->emit(r, assembler_);
+          scope->emit(r, assembler_, context);
           for (auto block : scope->blocks()) {
               if (!recursive_emit(block)) {
                   return false;

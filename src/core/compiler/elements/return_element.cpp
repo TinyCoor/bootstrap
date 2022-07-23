@@ -16,15 +16,12 @@ element_list_t &return_element::expressions()
 	return expressions_;
 }
 
-bool compiler::return_element::on_emit(gfx::result &r, gfx::assembler &assembler)
+bool compiler::return_element::on_emit(gfx::result &r, gfx::assembler &assembler, const emit_context_t &context )
 {
     auto instruction_block = assembler.current_block();
 
     for (auto expr : expressions_) {
-        // XXX: why is expr null?
-        if (expr != nullptr) {
-            expr->emit(r, assembler);
-        }
+        expr->emit(r, assembler, context);
     }
 
     instruction_block->rts();

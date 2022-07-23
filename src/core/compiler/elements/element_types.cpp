@@ -184,5 +184,13 @@ compiler::type* type_map_t::find(const std::string& name)
 	return nullptr;
 }
 
+type_list_t type_map_t::as_list() const
+{
+    type_list_t list {};
+    for (const auto& it : types_) {
+        list.push_back(it.second);
+    }
+    return list;
+}
 
 }

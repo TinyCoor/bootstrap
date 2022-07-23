@@ -27,12 +27,11 @@ bool integer_literal::on_as_integer(uint64_t &value) const
     return true;
 }
 
-bool compiler::integer_literal::on_emit(gfx::result &r, gfx::assembler &assembler)
+bool compiler::integer_literal::on_emit(gfx::result &r, gfx::assembler &assembler, const emit_context_t& context)
 {
     auto instruction_block = assembler.current_block();
-    auto dest_reg = instruction_block->allocate_ireg();
-    instruction_block->move_u32_to_ireg(dest_reg, static_cast<uint32_t>(value_));
-    instruction_block->free_ireg(dest_reg);
+    auto target_reg = instruction_block->current_target_register();
+    instruction_block->move_to_ireg(target_reg->reg.i, static_cast<uint32_t>(value_));
     return true;
 }
 

@@ -28,6 +28,8 @@ public:
 
     instruction_block* pop_block();
 
+    instruction_block* root_block();
+
     segment_list_t segments() const;
 
     instruction_block* current_block();

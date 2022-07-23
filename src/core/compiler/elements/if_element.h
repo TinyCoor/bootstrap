@@ -15,6 +15,8 @@ public:
 	element* true_branch();
 
 	element* false_branch();
+protected:
+    bool on_emit(result& r, assembler& assembler, const emit_context_t& context) override;
 
 private:
 	element* predicate_ = nullptr;

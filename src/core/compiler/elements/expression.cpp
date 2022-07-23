@@ -30,4 +30,12 @@ bool expression::on_is_constant() const
     return root_->is_constant();
 }
 
+bool compiler::expression::on_emit(gfx::result &r, gfx::assembler &assembler)
+{
+    if (root_ == nullptr) {
+        return true;
+    }
+    return root_->emit(r, assembler);
+}
+
 }

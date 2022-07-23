@@ -10,7 +10,8 @@ integer_literal::integer_literal(element* parent, uint64_t value)
 {
 }
 
-uint64_t integer_literal::value() const {
+uint64_t integer_literal::value() const
+{
 	return value_;
 }
 
@@ -23,6 +24,15 @@ compiler::type *integer_literal::on_infer_type(const compiler::program *program)
 bool integer_literal::on_as_integer(uint64_t &value) const
 {
     value = value_;
+    return true;
+}
+
+bool compiler::integer_literal::on_emit(gfx::result &r, gfx::assembler &assembler)
+{
+    auto instruction_block = assembler.current_block();
+    auto dest_reg = instruction_block->allocate_ireg();
+    instruction_block->move_u32_to_ireg(dest_reg, static_cast<uint32_t>(value_));
+    instruction_block->free_ireg(dest_reg);
     return true;
 }
 

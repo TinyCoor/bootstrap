@@ -46,7 +46,7 @@ struct register_file_t {
 		subtract = 0b0000000000000000000000000000000000000000000000000000000000100000,
 	};
 
-	bool flags(flags_t flag) const {
+	[[nodiscard]] bool flags(flags_t flag) const {
 		return (fr & flag) != 0;
 	}
 
@@ -99,27 +99,27 @@ struct operand_encoding_t {
 		postfix  = 0b00010000,
         unresolved  = 0b00100000,
 	};
-	inline bool is_reg() const {
+	[[nodiscard]] inline bool is_reg() const {
 		return (type & flags::reg) != 0;
 	}
 
-	inline bool is_prefix() const {
+	[[nodiscard]] inline bool is_prefix() const {
 		return (type & flags::prefix) != 0;
 	}
 
-	inline bool is_postfix() const {
+	[[nodiscard]] inline bool is_postfix() const {
 		return (type & flags::postfix) != 0;
 	}
 
-	inline bool is_integer() const {
+	[[nodiscard]] inline bool is_integer() const {
 		return (type & flags::integer) != 0;
 	}
 
-	inline bool is_negative() const {
+	[[nodiscard]] inline bool is_negative() const {
 		return (type & flags::negative) != 0;
 	}
 
-    inline bool is_unresolved() const {
+    [[nodiscard]] inline bool is_unresolved() const {
         return (type & flags::unresolved) != 0;
     }
 
@@ -148,11 +148,11 @@ struct instruction_t {
 
 	size_t decode(result& r, uint8_t* heap, uint64_t address);
 
-	size_t align(uint64_t value, size_t size) const;
+	[[nodiscard]] size_t align(uint64_t value, size_t size) const;
 
-	size_t encoding_size() const;
+	[[nodiscard]] size_t encoding_size() const;
 
-    std::string disassemble(const id_resolve_callable& id_resolver = nullptr) const;
+    [[nodiscard]] std::string disassemble(const id_resolve_callable& id_resolver = nullptr) const;
 
     void patch_branch_address(uint64_t address, uint8_t index = 0u);
 
@@ -162,22 +162,6 @@ struct instruction_t {
 	operand_encoding_t operands[4];
 };
 
-
-
-// template<uint32_t InstType>
-// struct Instruction {
-//	static constexpr type = InstType;
-//	instruction_t inst;
-// };
-//
-// class terp;
-// template<uint32_t InstType>
-// struct InstExecutor {
-//	 terp* terp;
-//
-//	bool exec()
-//
-//};
 }
 
 #endif // INSTRUCTION_H_

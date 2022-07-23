@@ -1,3 +1,4 @@
+
 //
 // Created by 12132 on 2022/5/14.
 //
@@ -11,6 +12,8 @@ public:
 	return_element(element* parent);
 
 	element_list_t& expressions();
+protected:
+    bool on_emit(result &r, assembler &assembler) override;
 
 private:
 	element_list_t expressions_ {};

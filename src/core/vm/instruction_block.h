@@ -2,9 +2,10 @@
 // Created by 12132 on 2022/7/17.
 //
 
-#ifndef BOOTSTRAP_SRC_CORE_VM_INSTRUCTION_BLOCK_H_
-#define BOOTSTRAP_SRC_CORE_VM_INSTRUCTION_BLOCK_H_
+#ifndef VM_INSTRUCTION_BLOCK_H_
+#define VM_INSTRUCTION_BLOCK_H_
 #include "instruction.h"
+#include "instruction_builder.h"
 #include "common/id_pool.h"
 #include "label.h"
 #include <set>
@@ -60,6 +61,12 @@ public:
 
     void store_from_ireg_u64(i_registers_t src_reg, i_registers_t address_reg, int64_t offset = 0);
     // neg variations
+    template<typename T>
+    void neg(i_registers_t dest_reg, i_registers_t src_reg)
+    {
+        make_neg_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, src_reg);
+    }
+
     void neg_u8(i_registers_t dest_reg, i_registers_t src_reg);
 
     void neg_u16(i_registers_t dest_reg, i_registers_t src_reg);
@@ -109,6 +116,11 @@ public:
     void mul_ireg_by_ireg_u64(i_registers_t dest_reg,i_registers_t multiplicand_reg, i_registers_t multiplier_reg);
 
     // add variations
+    template<typename T>
+    void add_ireg_by_ireg(i_registers_t dest_reg, i_registers_t augend_reg, i_registers_t addened_reg)
+    {
+        make_add_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, augend_reg, addened_reg);
+    }
     void add_ireg_by_ireg_u8(i_registers_t dest_reg, i_registers_t augend_reg, i_registers_t addened_reg);
 
     void add_ireg_by_ireg_u16(i_registers_t dest_reg, i_registers_t augend_reg, i_registers_t addened_reg);
@@ -298,4 +310,4 @@ private:
 };
 }
 
-#endif //BOOTSTRAP_SRC_CORE_VM_INSTRUCTION_BLOCK_H_
+#endif // VM_INSTRUCTION_BLOCK_H_

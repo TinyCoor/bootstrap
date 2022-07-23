@@ -17,6 +17,7 @@ instruction_block::~instruction_block()
     clear_labels();
     clear_instructions();
 }
+
 instruction_block_type_t instruction_block::type() const
 {
     return type_;
@@ -24,7 +25,29 @@ instruction_block_type_t instruction_block::type() const
 
 void instruction_block::call(const std::string& proc_name)
 {
+    auto label_ref = make_unresolved_label_ref(proc_name);
+    instruction_t jsr_op;
+    jsr_op.op = op_codes::jsr;
+    jsr_op.size = op_sizes::qword;
+    jsr_op.operands_count = 1;
+    jsr_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::constant
+            | operand_encoding_t::flags::unresolved;
+    jsr_op.operands[0].value.u64 = label_ref->id;
+    instructions_.push_back(jsr_op);
 
+// XXX: this is a PC-relative encoding
+//        instruction_t jsr_op;
+//        jsr_op.op = op_codes::jsr;
+//        jsr_op.size = size;
+//        jsr_op.operands_count = 2;
+//        jsr_op.operands[0].type =
+//            operand_encoding_t::flags::integer
+//            | operand_encoding_t::flags::reg;
+//        jsr_op.operands[0].value.r8 = i_registers_t::pc;
+//        jsr_op.operands[1].type = offset_type | operand_encoding_t::flags::integer;
+//        jsr_op.operands[1].value.u64 = offset;
+//        _instructions.push_back(jsr_op);
 }
 
 label* instruction_block::make_label(const std::string& name)
@@ -34,6 +57,7 @@ label* instruction_block::make_label(const std::string& name)
     label_to_instruction_map_.insert(std::make_pair(name, instructions_.size()));
     return label;
 }
+
 void instruction_block::clear_labels()
 {
     for (const auto& it : labels_) {
@@ -178,6 +202,7 @@ void instruction_block::push_u8(i_registers_t reg)
 {
     make_push_instruction(op_sizes::byte, reg);
 }
+
 void instruction_block::push_u16(i_registers_t reg)
 {
     make_push_instruction(op_sizes::byte, reg);
@@ -375,6 +400,7 @@ void instruction_block::add_ireg_by_ireg_u8(i_registers_t dest_reg, i_registers_
 {
     make_add_instruction(op_sizes::byte, dest_reg ,augend_reg, addened_reg);
 }
+
 void instruction_block::add_ireg_by_ireg_u16(i_registers_t dest_reg,
     i_registers_t augend_reg, i_registers_t addened_reg)
 {
@@ -661,6 +687,7 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
     move_op.operands[1].value.r8 = dest_reg;
     instructions_.push_back(move_op);
 }
+
 void instruction_block::make_move_instruction(op_sizes size, f_registers_t dest_reg, double value)
 {
     instruction_t move_op;
@@ -687,6 +714,7 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
     move_op.operands[1].value.r8 = dest_reg;
     instructions_.push_back(move_op);
 }
+
 void instruction_block::disassemble(instruction_block *block)
 {
     for (const auto& it : block->labels_) {

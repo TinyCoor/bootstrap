@@ -97,6 +97,48 @@ public:
         make_neg_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, src_reg);
     }
 
+    // or variations
+    void or_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    {
+        make_or_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
+    }
+
+    // xor variations
+    void xor_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    {
+        make_xor_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
+    }
+
+    // and variations
+    void and_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    {
+        make_and_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
+    }
+
+    // shl variations
+    void shl_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    {
+        make_shl_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
+    }
+
+    // shr variations
+    void shr_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    {
+        make_shr_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
+    }
+
+    // rol variations
+    void rol_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    {
+        make_rol_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
+    }
+
+    // ror variations
+    void ror_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    {
+        make_ror_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
+    }
+
     /// move
     template<class T>
     void move_to_ireg(i_registers_t dest_reg, T immediate)
@@ -255,16 +297,25 @@ public:
 
     instruction_block* parent();
 private:
+    void make_shl_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t amount_reg);
 
-    void make_cmp_instruction(op_sizes size, i_registers_t lhs_reg, i_registers_t rhs_reg);
+    void make_rol_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t amount_reg);
 
-    void make_not_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg);
+    void make_shr_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t amount_reg);
 
-    void make_neg_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg);
+    void make_ror_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t amount_reg);
 
-    void make_inc_instruction(op_sizes size, i_registers_t reg);
+    void make_and_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t mask_reg);
 
-    void make_dec_instruction(op_sizes size, i_registers_t reg);
+    void make_xor_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t mask_reg);
+
+    void make_or_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t mask_reg);
+
+    void make_mod_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t dividend_reg, i_registers_t divisor_reg);
+
+    void make_div_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t dividend_reg, i_registers_t divisor_reg);
+
+    void make_mul_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t multiplicand_reg, i_registers_t multiplier_reg);
 
     void make_load_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t address_reg, int64_t offset);
 
@@ -272,9 +323,23 @@ private:
 
     void make_swap_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg);
 
+    void make_inc_instruction(op_sizes size, i_registers_t reg);
+
+    void make_dec_instruction(op_sizes size, i_registers_t reg);
+
     void make_pop_instruction(op_sizes size, i_registers_t dest_reg);
 
     void make_pop_instruction(op_sizes size, f_registers_t dest_reg);
+
+    void make_push_instruction(op_sizes size, i_registers_t reg);
+
+    void make_push_instruction(op_sizes size, f_registers_t reg);
+
+    void make_cmp_instruction(op_sizes size, i_registers_t lhs_reg, i_registers_t rhs_reg);
+
+    void make_not_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg);
+
+    void make_neg_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg);
 
     void make_move_instruction(op_sizes size, i_registers_t dest_reg, uint64_t value);
 
@@ -282,28 +347,23 @@ private:
 
     void make_move_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg);
 
-    void disassemble(instruction_block* block);
-
-    void make_float_constant_push_instruction(op_sizes size, double value);
-
-    void make_integer_constant_push_instruction(op_sizes size, uint64_t value);
-
     void make_add_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t augend_reg,
         i_registers_t addend_reg);
 
     void make_sub_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t minuend_reg,
         i_registers_t subtrahend_reg);
 
+    void make_float_constant_push_instruction(op_sizes size, double value);
+
+    void make_integer_constant_push_instruction(op_sizes size, uint64_t value);
+
     label_ref_t* find_unresolved_label_up(id_t id);
 
     label* find_label_up(const std::string& label_name);
 
-    void make_push_instruction(op_sizes size, i_registers_t reg);
-
-    void make_push_instruction(op_sizes size, f_registers_t reg);
-
     label_ref_t* make_unresolved_label_ref(const std::string& label_name);
 
+    void disassemble(instruction_block* block);
 private:
     instruction_block* parent_ = nullptr;
     instruction_block_type_t type_;

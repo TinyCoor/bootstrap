@@ -678,4 +678,191 @@ void instruction_block::bne(const std::string &label_name)
     instructions_.push_back(branch_op);
 }
 
+void instruction_block::make_shl_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t value_reg, i_registers_t amount_reg)
+{
+    instruction_t shift_op;
+    shift_op.op = op_codes::shl;
+    shift_op.size = size;
+    shift_op.operands_count = 3;
+    shift_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    shift_op.operands[0].value.r8 = dest_reg;
+    shift_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    shift_op.operands[1].value.r8 = value_reg;
+    shift_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    shift_op.operands[2].value.r8 = amount_reg;
+    instructions_.push_back(shift_op);
+}
+void instruction_block::make_rol_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t value_reg, i_registers_t amount_reg)
+{
+    instruction_t rotate_op;
+    rotate_op.op = op_codes::rol;
+    rotate_op.size = size;
+    rotate_op.operands_count = 3;
+    rotate_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    rotate_op.operands[0].value.r8 = dest_reg;
+    rotate_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    rotate_op.operands[1].value.r8 = value_reg;
+    rotate_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    rotate_op.operands[2].value.r8 = amount_reg;
+    instructions_.push_back(rotate_op);
+}
+
+void instruction_block::make_shr_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t value_reg, i_registers_t amount_reg)
+{
+    instruction_t shift_op;
+    shift_op.op = op_codes::shr;
+    shift_op.size = size;
+    shift_op.operands_count = 3;
+    shift_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    shift_op.operands[0].value.r8 = dest_reg;
+    shift_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    shift_op.operands[1].value.r8 = value_reg;
+    shift_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    shift_op.operands[2].value.r8 = amount_reg;
+    instructions_.push_back(shift_op);
+}
+void instruction_block::make_ror_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t value_reg, i_registers_t amount_reg)
+{
+    instruction_t rotate_op;
+    rotate_op.op = op_codes::ror;
+    rotate_op.size = size;
+    rotate_op.operands_count = 3;
+    rotate_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    rotate_op.operands[0].value.r8 = dest_reg;
+    rotate_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    rotate_op.operands[1].value.r8 = value_reg;
+    rotate_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    rotate_op.operands[2].value.r8 = amount_reg;
+    instructions_.push_back(rotate_op);
+}
+void instruction_block::make_and_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t value_reg, i_registers_t mask_reg)
+{
+    instruction_t and_op;
+    and_op.op = op_codes::and_op;
+    and_op.size = size;
+    and_op.operands_count = 3;
+    and_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    and_op.operands[0].value.r8 = dest_reg;
+    and_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    and_op.operands[1].value.r8 = value_reg;
+    and_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    and_op.operands[2].value.r8 = mask_reg;
+    instructions_.push_back(and_op);
+}
+
+void instruction_block::make_xor_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t value_reg, i_registers_t mask_reg)
+{
+    instruction_t xor_op;
+    xor_op.op = op_codes::xor_op;
+    xor_op.size = size;
+    xor_op.operands_count = 3;
+    xor_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    xor_op.operands[0].value.r8 = dest_reg;
+    xor_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    xor_op.operands[1].value.r8 = value_reg;
+    xor_op.operands[2].type =
+        operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    xor_op.operands[2].value.r8 = mask_reg;
+    instructions_.push_back(xor_op);
+}
+
+void instruction_block::make_or_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t value_reg, i_registers_t mask_reg)
+{
+    instruction_t or_op;
+    or_op.op = op_codes::or_op;
+    or_op.size = size;
+    or_op.operands_count = 3;
+    or_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    or_op.operands[0].value.r8 = dest_reg;
+    or_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    or_op.operands[1].value.r8 = value_reg;
+    or_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    or_op.operands[2].value.r8 = mask_reg;
+    instructions_.push_back(or_op);
+}
+void instruction_block::make_mod_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t dividend_reg, i_registers_t divisor_reg)
+{
+    instruction_t mod_op;
+    mod_op.op = op_codes::mod;
+    mod_op.size = size;
+    mod_op.operands_count = 3;
+    mod_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    mod_op.operands[0].value.r8 = dest_reg;
+    mod_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    mod_op.operands[1].value.r8 = dividend_reg;
+    mod_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    mod_op.operands[2].value.r8 = divisor_reg;
+    instructions_.push_back(mod_op);
+}
+
+void instruction_block::make_div_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t dividend_reg, i_registers_t divisor_reg)
+{
+    instruction_t div_op;
+    div_op.op = op_codes::div;
+    div_op.size = size;
+    div_op.operands_count = 3;
+    div_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    div_op.operands[0].value.r8 = dest_reg;
+    div_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    div_op.operands[1].value.r8 = dividend_reg;
+    div_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    div_op.operands[2].value.r8 = divisor_reg;
+    instructions_.push_back(div_op);
+}
+
+void instruction_block::make_mul_instruction(op_sizes size, i_registers_t dest_reg,
+    i_registers_t multiplicand_reg, i_registers_t multiplier_reg)
+{
+    instruction_t mul_op;
+    mul_op.op = op_codes::mul;
+    mul_op.size = size;
+    mul_op.operands_count = 3;
+    mul_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    mul_op.operands[0].value.r8 = dest_reg;
+    mul_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    mul_op.operands[1].value.r8 = multiplicand_reg;
+    mul_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    mul_op.operands[2].value.r8 = multiplier_reg;
+    instructions_.push_back(mul_op);
+}
+
 }

@@ -127,7 +127,7 @@ bool block::on_emit(result &r, assembler &assembler, const emit_context_t& conte
             return false;
     }
 
-    for (auto ident : identifiers_.as_list()) {
+    for (auto &ident : identifiers_.as_list()) {
         auto init = ident->initializer();
         if (init == nullptr) {
             continue;

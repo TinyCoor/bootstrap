@@ -53,7 +53,6 @@ bool procedure_type::on_emit(result &r, assembler &assembler, const emit_context
     }
 
     auto instruction_block = assembler.make_procedure_block();
-    auto proc_label = name();
     auto procedure_label = name();
 
     switch (context.type) {

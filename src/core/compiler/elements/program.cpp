@@ -7,6 +7,7 @@
 #include "label.h"
 #include "alias.h"
 #include "type.h"
+#include "import.h"
 #include "comment.h"
 #include "any_type.h"
 #include "array_type.h"
@@ -15,7 +16,6 @@
 #include "attribute.h"
 #include "directive.h"
 #include "statement.h"
-#include "import.h"
 #include "type_info.h"
 #include "string_type.h"
 #include "numeric_type.h"
@@ -223,7 +223,8 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 				switch (type_node->type) {
 					case ast_node_types_t::symbol: {
 						auto return_identifier = make_identifier(block_scope, fmt::format("_{}", count++), nullptr);
-						return_identifier->type(find_type(type_node->children[0]->token.value));
+                        return_identifier->usage(identifier_usage_t::stack);
+                        return_identifier->type(find_type(type_node->children[0]->token.value));
 						proc_type->returns().add(make_field(block_scope, return_identifier));
 						break;
 					}

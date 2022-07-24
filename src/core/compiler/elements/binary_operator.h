@@ -24,6 +24,9 @@ protected:
 
     void emit_relational_operator(result& r, assembler& assembler, const emit_context_t& context,
         instruction_block* instruction_block);
+
+    void emit_arithmetic_operator(result& r, assembler& assembler, const emit_context_t& context,
+        instruction_block* instruction_block);
 private:
 	element* lhs_ = nullptr;
 	element* rhs_ = nullptr;

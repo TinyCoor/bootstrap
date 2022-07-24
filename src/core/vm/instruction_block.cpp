@@ -733,6 +733,7 @@ void instruction_block::make_shr_instruction(op_sizes size, i_registers_t dest_r
     shift_op.operands[2].value.r8 = amount_reg;
     instructions_.push_back(shift_op);
 }
+
 void instruction_block::make_ror_instruction(op_sizes size, i_registers_t dest_reg,
     i_registers_t value_reg, i_registers_t amount_reg)
 {
@@ -863,6 +864,29 @@ void instruction_block::make_mul_instruction(op_sizes size, i_registers_t dest_r
             | operand_encoding_t::flags::reg;
     mul_op.operands[2].value.r8 = multiplier_reg;
     instructions_.push_back(mul_op);
+}
+void instruction_block::setz(i_registers_t dest_reg)
+{
+    instruction_t setz_op;
+    setz_op.op = op_codes::setz;
+    setz_op.size = op_sizes::qword;
+    setz_op.operands_count = 1;
+    setz_op.operands[0].type = operand_encoding_t::flags::integer
+        | operand_encoding_t::flags::reg;
+    setz_op.operands[0].value.r8 = dest_reg;
+    instructions_.push_back(setz_op);
+}
+
+void instruction_block::setnz(i_registers_t dest_reg)
+{
+    instruction_t setnz_op;
+    setnz_op.op = op_codes::setnz;
+    setnz_op.size = op_sizes::qword;
+    setnz_op.operands_count = 1;
+    setnz_op.operands[0].type = operand_encoding_t::flags::integer
+        | operand_encoding_t::flags::reg;
+    setnz_op.operands[0].value.r8 = dest_reg;
+    instructions_.push_back(setnz_op);
 }
 
 }

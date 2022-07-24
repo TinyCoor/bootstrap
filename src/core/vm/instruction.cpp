@@ -287,6 +287,10 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
                             operands_stream << prefix << "SP" << postfix;
                             break;
                         }
+                        case i_registers_t::fp: {
+                            operands_stream << prefix << "FP" << postfix;
+                            break;
+                        }
                         case i_registers_t::pc: {
                             operands_stream << prefix << "PC" << postfix;
                             break;

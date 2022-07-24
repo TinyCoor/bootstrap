@@ -14,6 +14,7 @@
 #include <stack>
 namespace gfx {
 enum class target_register_type_t {
+    none,
     integer,
     floating_point,
 };
@@ -63,6 +64,10 @@ public:
 
     void pop_target_register();
 
+    // setxx
+    void setz(i_registers_t dest_reg);
+
+    void setnz(i_registers_t dest_reg);
     // branches
     void bne(const std::string& label_name);
 
@@ -228,7 +233,7 @@ public:
     }
 
     ///
-    template<class T, std::enable_if<std::is_floating_point_v<T>>>
+    template<class T, typename = std::enable_if<std::is_floating_point_v<T>>>
     void push_constant(T value)
     {
         make_float_constant_push_instruction(TypeToOpSize::ToOpSize<T>(), value);
@@ -246,7 +251,7 @@ public:
         make_push_instruction(TypeToOpSize::ToOpSize<T>() , reg);
     }
 
-    template<typename T, std::enable_if_t<std::is_floating_point_v<T>>>
+    template<typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
     void push(f_registers_t reg)
     {
         make_push_instruction(TypeToOpSize::ToOpSize<T>() , reg);
@@ -263,7 +268,7 @@ public:
         make_pop_instruction(TypeToOpSize::ToOpSize<T>(), reg);
     }
 
-    template<class T, std::enable_if_t<std::is_floating_point_v<T>>>
+    template<class T, typename = std::enable_if<std::is_floating_point_v<T>>>
     void pop(f_registers_t reg)
     {
         make_pop_instruction(TypeToOpSize::ToOpSize<T>(), reg);

@@ -975,6 +975,21 @@ bool terp::step(result &r)
 		case op_codes::exit: {
 			exited_ = true;
 		}break;
+        case op_codes::setz: {
+            uint64_t result = registers_.flags(register_file_t::flags_t::zero) ? 1 : 0;
+            if (!set_target_operand_value(r, inst, 0, result)) {
+                return false;
+            }
+
+            break;
+        }
+        case op_codes::setnz: {
+            uint64_t result = !registers_.flags(register_file_t::flags_t::zero) ? 1 : 0;
+            if (!set_target_operand_value(r, inst, 0, result)) {
+                return false;
+            }
+            break;
+        }
 		default:
 			break;
 	}
@@ -1017,6 +1032,10 @@ bool terp::get_operand_value(result& r, const instruction_t& instruction, uint8_
 					value = registers_.sp;
 					break;
 				}
+                case i_registers_t::fp: {
+                    value = registers_.fp;
+                    break;
+                }
 				case i_registers_t::fr: {
 					value = registers_.fr;
 					break;
@@ -1079,6 +1098,10 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 					registers_.sp = set_zoned_value(registers_.sp, value, inst.size);
 					break;
 				}
+                case i_registers_t::fp: {
+                    registers_.fp = set_zoned_value(registers_.fp, value, inst.size);
+                    break;
+                }
 				case i_registers_t::fr: {
 					registers_.fr =  set_zoned_value(registers_.fr, value, inst.size);
 					break;
@@ -1121,6 +1144,10 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 					registers_.sp =set_zoned_value(registers_.sp,integer_value, inst.size);
 					break;
 				}
+                case i_registers_t::fp: {
+                    registers_.fp = set_zoned_value(registers_.fp, integer_value, inst.size);
+                    break;
+                }
 				case i_registers_t::fr: {
 					registers_.fr = set_zoned_value(registers_.fr, integer_value, inst.size);
 					break;

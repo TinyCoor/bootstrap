@@ -21,7 +21,7 @@ enum i_registers_t : uint8_t {
 	i48, i49, i50, i51, i52, i53, i54, i55,
 	i56, i57, i58, i59, i60, i61, i62, i63,
 
-	pc, sp, fr, sr
+	pc, sp, fr, sr, fp,
 };
 
 enum f_registers_t : uint8_t {
@@ -61,6 +61,7 @@ struct register_file_t {
 	double f[REGISTER_COUNT];
 	uint64_t pc;
 	uint64_t sp;
+    uint64_t fp;
 	uint64_t fr;
 	uint64_t sr;
 };

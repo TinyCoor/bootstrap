@@ -14,8 +14,8 @@
 #include <stack>
 namespace gfx {
 enum class target_register_type_t {
-        integer,
-        floating_point
+    integer,
+    floating_point,
 };
 
 struct target_register_t {
@@ -27,7 +27,7 @@ struct target_register_t {
 };
 
 enum class instruction_block_type_t {
-    implicit,
+    basic,
     procedure
 };
 
@@ -42,7 +42,6 @@ public:
     virtual ~instruction_block();
 
     void rts();
-
 
     void dup();
 
@@ -65,6 +64,8 @@ public:
     void pop_target_register();
 
     // branches
+    void bne(const std::string& label_name);
+
     void beq(const std::string& label_name);
 
     void comment(const std::string& value);
@@ -84,10 +85,11 @@ public:
 
     /// store
     template<class T>
-    void store_from_ireg(i_registers_t src_reg, i_registers_t address_reg, int64_t offset = 0)
+    void store_from_ireg(i_registers_t address_reg, i_registers_t src_reg, int64_t offset = 0)
     {
-        make_store_instruction(TypeToOpSize::ToOpSize<T>(), src_reg, address_reg, offset);
+        make_store_instruction(TypeToOpSize::ToOpSize<T>(), address_reg, src_reg, offset);
     }
+
     // neg variations
     template<typename T>
     void neg(i_registers_t dest_reg, i_registers_t src_reg)
@@ -266,7 +268,7 @@ private:
 
     void make_load_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t address_reg, int64_t offset);
 
-    void make_store_instruction(op_sizes size, i_registers_t src_reg, i_registers_t address_reg, int64_t offset);
+    void make_store_instruction(op_sizes size, i_registers_t address_reg, i_registers_t src_reg, int64_t offset);
 
     void make_swap_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg);
 

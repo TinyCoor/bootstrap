@@ -15,9 +15,13 @@ public:
 	bool value() const;
 
 protected:
-	compiler::type* on_infer_type(const compiler::program* program) override;
+    bool on_is_constant() const override;
 
     bool on_as_bool(bool &value) const override;
+
+	compiler::type* on_infer_type(const compiler::program* program) override;
+
+    bool on_emit(result &r, assembler &assembler, const emit_context_t &context) override;
 
 private:
 	bool value_ = false;

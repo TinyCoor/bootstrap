@@ -35,4 +35,9 @@ bool compiler::integer_literal::on_emit(gfx::result &r, gfx::assembler &assemble
     return true;
 }
 
+bool integer_literal::on_is_constant() const
+{
+    return true;
+}
+
 }

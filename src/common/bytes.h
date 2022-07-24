@@ -6,7 +6,7 @@
 #define BYTES_H_
 #include <cstdint>
 namespace gfx {
-inline bool is_platform_little_endian()
+inline  bool is_platform_little_endian()
 {
 	int n = 1;
 	return (*(char*)&n) == 1;

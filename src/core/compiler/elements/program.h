@@ -18,7 +18,8 @@ struct type_find_result_t {
 
 class program : public element {
 public:
-	explicit program(terp* terp);
+    using block_visitor_callable = std::function<bool (compiler::block*)>;
+    explicit program(terp* terp);
 
 	~program() override;
 
@@ -43,18 +44,13 @@ protected:
 
 	terp* terp();
 
-	bool build_data_segments(result& r);
 
 private:
-    bool emit_code_blocks(result& r, const emit_context_t& context);
-
 	void initialize_core_types(result &r);
 
-	bool execute_directives(result& r);
+    bool visit_blocks(result& r, const block_visitor_callable& callable);
 
-	bool resolve_unknown_types(result& r);
-
-	bool resolve_unknown_identifiers(result& r);
+    bool resolve_unknown_types(result& r);
 
 private:
 	void add_composite_type_fields(result& r, composite_type* struct_type, const ast_node_shared_ptr& block);
@@ -67,6 +63,8 @@ private:
     void add_expression_to_scope(compiler::block* scope, compiler::element* expr);
 
     void add_type_to_scope(compiler::type* value);
+
+    bool within_procedure_scope(compiler::block* parent_scope) const;
 private:
     friend class any_type;
     friend class type_info;

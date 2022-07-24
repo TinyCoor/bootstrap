@@ -123,6 +123,7 @@ set(ELEMENT_SRC
         compiler/elements/argument_list.cpp
         compiler/elements/import.cpp
         compiler/extern.cpp
+        compiler/emit_context.cpp
         )
 
 set(COMPILER_SRC

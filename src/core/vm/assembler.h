@@ -34,11 +34,13 @@ public:
 
     instruction_block* current_block();
 
+    bool in_procedure_scope() const;
+
     gfx::segment* segment(const std::string& name);
 
 	gfx::segment* segment(const std::string &name, segment_type_t type);
 
-    instruction_block* make_implicit_block(instruction_block* parent = nullptr);
+    instruction_block* make_basic_block(instruction_block* parent = nullptr);
 
     instruction_block* make_procedure_block(instruction_block* parent = nullptr);
 
@@ -48,6 +50,7 @@ private:
 private:
 	terp* terp_ = nullptr;
     uint64_t location_counter_ = 0;
+    uint32_t procedure_block_count_ = 0;
     std::vector<instruction_block*> blocks_ {};
     std::stack<instruction_block*> block_stack_{};
 	std::unordered_map<std::string, gfx::segment> segments_{};

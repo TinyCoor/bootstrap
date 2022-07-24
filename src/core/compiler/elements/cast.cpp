@@ -3,6 +3,8 @@
 //
 
 #include "cast.h"
+#include "type.h"
+#include "fmt/format.h"
 namespace gfx::compiler {
 cast::cast(element* parent, compiler::type* type, element* expr)
 	: element(parent, element_type_t::cast), expression_(expr), type_(type)
@@ -29,6 +31,9 @@ bool cast::on_emit(result &r, assembler &assembler, const emit_context_t &contex
     if (expression_ == nullptr) {
        return true;
     }
+    auto instruction_block = assembler.current_block();
+    instruction_block->comment(fmt::format("XXX: cast<{}> not yet implemented",
+        type_->name()));
     return expression_->emit(r, assembler, context);
 }
 

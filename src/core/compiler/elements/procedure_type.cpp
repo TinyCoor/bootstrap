@@ -54,14 +54,25 @@ bool procedure_type::on_emit(result &r, assembler &assembler, const emit_context
 
     auto instruction_block = assembler.make_procedure_block();
     auto proc_label = name();
-    if (!context.procedure_identifier.empty()) {
-        proc_label = context.procedure_identifier;
+    auto procedure_label = name();
+
+    switch (context.type) {
+        case emit_context_type_t::procedure_type:
+            procedure_label = context.data.procedure_type->identifier_name;
+            break;
+        default:
+            break;
     }
-    instruction_block->make_label(proc_label);
+    instruction_block->make_label(procedure_label);
     assembler.push_block(instruction_block);
     scope_->emit(r, assembler, context);
     assembler.pop_block();
 
+    return true;
+}
+
+bool procedure_type::on_is_constant() const
+{
     return true;
 }
 

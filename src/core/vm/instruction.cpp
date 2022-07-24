@@ -316,8 +316,13 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
                             operands_stream << id_resolver(operand.value.u64);
                         }
                     } else {
-                        operands_stream << prefix << fmt::format(fmt::runtime(format_spec), operand.value.u64)
-                            << postfix;
+                        if (prefix == "-") {
+                            operands_stream << fmt::format("{}", static_cast<int64_t>(operand.value.u64));
+                        } else {
+                            operands_stream << prefix
+                                            << fmt::format(fmt::runtime(format_spec), operand.value.u64)
+                                            << postfix;
+                        }
                     }
                 } else {
                     operands_stream << prefix << fmt::format(fmt::runtime(format_spec), operand.value.d64)

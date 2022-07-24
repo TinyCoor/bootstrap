@@ -41,7 +41,7 @@ bool procedure_call::on_emit(result &r, assembler &assembler, const emit_context
         instruction_block->call(identifier()->name());
     }
     auto target_reg = instruction_block->current_target_register();
-    for (auto return_type : procedure_type->returns().as_list()) {
+    for (auto &return_type : procedure_type->returns().as_list()) {
         instruction_block->pop<uint64_t>(target_reg->reg.i);
     }
 

@@ -5,6 +5,7 @@
 #include "element.h"
 #include "type.h"
 #include "vm/assembler.h"
+#include "fmt/format.h"
 
 namespace gfx::compiler {
 element::element(element* parent, element_type_t type)
@@ -125,6 +126,12 @@ bool element::emit(result &r, assembler &assembler, const emit_context_t& contex
 bool compiler::element::on_emit(gfx::result &r, gfx::assembler &assembler, const emit_context_t& context)
 {
     return true;
+}
+
+std::string element::label_name() const
+{
+    return fmt::format("{}_{}", element_type_name(element_type_),
+        id_);
 }
 }
 

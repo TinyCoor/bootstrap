@@ -64,6 +64,9 @@ gfx::segment *assembler::segment(const std::string &name, segment_type_t type)
 
 void assembler::push_block(instruction_block *block)
 {
+    if (block->type() == instruction_block_type_t::procedure) {
+        procedure_block_count_++;
+    }
     block_stack_.push(block);
 }
 
@@ -73,13 +76,16 @@ instruction_block *assembler::pop_block()
         return nullptr;
     }
     auto top = block_stack_.top();
+    if (top->type() == instruction_block_type_t::procedure && procedure_block_count_ > 0) {
+        procedure_block_count_--;
+    }
     block_stack_.pop();
     return top;
 }
 
-instruction_block *assembler::make_implicit_block(instruction_block* parent)
+instruction_block *assembler::make_basic_block(instruction_block* parent)
 {
-    auto block = new instruction_block(parent, instruction_block_type_t::implicit);
+    auto block = new instruction_block(parent, instruction_block_type_t::basic);
     add_new_block(block);
     return block;
 }
@@ -102,5 +108,10 @@ void assembler::add_new_block(instruction_block *block)
 instruction_block *assembler::root_block()
 {
     return blocks_.front();
+}
+
+bool assembler::in_procedure_scope() const
+{
+    return procedure_block_count_ > 0;
 }
 }

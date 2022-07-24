@@ -61,7 +61,6 @@ bool binary_operator::on_is_constant() const
         && (rhs_ != nullptr && rhs_->is_constant());
 }
 
-
 bool compiler::binary_operator::on_emit(gfx::result &r, gfx::assembler &assembler, const emit_context_t& context)
 {
     auto instruction_block = assembler.current_block();
@@ -137,15 +136,22 @@ bool compiler::binary_operator::on_emit(gfx::result &r, gfx::assembler &assemble
         case operator_type_t::assignment: {
             auto lhs_reg = instruction_block->allocate_ireg();
             instruction_block->push_target_register(lhs_reg);
-            lhs_->emit(r, assembler, context);
+            lhs_->emit(r, assembler, emit_context_t::for_write(context));
             instruction_block->pop_target_register();
 
             auto rhs_reg = instruction_block->allocate_ireg();
             instruction_block->push_target_register(rhs_reg);
-            rhs_->emit(r, assembler, context);
+            rhs_->emit(r, assembler, emit_context_t::for_read(context));
             instruction_block->pop_target_register();
 
-            instruction_block->store_from_ireg<uint64_t>(rhs_reg, lhs_reg);
+            int64_t offset = 0;
+            auto identifier = dynamic_cast<compiler::identifier*>(lhs_);
+            if (identifier->usage() == identifier_usage_t::stack) {
+                lhs_reg = i_registers_t::sp;
+                offset = -8;
+            }
+
+            instruction_block->store_from_ireg<uint64_t>(lhs_reg, rhs_reg, offset);
             instruction_block->pop_target_register();
 
             instruction_block->free_ireg(lhs_reg);
@@ -174,7 +180,7 @@ void binary_operator::emit_relational_operator(result &r, assembler &assembler,
 
     switch (operator_type()) {
         case operator_type_t::equals: {
-            instruction_block->beq("temp_lbl");
+            instruction_block->bne(context.data.if_data->false_branch_label);
             break;
         }
         case operator_type_t::less_than: {

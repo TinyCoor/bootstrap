@@ -28,7 +28,9 @@ public:
 protected:
 	bool on_initialize(result& r, compiler::program* program) override;
 
-    bool on_emit(result& r, assembler& assembler, const emit_context_t& context)  override;
+    bool on_emit(result& r, assembler& assembler, const emit_context_t& context)  override;\
+
+    bool on_is_constant() const override;
 private:
 	field_map_t returns_{};
 	field_map_t parameters_{};

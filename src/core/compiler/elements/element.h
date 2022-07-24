@@ -5,20 +5,11 @@
 #ifndef COMPILER_ELEMENTS_ELEMENT_H_
 #define COMPILER_ELEMENTS_ELEMENT_H_
 #include "common/id_pool.h"
+#include "compiler/emit_context.h"
 #include "common/result.h"
 #include "element_types.h"
 #include "vm/assembler.h"
 namespace gfx::compiler {
-enum class emit_context_type_t {
-    empty,
-    procedure_type
-};
-
-struct emit_context_t {
-    emit_context_type_t type = emit_context_type_t::empty;
-
-    std::string procedure_identifier;
-};
 
 class element {
 public:
@@ -43,6 +34,8 @@ public:
     bool as_integer(uint64_t &value);
 
     bool as_string(std::string &value);
+
+    virtual std::string label_name() const final;
 
 	attribute_map_t& attributes();
 

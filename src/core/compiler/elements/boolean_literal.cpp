@@ -26,4 +26,17 @@ bool boolean_literal::on_as_bool(bool &value) const
     value = value_;
     return true;
 }
+bool boolean_literal::on_emit(result &r, assembler &assembler, const emit_context_t &context)
+{
+    auto instruction_block = assembler.current_block();
+    auto target_reg = instruction_block->current_target_register();
+    instruction_block->move_to_ireg(target_reg->reg.i,
+        static_cast<uint8_t>(value_ ? 1 : 0));
+    return true;
+}
+
+bool boolean_literal::on_is_constant() const
+{
+    return true;
+}
 }

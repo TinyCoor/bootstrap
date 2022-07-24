@@ -49,6 +49,11 @@ bool argument_list::on_emit(result &r, assembler &assembler, const emit_context_
         switch (arg->element_type()) {
             case element_type_t::proc_call:
             case element_type_t::expression:
+            case element_type_t::identifier:
+            case element_type_t::float_literal:
+            case element_type_t::string_literal:
+            case element_type_t::boolean_literal:
+            case element_type_t::integer_literal:
             case element_type_t::unary_operator:
             case element_type_t::binary_operator: {
                 auto target_reg = instruction_block->allocate_ireg();
@@ -56,43 +61,7 @@ bool argument_list::on_emit(result &r, assembler &assembler, const emit_context_
                 arg->emit(r, assembler, context);
                 instruction_block->pop_target_register();
                 instruction_block->push<uint64_t>(target_reg);
-                break;
-            }
-            case element_type_t::identifier: {
-                auto target_reg = instruction_block->allocate_ireg();
-                instruction_block->push_target_register(target_reg);
-                arg->emit(r, assembler, context);
-                instruction_block->pop_target_register();
-                instruction_block->push<uint64_t>(target_reg);
                 instruction_block->free_ireg(target_reg);
-                break;
-            }
-            case element_type_t::string_literal: {
-                auto reg = instruction_block->allocate_ireg();
-                instruction_block->move_label_to_ireg(reg, fmt::format("_str_constant_{}", arg->id()));
-                instruction_block->push<uint64_t>(reg);
-                instruction_block->free_ireg(reg);
-                break;
-            }
-            case element_type_t::float_literal:{
-                double value;
-                if (arg->as_float(value)) {
-                    instruction_block->push_constant(value);
-                }
-                break;
-            }
-            case element_type_t::boolean_literal:{
-                bool value;
-                if (arg->as_bool(value)) {
-                    instruction_block->push_constant(static_cast<uint8_t>(value ? 1 : 0));
-                }
-                break;
-            }
-            case element_type_t::integer_literal:{
-                uint64_t value;
-                if (arg->as_integer(value)) {
-                    instruction_block->push_constant(value);
-                }
                 break;
             }
             default:

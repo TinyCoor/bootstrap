@@ -5,7 +5,6 @@
 #include "block.h"
 #include "vm/assembler.h"
 #include "initializer.h"
-#include "numeric_type.h"
 #include "procedure_type.h"
 #include "statement.h"
 #include <fmt/format.h>
@@ -116,7 +115,7 @@ bool block::on_emit(result &r, assembler &assembler, const emit_context_t& conte
 
     switch (element_type()) {
         case element_type_t::block:
-            instruction_block = assembler.make_implicit_block();
+            instruction_block = assembler.make_basic_block();
             instruction_block->make_label(fmt::format("basic_block_{}", id()));
             assembler.push_block(instruction_block);
             break;
@@ -135,10 +134,8 @@ bool block::on_emit(result &r, assembler &assembler, const emit_context_t& conte
         }
         auto procedure_type = init->procedure_type();
         if (procedure_type != nullptr) {
-            emit_context_t proc_context = {
-                .procedure_identifier = ident->name()
-            };
-            procedure_type->emit(r, assembler, proc_context);
+            procedure_type->emit(r, assembler, emit_context_t::for_procedure_type(context,
+                ident->name()));
         }
     }
 

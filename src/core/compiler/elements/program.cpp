@@ -98,7 +98,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 		case ast_node_types_t::basic_block: {
 			auto active_block = push_new_block(default_block_type);
 			for (auto &it : node->children) {
-				add_expression_to_scope(active_block, evaluate(r, it));
+				add_expression_to_scope(active_block, evaluate(r, it, default_block_type));
 			}
 			return pop_scope();
 		}
@@ -239,13 +239,15 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 						// XXX: in the parameter list, multiple targets is an error
 						const auto& symbol_node = param_node->lhs->children[0];
 						auto param_identifier = add_identifier_to_scope(r, symbol_node, param_node->rhs, block_scope);
-						auto field = make_field(current_scope(), param_identifier);
+                        param_identifier->usage(identifier_usage_t::stack);
+                        auto field = make_field(current_scope(), param_identifier);
 						proc_type->parameters().add(field);
 						break;
 					}
 					case ast_node_types_t ::symbol: {
 						auto param_identifier = add_identifier_to_scope(r, param_node, nullptr, block_scope);
-						auto field = make_field(block_scope, param_identifier);
+                        param_identifier->usage(identifier_usage_t::stack);
+                        auto field = make_field(block_scope, param_identifier);
 						proc_type->parameters().add(field);
 						break;
 					}
@@ -608,26 +610,27 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 				auto ns = dynamic_cast<namespace_element*>(expr);
 				scope = dynamic_cast<compiler::block*>(ns->expression());
 			} else {
-				// XXX: what should really be happening here
-				//      if the scope isn't a namespace, is that an error?
-				break;
+                r.add_message("P018", "only a namespace is valid within a qualified name.",
+                    true);
+                return nullptr;
 			}
 		}
 	}
 
 	const auto& final_symbol = symbol->children.back();
 
+    compiler::element* init_expr = nullptr;
 	compiler::initializer * init = nullptr;
 	if (rhs != nullptr) {
-		auto init_expression = evaluate(r, rhs);
-		if (init_expression != nullptr) {
-			init = make_initializer(scope, init_expression);
+        init_expr = evaluate(r, rhs);
+		if (init_expr != nullptr && init_expr->is_constant()) {
+			init = make_initializer(scope, init_expr);
 		}
 	}
 
 	auto new_identifier = make_identifier(scope, final_symbol->token.value, init);
-	if (type_find_result.type == nullptr && init != nullptr) {
-        type_find_result.type = init->expression()->infer_type(this);
+	if (type_find_result.type == nullptr) {
+        type_find_result.type = init_expr->infer_type(this);
 		new_identifier->inferred_type(type_find_result.type != nullptr);
 	}
 	new_identifier->type(type_find_result.type);
@@ -635,13 +638,24 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 		new_identifier->type(unknown_type_from_result(r, scope, new_identifier, type_find_result));
     }
 	new_identifier->constant(symbol->is_constant_expression());
-
 	scope->identifiers().add(new_identifier);
 	if (init != nullptr
-		&&  init->expression()->element_type() == element_type_t::proc_type) {
+		&& init->expression()->element_type() == element_type_t::proc_type) {
 		add_procedure_instance(r, dynamic_cast<procedure_type*>(init->expression()), rhs);
 	}
-	return new_identifier;
+    if (init == nullptr && init_expr != nullptr) {
+        if (new_identifier->type()->element_type() == element_type_t::unknown_type) {
+            r.add_message("P019", fmt::format("unable to infer type: {}", new_identifier->name()),
+                true);
+            return nullptr;
+        } else {
+            auto assign_bin_op = make_binary_operator(scope, operator_type_t::assignment, new_identifier,
+                init_expr);
+            add_expression_to_scope(scope, make_statement(current_scope(), label_list_t {}, assign_bin_op));
+        }
+    }
+
+    return new_identifier;
 }
 
 array_type *program::make_array_type(result &r, compiler::block* parent_scope, compiler::type *entry_type, size_t size)
@@ -745,18 +759,45 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
 	if (!compile_module(r, root)) {
 		return false;
 	}
-	if (!execute_directives(r)) {
-		return false;
-	}
-	if (!resolve_unknown_identifiers(r)) {
-		return false;
-	}
+
+    // process directives
+    visit_blocks(r, [&](compiler::block* scope) {
+      for (auto stmt : scope->statements()) {
+          if (stmt->expression()->element_type() == element_type_t::directive) {
+              auto directive_element = dynamic_cast<compiler::directive*>(stmt->expression());
+              if (!directive_element->execute(r, this))
+                  return false;
+          }
+      }
+      return true;
+    });
+
+    // resolve unknown identifiers
+    visit_blocks(r, [&](compiler::block* scope) {
+      return true;
+    });
+
 	if (!resolve_unknown_types(r)) {
 		return false;
 	}
-	if (!build_data_segments(r)) {
-		return false;
-	}
+
+    // build data segments
+    string_set_t interned_strings {};
+    visit_blocks(r, [&](compiler::block* scope) {
+        if (scope->element_type() == element_type_t::proc_type_block
+            || scope->element_type() == element_type_t::proc_instance_block) {
+            return true;
+        }
+        scope->define_data(r, interned_strings, assembler_);
+        return true;
+    });
+
+    emit_context_t context {};
+    visit_blocks(r, [&](compiler::block* scope) {
+      scope->emit(r, assembler_, context);
+      return true;
+    });
+    fmt::print("\n\n");
     auto segments = assembler_.segments();
     for (auto &segment : segments) {
         fmt::print("segment: {}, type: {}\n", segment.name(), segment_type_name(segment.type()));
@@ -765,35 +806,11 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
                 symbol.offset(), symbol.name(), symbol_type_name(symbol.type()), symbol.size());
         }
     }
-    emit_context_t context {};
-    if (!emit_code_blocks(r, context)) {
-        return false;
-    }
 
     auto root_block = assembler_.root_block();
     root_block->disassemble();
-
+    fmt::print("\n");
 	return !r.is_failed();
-}
-
-bool program::build_data_segments(result& r)
-{
-    string_set_t interned_strings {};
-	std::function<bool (compiler::block*)> recursive_execute =
-		[&](compiler::block* scope) -> bool {
-		  if (scope->element_type() == element_type_t::proc_type_block ||
-		  	scope->element_type() == element_type_t::proc_instance_block) {
-			  return true;
-		  }
-		  scope->define_data(r, interned_strings, assembler_);
-		  for (auto block : scope->blocks()) {
-			  if (!recursive_execute(block)) {
-				  return false;
-			  }
-		  }
-		  return true;
-	};
-	return recursive_execute(block());
 }
 
 bool program::compile_module(result &r, const ast_node_shared_ptr &root)
@@ -847,11 +864,6 @@ type* program::find_type_down(const std::string &name)
           return nullptr;
         };
     return recursive_find(block());
-}
-
-bool program::resolve_unknown_identifiers(result &r)
-{
-	return true;
 }
 
 unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scope, const std::string &name,
@@ -917,27 +929,6 @@ bool program::resolve_unknown_types(result& r)
 terp *program::terp()
 {
 	return terp_;
-}
-
-bool program::execute_directives(result &r)
-{
-	std::function<bool (compiler::block*)> recursive_execute =[&](compiler::block* scope) -> bool {
-		for (auto &stmt : scope->statements()) {
-			if (stmt->expression()->element_type() == element_type_t::directive) {
-				auto directive_element = dynamic_cast<compiler::directive*>(stmt->expression());
-				if (!directive_element->execute(r, this)) {
-					return false;
-			  	}
-			}
-		}
-		for (auto &block : scope->blocks()) {
-			if (!recursive_execute(block)) {
-			  	return false;
-			}
-		}
-		  return true;
-	};
-	return recursive_execute(block());
 }
 
 void program::add_expression_to_scope(compiler::block *scope, compiler::element *expr)
@@ -1014,19 +1005,30 @@ type_info *program::make_type_info_type(result &r, compiler::block *parent_scope
     return make_type<type_info>(r, parent_scope);
 }
 
-bool program::emit_code_blocks(result &r, const emit_context_t& context)
+bool program::within_procedure_scope(compiler::block* parent_scope) const
 {
-    std::function<bool (compiler::block*)> recursive_emit =
+    auto block_scope = parent_scope == nullptr ? current_scope() : parent_scope;
+    while (block_scope != nullptr) {
+        if (block_scope->element_type() == element_type_t::proc_type_block
+            ||  block_scope->element_type() == element_type_t::proc_instance_block)
+            return true;
+        block_scope = dynamic_cast<compiler::block*>(block_scope->parent());
+    }
+    return false;
+}
+
+bool program::visit_blocks(result &r, const program::block_visitor_callable &callable)
+{
+    std::function<bool (compiler::block*)> recursive_execute =
         [&](compiler::block* scope) -> bool {
-          scope->emit(r, assembler_, context);
+          if (!callable(scope))
+              return false;
           for (auto block : scope->blocks()) {
-              if (!recursive_emit(block)) {
+              if (!recursive_execute(block))
                   return false;
-              }
           }
           return true;
         };
-    // auto program_instruction_block = _assembler.new_instruction_block("some_lbl");
-    return recursive_emit(block());
+    return recursive_execute(block());
 }
 }

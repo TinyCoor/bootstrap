@@ -19,4 +19,9 @@ compiler::type *namespace_element::on_infer_type(const compiler::program *progra
 {
 	return program->find_type("namespace");
 }
+
+bool compiler::namespace_element::on_is_constant() const
+{
+    return true;
+}
 }

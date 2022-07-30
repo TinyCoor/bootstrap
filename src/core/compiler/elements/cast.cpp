@@ -26,7 +26,7 @@ compiler::type *cast::on_infer_type(const compiler::program *program)
 	return type_;
 }
 
-bool cast::on_emit(result &r, assembler &assembler, const emit_context_t &context)
+bool cast::on_emit(result &r, assembler &assembler, emit_context_t &context)
 {
     if (expression_ == nullptr) {
        return true;

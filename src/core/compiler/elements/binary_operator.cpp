@@ -61,7 +61,7 @@ bool binary_operator::on_is_constant() const
         && (rhs_ != nullptr && rhs_->is_constant());
 }
 
-bool compiler::binary_operator::on_emit(gfx::result &r, gfx::assembler &assembler, const emit_context_t& context)
+bool compiler::binary_operator::on_emit(gfx::result &r, gfx::assembler &assembler, emit_context_t& context)
 {
     auto instruction_block = assembler.current_block();
     switch (operator_type()) {
@@ -93,14 +93,22 @@ bool compiler::binary_operator::on_emit(gfx::result &r, gfx::assembler &assemble
             break;
         }
         case operator_type_t::assignment: {
-            auto lhs_reg = instruction_block->allocate_ireg();
+            i_registers_t lhs_reg, rhs_reg;
+            if (!instruction_block->allocate_reg(lhs_reg)) {
+
+            }
+            if (!instruction_block->allocate_reg(rhs_reg)) {
+
+            }
             instruction_block->push_target_register(lhs_reg);
-            lhs_->emit(r, assembler, emit_context_t::for_write(context));
+            context.push_access(emit_access_type_t::write);
+            lhs_->emit(r, assembler, context);
             instruction_block->pop_target_register();
 
-            auto rhs_reg = instruction_block->allocate_ireg();
+
             instruction_block->push_target_register(rhs_reg);
-            rhs_->emit(r, assembler, emit_context_t::for_read(context));
+            context.push_access(emit_access_type_t::read);
+            rhs_->emit(r, assembler, context);
             instruction_block->pop_target_register();
 
             int64_t offset = 0;
@@ -113,8 +121,8 @@ bool compiler::binary_operator::on_emit(gfx::result &r, gfx::assembler &assemble
             instruction_block->store_from_ireg<uint64_t>(lhs_reg, rhs_reg, offset);
             instruction_block->pop_target_register();
 
-            instruction_block->free_ireg(lhs_reg);
-            instruction_block->free_ireg(rhs_reg);
+            instruction_block->free_reg(lhs_reg);
+            instruction_block->free_reg(rhs_reg);
             break;
         }
         default:
@@ -122,15 +130,34 @@ bool compiler::binary_operator::on_emit(gfx::result &r, gfx::assembler &assemble
     }
     return true;
 }
-void binary_operator::emit_relational_operator(result &r, assembler &assembler,
-   const emit_context_t &context, instruction_block *instruction_block)
+void binary_operator::emit_relational_operator(result &r, assembler &assembler, emit_context_t &context, instruction_block *instruction_block)
 {
-    auto lhs_reg = instruction_block->allocate_ireg();
+    auto if_data = context.top<if_data_t>();
+    if (if_data != nullptr) {
+        switch (operator_type()) {
+            case operator_type_t::logical_or:
+                if_data->group_type = if_data_t::logical_group_t::or_group;
+                break;
+            case operator_type_t::logical_and:
+                if_data->group_type = if_data_t::logical_group_t::and_group;
+                break;
+            default:
+                break;
+        }
+    }
+
+    i_registers_t lhs_reg;
+    if (!instruction_block->allocate_reg(lhs_reg)) {
+
+    }
     instruction_block->push_target_register(lhs_reg);
     lhs_->emit(r, assembler, context);
     instruction_block->pop_target_register();
 
-    auto rhs_reg = instruction_block->allocate_ireg();
+    i_registers_t rhs_reg;
+    if (!instruction_block->allocate_reg(rhs_reg)) {
+
+    }
     instruction_block->push_target_register(rhs_reg);
     rhs_->emit(r, assembler, context);
     instruction_block->pop_target_register();
@@ -139,7 +166,17 @@ void binary_operator::emit_relational_operator(result &r, assembler &assembler,
 
     switch (operator_type()) {
         case operator_type_t::equals: {
-            instruction_block->bne(context.data.if_data->false_branch_label);
+            instruction_block->cmp_u64(lhs_reg, rhs_reg);
+            if (if_data != nullptr) {
+                if (if_data->group_type == if_data_t::logical_group_t::and_group) {
+                    instruction_block->bne(if_data->false_branch_label);
+                } else {
+                    instruction_block->beq(if_data->true_branch_label);
+                }
+            } else {
+                instruction_block->setz(lhs_reg);
+                instruction_block->push_target_register(lhs_reg);
+            }
             break;
         }
         case operator_type_t::less_than: {
@@ -149,9 +186,23 @@ void binary_operator::emit_relational_operator(result &r, assembler &assembler,
             break;
         }
         case operator_type_t::logical_or: {
+            if (if_data != nullptr) {
+                instruction_block->jump_direct(if_data->false_branch_label);
+            } else {
+                auto lhs_target_reg = instruction_block->pop_target_register();
+                auto rhs_target_reg = instruction_block->pop_target_register();
+                auto target_reg = instruction_block->current_target_register();
+                instruction_block->or_ireg_by_ireg(target_reg->reg.i, lhs_target_reg.reg.i,
+                    rhs_target_reg.reg.i);
+            }
             break;
         }
         case operator_type_t::logical_and: {
+            if (if_data != nullptr) {
+                instruction_block->jump_direct(if_data->true_branch_label);
+            } else {
+
+            }
             break;
         }
         case operator_type_t::greater_than: {
@@ -168,20 +219,25 @@ void binary_operator::emit_relational_operator(result &r, assembler &assembler,
         }
     }
 
-    instruction_block->free_ireg(lhs_reg);
-    instruction_block->free_ireg(rhs_reg);
+    instruction_block->free_reg(lhs_reg);
+    instruction_block->free_reg(rhs_reg);
 }
-void binary_operator::emit_arithmetic_operator(result &r, assembler &assembler,
-    const emit_context_t &context, instruction_block *instruction_block)
+void binary_operator::emit_arithmetic_operator(result &r, assembler &assembler, emit_context_t &context, instruction_block *instruction_block)
 {
     auto result_reg = instruction_block->current_target_register();
 
-    auto lhs_reg = instruction_block->allocate_ireg();
+    i_registers_t lhs_reg;
+    if (!instruction_block->allocate_reg(lhs_reg)) {
+
+    }
     instruction_block->push_target_register(lhs_reg);
     lhs_->emit(r, assembler, context);
     instruction_block->pop_target_register();
 
-    auto rhs_reg = instruction_block->allocate_ireg();
+    i_registers_t rhs_reg;
+    if (!instruction_block->allocate_reg(rhs_reg)) {
+
+    }
     instruction_block->push_target_register(rhs_reg);
     rhs_->emit(r, assembler, context);
     instruction_block->pop_target_register();
@@ -236,18 +292,15 @@ void binary_operator::emit_arithmetic_operator(result &r, assembler &assembler,
             break;
         }
         case operator_type_t::rotate_right: {
-            instruction_block->ror_ireg_by_ireg(
-                result_reg->reg.i,
-                lhs_reg,
-                rhs_reg);
+            instruction_block->ror_ireg_by_ireg(result_reg->reg.i, lhs_reg, rhs_reg);
             break;
         }
         default:
             break;
     }
 
-    instruction_block->free_ireg(lhs_reg);
-    instruction_block->free_ireg(rhs_reg);
+    instruction_block->free_reg(lhs_reg);
+    instruction_block->free_reg(rhs_reg);
 }
 
 }

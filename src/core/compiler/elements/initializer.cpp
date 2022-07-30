@@ -59,7 +59,7 @@ bool initializer::on_as_float(double &value) const
     return expr_->as_float(value);
 }
 
-bool initializer::on_emit(result &r, assembler &assembler, const emit_context_t &context)
+bool initializer::on_emit(result &r, assembler &assembler, emit_context_t &context)
 {
     return true;
 }

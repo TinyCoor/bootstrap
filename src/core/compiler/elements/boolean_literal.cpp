@@ -26,7 +26,7 @@ bool boolean_literal::on_as_bool(bool &value) const
     value = value_;
     return true;
 }
-bool boolean_literal::on_emit(result &r, assembler &assembler, const emit_context_t &context)
+bool boolean_literal::on_emit(result &r, assembler &assembler, emit_context_t &context)
 {
     auto instruction_block = assembler.current_block();
     auto target_reg = instruction_block->current_target_register();

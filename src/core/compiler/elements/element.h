@@ -23,7 +23,7 @@ public:
 
 	element* parent();
 
-    bool emit(result& r, assembler& assembler, const emit_context_t& context);
+    bool emit(result& r, assembler& assembler, emit_context_t& context);
 
     bool is_constant() const;
 
@@ -44,7 +44,7 @@ public:
 	compiler::type* infer_type(const compiler::program* program);
 
 protected:
-    virtual bool on_emit(result& r, assembler& assembler, const emit_context_t& context);
+    virtual bool on_emit(result& r, assembler& assembler, emit_context_t& context);
 
     virtual bool on_is_constant() const;
 

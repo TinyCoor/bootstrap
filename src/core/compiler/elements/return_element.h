@@ -13,7 +13,7 @@ public:
 
 	element_list_t& expressions();
 protected:
-    bool on_emit(result &r, assembler &assembler, const emit_context_t &context ) override;
+    bool on_emit(result &r, assembler &assembler, emit_context_t &context ) override;
 
 private:
 	element_list_t expressions_ {};

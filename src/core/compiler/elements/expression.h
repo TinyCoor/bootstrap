@@ -19,7 +19,7 @@ protected:
     bool on_is_constant() const override;
 
 	compiler::type* on_infer_type(const compiler::program* program) override;
-    bool on_emit(result &r, assembler &assembler, const emit_context_t& context) override;
+    bool on_emit(result &r, assembler &assembler, emit_context_t& context) override;
 
 
 private:

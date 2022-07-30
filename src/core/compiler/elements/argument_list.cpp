@@ -42,7 +42,7 @@ const element_list_t& argument_list::elements() const
 	return elements_;
 }
 
-bool argument_list::on_emit(result &r, assembler &assembler, const emit_context_t& context)
+bool argument_list::on_emit(result &r, assembler &assembler, emit_context_t& context)
 {
     auto instruction_block = assembler.current_block();
     for (auto &arg : elements_) {
@@ -56,12 +56,15 @@ bool argument_list::on_emit(result &r, assembler &assembler, const emit_context_
             case element_type_t::integer_literal:
             case element_type_t::unary_operator:
             case element_type_t::binary_operator: {
-                auto target_reg = instruction_block->allocate_ireg();
+                i_registers_t target_reg;
+                if (!instruction_block->allocate_reg(target_reg)) {
+
+                }
                 instruction_block->push_target_register(target_reg);
                 arg->emit(r, assembler, context);
                 instruction_block->pop_target_register();
                 instruction_block->push<uint64_t>(target_reg);
-                instruction_block->free_ireg(target_reg);
+                instruction_block->free_reg(target_reg);
                 break;
             }
             default:

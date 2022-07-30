@@ -46,7 +46,7 @@ bool procedure_type::on_initialize(result &r, compiler::program* program)
 	return true;
 }
 
-bool procedure_type::on_emit(result &r, assembler &assembler, const emit_context_t &context)
+bool procedure_type::on_emit(result &r, assembler &assembler, emit_context_t &context)
 {
     if (is_foreign())  {
         return true;
@@ -55,12 +55,9 @@ bool procedure_type::on_emit(result &r, assembler &assembler, const emit_context
     auto instruction_block = assembler.make_procedure_block();
     auto procedure_label = name();
 
-    switch (context.type) {
-        case emit_context_type_t::procedure_type:
-            procedure_label = context.data.procedure_type->identifier_name;
-            break;
-        default:
-            break;
+    auto proc_type_data = context.top<procedure_type_data_t>();
+    if (proc_type_data != nullptr) {
+        procedure_label = proc_type_data->identifier_name;
     }
     instruction_block->make_label(procedure_label);
     assembler.push_block(instruction_block);

@@ -36,6 +36,42 @@ struct instruction_comments_t {
     std::vector<std::string> lines {};
 };
 
+template <typename T>
+struct register_allocator_t {
+    register_allocator_t() {
+        reset();
+    }
+
+    void reset() {
+        used.clear();
+        while (!available.empty()) {
+            available.pop();
+        }
+        for (int8_t r = 63; r >=0; r--)
+            available.push(static_cast<T>(r));
+    }
+
+    void free(T reg) {
+        if (used.erase(reg) > 0) {
+            available.push(reg);
+        }
+    }
+
+    bool allocate(T& reg) {
+        if (available.empty()) {
+            return false;
+        }
+        reg = available.top();
+        available.pop();
+        used.insert(reg);
+        return true;
+    }
+
+    std::set<T> used {};
+    std::stack<T> available {};
+};
+
+
 class instruction_block {
 public:
     explicit instruction_block(instruction_block* parent, instruction_block_type_t type);
@@ -62,7 +98,7 @@ public:
 
     void clear_instructions();
 
-    void pop_target_register();
+    target_register_t pop_target_register();
 
     // setxx
     void setz(i_registers_t dest_reg);
@@ -258,9 +294,9 @@ public:
     }
 
     // register allocators
-    void free_ireg(i_registers_t reg);
+    void free_reg(i_registers_t reg);
 
-    void free_freg(f_registers_t reg);
+    void free_reg(f_registers_t reg);
 
     template<class T>
     void pop(i_registers_t reg)
@@ -274,13 +310,9 @@ public:
         make_pop_instruction(TypeToOpSize::ToOpSize<T>(), reg);
     }
 
-    i_registers_t allocate_ireg();
+    bool allocate_reg(i_registers_t& reg);
 
-    f_registers_t allocate_freg();
-
-    bool reserve_ireg(i_registers_t reg);
-
-    bool reserve_freg(f_registers_t reg);
+    bool allocate_reg(f_registers_t& reg);
 
     void jump_indirect(i_registers_t reg);
 
@@ -375,10 +407,10 @@ private:
     std::vector<instruction_block*> blocks_ {};
     std::vector<instruction_t> instructions_ {};
     std::map<std::string, label*> labels_ {};
-    std::set<f_registers_t> used_float_registers_ {};
     std::stack<target_register_t> target_registers_ {};
-    std::set<i_registers_t> used_integer_registers_ {};
     std::map<size_t, instruction_comments_t> comments_ {};
+    register_allocator_t<i_registers_t> i_register_allocator_ {};
+    register_allocator_t<f_registers_t> f_register_allocator_ {};
     std::map<std::string, size_t> label_to_instruction_map_{};
     std::unordered_map<id_t, label_ref_t> unresolved_labels_ {};
     std::unordered_map<std::string, id_t> label_to_unresolved_ids_ {};

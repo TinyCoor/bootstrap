@@ -43,7 +43,7 @@ inline static std::map<op_codes, std::string_view> s_op_code_names  = {
 	{op_codes::dup,    "DUP"},  {op_codes::rts,    "RTS"},   {op_codes::jmp,    "JMP"},
 	{op_codes::meta,   "META"}, {op_codes::swi,    "SWI"},   {op_codes::trap,  "TRAP"},
 	{op_codes::exit,   "EXIT"}, {op_codes::swap,   "SWAP"},  {op_codes::ffi,   "FFI"},
-    {op_codes::setnz,   "SETNZ"},  {op_codes::setz,   "SETZ"},
+    {op_codes::setnz,  "SETNZ"},{op_codes::setz,   "SETZ"},
 };
 
 inline static std::string_view op_code_name(op_codes type) {

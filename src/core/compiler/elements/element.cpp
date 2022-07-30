@@ -118,12 +118,12 @@ bool element::on_is_constant() const
     return false;
 }
 
-bool element::emit(result &r, assembler &assembler, const emit_context_t& context)
+bool element::emit(result &r, assembler &assembler, emit_context_t& context)
 {
     return on_emit(r, assembler, context);
 }
 
-bool compiler::element::on_emit(gfx::result &r, gfx::assembler &assembler, const emit_context_t& context)
+bool compiler::element::on_emit(gfx::result &r, gfx::assembler &assembler, emit_context_t& context)
 {
     return true;
 }

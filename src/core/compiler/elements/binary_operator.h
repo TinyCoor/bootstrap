@@ -20,12 +20,12 @@ protected:
 
 	compiler::type* on_infer_type(const compiler::program* program) override;
 
-    bool on_emit(result &r, assembler &assembler, const emit_context_t& context) override;
+    bool on_emit(result &r, assembler &assembler, emit_context_t& context) override;
 
-    void emit_relational_operator(result& r, assembler& assembler, const emit_context_t& context,
+    void emit_relational_operator(result& r, assembler& assembler, emit_context_t& context,
         instruction_block* instruction_block);
 
-    void emit_arithmetic_operator(result& r, assembler& assembler, const emit_context_t& context,
+    void emit_arithmetic_operator(result& r, assembler& assembler, emit_context_t& context,
         instruction_block* instruction_block);
 private:
 	element* lhs_ = nullptr;

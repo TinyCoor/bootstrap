@@ -27,7 +27,7 @@ compiler::type *procedure_call::on_infer_type(const compiler::program *program)
 	return returns_list.front()->identifier()->type();
 }
 
-bool procedure_call::on_emit(result &r, assembler &assembler, const emit_context_t& context)
+bool procedure_call::on_emit(result &r, assembler &assembler, emit_context_t& context)
 {
     auto instruction_block = assembler.current_block();
 

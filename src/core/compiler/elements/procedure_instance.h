@@ -14,7 +14,7 @@ public:
 
 	compiler::type *procedure_type();
 protected:
-    bool on_emit(result& r, assembler& assembler, const emit_context_t& context)  override;
+    bool on_emit(result& r, assembler& assembler, emit_context_t& context)  override;
 private:
 	block * scope_ = nullptr;
 	compiler::type *procedure_type_ = nullptr;

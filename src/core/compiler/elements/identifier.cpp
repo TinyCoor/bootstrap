@@ -83,7 +83,7 @@ bool identifier::on_as_float(double &value) const
     return initializer_->as_float(value);
 }
 
-bool identifier::on_emit(result &r, assembler &assembler, const emit_context_t &context)
+bool identifier::on_emit(result &r, assembler &assembler, emit_context_t &context)
 {
     if (type_->element_type() == element_type_t::namespace_type) {
         return true;
@@ -95,7 +95,7 @@ bool identifier::on_emit(result &r, assembler &assembler, const emit_context_t &
         return true;
     }
 
-    if (context.access_type == emit_access_type_t::write) {
+    if (context.current_access() == emit_access_type_t::write) {
         if (assembler.in_procedure_scope() && usage_ == identifier_usage_t::stack) {
             instruction_block->comment(fmt::format("identifier: {}", name()));
             instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i,
@@ -112,10 +112,13 @@ bool identifier::on_emit(result &r, assembler &assembler, const emit_context_t &
                     instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i,
                         i_registers_t::sp, -8);
                 } else {
-                    auto ptr_reg = instruction_block->allocate_ireg();
+                    i_registers_t ptr_reg;
+                    if (!instruction_block->allocate_reg(ptr_reg)) {
+
+                    }
                     instruction_block->move_label_to_ireg(ptr_reg, name_);
                     instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i, ptr_reg);
-                    instruction_block->free_ireg(ptr_reg);
+                    instruction_block->free_reg(ptr_reg);
                 }
                 break;
             }

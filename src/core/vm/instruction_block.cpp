@@ -142,43 +142,16 @@ void instruction_block::trap(uint8_t index)
     instructions_.push_back(trap_op);
 }
 
-i_registers_t instruction_block::allocate_ireg()
+bool instruction_block::allocate_reg(i_registers_t& reg)
 {
-    if (!used_integer_registers_.empty()) {
-        auto reg = static_cast<i_registers_t>((*used_integer_registers_.rbegin()) + 1);
-        used_integer_registers_.insert(reg);
-        return reg;
-    }
-    used_integer_registers_.insert(i_registers_t::i0);
-    return *used_integer_registers_.begin();
-}
-f_registers_t instruction_block::allocate_freg()
-{
-    if (!used_float_registers_.empty()) {
-        auto reg = static_cast<f_registers_t>((*used_float_registers_.rbegin()) + 1);
-        used_float_registers_.insert(reg);
-        return reg;
-    }
-    used_float_registers_.insert(f_registers_t::f0);
-    return *used_float_registers_.begin();
+    return i_register_allocator_.allocate(reg);
 }
 
-bool instruction_block::reserve_ireg(i_registers_t reg)
+bool instruction_block::allocate_reg(f_registers_t& reg)
 {
-    if (used_integer_registers_.count(reg) > 0) {
-        return false;
-    }
-    used_integer_registers_.insert(reg);
-    return true;
+    return f_register_allocator_.allocate(reg);
 }
-bool instruction_block::reserve_freg(f_registers_t reg)
-{
-    if (used_float_registers_.count(reg) > 0) {
-        return false;
-    }
-    used_float_registers_.insert(reg);
-    return true;
-}
+
 void instruction_block::jump_indirect(i_registers_t reg)
 {
     instruction_t jmp_op;
@@ -194,7 +167,17 @@ void instruction_block::jump_indirect(i_registers_t reg)
 
 void instruction_block::jump_direct(const std::string &label_name)
 {
+    auto label_ref = make_unresolved_label_ref(label_name);
 
+    instruction_t jmp_op;
+    jmp_op.op = op_codes::jmp;
+    jmp_op.size = op_sizes::qword;
+    jmp_op.operands_count = 1;
+    jmp_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::constant
+            | operand_encoding_t::flags::unresolved;
+    jmp_op.operands[0].value.u64 = label_ref->id;
+    instructions_.push_back(jmp_op);
 }
 
 void instruction_block::disassemble()
@@ -202,14 +185,16 @@ void instruction_block::disassemble()
     disassemble(this);
 }
 
-void instruction_block::free_ireg(i_registers_t reg)
+void instruction_block::free_reg(i_registers_t reg)
 {
-
+    i_register_allocator_.free(reg);
 }
-void instruction_block::free_freg(f_registers_t reg)
+
+void instruction_block::free_reg(f_registers_t reg)
 {
-
+    f_register_allocator_.free(reg);
 }
+
 void instruction_block::call_foreign(const std::string &proc_name)
 {
     auto label_ref = make_unresolved_label_ref(proc_name);
@@ -596,9 +581,14 @@ void instruction_block::make_not_instruction(op_sizes size, i_registers_t dest_r
     instructions_.push_back(not_op);
 }
 
-void instruction_block::pop_target_register()
+target_register_t instruction_block::pop_target_register()
 {
-
+    if (target_registers_.empty()) {
+        return target_register_t {};
+    }
+    auto reg = target_registers_.top();
+    target_registers_.pop();
+    return reg;
 }
 
 void instruction_block::beq(const std::string &label_name)

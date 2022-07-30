@@ -25,8 +25,7 @@ bool string_literal::on_as_string(std::string &value) const
      value = value_;
 	 return true;
 }
-bool compiler::string_literal::on_emit(gfx::result &r, gfx::assembler &assembler,
-    const gfx::compiler::emit_context_t &context)
+bool compiler::string_literal::on_emit(gfx::result &r, gfx::assembler &assembler, emit_context_t &context)
 {
     auto instruction_block = assembler.current_block();
     auto target_reg = instruction_block->current_target_register();

@@ -27,9 +27,9 @@ element *if_element::false_branch()
 	return false_branch_;
 }
 
-bool if_element::on_emit(result &r, assembler &assembler, const emit_context_t &context)
+bool if_element::on_emit(result &r, assembler &assembler, emit_context_t &context)
 {
-   return predicate_->emit(r, assembler, emit_context_t::for_if_element(context,
-            true_branch_->label_name(), false_branch_->label_name()));
+    context.push_if(true_branch_->label_name(), false_branch_->label_name());
+    return predicate_->emit(r, assembler, context);
 }
 }

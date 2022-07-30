@@ -109,7 +109,7 @@ void block::add_symbols(result& r, segment *segment, const identifier_list_t &li
 	}
 }
 
-bool block::on_emit(result &r, assembler &assembler, const emit_context_t& context)
+bool block::on_emit(result &r, assembler &assembler, emit_context_t& context)
 {
     instruction_block* instruction_block = nullptr;
 
@@ -134,8 +134,8 @@ bool block::on_emit(result &r, assembler &assembler, const emit_context_t& conte
         }
         auto procedure_type = init->procedure_type();
         if (procedure_type != nullptr) {
-            procedure_type->emit(r, assembler, emit_context_t::for_procedure_type(context,
-                ident->name()));
+            context.push_procedure_type(ident->name());
+            procedure_type->emit(r, assembler, context);
         }
     }
 

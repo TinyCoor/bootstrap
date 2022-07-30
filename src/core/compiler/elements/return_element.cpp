@@ -16,17 +16,20 @@ element_list_t &return_element::expressions()
 	return expressions_;
 }
 
-bool compiler::return_element::on_emit(gfx::result &r, gfx::assembler &assembler, const emit_context_t &context )
+bool compiler::return_element::on_emit(gfx::result &r, gfx::assembler &assembler, emit_context_t &context )
 {
     auto instruction_block = assembler.current_block();
 
     for (auto expr : expressions_) {
-        auto target_reg = instruction_block->allocate_ireg();
+        i_registers_t target_reg;
+        if (!instruction_block->allocate_reg(target_reg)) {
+
+        }
         instruction_block->push_target_register(target_reg);
         expr->emit(r, assembler, context);
         instruction_block->pop_target_register();
         instruction_block->push<uint32_t>(target_reg);
-        instruction_block->free_ireg(target_reg);
+        instruction_block->free_reg(target_reg);
     }
 
     instruction_block->rts();

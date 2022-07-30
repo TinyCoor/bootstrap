@@ -7,6 +7,7 @@
 #include "common/result.h"
 #include "op_code.h"
 #include <functional>
+#include <type_traits>
 
 constexpr uint8_t REGISTER_COUNT  = 64;
 namespace gfx {
@@ -35,6 +36,7 @@ enum f_registers_t : uint8_t {
 	f48, f49, f50, f51, f52, f53, f54, f55,
 	f56, f57, f58, f59, f60, f61, f62, f63,
 };
+
 
 struct register_file_t {
 	enum flags_t : uint64_t {
@@ -100,29 +102,17 @@ struct operand_encoding_t {
 		postfix  = 0b00010000,
         unresolved  = 0b00100000,
 	};
-	[[nodiscard]] inline bool is_reg() const {
-		return (type & flags::reg) != 0;
-	}
+    bool is_reg() const;
 
-	[[nodiscard]] inline bool is_prefix() const {
-		return (type & flags::prefix) != 0;
-	}
+	bool is_prefix() const ;
 
-	[[nodiscard]] inline bool is_postfix() const {
-		return (type & flags::postfix) != 0;
-	}
+	bool is_postfix() const;
 
-	[[nodiscard]] inline bool is_integer() const {
-		return (type & flags::integer) != 0;
-	}
+	bool is_integer() const ;
 
-	[[nodiscard]] inline bool is_negative() const {
-		return (type & flags::negative) != 0;
-	}
+	bool is_negative() const ;
 
-    [[nodiscard]] inline bool is_unresolved() const {
-        return (type & flags::unresolved) != 0;
-    }
+    bool is_unresolved() const;
 
     flags_t type = flags::reg | flags::integer;
 	union {

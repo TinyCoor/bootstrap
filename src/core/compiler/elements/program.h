@@ -48,7 +48,8 @@ protected:
 private:
 	void initialize_core_types(result &r);
 
-    bool visit_blocks(result& r, const block_visitor_callable& callable);
+    bool visit_blocks(result& r, const block_visitor_callable& callable,
+                      compiler::block* root_block = nullptr);
 
     bool resolve_unknown_types(result& r);
 
@@ -71,6 +72,7 @@ private:
     friend class array_type;
     friend class string_type;
     friend class numeric_type;
+    friend class procedure_type;
 
 	cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
 

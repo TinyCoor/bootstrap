@@ -19,8 +19,8 @@ compiler::type* procedure_instance::procedure_type()
 	return procedure_type_;
 }
 
-bool procedure_instance::on_emit(result &r, assembler &assembler, emit_context_t& context)
+bool procedure_instance::on_emit(result &r, emit_context_t& context)
 {
-    return scope_->emit(r, assembler, context);
+    return scope_->emit(r, context);
 }
 }

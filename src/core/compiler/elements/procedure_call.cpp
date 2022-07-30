@@ -27,12 +27,13 @@ compiler::type *procedure_call::on_infer_type(const compiler::program *program)
 	return returns_list.front()->identifier()->type();
 }
 
-bool procedure_call::on_emit(result &r, assembler &assembler, emit_context_t& context)
+bool procedure_call::on_emit(result &r, emit_context_t& context)
 {
-    auto instruction_block = assembler.current_block();
+    auto assembler = context.assembler;
+    auto instruction_block = assembler->current_block();
 
     if (arguments_ != nullptr) {
-        arguments_->emit(r, assembler, context);
+        arguments_->emit(r, context);
     }
     auto procedure_type = identifier()->initializer()->procedure_type();
     if (procedure_type->is_foreign()) {
@@ -41,10 +42,11 @@ bool procedure_call::on_emit(result &r, assembler &assembler, emit_context_t& co
         instruction_block->call(identifier()->name());
     }
     auto target_reg = instruction_block->current_target_register();
-    for (auto &return_type : procedure_type->returns().as_list()) {
-        instruction_block->pop<uint64_t>(target_reg->reg.i);
+    if (target_reg != nullptr) {
+        for (auto return_type : procedure_type->returns().as_list()) {
+            instruction_block->pop<uint64_t>(target_reg->reg.i);
+        }
     }
-
     return true;
 }
 }

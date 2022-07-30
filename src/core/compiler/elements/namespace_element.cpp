@@ -23,5 +23,15 @@ compiler::type *namespace_element::on_infer_type(const compiler::program *progra
 bool compiler::namespace_element::on_is_constant() const
 {
     return true;
+
+}
+
+bool namespace_element::on_emit(result &r, emit_context_t &context)
+{
+    if (expression_ == nullptr) {
+        return true;
+    }
+
+    return expression_->emit(r, context);
 }
 }

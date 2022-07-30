@@ -75,13 +75,13 @@ enum class composite_types_t {
 	struct_type,
 };
 
-static inline std::unordered_map<composite_types_t, std::string> s_composite_type_names = {
+static inline std::unordered_map<composite_types_t, std::string_view> s_composite_type_names = {
 	{composite_types_t::enum_type, "enum_type"},
 	{composite_types_t::union_type, "union_type"},
 	{composite_types_t::struct_type, "struct_type"},
 };
 
-static inline std::string composite_type_name(composite_types_t type) {
+static inline std::string_view composite_type_name(composite_types_t type) {
 	auto it = s_composite_type_names.find(type);
 	if (it == s_composite_type_names.end()) {
 		return "unknown_composite_type";

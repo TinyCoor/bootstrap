@@ -59,8 +59,14 @@ bool initializer::on_as_float(double &value) const
     return expr_->as_float(value);
 }
 
-bool initializer::on_emit(result &r, assembler &assembler, emit_context_t &context)
+bool initializer::on_emit(result &r, emit_context_t &context)
 {
+    if (expr_ == nullptr)
+        return true;
+
+    if (expr_->element_type() == element_type_t::namespace_e) {
+        expr_->emit(r, context);
+    }
     return true;
 }
 

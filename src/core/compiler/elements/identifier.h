@@ -11,7 +11,7 @@ namespace gfx::compiler {
 
 enum class identifier_usage_t : uint8_t {
     heap = 1,
-    stack
+    stack,
 };
 
 class identifier : public element {
@@ -38,7 +38,7 @@ public:
 
 	compiler::initializer* initializer() const;
 protected:
-    bool on_emit(result& r, assembler& assembler, emit_context_t& context) override;
+    bool on_is_constant() const override;
 
     bool on_as_bool(bool &value) const override;
 
@@ -48,7 +48,10 @@ protected:
 
     bool on_as_string(std::string &value) const override;
 
-    bool on_is_constant() const override;
+    bool on_emit(result& r, emit_context_t& context) override;
+
+    void emit_stack_based_load(instruction_block* instruction_block);
+
 private:
 	std::string name_;
 	bool constant_ = false;

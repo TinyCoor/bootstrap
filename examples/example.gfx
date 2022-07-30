@@ -21,8 +21,10 @@ alpha::compiler::examples := ns {
     count:u32;
     max: u16 := 32767;
     name:string := "this is a test";
-
+    foo:u32 := max * 4;
     count := 1;
+
+    print("Hello,World");
 
     fib := proc(n:u64 := 10):u64 {
         if n == 0 || n == 1 {

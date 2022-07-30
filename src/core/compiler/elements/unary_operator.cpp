@@ -35,16 +35,17 @@ bool unary_operator::on_is_constant() const
     return rhs_ != nullptr && rhs_->is_constant();
 }
 
-bool compiler::unary_operator::on_emit(gfx::result &r, gfx::assembler &assembler,  emit_context_t& context)
+bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
 {
-    auto instruction_block = assembler.current_block();
+    auto assembler =context.assembler;
+    auto instruction_block = assembler->current_block();
     auto target_reg = instruction_block->current_target_register();
     i_registers_t rhs_reg;
     if (!instruction_block->allocate_reg(rhs_reg)) {
 
     }
     instruction_block->push_target_register(rhs_reg);
-    rhs_->emit(r, assembler, context);
+    rhs_->emit(r, context);
     instruction_block->pop_target_register();
 
     switch (operator_type()) {

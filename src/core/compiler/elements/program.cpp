@@ -599,10 +599,11 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 		auto var = scope->identifiers().find(symbol_node->token.value);
 		if (var == nullptr) {
 			auto new_scope = make_block(scope, element_type_t::block);
-			auto ns_identifier = make_identifier(new_scope, symbol_node->token.value,
-				make_initializer(new_scope, make_namespace(new_scope, new_scope)));
+			auto ns_identifier = make_identifier(scope, symbol_node->token.value,
+				make_initializer(scope, make_namespace(scope, new_scope)));
 			ns_identifier->type(namespace_type);
 			ns_identifier->inferred_type(true);
+            scope->blocks().push_back(new_scope);
 			scope->identifiers().add(ns_identifier);
 			scope = new_scope;
 		} else {
@@ -623,7 +624,9 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
     compiler::element* init_expr = nullptr;
 	compiler::initializer * init = nullptr;
 	if (rhs != nullptr) {
+        push_scope(scope);
         init_expr = evaluate(r, rhs);
+        pop_scope();
 		if (init_expr != nullptr && init_expr->is_constant()) {
 			init = make_initializer(scope, init_expr);
 		}
@@ -793,9 +796,9 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
         return true;
     });
 
-    emit_context_t context {};
+    emit_context_t context(terp_, &assembler_, this);
     visit_blocks(r, [&](compiler::block* scope) {
-      scope->emit(r, assembler_, context);
+      scope->emit(r, context);
       return true;
     });
     fmt::print("\n\n");
@@ -1018,7 +1021,8 @@ bool program::within_procedure_scope(compiler::block* parent_scope) const
     return false;
 }
 
-bool program::visit_blocks(result &r, const program::block_visitor_callable &callable)
+bool program::visit_blocks(result &r, const program::block_visitor_callable &callable,
+                           compiler::block* root_block)
 {
     std::function<bool (compiler::block*)> recursive_execute =
         [&](compiler::block* scope) -> bool {
@@ -1030,6 +1034,6 @@ bool program::visit_blocks(result &r, const program::block_visitor_callable &cal
           }
           return true;
         };
-    return recursive_execute(block());
+    return recursive_execute(root_block != nullptr ? root_block : block());
 }
 }

@@ -6,6 +6,36 @@
 #include "fmt/format.h"
 #include <iomanip>
 namespace gfx {
+bool operand_encoding_t::is_reg() const
+{
+    return (type & flags::reg) != 0;
+}
+
+ bool operand_encoding_t::is_prefix() const
+ {
+    return (type & flags::prefix) != 0;
+}
+
+ bool operand_encoding_t::is_postfix() const
+ {
+    return (type & flags::postfix) != 0;
+}
+
+bool operand_encoding_t::is_integer() const
+{
+    return (type & flags::integer) != 0;
+}
+
+bool operand_encoding_t::is_negative() const
+{
+    return (type & flags::negative) != 0;
+}
+
+bool operand_encoding_t::is_unresolved() const
+{
+    return (type & flags::unresolved) != 0;
+}
+
 size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 {
 	if (address % alignment != 0) {
@@ -157,7 +187,8 @@ size_t instruction_t::decode(result& r, uint8_t* heap, uint64_t address)
 						operands[i].value.d64 = *constant_value_ptr;
 						offset += sizeof(double);
 					}
-				}break;
+                    break;
+				}
 			}
 		}
 	}

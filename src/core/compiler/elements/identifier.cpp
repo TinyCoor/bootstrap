@@ -6,6 +6,8 @@
 #include "type.h"
 #include "initializer.h"
 #include "fmt/format.h"
+#include <fmt/format.h>
+#include "vm/instruction_block.h"
 namespace gfx::compiler {
 identifier::identifier(element *parent, const std::string& name, compiler::initializer* initializer)
 	: element(parent,element_type_t::identifier), name_(name), initializer_(initializer) {
@@ -83,23 +85,22 @@ bool identifier::on_as_float(double &value) const
     return initializer_->as_float(value);
 }
 
-bool identifier::on_emit(result &r, assembler &assembler, emit_context_t &context)
+bool identifier::on_emit(result &r, emit_context_t &context)
 {
+    auto instruction_block = context.assembler->current_block();
     if (type_->element_type() == element_type_t::namespace_type) {
+        instruction_block->comment(fmt::format("namespace: {}", name_));
         return true;
     }
-
-    auto instruction_block = assembler.current_block();
+    auto assembler = context.assembler;
     auto target_reg = instruction_block->current_target_register();
     if (target_reg == nullptr) {
         return true;
     }
 
     if (context.current_access() == emit_access_type_t::write) {
-        if (assembler.in_procedure_scope() && usage_ == identifier_usage_t::stack) {
-            instruction_block->comment(fmt::format("identifier: {}", name()));
-            instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i,
-                i_registers_t::sp, -8);
+        if (assembler->in_procedure_scope() && usage_ == identifier_usage_t::stack) {
+            emit_stack_based_load(instruction_block);
         } else {
             instruction_block->move_label_to_ireg(target_reg->reg.i, name_);
         }
@@ -107,10 +108,8 @@ bool identifier::on_emit(result &r, assembler &assembler, emit_context_t &contex
         switch (type_->element_type()) {
             case element_type_t::bool_type:
             case element_type_t::numeric_type: {
-                if (assembler.in_procedure_scope() && usage_ == identifier_usage_t::stack) {
-                    instruction_block->comment(fmt::format("identifier: {}", name()));
-                    instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i,
-                        i_registers_t::sp, -8);
+                if (assembler->in_procedure_scope() && usage_ == identifier_usage_t::stack) {
+                    emit_stack_based_load(instruction_block);
                 } else {
                     i_registers_t ptr_reg;
                     if (!instruction_block->allocate_reg(ptr_reg)) {
@@ -144,5 +143,19 @@ void identifier::usage(identifier_usage_t value)
 bool identifier::on_is_constant() const
 {
     return constant_;
+}
+
+void identifier::emit_stack_based_load(instruction_block* instruction_block)
+{
+    auto target_reg = instruction_block->current_target_register();
+    auto entry = instruction_block->stack_frame()->find_up(name());
+    if (entry == nullptr) {
+        // XXX: error
+        return;
+    }
+    instruction_block->comment(fmt::format("{} identifier: {}",
+        stack_frame_entry_type_name(entry->type),
+        name()));
+    instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i, i_registers_t::fp, entry->offset);
 }
 }

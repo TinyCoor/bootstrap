@@ -10,8 +10,7 @@
 #include "label.h"
 #include <set>
 #include <vector>
-#include <string>
-#include <stack>
+#include "stack_frame.h"
 namespace gfx {
 enum class target_register_type_t {
     none,
@@ -234,6 +233,7 @@ public:
         make_sub_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, augend_reg, addened_reg);
     }
 
+    void sub_ireg_by_immediate(i_registers_t dest_reg, i_registers_t minuend_reg, uint64_t subtrahend_immediate);
     // div variations
     template<typename T>
     void div_ireg_by_ireg(i_registers_t dest_reg, i_registers_t dividend_reg, i_registers_t divisor_reg)
@@ -293,11 +293,6 @@ public:
         make_push_instruction(TypeToOpSize::ToOpSize<T>() , reg);
     }
 
-    // register allocators
-    void free_reg(i_registers_t reg);
-
-    void free_reg(f_registers_t reg);
-
     template<class T>
     void pop(i_registers_t reg)
     {
@@ -309,10 +304,14 @@ public:
     {
         make_pop_instruction(TypeToOpSize::ToOpSize<T>(), reg);
     }
-
+    // alloc / free register
     bool allocate_reg(i_registers_t& reg);
 
+    void free_reg(i_registers_t reg);
+
     bool allocate_reg(f_registers_t& reg);
+
+    void free_reg(f_registers_t reg);
 
     void jump_indirect(i_registers_t reg);
 
@@ -333,6 +332,8 @@ public:
     void move_label_to_ireg(i_registers_t dest_reg, const std::string& label_name);
 
     instruction_block* parent();
+
+    stack_frame_t* stack_frame();
 private:
     void make_shl_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t amount_reg);
 
@@ -390,6 +391,9 @@ private:
     void make_sub_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t minuend_reg,
         i_registers_t subtrahend_reg);
 
+    void make_sub_instruction_immediate(op_sizes size, i_registers_t dest_reg, i_registers_t minuend_reg,
+        uint64_t subtrahend_immediate);
+
     void make_float_constant_push_instruction(op_sizes size, double value);
 
     void make_integer_constant_push_instruction(op_sizes size, uint64_t value);
@@ -402,6 +406,7 @@ private:
 
     void disassemble(instruction_block* block);
 private:
+    stack_frame_t stack_frame_;
     instruction_block* parent_ = nullptr;
     instruction_block_type_t type_;
     std::vector<instruction_block*> blocks_ {};

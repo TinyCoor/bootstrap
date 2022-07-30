@@ -16,9 +16,9 @@ element_list_t &return_element::expressions()
 	return expressions_;
 }
 
-bool compiler::return_element::on_emit(gfx::result &r, gfx::assembler &assembler, emit_context_t &context )
+bool compiler::return_element::on_emit(gfx::result &r, emit_context_t &context )
 {
-    auto instruction_block = assembler.current_block();
+    auto instruction_block = context.assembler->current_block();
 
     for (auto expr : expressions_) {
         i_registers_t target_reg;
@@ -26,7 +26,7 @@ bool compiler::return_element::on_emit(gfx::result &r, gfx::assembler &assembler
 
         }
         instruction_block->push_target_register(target_reg);
-        expr->emit(r, assembler, context);
+        expr->emit(r, context);
         instruction_block->pop_target_register();
         instruction_block->push<uint32_t>(target_reg);
         instruction_block->free_reg(target_reg);

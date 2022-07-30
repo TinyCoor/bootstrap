@@ -19,7 +19,7 @@ protected:
 
     bool on_is_constant() const override;
 
-    bool on_emit(result &r, assembler &assembler, emit_context_t &context) override;
+    bool on_emit(result &r, emit_context_t &context) override;
 
 private:
 	std::string value_;

@@ -26,15 +26,15 @@ compiler::type *cast::on_infer_type(const compiler::program *program)
 	return type_;
 }
 
-bool cast::on_emit(result &r, assembler &assembler, emit_context_t &context)
+bool cast::on_emit(result &r, emit_context_t &context)
 {
     if (expression_ == nullptr) {
        return true;
     }
-    auto instruction_block = assembler.current_block();
-    instruction_block->comment(fmt::format("XXX: cast<{}> not yet implemented",
-        type_->name()));
-    return expression_->emit(r, assembler, context);
+    auto assembler = context.assembler;
+    auto instruction_block = assembler->current_block();
+    instruction_block->comment(fmt::format("XXX: cast<{}> not yet implemented", type_->name()));
+    return expression_->emit(r, context);
 }
 
 }

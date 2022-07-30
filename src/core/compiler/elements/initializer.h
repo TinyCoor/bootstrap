@@ -15,7 +15,7 @@ public:
 
 	compiler::procedure_type* procedure_type();
 protected:
-    bool on_emit(result& r, assembler& assembler, emit_context_t& context) override;
+    bool on_emit(result& r, emit_context_t& context) override;
 
     bool on_as_integer(uint64_t &value) const override;
 

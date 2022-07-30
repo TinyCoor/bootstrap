@@ -18,7 +18,7 @@ label_list_t& statement::labels()
 	return labels_;
 }
 
-bool statement::on_emit(result &r, assembler &assembler, emit_context_t &context)
+bool statement::on_emit(result &r, emit_context_t &context)
 {
     if (expression_ == nullptr) {
         return true;
@@ -27,6 +27,6 @@ bool statement::on_emit(result &r, assembler &assembler, emit_context_t &context
     //
     // need to loop over labels and add them to the assembler here
     //
-    return expression_->emit(r, assembler, context);
+    return expression_->emit(r, context);
 }
 }

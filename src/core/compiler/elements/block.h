@@ -31,7 +31,7 @@ public:
 private:
 	static void add_symbols(result& r, segment* segment, const identifier_list_t &list);
 
-    bool on_emit(result& r, assembler& assembler, emit_context_t& context) override;
+    bool on_emit(result& r, emit_context_t& context) override;
 private:
 	type_map_t types_ {};
 	comment_list_t comments_{};

@@ -7,7 +7,7 @@
 namespace gfx {
 
 instruction_block::instruction_block(instruction_block* parent, instruction_block_type_t type)
-    : parent_(parent), type_(type)
+    : stack_frame_(parent), parent_(parent), type_(type)
 {
 }
 
@@ -529,6 +529,7 @@ void instruction_block::make_add_instruction(op_sizes size,
     add_op.operands[2].value.r8 = addend_reg;
     instructions_.push_back(add_op);
 }
+
 void instruction_block::make_sub_instruction(op_sizes size, i_registers_t dest_reg,
     i_registers_t minuend_reg, i_registers_t subtrahend_reg)
 {
@@ -877,6 +878,21 @@ void instruction_block::setnz(i_registers_t dest_reg)
         | operand_encoding_t::flags::reg;
     setnz_op.operands[0].value.r8 = dest_reg;
     instructions_.push_back(setnz_op);
+}
+void instruction_block::sub_ireg_by_immediate(i_registers_t dest_reg, i_registers_t minuend_reg,
+                                              uint64_t subtrahend_immediate)
+{
+
+}
+stack_frame_t *instruction_block::stack_frame()
+{
+    return &stack_frame_;
+}
+
+void instruction_block::make_sub_instruction_immediate(op_sizes size, i_registers_t dest_reg,
+    i_registers_t minuend_reg, uint64_t subtrahend_immediate)
+{
+
 }
 
 }

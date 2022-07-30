@@ -26,9 +26,9 @@ bool float_literal::on_as_float(double &value) const
     return true;
 }
 
-bool compiler::float_literal::on_emit(gfx::result &r, gfx::assembler &assembler, emit_context_t &context)
+bool compiler::float_literal::on_emit(gfx::result &r, emit_context_t &context)
 {
-    auto instruction_block = assembler.current_block();
+    auto instruction_block = context.assembler->current_block();
     auto target_reg = instruction_block->current_target_register();
     instruction_block->move_to_ireg(target_reg->reg.i, static_cast<uint64_t>(value_));
     return true;

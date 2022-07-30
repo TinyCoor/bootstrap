@@ -29,6 +29,7 @@ uint64_t symbol::offset() const
 {
     return offset_;
 }
+
 void symbol::value(uint64_t value)
 {
     value_.int_value = value;

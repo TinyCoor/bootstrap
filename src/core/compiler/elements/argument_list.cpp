@@ -42,9 +42,10 @@ const element_list_t& argument_list::elements() const
 	return elements_;
 }
 
-bool argument_list::on_emit(result &r, assembler &assembler, emit_context_t& context)
+bool argument_list::on_emit(result &r, emit_context_t& context)
 {
-    auto instruction_block = assembler.current_block();
+    auto assembler = context.assembler;
+    auto instruction_block = assembler->current_block();
     for (auto &arg : elements_) {
         switch (arg->element_type()) {
             case element_type_t::proc_call:
@@ -61,7 +62,7 @@ bool argument_list::on_emit(result &r, assembler &assembler, emit_context_t& con
 
                 }
                 instruction_block->push_target_register(target_reg);
-                arg->emit(r, assembler, context);
+                arg->emit(r, context);
                 instruction_block->pop_target_register();
                 instruction_block->push<uint64_t>(target_reg);
                 instruction_block->free_reg(target_reg);

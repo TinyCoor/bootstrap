@@ -6,7 +6,7 @@
 #include "program.h"
 namespace gfx::compiler {
 string_literal::string_literal(element* parent, const std::string& value)
-	: element(parent, element_type_t::string_literal),value_(value)
+	: element(parent, element_type_t::string_literal), value_(value)
 {
 }
 
@@ -25,9 +25,10 @@ bool string_literal::on_as_string(std::string &value) const
      value = value_;
 	 return true;
 }
-bool compiler::string_literal::on_emit(gfx::result &r, gfx::assembler &assembler, emit_context_t &context)
+
+bool compiler::string_literal::on_emit(gfx::result &r, emit_context_t &context)
 {
-    auto instruction_block = assembler.current_block();
+    auto instruction_block = context.assembler->current_block();
     auto target_reg = instruction_block->current_target_register();
     instruction_block->move_label_to_ireg(target_reg->reg.i, label_name());
     return true;

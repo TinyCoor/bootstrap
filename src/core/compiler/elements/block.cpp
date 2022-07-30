@@ -79,8 +79,7 @@ void block::add_symbols(result& r, segment *segment, const identifier_list_t &li
 		switch (var->type()->element_type()) {
             case element_type_t::bool_type:
 			case element_type_t::numeric_type: {
-				auto symbol = segment->symbol(var->name(),
-					integer_symbol_type_for_size(var->type()->size_in_bytes()));
+				auto symbol = segment->symbol(var->name(), integer_symbol_type_for_size(var->type()->size_in_bytes()));
                 uint64_t value = 0;
                 if (var->as_integer(value)) {
                     symbol->value(value);
@@ -109,46 +108,53 @@ void block::add_symbols(result& r, segment *segment, const identifier_list_t &li
 	}
 }
 
-bool block::on_emit(result &r, assembler &assembler, emit_context_t& context)
+bool block::on_emit(result &r, emit_context_t& context)
 {
     instruction_block* instruction_block = nullptr;
 
     switch (element_type()) {
         case element_type_t::block:
-            instruction_block = assembler.make_basic_block();
+            instruction_block = context.assembler->make_basic_block(context.assembler->current_block());
             instruction_block->make_label(fmt::format("basic_block_{}", id()));
-            assembler.push_block(instruction_block);
+            context.assembler->push_block(instruction_block);
             break;
-        case element_type_t::proc_type_block:
+        case element_type_t::proc_type_block: {
+            instruction_block =  context.assembler->current_block();
+            break;
+        }
         case element_type_t::proc_instance_block:
-            instruction_block = assembler.current_block();
+            instruction_block =context.assembler->current_block();
             break;
         default:
             return false;
     }
 
-    for (auto &ident : identifiers_.as_list()) {
-        auto init = ident->initializer();
+    for (auto &var : identifiers_.as_list()) {
+        if (context.assembler->in_procedure_scope()) {
+            var->usage(identifier_usage_t::stack);
+        }
+        auto init = var->initializer();
         if (init == nullptr) {
             continue;
         }
         auto procedure_type = init->procedure_type();
         if (procedure_type != nullptr) {
-            context.push_procedure_type(ident->name());
-            procedure_type->emit(r, assembler, context);
+            context.push_procedure_type(var->name());
+            procedure_type->emit(r, context);
+            context.pop();
         }
     }
 
     for (auto stmt : statements_) {
-        stmt->emit(r, assembler, context);
+        stmt->emit(r, context);
     }
 
     for (auto blk : blocks_) {
-        blk->emit(r, assembler, context);
+        blk->emit(r, context);
     }
 
     if (element_type() == element_type_t::block) {
-        assembler.pop_block();
+       context.assembler->pop_block();
     }
 
     return !r.is_failed();

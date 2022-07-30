@@ -8,6 +8,8 @@
 #include <stack>
 #include <string>
 #include "vm/instruction.h"
+#include "vm/terp.h"
+#include "vm/assembler.h"
 
 namespace gfx::compiler {
 enum class emit_context_type_t {
@@ -30,14 +32,16 @@ struct if_data_t {
         no_group,
         and_group,
         or_group,
-
     };
     std::string true_branch_label;
     std::string false_branch_label;
     logical_group_t group_type = logical_group_t::no_group;
 };
+class program;
 
 struct emit_context_t {
+    emit_context_t(gfx::terp* terp, gfx::assembler* assembler, compiler::program* program);
+
     template <typename T>
     T* top() {
         if (data_stack.empty()) {
@@ -50,67 +54,29 @@ struct emit_context_t {
         }
     }
 
-    void push_if(const std::string& true_label_name, const std::string& false_label_name)
-    {
-        data_stack.push(std::any(if_data_t {
-            .true_branch_label = true_label_name,
-            .false_branch_label = false_label_name,
-        }));
-    }
+    void push_if(const std::string& true_label_name, const std::string& false_label_name);
 
-    void push_procedure_type(const std::string& name)
-    {
-        data_stack.push(std::any(procedure_type_data_t {
-            .identifier_name = name
-        }));
-    }
+    void push_procedure_type(const std::string& name);
 
-    void push_access(emit_access_type_t type)
-    {
-        access_stack.push(type);
-    }
+    void push_access(emit_access_type_t type);
 
-    emit_access_type_t current_access() const {
-        if (access_stack.empty()) {
-            return emit_access_type_t::read;
-        }
-        return access_stack.top();
-    }
+    emit_access_type_t current_access() const;
 
-    void pop_access()
-    {
-        if (access_stack.empty()) {
-            return;
-        }
-        access_stack.pop();
-    }
+    void pop_access();
 
-    bool has_scratch_register() const
-    {
-        return !scratch_registers.empty();
-    }
+    void pop();
 
-    void clear_scratch_registers()
-    {
-        while (!scratch_registers.empty()) {
-            scratch_registers.pop();
-        }
-    }
+    void push_scratch_register(i_registers_t reg);
 
-    i_registers_t pop_scratch_register() {
-        if (scratch_registers.empty()) {
-            return i_registers_t::i0;
-        }
-        auto reg = scratch_registers.top();
-        scratch_registers.pop();
-        return reg;
-    }
+    bool has_scratch_register() const;
 
-    void push_scratch_register(i_registers_t reg)
-    {
-        scratch_registers.push(reg);
-    }
+    void clear_scratch_registers();
 
+    i_registers_t pop_scratch_register();
+
+    terp* terp = nullptr;
+    assembler* assembler = nullptr;
+    program* program = nullptr;
     std::stack<std::any> data_stack {};
     std::stack<i_registers_t> scratch_registers {};
     std::stack<emit_access_type_t> access_stack {};

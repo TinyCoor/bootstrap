@@ -110,8 +110,7 @@ identifier_list_t identifier_map_t::globals(bool initialized)
 			if (init == nullptr) {
 				list.push_back(it.second);
 			}
-		}
-		else {
+		} else {
 			if (init != nullptr) {
 				if (init->expression()->element_type() == element_type_t::namespace_e
 					||  init->expression()->element_type() == element_type_t::proc_type) {

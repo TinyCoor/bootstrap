@@ -3,12 +3,9 @@
 //
 
 #include "attribute.h"
-#include "float_literal.h"
-#include "string_literal.h"
-#include "integer_literal.h"
-#include "boolean_literal.h"
+
 namespace gfx::compiler {
-attribute::attribute(element* parent, const std::string& name, element* expr)
+attribute::attribute(block* parent, const std::string& name, element* expr)
 	: element(parent, element_type_t::attribute), name_(name), expr_(expr)
 {
 

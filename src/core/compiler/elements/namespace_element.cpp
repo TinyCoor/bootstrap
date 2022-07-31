@@ -5,7 +5,7 @@
 #include "namespace_element.h"
 #include "program.h"
 namespace gfx::compiler {
-namespace_element::namespace_element(element *parent, element *expression)
+namespace_element::namespace_element(block *parent, element *expression)
 	: element(parent,element_type_t::namespace_e), expression_(expression)
 {
 }

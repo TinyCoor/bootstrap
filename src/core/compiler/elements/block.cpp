@@ -114,12 +114,12 @@ bool block::on_emit(result &r, emit_context_t& context)
 
     switch (element_type()) {
         case element_type_t::block:
-            instruction_block = context.assembler->make_basic_block(context.assembler->current_block());
-            instruction_block->make_label(fmt::format("basic_block_{}", id()));
+            instruction_block = context.assembler->make_basic_block();
+            instruction_block->make_label(label_name());
             context.assembler->push_block(instruction_block);
             break;
         case element_type_t::proc_type_block: {
-            instruction_block =  context.assembler->current_block();
+            instruction_block = context.assembler->current_block();
             break;
         }
         case element_type_t::proc_instance_block:

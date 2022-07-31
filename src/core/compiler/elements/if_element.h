@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class if_element : public element {
 public:
-	if_element(element* parent, element* predicate, element* true_branch, element* false_branch);
+	if_element(block* parent_scope, element* predicate, element* true_branch, element* false_branch);
 
 	element* predicate();
 

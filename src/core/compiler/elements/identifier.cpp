@@ -6,11 +6,10 @@
 #include "type.h"
 #include "initializer.h"
 #include "fmt/format.h"
-#include <fmt/format.h>
 #include "vm/instruction_block.h"
 namespace gfx::compiler {
-identifier::identifier(element *parent, const std::string& name, compiler::initializer* initializer)
-	: element(parent,element_type_t::identifier), name_(name), initializer_(initializer) {
+identifier::identifier(block *parent, const std::string& name, compiler::initializer* initializer)
+	: element(parent, element_type_t::identifier), name_(name), initializer_(initializer) {
 }
 
 compiler::type* identifier::type()
@@ -153,8 +152,7 @@ void identifier::emit_stack_based_load(instruction_block* instruction_block)
         // XXX: error
         return;
     }
-    instruction_block->comment(fmt::format("{} identifier: {}",
-        stack_frame_entry_type_name(entry->type),
+    instruction_block->comment(fmt::format("{} identifier: {}", stack_frame_entry_type_name(entry->type),
         name()));
     instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i, i_registers_t::fp, entry->offset);
 }

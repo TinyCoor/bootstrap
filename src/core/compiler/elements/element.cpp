@@ -8,7 +8,7 @@
 #include "fmt/format.h"
 
 namespace gfx::compiler {
-element::element(element* parent, element_type_t type)
+element::element(block* parent, element_type_t type)
 	:  id_(id_pool::instance()->allocate()), parent_(parent), element_type_(type)
 {
 }
@@ -30,9 +30,9 @@ bool element::on_fold(result& result)
 	return true;
 }
 
-element *element::parent()
+block *element::parent_scope()
 {
-	return parent_;
+    return parent_;
 }
 
 attribute_map_t &element::attributes()

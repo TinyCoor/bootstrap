@@ -13,7 +13,7 @@
 namespace gfx::compiler {
 class block : public element {
 public:
-	explicit block(block* parent, element_type_t type = element_type_t::block);
+	explicit block(block* parent_scope, element_type_t type = element_type_t::block);
 
 	~block() override;
 

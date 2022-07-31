@@ -180,9 +180,9 @@ void instruction_block::jump_direct(const std::string &label_name)
     instructions_.push_back(jmp_op);
 }
 
-void instruction_block::disassemble()
+void instruction_block::disassemble(assembly_listing &listing)
 {
-    disassemble(this);
+    disassemble(listing, this);
 }
 
 void instruction_block::free_reg(i_registers_t reg)
@@ -355,28 +355,29 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
     instructions_.push_back(move_op);
 }
 
-void instruction_block::disassemble(instruction_block *block)
+void instruction_block::disassemble(assembly_listing& listing, instruction_block *block)
 {
+    auto source_file = listing.current_source_file();
     for (const auto& it : block->labels_) {
-        fmt::print("{}:\n", it.first);
+        source_file->add_source_line(0, fmt::format("{}:", it.first));
     }
     size_t index = 0;
     for (const auto& inst : block->instructions_) {
         auto it = block->comments_.find(index);
         if (it != block->comments_.end()) {
             for (const auto& line : it->second.lines) {
-                fmt::print("\t; {}\n", line);
+                source_file->add_source_line(0, fmt::format("\t; {}", line));
             }
         }
         auto stream = inst.disassemble([&](uint64_t id) -> std::string {
           auto label_ref = block->find_unresolved_label_up(static_cast<id_t>(id));
           return label_ref != nullptr ? label_ref->name : fmt::format("unresolved_ref_id({})", id);
         });
-        fmt::print("\t{}\n", stream);
+        source_file->add_source_line(0, fmt::format("\t{}", stream));
         index++;
     }
     for (auto child_block : block->blocks_) {
-        disassemble(child_block);
+        disassemble(listing, child_block);
     }
 }
 
@@ -882,8 +883,9 @@ void instruction_block::setnz(i_registers_t dest_reg)
 void instruction_block::sub_ireg_by_immediate(i_registers_t dest_reg, i_registers_t minuend_reg,
                                               uint64_t subtrahend_immediate)
 {
-
+    make_sub_instruction_immediate(op_sizes::qword, dest_reg, minuend_reg, subtrahend_immediate);
 }
+
 stack_frame_t *instruction_block::stack_frame()
 {
     return &stack_frame_;
@@ -892,7 +894,20 @@ stack_frame_t *instruction_block::stack_frame()
 void instruction_block::make_sub_instruction_immediate(op_sizes size, i_registers_t dest_reg,
     i_registers_t minuend_reg, uint64_t subtrahend_immediate)
 {
-
+    instruction_t sub_op;
+    sub_op.op = op_codes::sub;
+    sub_op.size = size;
+    sub_op.operands_count = 3;
+    sub_op.operands[0].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    sub_op.operands[0].value.r8 = dest_reg;
+    sub_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    sub_op.operands[1].value.r8 = minuend_reg;
+    sub_op.operands[2].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::constant;
+    sub_op.operands[2].value.u64 = subtrahend_immediate;
+    instructions_.push_back(sub_op);
 }
 
 }

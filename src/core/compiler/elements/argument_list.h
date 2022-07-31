@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class argument_list : public element {
 public:
-	explicit argument_list(element* parent);
+	explicit argument_list(block* parent_scope);
 
 	void add(element* item);
 

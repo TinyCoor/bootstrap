@@ -5,7 +5,7 @@
 #include "unary_operator.h"
 #include "program.h"
 namespace gfx::compiler {
-unary_operator::unary_operator(element* parent, operator_type_t type,element* rhs)
+unary_operator::unary_operator(block* parent, operator_type_t type,element* rhs)
 	: operator_base(parent, element_type_t::unary_operator, type), rhs_(rhs)
 {
 }

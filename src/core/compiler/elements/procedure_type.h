@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class procedure_type : public type {
 public:
-	explicit procedure_type(element* parent, compiler::block* scope, const std::string& name);
+	explicit procedure_type(block* parent_scope, compiler::block* scope, const std::string& name);
 
 	compiler::block* scope();
 

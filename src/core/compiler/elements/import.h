@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 	class import : public element {
 	public:
-		import(element* parent, element* expr);
+		import(block* parent_scope, element* expr);
 
 		element* expression();
 

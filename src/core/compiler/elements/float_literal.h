@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class float_literal : public element {
 public:
-	explicit float_literal(element* parent, double value);
+	explicit float_literal(block* parent_scope, double value);
 
 	double value() const;
 

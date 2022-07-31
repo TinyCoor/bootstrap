@@ -6,7 +6,7 @@
 #include "type.h"
 #include "fmt/format.h"
 namespace gfx::compiler {
-cast::cast(element* parent, compiler::type* type, element* expr)
+cast::cast(block* parent, compiler::type* type, element* expr)
 	: element(parent, element_type_t::cast), expression_(expr), type_(type)
 {
 }

@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class procedure_call : public element {
 public:
-	procedure_call(element* parent, identifier* identifier, argument_list* args);
+	procedure_call(block* parent_scope, identifier* identifier, argument_list* args);
 
 	identifier* identifier();
 

@@ -16,7 +16,7 @@ enum class identifier_usage_t : uint8_t {
 
 class identifier : public element {
 public:
-	identifier(element* parent, const std::string& name, compiler::initializer* initializer);
+	identifier(block* parent_scope, const std::string& name, compiler::initializer* initializer);
 
 	compiler::type* type();
 

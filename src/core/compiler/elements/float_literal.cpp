@@ -5,7 +5,7 @@
 #include "float_literal.h"
 #include "program.h"
 namespace gfx::compiler {
-float_literal::float_literal(element* parent,double value)
+float_literal::float_literal(block* parent,double value)
 	: element(parent, element_type_t::float_literal), value_(value)
 {
 }

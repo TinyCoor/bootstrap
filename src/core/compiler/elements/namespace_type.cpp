@@ -4,7 +4,7 @@
 
 #include "namespace_type.h"
 namespace gfx::compiler{
-namespace_type::namespace_type(element *parent)
+namespace_type::namespace_type(block *parent)
 	: type(parent, element_type_t::namespace_type, "namespace")
 {
 

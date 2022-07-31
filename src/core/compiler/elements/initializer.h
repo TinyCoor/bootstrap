@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class initializer : public element {
 public:
-	explicit initializer(element* parent, element* expr);
+	explicit initializer(block* parent_scope, element* expr);
 
 	element* expression();
 

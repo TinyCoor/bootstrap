@@ -4,7 +4,7 @@
 
 #include "label.h"
 namespace gfx::compiler {
-label::label(element* parent, const std::string& name)
+label::label(block* parent, const std::string& name)
 	: element(parent, element_type_t::label),name_(name)
 {
 

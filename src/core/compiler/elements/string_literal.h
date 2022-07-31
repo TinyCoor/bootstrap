@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class string_literal : public element {
 public:
-	string_literal(element* parent, const std::string& value);
+	string_literal(block* parent_scope, const std::string& value);
 
 	std::string value() const;
 

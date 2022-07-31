@@ -5,7 +5,7 @@
 #include "string_type.h"
 #include "program.h"
 namespace gfx::compiler {
-string_type::string_type(element* parent)
+string_type::string_type(block* parent)
 	: composite_type(parent, composite_types_t::struct_type, "string", element_type_t::string_type)
 {
 
@@ -13,7 +13,7 @@ string_type::string_type(element* parent)
 
 bool string_type::on_initialize(result &r, compiler::program *program)
 {
-    auto block_scope = dynamic_cast<compiler::block*>(parent());
+    auto block_scope = parent_scope();
 
     auto u32_type = program->find_type_down("u32");
     auto address_type = program->find_type_down("address");

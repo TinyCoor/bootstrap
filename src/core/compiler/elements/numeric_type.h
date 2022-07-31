@@ -18,7 +18,7 @@ using numeric_type_map_t = std::unordered_map<std::string, numeric_type_properti
 
 class numeric_type : public type {
 public:
-	explicit numeric_type(element* parent, const std::string& name, int64_t min, uint64_t max);
+	explicit numeric_type(block* parent_scope, const std::string& name, int64_t min, uint64_t max);
 
 	int64_t min() const;
 

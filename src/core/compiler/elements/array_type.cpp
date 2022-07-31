@@ -5,7 +5,7 @@
 #include "array_type.h"
 #include "program.h"
 namespace gfx::compiler {
-array_type::array_type(element* parent, const std::string& name, compiler::type* entry_type, size_t size)
+array_type::array_type(block* parent, const std::string& name, compiler::type* entry_type, size_t size)
 	:   composite_type(parent,composite_types_t::struct_type, name, element_type_t::array_type),
         size_(size), entry_type_(entry_type)
 {
@@ -28,7 +28,7 @@ compiler::type* array_type::entry_type()
 
 bool array_type::on_initialize(result &r, compiler::program* program)
 {
-    auto block_scope = dynamic_cast<compiler::block*>(parent());
+    auto block_scope = parent_scope();
 
     auto u8_type = program->find_type_down("u8");
     auto u32_type = program->find_type_down("u32");

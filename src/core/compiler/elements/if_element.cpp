@@ -5,7 +5,7 @@
 #include "if_element.h"
 #include "fmt/format.h"
 namespace gfx::compiler {
-if_element::if_element(element *parent, element *predicate, element *true_branch, element *false_branch)
+if_element::if_element(block *parent, element *predicate, element *true_branch, element *false_branch)
 	: element(parent, element_type_t::if_e), predicate_(predicate), true_branch_(true_branch),
 		false_branch_(false_branch)
 {

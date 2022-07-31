@@ -3,11 +3,10 @@
 //
 
 #include "argument_list.h"
-#include "identifier.h"
 #include "vm/instruction_block.h"
 #include "fmt/format.h"
 namespace gfx::compiler {
-argument_list::argument_list(element* parent)
+argument_list::argument_list(block* parent)
 	: element(parent, element_type_t::argument_list)
 {
 }

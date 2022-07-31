@@ -4,7 +4,7 @@
 
 #include "expression.h"
 namespace gfx::compiler {
-expression::expression(element* parent, element* root)
+expression::expression(block* parent, element* root)
 	: element(parent, element_type_t::expression),root_(root)
 {
 }

@@ -69,6 +69,7 @@ set(VM_SRC
         vm/instruction.cpp
         vm/stack_frame.cpp
         vm/shared_library.cpp
+        vm/assembly_listing.cpp
         vm/instruction_builder.h
         vm/instruction_block.cpp
         vm/instruction_cache.cpp

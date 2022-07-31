@@ -10,7 +10,7 @@ namespace gfx::compiler {
 
 class boolean_literal : public element {
 public:
-	boolean_literal(element* parent, bool value);
+	boolean_literal(block* parent_scope, bool value);
 
 	bool value() const;
 

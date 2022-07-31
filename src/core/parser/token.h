@@ -91,6 +91,8 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::equals,                 "equals"},
 	{token_types_t::period, 				"period"},
 	{token_types_t::percent,  				"percent"},
+    {token_types_t::line_comment,           "label"},
+    {token_types_t::block_comment,          "comment"},
 	{token_types_t::asterisk, 				"ampersand"},
 	{token_types_t::assignment,             "assignment"},
 	{token_types_t::not_equals,             "not_equals"},
@@ -101,10 +103,7 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::return_literal, 		"return_literal"},
 	{token_types_t::left_curly_brace,       "left_curly_brace"},
 	{token_types_t::right_curly_brace,      "right_curly_brace"},
-	{token_types_t::line_comment,           "label"},
-	{token_types_t::block_comment,          "comment"},
 	{token_types_t::left_square_bracket,    "left_square_bracket"},
-
 	{token_types_t::right_square_bracket,   "right_square_bracket"},
 	{token_types_t::greater_than,           "greater_than"},
 	{token_types_t::greater_than_equal,     "greater_than_equal"},
@@ -201,5 +200,4 @@ struct token_t {
 };
 
 }
-
 #endif // TOKEN_H_

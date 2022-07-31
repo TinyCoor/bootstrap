@@ -4,7 +4,7 @@
 
 #include "statement.h"
 namespace gfx::compiler {
-statement::statement(element* parent, element* expr)
+statement::statement(block* parent, element* expr)
 	: element(parent, element_type_t::statement),
 					 expression_(expr) {
 }

@@ -6,7 +6,7 @@
 #include "procedure_call.h"
 namespace gfx::compiler {
 
-procedure_call::procedure_call(element* parent, class identifier* identifier, argument_list* args)
+procedure_call::procedure_call(block* parent, class identifier* identifier, argument_list* args)
 	: element(parent, element_type_t::proc_call),  arguments_(args) ,identifier_(identifier)
 {
 

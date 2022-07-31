@@ -5,7 +5,7 @@
 #include "integer_literal.h"
 #include "program.h"
 namespace gfx::compiler {
-integer_literal::integer_literal(element* parent, uint64_t value)
+integer_literal::integer_literal(block* parent, uint64_t value)
 	: element(parent, element_type_t::integer_literal),value_(value)
 {
 }

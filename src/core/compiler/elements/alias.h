@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class alias : public element {
 public:
-	alias(element* parent, element* expr);
+	alias(block* parent_scope, element* expr);
 
 	element* expression();
 private:

@@ -4,7 +4,7 @@
 
 #include "import.h"
 namespace gfx::compiler {
-import::import(element* parent, element* expr)
+import::import(block* parent, element* expr)
 	: element(parent, element_type_t::import_e), expression_(expr)
 {
 }

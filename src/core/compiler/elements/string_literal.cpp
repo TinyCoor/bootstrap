@@ -5,7 +5,7 @@
 #include "string_literal.h"
 #include "program.h"
 namespace gfx::compiler {
-string_literal::string_literal(element* parent, const std::string& value)
+string_literal::string_literal(block* parent, const std::string& value)
 	: element(parent, element_type_t::string_literal), value_(value)
 {
 }
@@ -26,7 +26,7 @@ bool string_literal::on_as_string(std::string &value) const
 	 return true;
 }
 
-bool compiler::string_literal::on_emit(gfx::result &r, emit_context_t &context)
+bool compiler::string_literal::on_emit(result &r, emit_context_t &context)
 {
     auto instruction_block = context.assembler->current_block();
     auto target_reg = instruction_block->current_target_register();

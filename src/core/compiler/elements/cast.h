@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class cast : public element {
 public:
-	cast(element* parent, compiler::type* type, element* expr);
+	cast(block* parent_scope, compiler::type* type, element* expr);
 
 	compiler::type* type();
 

@@ -4,7 +4,7 @@
 #include "block.h"
 #include "procedure_instance.h"
 namespace gfx::compiler {
-procedure_instance::procedure_instance(element* parent, compiler::type* procedure_type, block* scope)
+procedure_instance::procedure_instance(block* parent, compiler::type* procedure_type, block* scope)
 	: element(parent, element_type_t::proc_instance), scope_(scope), procedure_type_(procedure_type)
 {
 }

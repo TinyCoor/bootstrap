@@ -267,7 +267,6 @@ static inline std::string_view operator_type_name(operator_type_t type) {
 	return it->second;
 }
 
-
 static inline std::unordered_map<token_types_t, operator_type_t> s_unary_operators = {
 	{token_types_t::minus, operator_type_t::negate},
 	{token_types_t::tilde, operator_type_t::binary_not},

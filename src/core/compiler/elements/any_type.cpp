@@ -5,7 +5,7 @@
 #include "any_type.h"
 #include "program.h"
 namespace gfx::compiler {
-any_type::any_type(element * parent)
+any_type::any_type(block * parent)
 	: composite_type(parent, composite_types_t::struct_type ,"any", element_type_t::any_type)
 {
 
@@ -23,7 +23,7 @@ void any_type::underlying_type(compiler::type *value)
 
 bool any_type::on_initialize(result &r, compiler::program* program)
 {
-    auto block_scope = dynamic_cast<compiler::block*>(parent());
+    auto block_scope = parent_scope();
 
     auto type_info_type = program->find_type_down("type");
     auto address_type = program->find_type_down("address");

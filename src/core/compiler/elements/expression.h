@@ -11,7 +11,7 @@
 namespace gfx::compiler {
 class expression : public element {
 public:
-	explicit expression( element* parent, element* root);
+	explicit expression(block *parent_scope, element* root);
 
 	element* root();
 

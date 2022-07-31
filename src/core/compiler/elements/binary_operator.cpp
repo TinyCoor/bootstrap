@@ -5,7 +5,7 @@
 #include "binary_operator.h"
 #include "program.h"
 namespace gfx::compiler {
-binary_operator::binary_operator(element* parent, operator_type_t type, element* lhs, element* rhs)
+binary_operator::binary_operator(block* parent, operator_type_t type, element* lhs, element* rhs)
 	: operator_base(parent, element_type_t::binary_operator,type), lhs_(lhs), rhs_(rhs)
 {
 }
@@ -128,8 +128,9 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
             instruction_block->store_from_ireg<uint64_t>(lhs_reg, rhs_reg, offset);
             instruction_block->pop_target_register();
 
-            instruction_block->free_reg(lhs_reg);
             instruction_block->free_reg(rhs_reg);
+            instruction_block->free_reg(lhs_reg);
+
             break;
         }
         default:
@@ -153,18 +154,17 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
         }
     }
 
-    i_registers_t lhs_reg;
+    i_registers_t lhs_reg, rhs_reg;
     if (!instruction_block->allocate_reg(lhs_reg)) {
+
+    }
+    if (!instruction_block->allocate_reg(rhs_reg)) {
 
     }
     instruction_block->push_target_register(lhs_reg);
     lhs_->emit(r, context);
     instruction_block->pop_target_register();
 
-    i_registers_t rhs_reg;
-    if (!instruction_block->allocate_reg(rhs_reg)) {
-
-    }
     instruction_block->push_target_register(rhs_reg);
     rhs_->emit(r, context);
     instruction_block->pop_target_register();
@@ -179,8 +179,9 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
                     instruction_block->beq(if_data->true_branch_label);
                 }
             } else {
-                instruction_block->setz(lhs_reg);
-                instruction_block->push_target_register(lhs_reg);
+                auto target_reg = instruction_block->current_target_register();
+                instruction_block->setz(target_reg->reg.i);
+                context.push_scratch_register(target_reg->reg.i);
             }
             break;
         }
@@ -194,11 +195,11 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
             if (if_data != nullptr) {
                 instruction_block->jump_direct(if_data->false_branch_label);
             } else {
-                auto lhs_target_reg = instruction_block->pop_target_register();
-                auto rhs_target_reg = instruction_block->pop_target_register();
+                auto lhs_target_reg = context.pop_scratch_register();
+                auto rhs_target_reg =  context.pop_scratch_register();
                 auto target_reg = instruction_block->current_target_register();
-                instruction_block->or_ireg_by_ireg(target_reg->reg.i, lhs_target_reg.reg.i,
-                    rhs_target_reg.reg.i);
+                instruction_block->or_ireg_by_ireg(target_reg->reg.i, lhs_target_reg,
+                    rhs_target_reg);
             }
             break;
         }
@@ -206,7 +207,11 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
             if (if_data != nullptr) {
                 instruction_block->jump_direct(if_data->true_branch_label);
             } else {
-
+                auto rhs_target_reg = context.pop_scratch_register();
+                auto lhs_target_reg = context.pop_scratch_register();
+                auto target_reg = instruction_block->current_target_register();
+                instruction_block->and_ireg_by_ireg(target_reg->reg.i, lhs_target_reg,
+                    rhs_target_reg);
             }
             break;
         }
@@ -224,8 +229,9 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
         }
     }
 
-    instruction_block->free_reg(lhs_reg);
     instruction_block->free_reg(rhs_reg);
+    instruction_block->free_reg(lhs_reg);
+
 }
 void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
@@ -301,9 +307,10 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
         default:
             break;
     }
-
     instruction_block->free_reg(lhs_reg);
     instruction_block->free_reg(rhs_reg);
+
+
 }
 
 }

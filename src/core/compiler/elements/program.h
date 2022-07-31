@@ -25,9 +25,9 @@ public:
 
 	compiler::block* block();
 
-	bool compile(result& r, const ast_node_shared_ptr& root);
+	bool compile(result& r, assembly_listing& listing, const ast_node_shared_ptr& root);
 
-	bool compile_module(result& r, const ast_node_shared_ptr& root);
+	bool compile_module(result& r, assembly_listing& listing, const ast_node_shared_ptr& root);
 
 	bool run(result& r);
 

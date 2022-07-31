@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class attribute : public element {
 public:
-	attribute(element* parent, const std::string& name, element* expr);
+	attribute(block* parent_scope, const std::string& name, element* expr);
 
 	element* expression();
 

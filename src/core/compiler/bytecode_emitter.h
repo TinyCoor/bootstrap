@@ -9,7 +9,7 @@
 #include "vm/terp.h"
 #include <filesystem>
 #include "parser/parser.h"
-
+#include <vm/assembly_listing.h>
 namespace gfx::compiler {
 class program;
 struct bytecode_emitter_options_t {
@@ -26,13 +26,13 @@ public:
 
 	virtual ~bytecode_emitter();
 
-	bool compile_files(result &r, const std::vector<std::filesystem::path> &source_files);
+    bool initialize(result &r);
 
-	bool initialize(result &r);
+	bool compile_files(result &r, assembly_listing& listing, const std::vector<std::filesystem::path> &source_files);
 
-	bool compile(result &r, std::istream &input);
+	bool compile(result &r,assembly_listing& listing, std::istream &input);
 
-	bool compile_stream(result &r, std::istream &input);
+	bool compile_stream(result &r, assembly_listing& listing, std::istream &input);
 
 private:
 	void write_code_dom_graph(const std::filesystem::path& path, const program* program);

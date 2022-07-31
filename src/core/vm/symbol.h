@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/7/17.
 //
 
-#ifndef BOOTSTRAP_SRC_CORE_VM_SYMBOL_H_
-#define BOOTSTRAP_SRC_CORE_VM_SYMBOL_H_
+#ifndef VM_SYMBOL_H_
+#define VM_SYMBOL_H_
 #include "common/id_pool.h"
 #include <string>
 #include <vector>
@@ -116,4 +116,4 @@ using symbol_list_t = std::vector<symbol>;
 
 
 
-#endif //BOOTSTRAP_SRC_CORE_VM_SYMBOL_H_
+#endif // VM_SYMBOL_H_

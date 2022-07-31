@@ -15,9 +15,10 @@ bytecode_emitter::bytecode_emitter( const bytecode_emitter_options_t& options)
 
 bytecode_emitter::~bytecode_emitter() = default;
 
-bool bytecode_emitter::compile_files(result& r, const std::vector<std::filesystem::path>& source_files)
+bool bytecode_emitter::compile_files(result& r, assembly_listing& listing, const std::vector<std::filesystem::path>& source_files)
 {
 	for (const auto& source_file : source_files) {
+        listing.add_source_file(source_file.string());
 		fmt::print("Compile: {} ... ", source_file.string());
 		if (!std::filesystem::exists(source_file)) {
 			fmt::print("FAILED, file does not exist.\n");
@@ -25,7 +26,7 @@ bool bytecode_emitter::compile_files(result& r, const std::vector<std::filesyste
 		}
 		std::ifstream input_stream(source_file);
 		if (input_stream.is_open()) {
-			if (!compile(r, input_stream)) {
+			if (!compile(r, listing, input_stream)) {
 				fmt::print("FAILED.\n");
 			} else {
 				fmt::print("PASSED.\n");
@@ -41,13 +42,13 @@ bool bytecode_emitter::initialize(result& r)
 	return terp_.initialize(r);
 }
 
-bool bytecode_emitter::compile(result& r, std::istream& input)
+bool bytecode_emitter::compile(result& r, assembly_listing& listing, std::istream& input)
 {
-	compile_stream(r, input);
+	compile_stream(r, listing, input);
 	return !r.is_failed();
 }
 
-bool bytecode_emitter::compile_stream(result& r, std::istream& input)
+bool bytecode_emitter::compile_stream(result& r, assembly_listing& listing, std::istream& input)
 {
 	parser alpha_parser(input);
 	auto module_node = alpha_parser.parse(r);
@@ -56,7 +57,7 @@ bool bytecode_emitter::compile_stream(result& r, std::istream& input)
 			alpha_parser.write_ast_graph(options_.ast_graph_file_name, module_node);
 		}
 		compiler::program program_element(&terp_);
-		if (program_element.compile(r, module_node)) {
+		if (program_element.compile(r, listing, module_node)) {
 			if (options_.verbose) {
 				write_code_dom_graph(options_.code_dom_graph_file_name, &program_element);
 			}

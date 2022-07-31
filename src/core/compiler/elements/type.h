@@ -28,7 +28,7 @@ namespace gfx::compiler {
 /// template<>
 class type : public element {
 public:
-    type(element* parent, element_type_t type, const std::string& name);
+    type(block* parent_scope, element_type_t type, const std::string& name);
 
 	~type() override;
 

@@ -573,7 +573,7 @@ compiler::identifier *program::find_identifier(const ast_node_shared_ptr &node)
 			if (var != nullptr) {
                 return var;
             }
-			block_scope = dynamic_cast<compiler::block*>(block_scope->parent());
+			block_scope = block_scope->parent_scope();
 		}
 		return nullptr;
 	}
@@ -756,11 +756,11 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 	}
 }
 
-bool program::compile(result &r, const ast_node_shared_ptr &root)
+bool program::compile(result& r, assembly_listing& listing, const ast_node_shared_ptr& root)
 {
 	block_ = push_new_block();
 	initialize_core_types(r);
-	if (!compile_module(r, root)) {
+	if (!compile_module(r, listing, root)) {
 		return false;
 	}
 
@@ -769,8 +769,9 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
       for (auto stmt : scope->statements()) {
           if (stmt->expression()->element_type() == element_type_t::directive) {
               auto directive_element = dynamic_cast<compiler::directive*>(stmt->expression());
-              if (!directive_element->execute(r, this))
+              if (!directive_element->execute(r, this)) {
                   return false;
+              }
           }
       }
       return true;
@@ -778,7 +779,7 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
 
     // resolve unknown identifiers
     visit_blocks(r, [&](compiler::block* scope) {
-      return true;
+        return true;
     });
 
 	if (!resolve_unknown_types(r)) {
@@ -801,23 +802,13 @@ bool program::compile(result &r, const ast_node_shared_ptr &root)
       scope->emit(r, context);
       return true;
     });
-    fmt::print("\n\n");
-    auto segments = assembler_.segments();
-    for (auto &segment : segments) {
-        fmt::print("segment: {}, type: {}\n", segment.name(), segment_type_name(segment.type()));
-        for(auto &symbol: segment.symbols()) {
-            fmt::print("\toffset: {:04x}, symbol: {}, type: {}, size: {}\n",
-                symbol.offset(), symbol.name(), symbol_type_name(symbol.type()), symbol.size());
-        }
-    }
 
     auto root_block = assembler_.root_block();
-    root_block->disassemble();
-    fmt::print("\n");
+    root_block->disassemble(listing);
 	return !r.is_failed();
 }
 
-bool program::compile_module(result &r, const ast_node_shared_ptr &root)
+bool program::compile_module(result& r, assembly_listing& listing, const ast_node_shared_ptr& root)
 {
 	evaluate(r, root);
 	return !r.is_failed();
@@ -845,7 +836,7 @@ type* program::find_type(const std::string& name) const
         if (type_identifier != nullptr) {
             return type_identifier->type();
         }
-        scope = dynamic_cast<class block*>(scope->parent());
+        scope = scope->parent_scope();
     }
     return nullptr;
 }
@@ -903,7 +894,7 @@ bool program::resolve_unknown_types(result& r)
 			if (unknown_type->is_array()) {
 				auto array_type = find_array_type(identifier_type, unknown_type->array_size());
 				if (array_type == nullptr) {
-					array_type = make_array_type(r, dynamic_cast<compiler::block*>( var->parent()),
+					array_type = make_array_type(r, var->parent_scope(),
 						identifier_type, unknown_type->array_size());
 				}
 				identifier_type = array_type;
@@ -1014,9 +1005,11 @@ bool program::within_procedure_scope(compiler::block* parent_scope) const
     auto block_scope = parent_scope == nullptr ? current_scope() : parent_scope;
     while (block_scope != nullptr) {
         if (block_scope->element_type() == element_type_t::proc_type_block
-            ||  block_scope->element_type() == element_type_t::proc_instance_block)
+            ||  block_scope->element_type() == element_type_t::proc_instance_block) {
             return true;
-        block_scope = dynamic_cast<compiler::block*>(block_scope->parent());
+        }
+
+        block_scope = block_scope->parent_scope();
     }
     return false;
 }
@@ -1026,11 +1019,13 @@ bool program::visit_blocks(result &r, const program::block_visitor_callable &cal
 {
     std::function<bool (compiler::block*)> recursive_execute =
         [&](compiler::block* scope) -> bool {
-          if (!callable(scope))
+          if (!callable(scope)) {
               return false;
+          }
           for (auto block : scope->blocks()) {
-              if (!recursive_execute(block))
+              if (!recursive_execute(block)) {
                   return false;
+              }
           }
           return true;
         };

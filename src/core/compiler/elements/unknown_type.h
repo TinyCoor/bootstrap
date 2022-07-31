@@ -2,14 +2,14 @@
 // Created by 12132 on 2022/5/29.
 //
 
-#ifndef BOOTSTRAP_SRC_COMPILER_ELEMENTS_UNKNOWN_TYPE_H_
-#define BOOTSTRAP_SRC_COMPILER_ELEMENTS_UNKNOWN_TYPE_H_
+#ifndef COMPILER_ELEMENTS_UNKNOWN_TYPE_H_
+#define COMPILER_ELEMENTS_UNKNOWN_TYPE_H_
 #include "type.h"
 
 namespace gfx::compiler {
 class unknown_type : public type {
 public:
-    unknown_type(element* parent, const std::string& name, bool is_array, size_t size);
+    unknown_type(block* parent_scope, const std::string& name, bool is_array, size_t size);
 
 	bool is_array() const;
 
@@ -28,4 +28,4 @@ private:
 };
 }
 
-#endif //BOOTSTRAP_SRC_COMPILER_ELEMENTS_UNKNOWN_TYPE_H_
+#endif // COMPILER_ELEMENTS_UNKNOWN_TYPE_H_

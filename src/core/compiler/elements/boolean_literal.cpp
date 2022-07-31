@@ -5,7 +5,7 @@
 #include "boolean_literal.h"
 #include "program.h"
 namespace gfx::compiler{
-boolean_literal::boolean_literal(element* parent, bool value)
+boolean_literal::boolean_literal(block* parent, bool value)
 	: element(parent, element_type_t::boolean_literal), value_(value)
 {
 

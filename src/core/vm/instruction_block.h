@@ -11,6 +11,7 @@
 #include <set>
 #include <vector>
 #include "stack_frame.h"
+#include "assembly_listing.h"
 namespace gfx {
 enum class target_register_type_t {
     none,
@@ -89,7 +90,7 @@ public:
 
     void trap(uint8_t index);
 
-    void disassemble();
+    void disassemble(assembly_listing& listing);
 
     void clear_labels();
 
@@ -404,7 +405,7 @@ private:
 
     label_ref_t* make_unresolved_label_ref(const std::string& label_name);
 
-    void disassemble(instruction_block* block);
+    void disassemble(assembly_listing& listing, instruction_block* block);
 private:
     stack_frame_t stack_frame_;
     instruction_block* parent_ = nullptr;

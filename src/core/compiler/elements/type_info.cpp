@@ -6,7 +6,7 @@
 #include "program.h"
 namespace gfx::compiler {
 
-type_info::type_info(element *parent)
+type_info::type_info(block *parent)
     : compiler::composite_type(parent, composite_types_t::struct_type, "type", element_type_t::type_info)
 {
 
@@ -14,7 +14,7 @@ type_info::type_info(element *parent)
 
 bool type_info::on_initialize(result &r, compiler::program *program)
 {
-    auto block_scope = dynamic_cast<compiler::block*>(parent());
+    auto block_scope = parent_scope();
     auto string_type = program->find_type_down("string");
     auto name_identifier = program->make_identifier(block_scope, "name", nullptr);
     name_identifier->type(string_type);

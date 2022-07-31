@@ -84,7 +84,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto comment_element = dynamic_cast<comment*>(node);
 			auto style = ", fillcolor=green, style=\"filled\"";
 			auto details = fmt::format("comment|{{type: {} | value: '{}' }}",
-				comment_type_name(comment_element->type()), escape_quotes(comment_element->value()));
+				comment_type_name(comment_element->type()), escape_graphviz_chars(comment_element->value()));
 			return fmt::format("{}[shape=record,label=\"{}\"{}];", node_vertex_name, details, style);
 		}
 		case element_type_t::cast: {
@@ -123,8 +123,10 @@ std::string code_dom_formatter::format_node(element* node)
 			return fmt::format("{}[shape=record,label=\"import\"{}];", node_vertex_name, style);
 		}
 		case element_type_t::block: {
+            auto element = dynamic_cast<block*>(node);
 			auto style = ", fillcolor=floralwhite, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"block\"{}];", node_vertex_name, style);
+			return fmt::format("{}[shape=record,label=\"block|{}\"{}];", node_vertex_name,
+                               element->id(), style);
 		}
 		case element_type_t::proc_type_block: {
 			auto style = ", fillcolor=floralwhite, style=\"filled\"";
@@ -297,7 +299,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto element = dynamic_cast<string_literal*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
 			return fmt::format("{}[shape=record,label=\"string_literal|{}\"{}];", node_vertex_name,
-                escape_quotes(element->value()), style);
+                element->value(), style);
 		}
 		case element_type_t::composite_type: {
 			auto element = dynamic_cast<composite_type*>(node);
@@ -364,7 +366,7 @@ void code_dom_formatter::format(const std::string& title)
 			continue;
 		}
 		nodes_.insert(node_def);
-		add_secondary_edge(pair.second->parent(), pair.second);
+		add_secondary_edge(pair.second->parent_scope(), pair.second);
 	}
 
 	for (const auto& node : nodes_) {
@@ -382,7 +384,7 @@ std::string code_dom_formatter::get_vertex_name(element* node)
 	return fmt::format("{}_{}", element_type_name(node->element_type()), node->id());
 }
 
-std::string code_dom_formatter::escape_quotes(const std::string& value)
+std::string code_dom_formatter::escape_graphviz_chars(const std::string& value)
 {
     std::string buffer;
     for (const auto &c : value) {

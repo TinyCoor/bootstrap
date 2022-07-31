@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class return_element : public element {
 public:
-	 explicit return_element(element* parent);
+	 explicit return_element(block* parent_scope);
 
 	element_list_t& expressions();
 protected:

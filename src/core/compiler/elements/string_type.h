@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class string_type : public composite_type {
 public:
-	explicit string_type(element* parent);
+	explicit string_type(block* parent_scope);
 
 protected:
     bool on_initialize(result& r, compiler::program* program) override;

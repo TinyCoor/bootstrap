@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class unary_operator : public operator_base {
 public:
-	unary_operator(element* parent, operator_type_t type, element* rhs);
+	unary_operator(block* parent_scope, operator_type_t type, element* rhs);
 
 	element* rhs();
 

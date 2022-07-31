@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class namespace_element : public element {
 public:
-	namespace_element(element* parent,  element* expr);
+	namespace_element(block* parent_scope,  element* expr);
 
 	element* expression();
 

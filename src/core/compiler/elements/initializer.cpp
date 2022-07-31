@@ -8,7 +8,7 @@
 
 namespace gfx::compiler {
 
-initializer::initializer( element* parent, element* expr)
+initializer::initializer(block* parent, element* expr)
 	: element(parent, element_type_t::initializer), expr_(expr)
 {
 

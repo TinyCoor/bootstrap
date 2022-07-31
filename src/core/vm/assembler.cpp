@@ -85,14 +85,16 @@ instruction_block *assembler::pop_block()
 
 instruction_block *assembler::make_basic_block(instruction_block* parent)
 {
-    auto block = new instruction_block(parent, instruction_block_type_t::basic);
+    auto block = new instruction_block(parent ==nullptr ? current_block() : parent,
+        instruction_block_type_t::basic);
     add_new_block(block);
     return block;
 }
 
 instruction_block *assembler::make_procedure_block(instruction_block* parent)
 {
-    auto block = new instruction_block(parent, instruction_block_type_t::procedure);
+    auto block = new instruction_block(parent == nullptr ? current_block() : parent ,
+        instruction_block_type_t::procedure);
     add_new_block(block);
     return block;
 }

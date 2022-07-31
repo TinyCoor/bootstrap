@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class integer_literal : public element {
 public:
-	explicit integer_literal(element* parent, uint64_t value);
+    integer_literal(block* parent_scope, uint64_t value);
 
 	uint64_t value() const;
 

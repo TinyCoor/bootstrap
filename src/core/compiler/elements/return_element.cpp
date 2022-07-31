@@ -5,7 +5,7 @@
 #include "return_element.h"
 namespace gfx::compiler {
 
-return_element::return_element(element *parent)
+return_element::return_element(block *parent)
 	: element(parent, element_type_t::return_e)
 {
 

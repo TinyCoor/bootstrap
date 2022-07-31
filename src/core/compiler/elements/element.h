@@ -13,7 +13,7 @@ namespace gfx::compiler {
 
 class element {
 public:
-	element(element* parent, element_type_t type);
+	element(block* parent, element_type_t type);
 
 	virtual ~element();
 
@@ -21,7 +21,7 @@ public:
 
 	bool fold(result& r);
 
-	element* parent();
+	block* parent_scope();
 
     bool emit(result& r, emit_context_t& context);
 
@@ -62,7 +62,7 @@ protected:
 
 private:
 	id_t id_;
-	element* parent_ = nullptr;
+	block* parent_ = nullptr;
 	element_type_t element_type_ = element_type_t::element;
     attribute_map_t attributes_ {};
 };

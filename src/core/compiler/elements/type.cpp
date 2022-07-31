@@ -5,7 +5,7 @@
 #include "type.h"
 #include "field.h"
 namespace gfx::compiler {
-type::type(element* parent, element_type_t type, const std::string& name)
+type::type(block* parent, element_type_t type, const std::string& name)
 	: element(parent,type), name_(name)
 {
 }

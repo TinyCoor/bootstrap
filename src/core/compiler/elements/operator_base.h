@@ -9,13 +9,12 @@ namespace gfx::compiler {
 
 class operator_base : public  element {
 public:
-	explicit operator_base(element* parent, element_type_t element_type, operator_type_t type);
+	explicit operator_base(block* parent_scope, element_type_t element_type, operator_type_t type);
 
 	operator_type_t operator_type() const;
 
 private:
 	operator_type_t operator_type_;
-
 };
 }
 

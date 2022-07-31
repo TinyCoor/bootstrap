@@ -5,8 +5,8 @@
 #include "field.h"
 namespace gfx::compiler {
 
-field::field(element *parent, compiler::identifier *identifier)
-	: element(parent,element_type_t::field), identifier_(identifier)
+field::field(block *parent, compiler::identifier *identifier)
+	: element(parent, element_type_t::field), identifier_(identifier)
 {
 
 }

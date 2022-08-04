@@ -33,21 +33,14 @@ bool terp::initialize(result& r)
 	if (heap_ != nullptr) {
 		return true;
 	}
-	// TODO fix it
-	call_vm_ = dcNewCallVM(4096);
 
+	call_vm_ = dcNewCallVM(4096);
 	shared_libraries_.clear();
-//	shared_library_t self_image;
-//	if (!self_image.initialize(r)) {
-//		return false;
-//	}
-//	shared_libraries_.insert(std::make_pair(self_image.path(), self_image));
 	heap_ = new uint8_t[heap_size_];
 	heap_vector(heap_vectors_t::top_of_stack, heap_size_);
 	heap_vector(heap_vectors_t::bottom_of_stack, heap_size_ - stack_size_);
 	heap_vector(heap_vectors_t::program_start, program_start);
 	reset();
-
 
 	return !r.is_failed();
 }
@@ -63,7 +56,6 @@ void terp::reset()
 		registers_.f[i] = 0.0;
 	}
 	inst_cache_.reset();
-	// todo fix dyncall issue
 	dcReset(call_vm_);
 	free_heap_block_list();
 	exited_ = false;
@@ -92,7 +84,6 @@ void terp::dump_state(uint8_t count)
 		   index + 3, static_cast<uint64_t >(registers_.f[index + 3]));
 		index += 4;
 	}
-
 }
 
 bool terp::step(result &r)
@@ -106,8 +97,11 @@ bool terp::step(result &r)
 	registers_.pc += inst_size;
 
 	switch (inst.op) {
-		case op_codes::nop:{
-		}break;
+		case op_codes::nop:
+        case op_codes::data:
+        case op_codes::section:{
+            break;
+		}
 		case op_codes::alloc: {
 			uint64_t size;
 			if (!get_operand_value(r, inst, 1, size)) {

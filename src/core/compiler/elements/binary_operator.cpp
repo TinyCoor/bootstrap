@@ -140,20 +140,6 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
 }
 void binary_operator::emit_relational_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
-    auto if_data = context.top<if_data_t>();
-    if (if_data != nullptr) {
-        switch (operator_type()) {
-            case operator_type_t::logical_or:
-                if_data->group_type = if_data_t::logical_group_t::or_group;
-                break;
-            case operator_type_t::logical_and:
-                if_data->group_type = if_data_t::logical_group_t::and_group;
-                break;
-            default:
-                break;
-        }
-    }
-
     i_registers_t lhs_reg, rhs_reg;
     if (!instruction_block->allocate_reg(lhs_reg)) {
 
@@ -169,11 +155,13 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
     rhs_->emit(r, context);
     instruction_block->pop_target_register();
 
+    auto if_data = context.top<if_data_t>();
     switch (operator_type()) {
         case operator_type_t::equals: {
             instruction_block->cmp_u64(lhs_reg, rhs_reg);
             if (if_data != nullptr) {
-                if (if_data->group_type == if_data_t::logical_group_t::and_group) {
+                auto parent_op = parent_element_as<compiler::binary_operator>();
+                if (parent_op !=nullptr && parent_op->operator_type() == operator_type_t::logical_and) {
                     instruction_block->bne(if_data->false_branch_label);
                 } else {
                     instruction_block->beq(if_data->true_branch_label);

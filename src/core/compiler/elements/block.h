@@ -21,15 +21,12 @@ public:
 
 	block_list_t& blocks();
 
-	bool define_data(result& r, string_set_t& interned_strings, assembler& assembler);
-
 	comment_list_t& comments();
 
 	statement_list_t& statements();
 
 	identifier_map_t& identifiers();
 private:
-	static void add_symbols(result& r, segment* segment, const identifier_list_t &list);
 
     bool on_emit(result& r, emit_context_t& context) override;
 private:

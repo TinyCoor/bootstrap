@@ -28,14 +28,8 @@ struct procedure_type_data_t {
 };
 
 struct if_data_t {
-    enum class logical_group_t {
-        no_group,
-        and_group,
-        or_group,
-    };
     std::string true_branch_label;
     std::string false_branch_label;
-    logical_group_t group_type = logical_group_t::no_group;
 };
 class program;
 
@@ -55,8 +49,6 @@ struct emit_context_t {
     }
 
     void push_if(const std::string& true_label_name, const std::string& false_label_name);
-
-    void push_procedure_type(const std::string& name);
 
     void push_access(emit_access_type_t type);
 

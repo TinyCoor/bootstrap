@@ -13,7 +13,7 @@ namespace gfx::compiler {
 
 class element {
 public:
-	element(block* parent, element_type_t type);
+	element(block* parent, element_type_t type, element* parent_element = nullptr);
 
 	virtual ~element();
 
@@ -22,6 +22,25 @@ public:
 	bool fold(result& r);
 
 	block* parent_scope();
+
+    template <typename T>
+    T* parent_element_as() {
+        if (parent_element_ == nullptr) {
+            return nullptr;
+        }
+        return dynamic_cast<T*>(parent_element_);
+    }
+
+    bool is_parent_element(element_type_t type) {
+        if (parent_element_ == nullptr) {
+            return false;
+        }
+        return parent_element_->element_type() == type;
+    }
+
+    element* parent_element();
+
+    void parent_element(element* parent);
 
     bool emit(result& r, emit_context_t& context);
 
@@ -62,7 +81,8 @@ protected:
 
 private:
 	id_t id_;
-	block* parent_ = nullptr;
+	block* parent_scope_ = nullptr;
+    element* parent_element_ = nullptr;
 	element_type_t element_type_ = element_type_t::element;
     attribute_map_t attributes_ {};
 };

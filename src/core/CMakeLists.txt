@@ -91,6 +91,7 @@ set(ELEMENT_SRC
         compiler/elements/string_literal.cpp
         # type
         compiler/elements/type.cpp
+        compiler/elements/tuple_type.cpp
         compiler/elements/unknown_type.cpp
         compiler/elements/any_type.cpp
         compiler/elements/element_types.cpp

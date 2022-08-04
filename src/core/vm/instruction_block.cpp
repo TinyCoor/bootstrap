@@ -358,24 +358,44 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
 void instruction_block::disassemble(assembly_listing& listing, instruction_block *block)
 {
     auto source_file = listing.current_source_file();
-    for (const auto& it : block->labels_) {
-        source_file->add_source_line(0, fmt::format("{}:", it.first));
-    }
-    size_t index = 0;
-    for (const auto& inst : block->instructions_) {
+    auto add_labels = [&](size_t index) {
+        if (index != 0) {
+            return;
+        }
+        for (const auto& it : block->labels_) {
+          source_file->add_source_line(0, fmt::format("{}:", it.first));
+        }
+    };
+
+    auto add_comments = [&](size_t index, size_t indent) {
         auto it = block->comments_.find(index);
         if (it != block->comments_.end()) {
             for (const auto& line : it->second.lines) {
-                source_file->add_source_line(0, fmt::format("\t; {}", line));
+                source_file->add_source_line(0,fmt::format("{}; {}",std::string(indent * 4, ' '), line));
             }
         }
-        auto stream = inst.disassemble([&](uint64_t id) -> std::string {
-          auto label_ref = block->find_unresolved_label_up(static_cast<id_t>(id));
-          return label_ref != nullptr ? label_ref->name : fmt::format("unresolved_ref_id({})", id);
-        });
-        source_file->add_source_line(0, fmt::format("\t{}", stream));
-        index++;
+    };
+
+    if (block->instructions_.empty()) {
+        add_comments(0, 0);
+        add_labels(0);
+    } else {
+        size_t index = 0;
+        for (const auto& inst : block->instructions_) {
+            add_comments(index,  index == 0 ? 0 : 1);
+            if (index == 0) {
+                add_labels(index);
+            }
+            auto stream = inst.disassemble([&](uint64_t id) -> std::string {
+                auto label_ref = block->find_unresolved_label_up(static_cast<id_t>(id));
+                return label_ref != nullptr ? label_ref->name : fmt::format("unresolved_ref_id({})", id);
+            });
+            source_file->add_source_line(0, fmt::format("\t{}", stream));
+            index++;
+        }
+        add_comments(index, 1);
     }
+
     for (auto child_block : block->blocks_) {
         disassemble(listing, child_block);
     }
@@ -908,6 +928,74 @@ void instruction_block::make_sub_instruction_immediate(op_sizes size, i_register
             | operand_encoding_t::flags::constant;
     sub_op.operands[2].value.u64 = subtrahend_immediate;
     instructions_.push_back(sub_op);
+}
+
+void instruction_block::make_data_instruction(op_sizes size, uint64_t flags, uint64_t data)
+{
+    instruction_t data_op;
+    data_op.op = op_codes::data;
+    data_op.size = size;
+    data_op.operands_count = 2;
+    data_op.operands[0].type =operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::constant;
+    data_op.operands[0].value.u64 = flags;
+    data_op.operands[1].type = operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::constant;
+    data_op.operands[1].value.u64 = data;
+    instructions_.push_back(data_op);
+}
+void instruction_block::section(section_t type)
+{
+    instruction_t section_op;
+    section_op.op = op_codes::section;
+    section_op.size = op_sizes::byte;
+    section_op.operands_count = 1;
+    section_op.operands[0].type = operand_encoding_t::flags::integer
+        | operand_encoding_t::flags::constant;
+    section_op.operands[0].value.u64 = static_cast<uint8_t>(type);
+    instructions_.push_back(section_op);
+}
+
+void instruction_block::byte(uint8_t value)
+{
+    make_data_instruction(op_sizes::byte, 0, value);
+}
+
+void instruction_block::word(uint16_t value)
+{
+    make_data_instruction(op_sizes::word, 0, value);
+}
+
+void instruction_block::dword(uint32_t value)
+{
+    make_data_instruction(op_sizes::dword, 0, value);
+}
+
+void instruction_block::qword(uint64_t value)
+{
+    make_data_instruction(op_sizes::qword, 0, value);
+}
+void instruction_block::reserve_byte(size_t count)
+{
+    make_data_instruction(op_sizes::byte, 1, count);
+}
+void instruction_block::reserve_word(size_t count)
+{
+    make_data_instruction(op_sizes::word, 1, count);
+}
+void instruction_block::reserve_dword(size_t count)
+{
+    make_data_instruction(op_sizes::dword, 1, count);
+}
+void instruction_block::reserve_qword(size_t count)
+{
+    make_data_instruction(op_sizes::qword, 1, count);
+}
+void instruction_block::string(const std::string &value)
+{
+    for (const auto& c : value) {
+        make_data_instruction(op_sizes::byte, 0, static_cast<uint8_t>(c));
+    }
 }
 
 }

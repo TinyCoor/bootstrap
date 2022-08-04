@@ -8,8 +8,9 @@
 #include "fmt/format.h"
 
 namespace gfx::compiler {
-element::element(block* parent, element_type_t type)
-	:  id_(id_pool::instance()->allocate()), parent_(parent), element_type_(type)
+element::element(block* parent_scope, element_type_t type, element* parent_element)
+	:  id_(id_pool::instance()->allocate()), parent_scope_(parent_scope),
+        parent_element_(parent_element), element_type_(type)
 {
 }
 
@@ -32,7 +33,7 @@ bool element::on_fold(result& result)
 
 block *element::parent_scope()
 {
-    return parent_;
+    return parent_scope_;
 }
 
 attribute_map_t &element::attributes()
@@ -130,8 +131,17 @@ bool compiler::element::on_emit(gfx::result &r, emit_context_t& context)
 
 std::string element::label_name() const
 {
-    return fmt::format("{}_{}", element_type_name(element_type_),
-        id_);
+    return fmt::format("{}_{}", element_type_name(element_type_), id_);
+}
+
+element *element::parent_element()
+{
+    return parent_element_;
+}
+
+void element::parent_element(element *parent)
+{
+    parent_element_ = parent;
 }
 }
 

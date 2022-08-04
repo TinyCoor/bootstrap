@@ -5,6 +5,7 @@
 #ifndef COMPILER_ELEMENTS_PROGRAM_H_
 #define COMPILER_ELEMENTS_PROGRAM_H_
 #include "block.h"
+#include "element.h"
 #include "parser/ast.h"
 #include "core/compiler/bytecode_emitter.h"
 #include "vm/instruction_emitter.h"
@@ -44,12 +45,11 @@ protected:
 
 	terp* terp();
 
-
 private:
 	void initialize_core_types(result &r);
 
     bool visit_blocks(result& r, const block_visitor_callable& callable,
-                      compiler::block* root_block = nullptr);
+        compiler::block* root_block = nullptr);
 
     bool resolve_unknown_types(result& r);
 
@@ -91,7 +91,7 @@ private:
 
 	directive* make_directive(compiler::block* parent_scope, const std::string& name, element* expr);
 
-	statement* make_statement(compiler::block* parent_scope, label_list_t labels, element* expr);
+	statement* make_statement(compiler::block* parent_scope, const label_list_t &labels, element* expr);
 
 	boolean_literal* make_bool(compiler::block* parent_scope, bool value);
 
@@ -107,15 +107,7 @@ private:
 
 	identifier* make_identifier(compiler::block* parent_scope, const std::string& name, initializer* expr);
 
-	namespace_element* make_namespace( compiler::block* parent_scope, element* expr);
-
-	template<typename T, typename ... Args>
-	auto make_element(Args&& ...args) -> decltype(new T(std::forward<Args>(args)...))
-	{
-		auto element = new T(std::forward<Args>(args)...);
-		elements_.insert(std::make_pair(element->id(), element));
-		return element;
-	}
+	namespace_element* make_namespace(compiler::block* parent_scope, element* expr, const std::string &name = "");
 
     template<typename T, typename Result, typename ... Args>
     auto make_type(Result r, Args&& ...args) -> decltype(new T(std::forward<Args>(args)...))
@@ -149,6 +141,8 @@ private:
 	string_type* make_string_type(result& r, compiler::block* parent_scope);
 
     type_info* make_type_info_type(result& r, compiler::block* parent_scope);
+
+    tuple_type* make_tuple_type(result& r, compiler::block* parent_scope);
 
 	any_type* make_any_type(result&r, compiler::block* parent_scope);
 

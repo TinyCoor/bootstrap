@@ -25,32 +25,36 @@ class element;
 class program;
 class comment;
 class any_type;
-class type_info;
 class directive;
 class attribute;
+class identifier;
+class expression;
+class initializer;
+
 class statement;
+class type_info;
+class if_element;
+class tuple_type;
 class array_type;
 class string_type;
+class unknown_type;
 class numeric_type;
-class if_element;
+
+class float_literal;
 class argument_list;
 class return_element;
 class procedure_call;
-class identifier;
-class unknown_type;
-class expression;
-class initializer;
-class float_literal;
 class operator_base;
 class procedure_type;
 class unary_operator;
 class integer_literal;
 class boolean_literal;
+class namespace_type;
+class composite_type;
 class string_literal;
 class binary_operator;
 class namespace_element;
-class namespace_type;
-class composite_type;
+
 class procedure_instance;
 
 using string_set_t = std::set<std::string>;
@@ -109,6 +113,7 @@ enum class element_type_t {
 	import_e,
 	statement,
 	alias_type,
+    tuple_type,
 	array_type,
 	identifier,
 	expression,
@@ -153,6 +158,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::statement, 			"statement"},
 	{element_type_t::proc_call, 			"proc_call"},
     {element_type_t::namespace_e, 			"namespace"},
+    {element_type_t::tuple_type, 			"tuple_type"},
 	{element_type_t::alias_type, 			"alias_type"},
 	{element_type_t::array_type, 			"array_type"},
 	{element_type_t::identifier, 			"identifier"},

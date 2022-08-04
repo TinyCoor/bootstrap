@@ -7,6 +7,8 @@
 #include "initializer.h"
 #include "procedure_type.h"
 #include "statement.h"
+#include "string_literal.h"
+#include "namespace_element.h"
 #include <fmt/format.h>
 
 namespace gfx::compiler {
@@ -42,82 +44,21 @@ block_list_t &block::blocks()
 	return blocks_;
 }
 
-bool block::define_data(result &r, string_set_t& interned_strings, assembler &assembler)
-{
-	if (!identifiers_.empty()) {
-        auto constant_init = identifiers_.constants(true);
-        if (!constant_init.empty()) {
-            auto section = assembler.segment(fmt::format("rodata_{}", id()),segment_type_t::constant);
-            section->initialize(true);
-            add_symbols(r, section, constant_init);
-        }
-
-        auto constant_uninit = identifiers_.constants(false);
-        if (!constant_uninit.empty()) {
-            auto section = assembler.segment(fmt::format("bss_{}", id()), segment_type_t::constant);
-            add_symbols(r, section, constant_init);
-        }
-
-        auto global_init = identifiers_.globals(true);
-        if (!global_init.empty()) {
-            auto section = assembler.segment(fmt::format("data_{}", id()), segment_type_t::data);
-            add_symbols(r, section, global_init);
-        }
-
-        auto global_uninit = identifiers_.globals(false);
-        if (!global_uninit.empty()) {
-            auto section = assembler.segment(fmt::format("bss_data_{}", id()), segment_type_t::data);
-            add_symbols(r, section, global_uninit);
-        }
-	}
-	return !r.is_failed();
-}
-
-void block::add_symbols(result& r, segment *segment, const identifier_list_t &list)
-{
-	for (auto& var: list) {
-		switch (var->type()->element_type()) {
-            case element_type_t::bool_type:
-			case element_type_t::numeric_type: {
-				auto symbol = segment->symbol(var->name(), integer_symbol_type_for_size(var->type()->size_in_bytes()));
-                uint64_t value = 0;
-                if (var->as_integer(value)) {
-                    symbol->value(value);
-                }
-                break;
-			}
-            case element_type_t::any_type:
-            case element_type_t::type_info:
-            case element_type_t::array_type:
-			case element_type_t::string_type:
-			case element_type_t::composite_type: {
-                auto size_in_bytes = var->type()->size_in_bytes();
-                auto symbol = segment->symbol(var->name(), symbol_type_t::bytes, size_in_bytes);
-                if (var->initializer() != nullptr){
-                    symbol->pending_address_from_id(var->initializer()->id());
-                }
-                uint64_t value = 0;
-                symbol->value(value);
-                break;
-            }
-			default: {
-				break;
-			}
-
-		}
-	}
-}
-
 bool block::on_emit(result &r, emit_context_t& context)
 {
     instruction_block* instruction_block = nullptr;
 
     switch (element_type()) {
-        case element_type_t::block:
+        case element_type_t::block:{
             instruction_block = context.assembler->make_basic_block();
+            auto parent_ns = parent_element_as<compiler::namespace_element>();
+            if (parent_ns != nullptr) {
+                instruction_block->comment(fmt::format("namespace: {}", parent_ns->name()));
+            }
             instruction_block->make_label(label_name());
             context.assembler->push_block(instruction_block);
             break;
+        }
         case element_type_t::proc_type_block: {
             instruction_block = context.assembler->current_block();
             break;
@@ -130,18 +71,82 @@ bool block::on_emit(result &r, emit_context_t& context)
     }
 
     for (auto &var : identifiers_.as_list()) {
-        if (context.assembler->in_procedure_scope()) {
-            var->usage(identifier_usage_t::stack);
-        }
-        auto init = var->initializer();
-        if (init == nullptr) {
+        if (var->type()->element_type()==element_type_t::namespace_type) {
             continue;
         }
-        auto procedure_type = init->procedure_type();
-        if (procedure_type != nullptr) {
-            context.push_procedure_type(var->name());
-            procedure_type->emit(r, context);
-            context.pop();
+        auto init = var->initializer();
+        if (init!=nullptr) {
+            auto procedure_type = init->procedure_type();
+            if (procedure_type!=nullptr) {
+                procedure_type->emit(r, context);
+                continue;
+            }
+        }
+        if (context.assembler->in_procedure_scope()) {
+            var->usage(identifier_usage_t::stack);
+        } else {
+            instruction_block->make_label(var->name());
+            switch (var->type()->element_type()) {
+                case element_type_t::numeric_type: {
+                    if (var->is_constant()) {
+                        instruction_block->section(section_t::ro_data);
+                    } else {
+                        instruction_block->section(section_t::data);
+                    }
+                    uint64_t value = 0;
+                    var->as_integer(value);
+
+                    auto symbol_type = integer_symbol_type_for_size(var->type()->size_in_bytes());
+                    switch (symbol_type) {
+                        case symbol_type_t::u8:
+                            if (init==nullptr) {
+                                instruction_block->reserve_byte(1);
+                            } else {
+                                instruction_block->byte(static_cast<uint8_t>(value));
+                            }
+                            break;
+                        case symbol_type_t::u16:
+                            if (init == nullptr) {
+                                instruction_block->reserve_word(1);
+                            } else {
+                                instruction_block->word(static_cast<uint16_t>(value));
+                            }
+
+                            break;
+                        case symbol_type_t::f32:
+                        case symbol_type_t::u32:
+                            if (init == nullptr) {
+                                instruction_block->reserve_dword(1);
+                            } else {
+                                instruction_block->dword(static_cast<uint32_t>(value));
+                            }
+                            break;
+                        case symbol_type_t::f64:
+                        case symbol_type_t::u64:
+                            if (init==nullptr) {
+                                instruction_block->reserve_qword(1);
+                            } else {
+                                instruction_block->qword(value);
+                            }
+
+                            break;
+                        case symbol_type_t::bytes:break;
+                        default:break;
+                    }
+                    break;
+                }
+                case element_type_t::string_type: {
+                    if (init != nullptr) {
+                        instruction_block->section(section_t::ro_data);
+                        auto string_literal = dynamic_cast<compiler::string_literal *>(init->expression());
+                        instruction_block->string(string_literal->value());
+                    }
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
         }
     }
 

@@ -61,9 +61,12 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
     auto instruction_block = assembler->make_procedure_block();
     auto procedure_label = name();
 
-    auto proc_type_data = context.top<procedure_type_data_t>();
-    if (proc_type_data != nullptr) {
-        procedure_label = proc_type_data->identifier_name;
+    auto parent_init = parent_element_as<compiler::initializer>();
+    if (parent_init !=nullptr) {
+        auto parent_var = parent_init->parent_element_as<compiler::identifier>();
+        if (parent_var != nullptr) {
+            procedure_label = parent_var->name();
+        }
     }
     instruction_block->make_label(procedure_label);
 

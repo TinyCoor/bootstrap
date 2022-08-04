@@ -18,13 +18,6 @@ void emit_context_t::push_if(const std::string &true_label_name, const std::stri
     }));
 }
 
-void emit_context_t::push_procedure_type(const std::string &name)
-{
-    data_stack.push(std::any(procedure_type_data_t{
-        .identifier_name = name
-    }));
-}
-
 void emit_context_t::push_access(emit_access_type_t type)
 {
     access_stack.push(type);

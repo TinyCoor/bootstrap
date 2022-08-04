@@ -13,6 +13,24 @@
 #include "stack_frame.h"
 #include "assembly_listing.h"
 namespace gfx {
+
+enum class section_t : uint8_t {
+    bss = 1,
+    ro_data,
+    data,
+    text
+};
+
+inline static std::string_view section_name(section_t type) {
+    switch (type) {
+        case section_t::bss:    return "bss";
+        case section_t::ro_data:return "ro_data";
+        case section_t::data:   return "data";
+        case section_t::text:   return "text";
+    }
+    return "unknown";
+}
+
 enum class target_register_type_t {
     none,
     integer,
@@ -47,8 +65,9 @@ struct register_allocator_t {
         while (!available.empty()) {
             available.pop();
         }
-        for (int8_t r = 63; r >=0; r--)
+        for (int8_t r = 63; r >=0; r--) {
             available.push(static_cast<T>(r));
+        }
     }
 
     void free(T reg) {
@@ -99,6 +118,30 @@ public:
     void clear_instructions();
 
     target_register_t pop_target_register();
+
+    // sections
+    void section(section_t type);
+
+    // data definitions
+    void byte(uint8_t value);
+
+    void word(uint16_t value);
+
+    void dword(uint32_t value);
+
+    void qword(uint64_t value);
+
+    void reserve_byte(size_t count);
+
+    void reserve_word(size_t count);
+
+    void reserve_dword(size_t count);
+
+    void reserve_qword(size_t count);
+
+    void string(const std::string& value);
+
+    void make_data_instruction(op_sizes size, uint64_t flags, uint64_t data);
 
     // setxx
     void setz(i_registers_t dest_reg);

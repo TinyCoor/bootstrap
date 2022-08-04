@@ -88,7 +88,6 @@ bool identifier::on_emit(result &r, emit_context_t &context)
 {
     auto instruction_block = context.assembler->current_block();
     if (type_->element_type() == element_type_t::namespace_type) {
-        instruction_block->comment(fmt::format("namespace: {}", name_));
         return true;
     }
     auto assembler = context.assembler;

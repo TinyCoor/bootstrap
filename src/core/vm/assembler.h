@@ -56,4 +56,4 @@ private:
 	std::unordered_map<std::string, gfx::segment> segments_{};
 };
 }
-#endif // ASSEMBLER_H_ +
+#endif // ASSEMBLER_H_

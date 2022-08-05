@@ -4,92 +4,22 @@
 
 #ifndef VM_INSTRUCTION_BLOCK_H_
 #define VM_INSTRUCTION_BLOCK_H_
-#include "instruction.h"
-#include "instruction_builder.h"
-#include "common/id_pool.h"
+
 #include "label.h"
+#include "block_entry.h"
+#include "instruction_builder.h"
+#include "register_allocator.h"
+#include "common/id_pool.h"
 #include <set>
+#include <any>
 #include <vector>
 #include "stack_frame.h"
 #include "assembly_listing.h"
 namespace gfx {
-
-enum class section_t : uint8_t {
-    bss = 1,
-    ro_data,
-    data,
-    text
-};
-
-inline static std::string_view section_name(section_t type) {
-    switch (type) {
-        case section_t::bss:    return "bss";
-        case section_t::ro_data:return "ro_data";
-        case section_t::data:   return "data";
-        case section_t::text:   return "text";
-    }
-    return "unknown";
-}
-
-enum class target_register_type_t {
-    none,
-    integer,
-    floating_point,
-};
-
-struct target_register_t {
-    target_register_type_t type;
-    union {
-        i_registers_t i;
-        f_registers_t f;
-    } reg;
-};
-
 enum class instruction_block_type_t {
     basic,
     procedure
 };
-
-struct instruction_comments_t {
-    std::vector<std::string> lines {};
-};
-
-template <typename T>
-struct register_allocator_t {
-    register_allocator_t() {
-        reset();
-    }
-
-    void reset() {
-        used.clear();
-        while (!available.empty()) {
-            available.pop();
-        }
-        for (int8_t r = 63; r >=0; r--) {
-            available.push(static_cast<T>(r));
-        }
-    }
-
-    void free(T reg) {
-        if (used.erase(reg) > 0) {
-            available.push(reg);
-        }
-    }
-
-    bool allocate(T& reg) {
-        if (available.empty()) {
-            return false;
-        }
-        reg = available.top();
-        available.pop();
-        used.insert(reg);
-        return true;
-    }
-
-    std::set<T> used {};
-    std::stack<T> available {};
-};
-
 
 class instruction_block {
 public:
@@ -97,6 +27,70 @@ public:
 
     virtual ~instruction_block();
 
+/// block support
+public:
+    void clear_blocks();
+
+    void clear_entries();
+
+    instruction_block* parent();
+
+    stack_frame_t* stack_frame();
+
+    block_entry_t* current_entry();
+
+    instruction_block_type_t type() const;
+
+    void add_block(instruction_block* block);
+
+    void disassemble(assembly_listing& listing);
+
+    void remove_block(instruction_block* block);
+
+    label* make_label(const std::string& name);
+
+/// register alloctor
+public:
+    bool allocate_reg(i_registers_t& reg);
+
+    void free_reg(i_registers_t reg);
+
+    bool allocate_reg(f_registers_t& reg);
+
+    void free_reg(f_registers_t reg);
+
+    target_register_t pop_target_register();
+
+    target_register_t* current_target_register();
+
+    void push_target_register(i_registers_t reg);
+
+    void push_target_register(f_registers_t reg);
+
+// data definitions
+public:
+    void byte(uint8_t value);
+
+    void word(uint16_t value);
+
+    void dword(uint32_t value);
+
+    void qword(uint64_t value);
+
+    void section(section_t type);
+
+    void reserve_byte(size_t count);
+
+    void reserve_word(size_t count);
+
+    void reserve_dword(size_t count);
+
+    void reserve_qword(size_t count);
+
+    void string(const std::string& value);
+
+/// instruction
+public:
     void rts();
 
     void dup();
@@ -109,56 +103,17 @@ public:
 
     void trap(uint8_t index);
 
-    void disassemble(assembly_listing& listing);
-
-    void clear_labels();
-
-    void clear_blocks();
-
-    void clear_instructions();
-
-    target_register_t pop_target_register();
-
-    // sections
-    void section(section_t type);
-
-    // data definitions
-    void byte(uint8_t value);
-
-    void word(uint16_t value);
-
-    void dword(uint32_t value);
-
-    void qword(uint64_t value);
-
-    void reserve_byte(size_t count);
-
-    void reserve_word(size_t count);
-
-    void reserve_dword(size_t count);
-
-    void reserve_qword(size_t count);
-
-    void string(const std::string& value);
-
-    void make_data_instruction(op_sizes size, uint64_t flags, uint64_t data);
-
     // setxx
     void setz(i_registers_t dest_reg);
 
     void setnz(i_registers_t dest_reg);
+
     // branches
     void bne(const std::string& label_name);
 
     void beq(const std::string& label_name);
 
-    void comment(const std::string& value);
-
-    target_register_t* current_target_register();
-
-    void push_target_register(i_registers_t reg);
-
-    void push_target_register(f_registers_t reg);
+    void jump_indirect(i_registers_t reg);
 
     /// load variations
     template<class T>
@@ -202,13 +157,13 @@ public:
     // shl variations
     void shl_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
     {
-        make_shl_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
+         make_shl_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
     }
 
     // shr variations
     void shr_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
     {
-        make_shr_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
+         make_shr_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
     }
 
     // rol variations
@@ -348,36 +303,16 @@ public:
     {
         make_pop_instruction(TypeToOpSize::ToOpSize<T>(), reg);
     }
-    // alloc / free register
-    bool allocate_reg(i_registers_t& reg);
 
-    void free_reg(i_registers_t reg);
-
-    bool allocate_reg(f_registers_t& reg);
-
-    void free_reg(f_registers_t reg);
-
-    void jump_indirect(i_registers_t reg);
-
-    [[nodiscard]] instruction_block_type_t type() const;
-
-    void add_block(instruction_block* block);
-
-    void remove_block(instruction_block* block);
 
     void call(const std::string& proc_name);
 
     void call_foreign(const std::string& proc_name);
 
-    label* make_label(const std::string& name);
-
     void jump_direct(const std::string& label_name);
 
     void move_label_to_ireg(i_registers_t dest_reg, const std::string& label_name);
 
-    instruction_block* parent();
-
-    stack_frame_t* stack_frame();
 private:
     void make_shl_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t amount_reg);
 
@@ -446,6 +381,12 @@ private:
 
     label* find_label_up(const std::string& label_name);
 
+    void make_block_entry(const instruction_t& inst);
+
+    void make_block_entry(const data_definition_t& data);
+
+    void make_block_entry(const section_t &data);
+
     label_ref_t* make_unresolved_label_ref(const std::string& label_name);
 
     void disassemble(assembly_listing& listing, instruction_block* block);
@@ -453,14 +394,12 @@ private:
     stack_frame_t stack_frame_;
     instruction_block* parent_ = nullptr;
     instruction_block_type_t type_;
+    std::vector<block_entry_t> entries_ {};
     std::vector<instruction_block*> blocks_ {};
-    std::vector<instruction_t> instructions_ {};
-    std::map<std::string, label*> labels_ {};
+    std::unordered_map<std::string, label*> labels_ {};
     std::stack<target_register_t> target_registers_ {};
-    std::map<size_t, instruction_comments_t> comments_ {};
     register_allocator_t<i_registers_t> i_register_allocator_ {};
     register_allocator_t<f_registers_t> f_register_allocator_ {};
-    std::map<std::string, size_t> label_to_instruction_map_{};
     std::unordered_map<id_t, label_ref_t> unresolved_labels_ {};
     std::unordered_map<std::string, id_t> label_to_unresolved_ids_ {};
 };

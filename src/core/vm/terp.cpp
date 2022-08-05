@@ -97,9 +97,7 @@ bool terp::step(result &r)
 	registers_.pc += inst_size;
 
 	switch (inst.op) {
-		case op_codes::nop:
-        case op_codes::data:
-        case op_codes::section:{
+		case op_codes::nop:{
             break;
 		}
 		case op_codes::alloc: {

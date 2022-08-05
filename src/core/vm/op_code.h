@@ -22,7 +22,7 @@ enum class op_codes : uint8_t {
 	beq, bg, bge, bl, ble,
 	jsr, rts, jmp, swi, trap,
 	ffi, meta, exit, setz,
-    setnz, data, section
+    setnz,
 };
 
 inline static std::map<op_codes, std::string_view> s_op_code_names  = {
@@ -43,8 +43,7 @@ inline static std::map<op_codes, std::string_view> s_op_code_names  = {
 	{op_codes::dup,    "DUP"},  {op_codes::rts,    "RTS"},   {op_codes::jmp,    "JMP"},
 	{op_codes::meta,   "META"}, {op_codes::swi,    "SWI"},   {op_codes::trap,  "TRAP"},
 	{op_codes::exit,   "EXIT"}, {op_codes::swap,   "SWAP"},  {op_codes::ffi,   "FFI"},
-    {op_codes::setnz,  "SETNZ"},{op_codes::setz,   "SETZ"},  {op_codes::data,  "DATA"},
-    {op_codes::section,"SECTION"},
+    {op_codes::setnz,  "SETNZ"},{op_codes::setz,   "SETZ"},
 };
 
 inline static std::string_view op_code_name(op_codes type) {

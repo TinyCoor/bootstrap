@@ -9,7 +9,6 @@
 #include "segment.h"
 #include "common/result.h"
 #include "common/id_pool.h"
-#include "instruction_emitter.h"
 #include "instruction_block.h"
 #include <stack>
 

@@ -2,6 +2,7 @@
 // Created by 12132 on 2022/7/17.
 //
 
+#include <sstream>
 #include "instruction_block.h"
 #include "fmt/color.h"
 namespace gfx {
@@ -14,8 +15,12 @@ instruction_block::instruction_block(instruction_block* parent, instruction_bloc
 instruction_block::~instruction_block()
 {
     clear_blocks();
-    clear_labels();
-    clear_instructions();
+    clear_entries();
+
+    for (const auto& it : labels_) {
+        delete it.second;
+    }
+    labels_.clear();
 }
 
 instruction_block_type_t instruction_block::type() const
@@ -34,7 +39,7 @@ void instruction_block::call(const std::string& proc_name)
             | operand_encoding_t::flags::constant
             | operand_encoding_t::flags::unresolved;
     jsr_op.operands[0].value.u64 = label_ref->id;
-    instructions_.push_back(jsr_op);
+    make_block_entry(jsr_op);
 
 // XXX: this is a PC-relative encoding
 //        instruction_t jsr_op;
@@ -52,29 +57,13 @@ void instruction_block::call(const std::string& proc_name)
 
 label* instruction_block::make_label(const std::string& name)
 {
-    auto label = new class label(name);
-    labels_.insert(std::make_pair(name, label));
-    label_to_instruction_map_.insert(std::make_pair(name, instructions_.size()));
-    return label;
-}
-
-void instruction_block::clear_labels()
-{
-    for (const auto& it : labels_) {
-        delete it.second;
-    }
-    labels_.clear();
-    label_to_instruction_map_.clear();
+    auto it =  labels_.insert(std::make_pair(name, new class label(name)));
+    return it.first->second;
 }
 
 void instruction_block::clear_blocks()
 {
     blocks_.clear();
-}
-
-void instruction_block::clear_instructions()
-{
-    instructions_.clear();
 }
 
 void instruction_block::add_block(instruction_block *block)
@@ -96,28 +85,28 @@ void instruction_block::rts()
 {
     instruction_t rts_op;
     rts_op.op = op_codes::rts;
-    instructions_.emplace_back(rts_op);
+    make_block_entry(rts_op);
 }
 
 void instruction_block::dup()
 {
     instruction_t dup_op;
     dup_op.op = op_codes::dup;
-    instructions_.emplace_back(dup_op);
+    make_block_entry(dup_op);
 }
 
 void instruction_block::nop()
 {
     instruction_t no_op;
     no_op.op = op_codes::nop;
-    instructions_.emplace_back(no_op);
+    make_block_entry(no_op);
 }
 
 void instruction_block::exit()
 {
     instruction_t exit_op;
     exit_op.op = op_codes::exit;
-    instructions_.emplace_back(exit_op);
+    make_block_entry(exit_op);
 }
 
 void instruction_block::swi(uint8_t index)
@@ -128,7 +117,7 @@ void instruction_block::swi(uint8_t index)
     swi_op.operands_count = 1u;
     swi_op.operands[0].type = operand_encoding_t::flags::integer;
     swi_op.operands[0].value.u64 = index;
-    instructions_.emplace_back(swi_op);
+    make_block_entry(swi_op);
 }
 
 void instruction_block::trap(uint8_t index)
@@ -139,7 +128,7 @@ void instruction_block::trap(uint8_t index)
     trap_op.operands_count = 1;
     trap_op.operands[0].type = operand_encoding_t::flags::integer;
     trap_op.operands[0].value.u64 = index;
-    instructions_.push_back(trap_op);
+    make_block_entry(trap_op);
 }
 
 bool instruction_block::allocate_reg(i_registers_t& reg)
@@ -162,7 +151,7 @@ void instruction_block::jump_indirect(i_registers_t reg)
         operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     jmp_op.operands[0].value.r8 = reg;
-    instructions_.push_back(jmp_op);
+    make_block_entry(jmp_op);
 }
 
 void instruction_block::jump_direct(const std::string &label_name)
@@ -177,7 +166,7 @@ void instruction_block::jump_direct(const std::string &label_name)
             | operand_encoding_t::flags::constant
             | operand_encoding_t::flags::unresolved;
     jmp_op.operands[0].value.u64 = label_ref->id;
-    instructions_.push_back(jmp_op);
+    make_block_entry(jmp_op);
 }
 
 void instruction_block::disassemble(assembly_listing &listing)
@@ -205,20 +194,21 @@ void instruction_block::call_foreign(const std::string &proc_name)
     ffi_op.operands[0].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
     ffi_op.operands[0].value.u64 = label_ref->id;
-    instructions_.push_back(ffi_op);
+    make_block_entry(ffi_op);
 }
+
 void instruction_block::make_inc_instruction(op_sizes size, i_registers_t reg)
 {
     instruction_t inc_op;
     inc_op.op = op_codes::inc;
     inc_op.size = size;
     inc_op.operands_count = 1;
-    inc_op.operands[0].type =
-        operand_encoding_t::flags::integer
+    inc_op.operands[0].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     inc_op.operands[0].value.r8 = reg;
-    instructions_.push_back(inc_op);
+    make_block_entry(inc_op);
 }
+
 void instruction_block::make_dec_instruction(op_sizes size, i_registers_t reg)
 {
     instruction_t dec_op;
@@ -227,8 +217,9 @@ void instruction_block::make_dec_instruction(op_sizes size, i_registers_t reg)
     dec_op.size = size;
     dec_op.operands[0].value.r8 = reg;
     dec_op.operands[0].type =operand_encoding_t::integer | operand_encoding_t::reg;
-    instructions_.emplace_back(dec_op);
+    make_block_entry(dec_op);
 }
+
 void instruction_block::make_load_instruction(op_sizes size, i_registers_t dest_reg,
     i_registers_t address_reg, int64_t offset)
 {
@@ -249,11 +240,11 @@ void instruction_block::make_load_instruction(op_sizes size, i_registers_t dest_
         }
         load_op.operands[2].value.u64 = static_cast<uint64_t>(offset);
     }
-    instructions_.push_back(load_op);
+    make_block_entry(load_op);
 }
 
 void instruction_block::make_store_instruction(op_sizes size, i_registers_t address_reg,
-                                               i_registers_t src_reg,int64_t offset)
+    i_registers_t src_reg,int64_t offset)
 {
     instruction_t store_op;
     store_op.op = op_codes::store;
@@ -274,8 +265,9 @@ void instruction_block::make_store_instruction(op_sizes size, i_registers_t addr
         }
         store_op.operands[2].value.u64 = static_cast<uint64_t>(offset);
     }
-    instructions_.push_back(store_op);
+    make_block_entry(store_op);
 }
+
 void instruction_block::make_swap_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg)
 {
     instruction_t swap_op;
@@ -288,8 +280,9 @@ void instruction_block::make_swap_instruction(op_sizes size, i_registers_t dest_
     swap_op.operands[1].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     swap_op.operands[1].value.r8 = src_reg;
-    instructions_.push_back(swap_op);
+    make_block_entry(swap_op);
 }
+
 void instruction_block::make_pop_instruction(op_sizes size, i_registers_t dest_reg)
 {
     instruction_t pop_op;
@@ -300,8 +293,9 @@ void instruction_block::make_pop_instruction(op_sizes size, i_registers_t dest_r
         operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     pop_op.operands[0].value.r8 = dest_reg;
-    instructions_.push_back(pop_op);
+    make_block_entry(pop_op);
 }
+
 void instruction_block::make_pop_instruction(op_sizes size, f_registers_t dest_reg)
 {
     instruction_t pop_op;
@@ -310,8 +304,9 @@ void instruction_block::make_pop_instruction(op_sizes size, f_registers_t dest_r
     pop_op.operands_count = 1;
     pop_op.operands[0].type = operand_encoding_t::flags::reg;
     pop_op.operands[0].value.r8 = dest_reg;
-    instructions_.push_back(pop_op);
+    make_block_entry(pop_op);
 }
+
 void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_reg, uint64_t value)
 {
     instruction_t move_op;
@@ -324,7 +319,7 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
     move_op.operands[1].type = operand_encoding_t::flags::integer |
         operand_encoding_t::flags::constant;
     move_op.operands[1].value.u64 = value;
-    instructions_.push_back(move_op);
+    make_block_entry(move_op);
 }
 
 void instruction_block::make_move_instruction(op_sizes size, f_registers_t dest_reg, double value)
@@ -337,7 +332,7 @@ void instruction_block::make_move_instruction(op_sizes size, f_registers_t dest_
     move_op.operands[0].value.r8 = dest_reg;
     move_op.operands[1].type = operand_encoding_t::flags::constant;
     move_op.operands[1].value.d64 = value;
-    instructions_.push_back(move_op);
+    make_block_entry(move_op);
 }
 
 void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg)
@@ -352,53 +347,103 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
     move_op.operands[1].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     move_op.operands[1].value.r8 = src_reg;
-    instructions_.push_back(move_op);
+    make_block_entry(move_op);
 }
 
 void instruction_block::disassemble(assembly_listing& listing, instruction_block *block)
 {
     auto source_file = listing.current_source_file();
-    auto add_labels = [&](size_t index) {
-        if (index != 0) {
-            return;
-        }
-        for (const auto& it : block->labels_) {
-          source_file->add_source_line(0, fmt::format("{}:", it.first));
-        }
-    };
 
-    auto add_comments = [&](size_t index, size_t indent) {
-        auto it = block->comments_.find(index);
-        if (it != block->comments_.end()) {
-            for (const auto& line : it->second.lines) {
-                source_file->add_source_line(0,fmt::format("{}; {}",std::string(indent * 4, ' '), line));
+    size_t index = 0;
+    for (auto& entry : block->entries_) {
+        for (const auto& comment : entry.comments()) {
+            source_file->add_source_line(0, "");
+            source_file->add_source_line(0, fmt::format("; {}", comment));
+        }
+        for (auto label : entry.labels()) {
+            if (entry.comments().empty()) {
+                source_file->add_source_line(0, "");
+            }
+            source_file->add_source_line(0, fmt::format("{}:", label->name()));
+        }
+        switch (entry.type()) {
+            case block_entry_type_t::section: {
+                auto section = entry.data<section_t>();
+                source_file->add_source_line(0, fmt::format(".section '{}'", section_name(*section)));
+                break;
+            }
+            case block_entry_type_t::instruction: {
+                auto inst = entry.data<instruction_t>();
+                auto stream = inst->disassemble([&](uint64_t id) -> std::string {
+                  auto label_ref = block->find_unresolved_label_up(static_cast<id_t>(id));
+                  return label_ref != nullptr ? label_ref->name : fmt::format("unresolved_ref_id({})", id);
+                });
+                source_file->add_source_line(0, fmt::format("\t{}", stream));
+                break;
+            }
+            case block_entry_type_t::data_definition: {
+                auto definition = entry.data<data_definition_t>();
+                std::stringstream directive;
+                std::string format_spec;
+                switch (definition->type) {
+                    case data_definition_type_t::initialized: {
+                        switch (definition->size) {
+                            case op_sizes::byte:
+                                directive << ".db";
+                                format_spec = "${:02X}";
+                                break;
+                            case op_sizes::word:
+                                directive << ".dw";
+                                format_spec = "${:04X}";
+                                break;
+                            case op_sizes::dword:
+                                directive << ".ddw";
+                                format_spec = "${:08X}";
+                                break;
+                            case op_sizes::qword:
+                                directive << ".dqd";
+                                format_spec = "${:016X}";
+                                break;
+                            default: {
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    case data_definition_type_t::uninitialized: {
+                        format_spec = "${:04X}";
+                        switch (definition->size) {
+                            case op_sizes::byte:
+                                directive << ".rb";
+                                break;
+                            case op_sizes::word:
+                                directive << ".rw";
+                                break;
+                            case op_sizes::dword:
+                                directive << ".rdw";
+                                break;
+                            case op_sizes::qword:
+                                directive << ".rqw";
+                                break;
+                            default: {
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                source_file->add_source_line(0,fmt::format("\t{:<10} {}", directive.str(),
+                        fmt::format(fmt::runtime(format_spec), definition->value)));
+                break;
             }
         }
-    };
-
-    if (block->instructions_.empty()) {
-        add_comments(0, 0);
-        add_labels(0);
-    } else {
-        size_t index = 0;
-        for (const auto& inst : block->instructions_) {
-            add_comments(index,  index == 0 ? 0 : 1);
-            if (index == 0) {
-                add_labels(index);
-            }
-            auto stream = inst.disassemble([&](uint64_t id) -> std::string {
-                auto label_ref = block->find_unresolved_label_up(static_cast<id_t>(id));
-                return label_ref != nullptr ? label_ref->name : fmt::format("unresolved_ref_id({})", id);
-            });
-            source_file->add_source_line(0, fmt::format("\t{}", stream));
-            index++;
-        }
-        add_comments(index, 1);
+        index++;
     }
 
     for (auto child_block : block->blocks_) {
         disassemble(listing, child_block);
     }
+
 }
 
 void instruction_block::make_float_constant_push_instruction(op_sizes size, double value)
@@ -410,7 +455,7 @@ void instruction_block::make_float_constant_push_instruction(op_sizes size, doub
     push_op.operands[0].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::constant;
     push_op.operands[0].value.d64 = value;
-    instructions_.push_back(push_op);
+    make_block_entry(push_op);
 }
 
 void instruction_block::make_integer_constant_push_instruction(op_sizes size, uint64_t value)
@@ -422,7 +467,7 @@ void instruction_block::make_integer_constant_push_instruction(op_sizes size, ui
     push_op.operands[0].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::constant;
     push_op.operands[0].value.u64 = value;
-    instructions_.push_back(push_op);
+    make_block_entry(push_op);
 }
 
 label_ref_t *instruction_block::find_unresolved_label_up(id_t id)
@@ -460,7 +505,7 @@ void instruction_block::make_push_instruction(op_sizes size, i_registers_t reg)
     push_op.operands[0].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     push_op.operands[0].value.r8 = reg;
-    instructions_.push_back(push_op);
+    make_block_entry(push_op);
 }
 
 void instruction_block::make_push_instruction(op_sizes size, f_registers_t reg)
@@ -471,7 +516,7 @@ void instruction_block::make_push_instruction(op_sizes size, f_registers_t reg)
     push_op.operands_count = 1;
     push_op.operands[0].type = operand_encoding_t::flags::reg;
     push_op.operands[0].value.r8 = reg;
-    instructions_.push_back(push_op);
+    make_block_entry(push_op);
 }
 
 label_ref_t *instruction_block::make_unresolved_label_ref(const std::string &label_name)
@@ -511,7 +556,7 @@ void instruction_block::move_label_to_ireg(i_registers_t dest_reg, const std::st
     move_op.operands[1].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     move_op.operands[1].value.r8 = dest_reg;
-    instructions_.push_back(move_op);
+    make_block_entry(move_op);
 }
 
 instruction_block *instruction_block::parent()
@@ -529,7 +574,7 @@ void instruction_block::make_neg_instruction(op_sizes size, i_registers_t dest_r
     neg_op.operands[0].value.r8 = dest_reg;
     neg_op.operands[1].type = operand_encoding_t::flags::reg | operand_encoding_t::flags::integer;
     neg_op.operands[1].value.r8 = src_reg;
-    instructions_.push_back(neg_op);
+    make_block_entry(neg_op);
 }
 
 void instruction_block::make_add_instruction(op_sizes size,
@@ -548,7 +593,7 @@ void instruction_block::make_add_instruction(op_sizes size,
     add_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
     add_op.operands[2].value.r8 = addend_reg;
-    instructions_.push_back(add_op);
+    make_block_entry(add_op);
 }
 
 void instruction_block::make_sub_instruction(op_sizes size, i_registers_t dest_reg,
@@ -567,7 +612,7 @@ void instruction_block::make_sub_instruction(op_sizes size, i_registers_t dest_r
     sub_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
     sub_op.operands[2].value.r8 = subtrahend_reg;
-    instructions_.push_back(sub_op);
+    make_block_entry(sub_op);
 }
 
 void instruction_block::move_ireg_to_ireg(i_registers_t dest_reg, i_registers_t src_reg)
@@ -587,7 +632,7 @@ void instruction_block::make_cmp_instruction(op_sizes size, i_registers_t lhs_re
     cmp_op.operands[1].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     cmp_op.operands[1].value.r8 = rhs_reg;
-    instructions_.push_back(cmp_op);
+    make_block_entry(cmp_op);
 }
 
 void instruction_block::make_not_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg)
@@ -600,7 +645,7 @@ void instruction_block::make_not_instruction(op_sizes size, i_registers_t dest_r
     not_op.operands[0].value.r8 = dest_reg;
     not_op.operands[1].type = operand_encoding_t::flags::reg | operand_encoding_t::flags::integer;
     not_op.operands[1].value.r8 = src_reg;
-    instructions_.push_back(not_op);
+    make_block_entry(not_op);
 }
 
 target_register_t instruction_block::pop_target_register()
@@ -623,21 +668,7 @@ void instruction_block::beq(const std::string &label_name)
     branch_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
     branch_op.operands[0].value.u64 = label_ref->id;
-    instructions_.push_back(branch_op);
-}
-
-void instruction_block::comment(const std::string &value)
-{
-    auto index = instructions_.size();
-    auto it = comments_.find(index);
-    if (it == comments_.end()) {
-        instruction_comments_t comments {};
-        comments.lines.push_back(value);
-        comments_.insert(std::make_pair(index, comments));
-    } else {
-        auto& comments = it->second;
-        comments.lines.push_back(value);
-    }
+    make_block_entry(branch_op);
 }
 
 target_register_t *instruction_block::current_target_register()
@@ -687,7 +718,7 @@ void instruction_block::bne(const std::string &label_name)
             | operand_encoding_t::flags::constant
             | operand_encoding_t::flags::unresolved;
     branch_op.operands[0].value.u64 = label_ref->id;
-    instructions_.push_back(branch_op);
+    make_block_entry(branch_op);
 }
 
 void instruction_block::make_shl_instruction(op_sizes size, i_registers_t dest_reg,
@@ -706,8 +737,9 @@ void instruction_block::make_shl_instruction(op_sizes size, i_registers_t dest_r
     shift_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     shift_op.operands[2].value.r8 = amount_reg;
-    instructions_.push_back(shift_op);
+    make_block_entry(shift_op);
 }
+
 void instruction_block::make_rol_instruction(op_sizes size, i_registers_t dest_reg,
     i_registers_t value_reg, i_registers_t amount_reg)
 {
@@ -724,7 +756,7 @@ void instruction_block::make_rol_instruction(op_sizes size, i_registers_t dest_r
     rotate_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     rotate_op.operands[2].value.r8 = amount_reg;
-    instructions_.push_back(rotate_op);
+    make_block_entry(rotate_op);
 }
 
 void instruction_block::make_shr_instruction(op_sizes size, i_registers_t dest_reg,
@@ -743,7 +775,7 @@ void instruction_block::make_shr_instruction(op_sizes size, i_registers_t dest_r
     shift_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     shift_op.operands[2].value.r8 = amount_reg;
-    instructions_.push_back(shift_op);
+    make_block_entry(shift_op);
 }
 
 void instruction_block::make_ror_instruction(op_sizes size, i_registers_t dest_reg,
@@ -762,8 +794,9 @@ void instruction_block::make_ror_instruction(op_sizes size, i_registers_t dest_r
     rotate_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     rotate_op.operands[2].value.r8 = amount_reg;
-    instructions_.push_back(rotate_op);
+    make_block_entry(rotate_op);
 }
+
 void instruction_block::make_and_instruction(op_sizes size, i_registers_t dest_reg,
     i_registers_t value_reg, i_registers_t mask_reg)
 {
@@ -780,7 +813,7 @@ void instruction_block::make_and_instruction(op_sizes size, i_registers_t dest_r
     and_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     and_op.operands[2].value.r8 = mask_reg;
-    instructions_.push_back(and_op);
+    make_block_entry(and_op);
 }
 
 void instruction_block::make_xor_instruction(op_sizes size, i_registers_t dest_reg,
@@ -800,7 +833,7 @@ void instruction_block::make_xor_instruction(op_sizes size, i_registers_t dest_r
         operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     xor_op.operands[2].value.r8 = mask_reg;
-    instructions_.push_back(xor_op);
+    make_block_entry(xor_op);
 }
 
 void instruction_block::make_or_instruction(op_sizes size, i_registers_t dest_reg,
@@ -819,8 +852,9 @@ void instruction_block::make_or_instruction(op_sizes size, i_registers_t dest_re
     or_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     or_op.operands[2].value.r8 = mask_reg;
-    instructions_.push_back(or_op);
+    make_block_entry(or_op);
 }
+
 void instruction_block::make_mod_instruction(op_sizes size, i_registers_t dest_reg,
     i_registers_t dividend_reg, i_registers_t divisor_reg)
 {
@@ -837,7 +871,7 @@ void instruction_block::make_mod_instruction(op_sizes size, i_registers_t dest_r
     mod_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     mod_op.operands[2].value.r8 = divisor_reg;
-    instructions_.push_back(mod_op);
+    make_block_entry(mod_op);
 }
 
 void instruction_block::make_div_instruction(op_sizes size, i_registers_t dest_reg,
@@ -856,7 +890,7 @@ void instruction_block::make_div_instruction(op_sizes size, i_registers_t dest_r
     div_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     div_op.operands[2].value.r8 = divisor_reg;
-    instructions_.push_back(div_op);
+    make_block_entry(div_op);
 }
 
 void instruction_block::make_mul_instruction(op_sizes size, i_registers_t dest_reg,
@@ -875,8 +909,9 @@ void instruction_block::make_mul_instruction(op_sizes size, i_registers_t dest_r
     mul_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::reg;
     mul_op.operands[2].value.r8 = multiplier_reg;
-    instructions_.push_back(mul_op);
+    make_block_entry(mul_op);
 }
+
 void instruction_block::setz(i_registers_t dest_reg)
 {
     instruction_t setz_op;
@@ -886,7 +921,7 @@ void instruction_block::setz(i_registers_t dest_reg)
     setz_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
     setz_op.operands[0].value.r8 = dest_reg;
-    instructions_.push_back(setz_op);
+    make_block_entry(setz_op);
 }
 
 void instruction_block::setnz(i_registers_t dest_reg)
@@ -898,10 +933,10 @@ void instruction_block::setnz(i_registers_t dest_reg)
     setnz_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
     setnz_op.operands[0].value.r8 = dest_reg;
-    instructions_.push_back(setnz_op);
+    make_block_entry(setnz_op);
 }
 void instruction_block::sub_ireg_by_immediate(i_registers_t dest_reg, i_registers_t minuend_reg,
-                                              uint64_t subtrahend_immediate)
+    uint64_t subtrahend_immediate)
 {
     make_sub_instruction_immediate(op_sizes::qword, dest_reg, minuend_reg, subtrahend_immediate);
 }
@@ -927,75 +962,118 @@ void instruction_block::make_sub_instruction_immediate(op_sizes size, i_register
     sub_op.operands[2].type = operand_encoding_t::flags::integer
             | operand_encoding_t::flags::constant;
     sub_op.operands[2].value.u64 = subtrahend_immediate;
-    instructions_.push_back(sub_op);
+    make_block_entry(sub_op);
 }
 
-void instruction_block::make_data_instruction(op_sizes size, uint64_t flags, uint64_t data)
-{
-    instruction_t data_op;
-    data_op.op = op_codes::data;
-    data_op.size = size;
-    data_op.operands_count = 2;
-    data_op.operands[0].type =operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::constant;
-    data_op.operands[0].value.u64 = flags;
-    data_op.operands[1].type = operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::constant;
-    data_op.operands[1].value.u64 = data;
-    instructions_.push_back(data_op);
-}
 void instruction_block::section(section_t type)
 {
-    instruction_t section_op;
-    section_op.op = op_codes::section;
-    section_op.size = op_sizes::byte;
-    section_op.operands_count = 1;
-    section_op.operands[0].type = operand_encoding_t::flags::integer
-        | operand_encoding_t::flags::constant;
-    section_op.operands[0].value.u64 = static_cast<uint8_t>(type);
-    instructions_.push_back(section_op);
+    make_block_entry(type);
 }
 
 void instruction_block::byte(uint8_t value)
 {
-    make_data_instruction(op_sizes::byte, 0, value);
+    make_block_entry(data_definition_t {
+        .size = op_sizes::byte,
+        .value = value,
+        .type = data_definition_type_t::initialized,
+    });
 }
 
 void instruction_block::word(uint16_t value)
 {
-    make_data_instruction(op_sizes::word, 0, value);
+    make_block_entry(data_definition_t {
+        .size = op_sizes::word,
+        .value = value,
+        .type = data_definition_type_t::initialized,
+    });
 }
 
 void instruction_block::dword(uint32_t value)
 {
-    make_data_instruction(op_sizes::dword, 0, value);
+    make_block_entry(data_definition_t {
+        .size = op_sizes::dword,
+        .value = value,
+        .type = data_definition_type_t::initialized,
+    });
 }
 
 void instruction_block::qword(uint64_t value)
 {
-    make_data_instruction(op_sizes::qword, 0, value);
+    make_block_entry(data_definition_t {
+        .size = op_sizes::qword,
+        .value = value,
+        .type = data_definition_type_t::initialized,
+    });
 }
+
 void instruction_block::reserve_byte(size_t count)
 {
-    make_data_instruction(op_sizes::byte, 1, count);
+    make_block_entry(data_definition_t {
+        .size = op_sizes::byte,
+        .value = count,
+        .type = data_definition_type_t::uninitialized,
+    });
 }
+
 void instruction_block::reserve_word(size_t count)
 {
-    make_data_instruction(op_sizes::word, 1, count);
+    make_block_entry(data_definition_t {
+        .size = op_sizes::word,
+        .value = count,
+        .type = data_definition_type_t::uninitialized,
+    });
 }
 void instruction_block::reserve_dword(size_t count)
 {
-    make_data_instruction(op_sizes::dword, 1, count);
+    make_block_entry(data_definition_t {
+        .size = op_sizes::dword,
+        .value = count,
+        .type = data_definition_type_t::uninitialized,
+    });
 }
 void instruction_block::reserve_qword(size_t count)
 {
-    make_data_instruction(op_sizes::qword, 1, count);
+    make_block_entry(data_definition_t {
+        .size = op_sizes::qword,
+        .value = count,
+        .type = data_definition_type_t::uninitialized,
+    });
 }
+
 void instruction_block::string(const std::string &value)
 {
+    dword(static_cast<uint32_t>(value.length()));
     for (const auto& c : value) {
-        make_data_instruction(op_sizes::byte, 0, static_cast<uint8_t>(c));
+        byte(static_cast<uint8_t>(c));
     }
+}
+
+void instruction_block::make_block_entry(const instruction_t &inst)
+{
+    entries_.emplace_back(block_entry_t(inst));
+}
+
+void instruction_block::make_block_entry(const section_t &section)
+{
+    entries_.emplace_back(block_entry_t(section));
+}
+
+void instruction_block::make_block_entry(const data_definition_t &data)
+{
+    entries_.emplace_back(block_entry_t(data));
+}
+
+void instruction_block::clear_entries()
+{
+    entries_.clear();
+}
+
+block_entry_t *instruction_block::current_entry()
+{
+    if (entries_.empty()) {
+        return nullptr;
+    }
+    return &entries_.back();
 }
 
 }

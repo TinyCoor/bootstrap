@@ -8,7 +8,7 @@
 #include "element.h"
 #include "parser/ast.h"
 #include "core/compiler/bytecode_emitter.h"
-#include "vm/instruction_emitter.h"
+
 namespace gfx::compiler {
 struct type_find_result_t {
     std::string type_name{};

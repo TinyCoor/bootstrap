@@ -51,11 +51,13 @@ bool block::on_emit(result &r, emit_context_t& context)
     switch (element_type()) {
         case element_type_t::block:{
             instruction_block = context.assembler->make_basic_block();
+            instruction_block->nop();
             auto parent_ns = parent_element_as<compiler::namespace_element>();
             if (parent_ns != nullptr) {
-                instruction_block->comment(fmt::format("namespace: {}", parent_ns->name()));
+                instruction_block->current_entry()->comment(fmt::format("namespace: {}", parent_ns->name()));
             }
-            instruction_block->make_label(label_name());
+            auto block_label = instruction_block->make_label(label_name());
+            instruction_block->current_entry()->label(block_label);
             context.assembler->push_block(instruction_block);
             break;
         }
@@ -85,7 +87,7 @@ bool block::on_emit(result &r, emit_context_t& context)
         if (context.assembler->in_procedure_scope()) {
             var->usage(identifier_usage_t::stack);
         } else {
-            instruction_block->make_label(var->name());
+           auto var_label = instruction_block->make_label(var->name());
             switch (var->type()->element_type()) {
                 case element_type_t::numeric_type: {
                     if (var->is_constant()) {
@@ -93,6 +95,7 @@ bool block::on_emit(result &r, emit_context_t& context)
                     } else {
                         instruction_block->section(section_t::data);
                     }
+                    instruction_block->current_entry()->label(var_label);
                     uint64_t value = 0;
                     var->as_integer(value);
 
@@ -138,6 +141,7 @@ bool block::on_emit(result &r, emit_context_t& context)
                 case element_type_t::string_type: {
                     if (init != nullptr) {
                         instruction_block->section(section_t::ro_data);
+                        instruction_block->current_entry()->label(var_label);
                         auto string_literal = dynamic_cast<compiler::string_literal *>(init->expression());
                         instruction_block->string(string_literal->value());
                     }

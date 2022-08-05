@@ -180,13 +180,13 @@ private:
 
 	bool match_literal(const std::string& literal);
 private:
-	static std::multimap<char, lexer_case_callable> s_cases;
 	uint32_t line_ = 0;
 	uint32_t column_ = 0;
 	bool has_next_ = true;
 	std::istream& source_;
 	std::istream::pos_type mark_;
 	std::set<std::istream::pos_type> line_breaks_ {};
+    static std::multimap<char, lexer_case_callable> s_cases;
 };
 
 }

@@ -44,7 +44,7 @@ bool emit_context_t::has_scratch_register() const
     return !scratch_registers.empty();
 }
 
-void emit_context_t::clear_scratch_registers()
+[[maybe_unused]] void emit_context_t::clear_scratch_registers()
 {
     while (!scratch_registers.empty()) {
         scratch_registers.pop();

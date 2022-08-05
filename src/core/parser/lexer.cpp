@@ -11,7 +11,8 @@ template<typename Key, typename Value, size_t size>
 struct Map {
 	std::array<std::pair<Key,Value>, size> contents;
 
-	Value At(Key key) {
+	constexpr Value At(Key key)  const noexcept
+    {
 		auto iter = std::find(std::begin(contents), std::end(contents), key);
 		if (iter != contents.end()) {
 			return iter.second;

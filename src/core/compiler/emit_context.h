@@ -7,9 +7,9 @@
 #include <any>
 #include <stack>
 #include <string>
-#include "vm/instruction.h"
 #include "vm/terp.h"
 #include "vm/assembler.h"
+#include "vm/instruction.h"
 
 namespace gfx::compiler {
 enum class emit_context_type_t {
@@ -21,10 +21,6 @@ enum class emit_context_type_t {
 enum class emit_access_type_t {
     read,
     write
-};
-
-struct procedure_type_data_t {
-    std::string identifier_name;
 };
 
 struct if_data_t {
@@ -52,7 +48,7 @@ struct emit_context_t {
 
     void push_access(emit_access_type_t type);
 
-    emit_access_type_t current_access() const;
+    [[nodiscard]] emit_access_type_t current_access() const;
 
     void pop_access();
 
@@ -60,7 +56,7 @@ struct emit_context_t {
 
     void push_scratch_register(i_registers_t reg);
 
-    bool has_scratch_register() const;
+    [[nodiscard]] bool has_scratch_register() const;
 
     void clear_scratch_registers();
 

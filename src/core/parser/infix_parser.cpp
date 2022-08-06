@@ -45,6 +45,9 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
 
 void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr& root)
 {
+    if (root ==nullptr) {
+        return;
+    }
 	if (root->type != ast_node_types_t::pair) {
 		target->children.push_back(root);
 		return;

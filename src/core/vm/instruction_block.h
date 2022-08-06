@@ -29,6 +29,8 @@ public:
 
 /// block support
 public:
+    void memo();
+
     void clear_blocks();
 
     void clear_entries();

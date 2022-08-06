@@ -41,14 +41,19 @@ struct data_definition_t {
 
 enum class block_entry_type_t : uint8_t {
     section = 1,
+    memo,
     instruction,
     data_definition,
 };
 
 struct block_entry_t {
+    block_entry_t() ;
+
     explicit block_entry_t(const section_t& section);
+
+    explicit block_entry_t(const data_definition_t& data);
+
     explicit block_entry_t(const instruction_t& instruction);
-    explicit block_entry_t(const data_definition_t& data) ;
 
     template<typename T>
     T *data()

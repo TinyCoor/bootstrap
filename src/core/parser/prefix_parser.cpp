@@ -90,6 +90,9 @@ ast_node_shared_ptr for_in_prefix_parser::parse(result& r, parser* parser, token
 ast_node_shared_ptr return_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	auto return_node = parser->ast_builder()->return_node();
+    if (parser->peek(token_types_t::semi_colon)) {
+        return return_node;
+    }
 	pairs_to_list(return_node->rhs, parser->parse_expression(r, 0));
 	return return_node;
 }

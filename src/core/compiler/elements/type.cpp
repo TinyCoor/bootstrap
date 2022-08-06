@@ -43,4 +43,23 @@ bool type::on_initialize(result &r, compiler::program* program)
 	return true;
 }
 
+bool type::packed() const
+{
+    return packed_;
+}
+
+void type::packed(bool value)
+{
+    packed_ = value;
+}
+
+size_t type::alignment() const
+{
+    return alignment_;
+}
+void type::alignment(size_t value)
+{
+    alignment_ = value;
+}
+
 }

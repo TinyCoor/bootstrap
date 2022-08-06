@@ -8,6 +8,7 @@
 #include "element.h"
 #include "parser/ast.h"
 #include "core/compiler/bytecode_emitter.h"
+#include "../element_map.h"
 
 namespace gfx::compiler {
 struct type_find_result_t {
@@ -32,9 +33,7 @@ public:
 
 	bool run(result& r);
 
-	const element_map_t& elements() const;
-
-	element* find_element(id_t id);
+    element_map& elements();
 
 	compiler::type* find_type(const std::string& name) const;
 
@@ -46,6 +45,8 @@ protected:
 	terp* terp();
 
 private:
+    bool on_emit(result& r, emit_context_t& context) override;
+
 	void initialize_core_types(result &r);
 
     bool visit_blocks(result& r, const block_visitor_callable& callable,
@@ -116,7 +117,7 @@ private:
         if (!type->initialize(r, this)) {
             return nullptr;
         }
-        elements_.insert(std::make_pair(type->id(), type));
+        elements_.add(type);
         return type;
     }
 
@@ -177,8 +178,6 @@ private:
 
 	class block* pop_scope();
 
-	void remove_element(id_t id);
-
 	class block* current_scope() const;
 
 	void push_scope(class block* block);
@@ -190,11 +189,11 @@ private:
 private:
 	assembler assembler_;
 	class terp* terp_ = nullptr;
-	element_map_t elements_ {};
+	element_map elements_ {};
 	compiler::block* block_ = nullptr;
-	bytecode_emitter_options_t options_;
 	std::stack<compiler::block*> scope_stack_ {};
 	identifier_list_t identifiers_with_unknown_types_ {};
+    std::unordered_map<std::string, string_literal_list_t> interned_string_literals_ {};
 };
 }
 

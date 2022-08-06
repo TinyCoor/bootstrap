@@ -143,5 +143,13 @@ void element::parent_element(element *parent)
 {
     parent_element_ = parent;
 }
+
+bool element::is_parent_element(element_type_t type)
+{
+    if (parent_element_ == nullptr) {
+        return false;
+    }
+    return parent_element_->element_type() == type;
+}
 }
 

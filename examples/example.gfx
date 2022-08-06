@@ -43,3 +43,4 @@ alpha::compiler::examples := ns {
         return final_fib_value;
     } @entry_point;
 };
+

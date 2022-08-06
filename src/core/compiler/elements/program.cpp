@@ -47,24 +47,11 @@ program::program(class terp* terp)
 
 program::~program()
 {
-	for (auto& element : elements_) {
-		delete element.second;
-	}
-	elements_.clear();
 }
 
 compiler::block* program::block()
 {
 	return block_;
-}
-
-element* program::find_element(id_t id)
-{
-	auto it = elements_.find(id);
-	if (it != elements_.end()) {
-		return it->second;
-	}
-	return nullptr;
 }
 
 element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_type_t default_block_type)
@@ -125,6 +112,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 					return make_binary_operator(current_scope(), operator_type_t::assignment, existing_identifier,
 						evaluate(r, node->rhs));
 				} else {
+                    // bug in this
 					auto new_identifier = add_identifier_to_scope(r, symbol, node->rhs);
 					list.push_back(new_identifier);
 				}
@@ -197,7 +185,9 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 		case ast_node_types_t::argument_list: {
 			auto args = make_argument_list(current_scope());
 			for (const auto& arg : node->children) {
-				args->add(evaluate(r, arg));
+                auto element = evaluate(r, arg);
+				args->add(element);
+                element->parent_element(args);
 			}
 			return args;
 		}
@@ -405,7 +395,7 @@ field* program::make_field(compiler::block* parent_scope, compiler::identifier* 
 {
     auto field = new compiler::field(parent_scope, identifier);
     identifier->parent_element(field);
-    elements_.insert(std::make_pair(field->id(), field));
+    elements_.add(field);
     return field;
 }
 
@@ -415,7 +405,7 @@ attribute *program::make_attribute(compiler::block* parent_scope, const std::str
     if (expr != nullptr) {
         expr->parent_element(attr);
     }
-    elements_.insert(std::make_pair(attr->id(), attr));
+    elements_.add(attr);
     return attr;
 }
 
@@ -440,7 +430,7 @@ composite_type* program::make_struct_type(result& r, compiler::block* parent_sco
 comment *program::make_comment(compiler::block* parent_scope, comment_type_t type, const std::string &value)
 {
     auto commnet = new compiler::comment(parent_scope, type, value);
-    elements_.insert(std::make_pair(commnet->id(), commnet));
+    elements_.add(commnet);
     return commnet;
 }
 
@@ -450,7 +440,7 @@ directive *program::make_directive(compiler::block* parent_scope, const std::str
     if (expr != nullptr) {
         expr->parent_element(directive);
     }
-    elements_.insert(std::make_pair(directive->id(), directive));
+    elements_.add(directive);
     return directive;
 }
 
@@ -465,14 +455,14 @@ statement *program::make_statement(compiler::block* parent_scope, const label_li
 		statement->labels().push_back(label);
         label->parent_element(statement);
 	}
-	elements_.insert(std::make_pair(statement->id(), statement));
+    elements_.add(statement);
 	return statement;
 }
 
 label *program::make_label(compiler::block* parent_scope, const std::string &name)
 {
     auto label = new compiler::label(parent_scope, name);
-    elements_.insert(std::make_pair(label->id(), label));
+    elements_.add(label);
     return label;
 }
 
@@ -482,7 +472,7 @@ identifier* program::make_identifier(compiler::block* parent_scope, const std::s
     if (expr != nullptr) {
         expr->parent_element(identifier);
     }
-    elements_.insert(std::make_pair(identifier->id(), identifier));
+    elements_.add(identifier);
     return identifier;
 }
 
@@ -490,17 +480,17 @@ unary_operator* program::make_unary_operator(compiler::block* parent_scope, oper
 {
     auto unary_operator = new compiler::unary_operator(parent_scope, type, rhs);
     rhs->parent_element(unary_operator);
-    elements_.insert(std::make_pair(unary_operator->id(), unary_operator));
+    elements_.add(unary_operator);
     return unary_operator;
 }
 
 binary_operator* program::make_binary_operator(compiler::block* parent_scope, operator_type_t type, element* lhs, element* rhs)
 {
-    auto element = new binary_operator(parent_scope, type, lhs, rhs);
-    lhs->parent_element(element);
-    rhs->parent_element(element);
-    elements_.insert(std::make_pair(element->id(), element));
-    return element;
+    auto binary_operator = new compiler::binary_operator(parent_scope, type, lhs, rhs);
+    lhs->parent_element(binary_operator);
+    rhs->parent_element(binary_operator);
+    elements_.add(binary_operator);
+    return binary_operator;
 }
 
 expression* program::make_expression(compiler::block* parent_scope, element* expr)
@@ -509,7 +499,7 @@ expression* program::make_expression(compiler::block* parent_scope, element* exp
     if (expr != nullptr) {
         expr->parent_element(expression);
     }
-    elements_.insert(std::make_pair(expression->id(), expression));
+    elements_.add(expression);
     return expression;
 }
 
@@ -519,7 +509,7 @@ alias *program::make_alias(compiler::block* parent_scope, element *expr)
     if (expr != nullptr) {
         expr->parent_element(alias_type);
     }
-    elements_.insert(std::make_pair(alias_type->id(), alias_type));
+    elements_.add(alias_type);
     return alias_type;
 }
 
@@ -527,21 +517,21 @@ procedure_type* program::make_procedure_type(result &r, compiler::block* parent_
 {
 	// XXX: the name of the proc isn't correct here, but it works temporarily.
     std::string name = fmt::format("__proc_{}__", id_pool::instance()->allocate());
-    auto type = new procedure_type(parent_scope, block_scope, name);
+    auto procedure_type = new compiler::procedure_type(parent_scope, block_scope, name);
     if (block_scope != nullptr) {
-        block_scope->parent_element(type);
+        block_scope->parent_element(procedure_type);
     }
-    elements_.insert(std::make_pair(type->id(), type));
-    return type;
+    elements_.add(procedure_type);
+    return procedure_type;
 }
 
 procedure_instance* program::make_procedure_instance(compiler::block* parent_scope,
 	compiler::type* procedure_type, compiler::block* scope)
 {
-    auto instance = new compiler::procedure_instance(parent_scope, procedure_type, scope);
-    scope->parent_element(instance);
-    elements_.insert(std::make_pair(instance->id(), instance));
-    return instance;
+    auto procedure_instance = new compiler::procedure_instance(parent_scope, procedure_type, scope);
+    scope->parent_element(procedure_instance);
+    elements_.add(procedure_instance);
+    return procedure_instance;
 }
 
 initializer* program::make_initializer(compiler::block* parent_scope, element* expr)
@@ -550,14 +540,14 @@ initializer* program::make_initializer(compiler::block* parent_scope, element* e
     if (expr != nullptr) {
         expr->parent_element(initializer);
     }
-    elements_.insert(std::make_pair(initializer->id(), initializer));
+    elements_.add(initializer);
     return initializer;
 }
 
 cast* program::make_cast(compiler::block* parent_scope, compiler::type* type, element* expr)
 {
     auto cast = new compiler::cast(parent_scope, type, expr);
-    elements_.insert(std::make_pair(cast->id(), cast));
+    elements_.add(cast);
     return cast;
 }
 
@@ -574,21 +564,21 @@ if_element *program::make_if(compiler::block* parent_scope, element *predicate,
     if (false_branch != nullptr) {
         false_branch->parent_element(if_element);
     }
-    elements_.insert(std::make_pair(if_element->id(), if_element));
+    elements_.add(if_element);
     return if_element;
 }
 
 return_element *program::make_return(compiler::block* parent_scope)
 {
     auto return_element = new compiler::return_element(parent_scope);
-    elements_.insert(std::make_pair(return_element->id(), return_element));
+    elements_.add(return_element);
     return return_element;
 }
 
 argument_list* program::make_argument_list(compiler::block* parent_scope)
 {
     auto arg = new compiler::argument_list(parent_scope);
-    elements_.insert(std::make_pair(arg->id(), arg));
+    elements_.add(arg);
     return arg;
 }
 
@@ -596,7 +586,7 @@ procedure_call *program::make_procedure_call(compiler::block* parent_scope, comp
 	compiler::argument_list* args)
 {
     auto call = new compiler::procedure_call(parent_scope, identifier, args);
-    elements_.insert(std::make_pair(call->id(), call));
+    elements_.add(call);
     return call;
 }
 
@@ -606,42 +596,51 @@ namespace_element *program::make_namespace(compiler::block* parent_scope, elemen
     if (expr != nullptr) {
         expr->parent_element(ns);
     }
-    elements_.insert(std::make_pair(ns->id(), ns));
+    elements_.add(ns);
     return ns;
 }
 
 class block *program::make_block(compiler::block* parent_scope, element_type_t block_type)
 {
     auto block = new compiler::block(parent_scope, block_type);
-    elements_.insert(std::make_pair(block->id(), block));
+    elements_.add(block);
     return block;
 }
 
 boolean_literal *program::make_bool(compiler::block* parent_scope, bool value)
 {
     auto bool_literal = new compiler::boolean_literal(parent_scope, value);
-    elements_.insert(std::make_pair(bool_literal->id(), bool_literal));
+    elements_.add(bool_literal);
     return bool_literal;
 }
 
 float_literal *program::make_float(compiler::block* parent_scope, double value)
 {
     auto float_literal = new compiler::float_literal(parent_scope, value);
-    elements_.insert(std::make_pair(float_literal->id(), float_literal));
+    elements_.add(float_literal);
     return float_literal;
 }
 
 integer_literal *program::make_integer(compiler::block* parent_scope, uint64_t value)
 {
     auto integer_literal = new compiler::integer_literal(parent_scope, value);
-    elements_.insert(std::make_pair(integer_literal->id(), integer_literal));
+    elements_.add(integer_literal);
     return integer_literal;
 }
 
 string_literal *program::make_string(compiler::block* parent_scope, const std::string &value)
 {
     auto string_literal = new compiler::string_literal(parent_scope, value);
-    elements_.insert(std::make_pair(string_literal->id(), string_literal));
+    elements_.add(string_literal);
+    auto it = interned_string_literals_.find(value);
+    if (it != interned_string_literals_.end()) {
+        auto& list = it->second;
+        list.emplace_back(string_literal);
+    } else {
+        string_literal_list_t list {};
+        list.emplace_back(string_literal);
+        interned_string_literals_.insert(std::make_pair(value, list));
+    }
     return string_literal;
 }
 
@@ -679,7 +678,7 @@ compiler::identifier *program::find_identifier(const ast_node_shared_ptr &node)
 	return var;
 }
 
-const element_map_t &program::elements() const
+element_map &program::elements()
 {
 	return elements_;
 }
@@ -870,32 +869,20 @@ bool program::compile(result& r, assembly_listing& listing, const ast_node_share
 	}
 
     // process directives
-    visit_blocks(r, [&](compiler::block* scope) {
-      for (auto stmt : scope->statements()) {
-          if (stmt->expression()->element_type() == element_type_t::directive) {
-              auto directive_element = dynamic_cast<compiler::directive*>(stmt->expression());
-              if (!directive_element->execute(r, this)) {
-                  return false;
-              }
-          }
-      }
-      return true;
-    });
-
-    // resolve unknown identifiers
-    visit_blocks(r, [&](compiler::block* scope) {
-        return true;
-    });
+    auto directives = elements().find_by_type(element_type_t::directive);
+    for (auto directive : directives) {
+        auto directive_element = dynamic_cast<compiler::directive*>(directive);
+        if (!directive_element->execute(r, this)) {
+            return false;
+        }
+    }
 
 	if (!resolve_unknown_types(r)) {
 		return false;
 	}
 
     emit_context_t context(terp_, &assembler_, this);
-    visit_blocks(r, [&](compiler::block* scope) {
-        scope->emit(r, context);
-        return true;
-    });
+    emit(r, context);
 
     auto root_block = assembler_.root_block();
     root_block->disassemble(listing);
@@ -961,16 +948,6 @@ unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scop
     return make_type<unknown_type>(r, parent_scope, name, is_array, array_size);
 }
 
-void program::remove_element(id_t id)
-{
-	auto item = find_element(id);
-	if (item == nullptr) {
-		return;
-	}
-	elements_.erase(id);
-	delete item;
-}
-
 bool program::resolve_unknown_types(result& r)
 {
 	auto it = identifiers_with_unknown_types_.begin();
@@ -996,7 +973,7 @@ bool program::resolve_unknown_types(result& r)
 
 			if (identifier_type != nullptr) {
 				var->type(identifier_type);
-				remove_element(unknown_type->id());
+                elements_.remove(unknown_type->id());
 			}
 		} else {
 			identifier_type = var->initializer()->expression()->infer_type(this);
@@ -1058,7 +1035,7 @@ void program::apply_attributes(result& r, compiler::element* element, const ast_
 import* program::make_import(compiler::block* parent_scope, element* expr)
 {
 	auto import_element = new compiler::import(parent_scope, expr);
-	elements_.insert(std::make_pair(import_element->id(), import_element));
+    elements_.add(import_element);
 	return import_element;
 }
 
@@ -1136,5 +1113,190 @@ bool program::visit_blocks(result &r, const block_visitor_callable &callable,
 tuple_type *program::make_tuple_type(result &r, compiler::block *parent_scope)
 {
     return make_type<tuple_type>(r, parent_scope);
+}
+
+bool program::on_emit(result &r, emit_context_t &context)
+{
+    auto instruction_block = context.assembler->make_basic_block();
+    instruction_block->jump_direct("_start");
+
+    std::map<section_t, element_list_t> vars_by_section {};
+    auto bss  = vars_by_section.insert(std::make_pair(section_t::bss,     element_list_t()));
+    auto ro   = vars_by_section.insert(std::make_pair(section_t::ro_data, element_list_t()));
+    auto data = vars_by_section.insert(std::make_pair(section_t::data,    element_list_t()));
+    auto text = vars_by_section.insert(std::make_pair(section_t::text,    element_list_t()));
+
+    auto identifiers = elements().find_by_type(element_type_t::identifier);
+    for (auto identifier : identifiers) {
+        auto var = dynamic_cast<compiler::identifier*>(identifier);
+        if (var->type()->element_type() == element_type_t::namespace_type) {
+            continue;
+        }
+
+        if (within_procedure_scope(var->parent_scope())
+            ||  var->parent_element()->element_type() == element_type_t::field) {
+            continue;
+        }
+
+        switch (var->type()->element_type()) {
+            case element_type_t::numeric_type: {
+                if (var->is_constant()) {
+                    auto& list = ro.first->second;
+                    list.emplace_back(var);
+                }
+                else {
+                    auto& list = data.first->second;
+                    list.emplace_back(var);
+                }
+                break;
+            }
+            case element_type_t::string_type: {
+                if (var->initializer() != nullptr) {
+                    auto& list = ro.first->second;
+                    list.emplace_back(var);
+                }
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    auto& ro_list = ro.first->second;
+    for (const auto& it : interned_string_literals_) {
+        compiler::string_literal* str = it.second.front();
+        if (!str->is_parent_element(element_type_t::argument_list)) {
+            continue;
+        }
+        ro_list.emplace_back(str);
+    }
+
+    for (const auto& section : vars_by_section) {
+        instruction_block->section(section.first);
+
+        for (auto e : section.second) {
+            switch (e->element_type()) {
+                case element_type_t::string_literal: {
+                    auto string_literal = dynamic_cast<compiler::string_literal*>(e);
+                    instruction_block->memo();
+                    auto it = interned_string_literals_.find(string_literal->value());
+                    if (it != interned_string_literals_.end()) {
+                        string_literal_list_t& str_list = it->second;
+                        for (auto str : str_list) {
+                            auto var_label = instruction_block->make_label(str->label_name());
+                            instruction_block->current_entry()->label(var_label);
+                        }
+                    }
+                    instruction_block->current_entry()->comment(fmt::format("\"{}\"", string_literal->value()));
+                    instruction_block->string(string_literal->value());
+                    break;
+                }
+                case element_type_t::identifier: {
+                    auto var = dynamic_cast<compiler::identifier*>(e);
+                    auto init = var->initializer();
+
+                    instruction_block->memo();
+                    auto var_label = instruction_block->make_label(var->name());
+                    instruction_block->current_entry()->label(var_label);
+
+                    switch (var->type()->element_type()) {
+                        case element_type_t::numeric_type: {
+                            uint64_t value = 0;
+                            var->as_integer(value);
+
+                            auto symbol_type = integer_symbol_type_for_size(var->type()->size_in_bytes());
+                            switch (symbol_type) {
+                                case symbol_type_t::u8:
+                                    if (init == nullptr) {
+                                        instruction_block->reserve_byte(1);
+                                    } else {
+                                        instruction_block->byte(static_cast<uint8_t>(value));
+                                    }
+                                    break;
+                                case symbol_type_t::u16:
+                                    if (init == nullptr) {
+                                        instruction_block->reserve_word(1);
+                                    } else {
+                                        instruction_block->word(static_cast<uint16_t>(value));
+                                    }
+                                    break;
+                                case symbol_type_t::f32:
+                                case symbol_type_t::u32:
+                                    if (init == nullptr) {
+                                        instruction_block->reserve_dword(1);
+                                    } else {
+                                        instruction_block->dword(static_cast<uint32_t>(value));
+                                    }
+                                    break;
+                                case symbol_type_t::f64:
+                                case symbol_type_t::u64:
+                                    if (init == nullptr) {
+                                        instruction_block->reserve_qword(1);
+                                    } else {
+                                        instruction_block->qword(value);
+                                    }
+                                    break;
+                                case symbol_type_t::bytes:
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        }
+                        case element_type_t::string_type: {
+                            if (init != nullptr) {
+                                auto string_literal = dynamic_cast<compiler::string_literal*>(init->expression());
+                                instruction_block->current_entry()->comment(fmt::format("\"{}\"",
+                                    string_literal->value()));
+                                instruction_block->string(string_literal->value());
+                            }
+                            break;
+                        }
+                        default: {
+                            break;
+                        }
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    }
+
+    context.assembler->push_block(instruction_block);
+
+    auto procedure_types = elements().find_by_type(element_type_t::proc_type);
+    procedure_type_list_t proc_list {};
+    for (auto p : procedure_types) {
+        auto procedure_type = dynamic_cast<compiler::procedure_type*>(p);
+        if (procedure_type->parent_scope()->element_type() == element_type_t::proc_instance_block) {
+            proc_list.emplace_back(procedure_type);
+        }
+    }
+
+    for (auto p : procedure_types) {
+        auto procedure_type = dynamic_cast<compiler::procedure_type*>(p);
+        if (procedure_type->parent_scope()->element_type() != element_type_t::proc_instance_block) {
+            proc_list.emplace_back(procedure_type);
+        }
+    }
+
+    for (auto procedure_type : proc_list) {
+        procedure_type->emit(r, context);
+    }
+
+    auto top_level_block = context.assembler->make_basic_block();
+    top_level_block->memo();
+    auto start_label = top_level_block->make_label("_start");
+    top_level_block->current_entry()->label(start_label);
+
+    context.assembler->push_block(top_level_block);
+    context.assembler->pop_block();
+
+    context.assembler->pop_block();
+
+    return true;
 }
 }

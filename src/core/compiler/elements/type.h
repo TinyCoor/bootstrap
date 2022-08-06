@@ -32,9 +32,17 @@ public:
 
 	~type() override;
 
+    bool packed() const;
+
+    void packed(bool value);
+
 	std::string name() const;
 
 	void name(const std::string& value);
+
+    size_t alignment() const;
+
+    void alignment(size_t value);
 
     size_t size_in_bytes() const;
 
@@ -45,6 +53,8 @@ protected:
 	virtual bool on_initialize(result& r, compiler::program* program);
 private:
 	std::string name_;
+    bool packed_ = false;
+    size_t alignment_ = 0;
 	size_t size_in_bytes_ {};
 };
 

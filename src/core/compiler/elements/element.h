@@ -24,19 +24,15 @@ public:
 	block* parent_scope();
 
     template <typename T>
-    T* parent_element_as() {
+    T* parent_element_as()
+    {
         if (parent_element_ == nullptr) {
             return nullptr;
         }
         return dynamic_cast<T*>(parent_element_);
     }
 
-    bool is_parent_element(element_type_t type) {
-        if (parent_element_ == nullptr) {
-            return false;
-        }
-        return parent_element_->element_type() == type;
-    }
+    bool is_parent_element(element_type_t type);
 
     element* parent_element();
 

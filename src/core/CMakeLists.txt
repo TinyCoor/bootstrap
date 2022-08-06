@@ -61,20 +61,19 @@ set(COMMON_SRC
         ../common/id_pool.cpp)
 
 set(VM_SRC
-        vm/terp.cpp
-        vm/label.cpp
-        vm/symbol.cpp
-        vm/segment.cpp
-        vm/assembler.cpp
-        vm/instruction.cpp
-        vm/stack_frame.cpp
-        vm/block_entry.cpp
-        vm/shared_library.cpp
-        vm/assembly_listing.cpp
+        vm/terp.h                           vm/terp.cpp
+        vm/label.h                          vm/label.cpp
+        vm/symbol.h                         vm/symbol.cpp
+        vm/segment.h                        vm/segment.cpp
+        vm/assembler.h                      vm/assembler.cpp
+        vm/instruction.h                    vm/instruction.cpp
+        vm/stack_frame.h                    vm/stack_frame.cpp
+        vm/block_entry.h                    vm/block_entry.cpp
+        vm/shared_library.h                 vm/shared_library.cpp
+        vm/assembly_listing.h               vm/assembly_listing.cpp
         vm/instruction_builder.h
-        vm/instruction_block.cpp
-        vm/instruction_cache.cpp
-
+        vm/instruction_block.h              vm/instruction_block.cpp
+        vm/instruction_cache.h              vm/instruction_cache.cpp
         )
 
 set(ELEMENT_SRC
@@ -127,6 +126,7 @@ set(ELEMENT_SRC
         compiler/elements/import.cpp
         compiler/extern.cpp
         compiler/emit_context.cpp
+        compiler/element_map.cpp
         )
 
 set(COMPILER_SRC

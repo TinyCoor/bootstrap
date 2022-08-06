@@ -358,9 +358,10 @@ void code_dom_formatter::format(const std::string& title)
 	nodes_.clear();
 	edges_.clear();
 
-	nodes_.insert(format_node(const_cast<compiler::program*>(program_)));
+    auto non_const_program = const_cast<compiler::program*>(program_);
+    nodes_.insert(format_node(non_const_program));
 
-	for (const auto& pair : program_->elements()) {
+	for (const auto& pair : non_const_program->elements()) {
 		auto node_def = format_node(pair.second);
 		if (node_def.empty()) {
 			continue;

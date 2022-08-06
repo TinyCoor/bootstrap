@@ -69,7 +69,7 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
         }
     }
     auto proc_label = instruction_block->make_label(procedure_label);
-    instruction_block->nop();
+    instruction_block->memo();
     instruction_block->current_entry()->label(proc_label);
 
     auto stack_frame = instruction_block->stack_frame();

@@ -67,8 +67,9 @@ using comment_list_t = std::vector<comment*>;
 using statement_list_t = std::vector<statement*>;
 using identifier_list_t = std::vector<identifier*>;
 using attribute_list_t = std::vector<attribute*>;
-using directive_map_t [[maybe_unused]] = std::map<std::string, directive*>;
-using element_map_t = std::unordered_map<id_t, element*>;
+using directive_map_t = std::map<std::string, directive*>;
+using string_literal_list_t = std::vector<string_literal*>;
+using procedure_type_list_t = std::vector<procedure_type*>;
 using procedure_instance_list_t = std::vector<procedure_instance*>;
 
 ///////////////////////////////////////////////////////////////////////////

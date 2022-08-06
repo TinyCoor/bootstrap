@@ -4,18 +4,24 @@
 
 #include "block_entry.h"
 namespace gfx {
+
+block_entry_t::block_entry_t()
+    : data_({}), type_(block_entry_type_t::memo)
+{
+}
+
 block_entry_t::block_entry_t(const section_t& section)
     : data_(std::any(section)), type_(block_entry_type_t::section)
 {
 }
 
-block_entry_t::block_entry_t(const instruction_t& instruction)
-    : data_(std::any(instruction)), type_(block_entry_type_t::instruction)
+block_entry_t::block_entry_t(const data_definition_t& data)
+    : data_(std::any(data)), type_(block_entry_type_t::data_definition)
 {
 }
 
-block_entry_t::block_entry_t(const data_definition_t& data)
-    : data_(std::any(data)), type_(block_entry_type_t::data_definition)
+block_entry_t::block_entry_t(const instruction_t& instruction)
+    : data_(std::any(instruction)), type_(block_entry_type_t::instruction)
 {
 }
 

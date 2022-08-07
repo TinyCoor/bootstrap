@@ -4,7 +4,7 @@
 
 #ifndef COMPILER_ELEMENTS_BLOCK_H_
 #define COMPILER_ELEMENTS_BLOCK_H_
-#include "type.h"
+#include "types/type.h"
 #include "element.h"
 #include "element_types.h"
 #include "identifier.h"

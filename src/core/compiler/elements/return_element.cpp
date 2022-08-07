@@ -19,21 +19,18 @@ element_list_t &return_element::expressions()
 bool compiler::return_element::on_emit(gfx::result &r, emit_context_t &context )
 {
     auto instruction_block = context.assembler->current_block();
-
-    for (auto expr : expressions_) {
+    if (!expressions_.empty()) {
         i_registers_t target_reg;
         if (!instruction_block->allocate_reg(target_reg)) {
-
         }
         instruction_block->push_target_register(target_reg);
-        expr->emit(r, context);
+        expressions_.front()->emit(r, context);
+        instruction_block->store_from_ireg<uint64_t>(i_registers_t::fp, target_reg, 8);
         instruction_block->pop_target_register();
-        instruction_block->push<uint32_t>(target_reg);
         instruction_block->free_reg(target_reg);
+
     }
-
     instruction_block->rts();
-
     return true;
 }
 }

@@ -3,15 +3,17 @@
 //
 
 #include "namespace_type.h"
+#include "../program.h"
 namespace gfx::compiler{
 namespace_type::namespace_type(block *parent)
-	: type(parent, element_type_t::namespace_type, "namespace")
+	: type(parent, element_type_t::namespace_type, nullptr)
 {
 
 }
 
 bool namespace_type::on_initialize(result &r, compiler::program* program)
 {
+    symbol(program->make_symbol(parent_scope(), "namespace"));
 	return true;
 }
 }

@@ -1,12 +1,14 @@
 //
 // Created by 12132 on 2022/5/2.
 //
-#include "program.h"
+#include "core/compiler/elements/program.h"
 #include "procedure_type.h"
 #include "procedure_type.h"
+#include "../symbol_element.h"
+#include "fmt/core.h"
 namespace gfx::compiler {
-procedure_type::procedure_type(block* parent, compiler::block* scope, const std::string& name)
-	: type(parent, element_type_t::proc_type, name), scope_(scope)
+procedure_type::procedure_type(block* parent_scope, compiler::block* scope, symbol_element* symbol)
+	: type(parent_scope, element_type_t::proc_type, symbol), scope_(scope)
 {
 
 }
@@ -59,33 +61,34 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
 
     auto assembler = context.assembler;
     auto instruction_block = assembler->make_procedure_block();
-    auto procedure_label = name();
+    instruction_block->align(instruction_t::alignment);
+    instruction_block->current_entry()->blank_lines(1);
+    instruction_block->memo();
 
+    auto procedure_label = symbol()->name();
     auto parent_init = parent_element_as<compiler::initializer>();
     if (parent_init !=nullptr) {
         auto parent_var = parent_init->parent_element_as<compiler::identifier>();
         if (parent_var != nullptr) {
-            procedure_label = parent_var->name();
+            procedure_label = parent_var->symbol()->name();
         }
     }
     auto proc_label = instruction_block->make_label(procedure_label);
-    instruction_block->memo();
     instruction_block->current_entry()->label(proc_label);
 
     auto stack_frame = instruction_block->stack_frame();
     int32_t offset = -8;
     for (auto param : parameters_.as_list()) {
-        stack_frame->add(stack_frame_entry_type_t::parameter, param->identifier()->name(), offset);
+        stack_frame->add(stack_frame_entry_type_t::parameter, param->identifier()->symbol()->name(), offset);
         offset -= 8;
     }
 
     offset = 8;
-    for (auto return_param : returns_.as_list()) {
-        (void)return_param;
+    const auto &return_list = returns_.as_list();
+    if (!return_list.empty()) {
         stack_frame->add(stack_frame_entry_type_t::return_slot, "return_value", offset);
         offset += 8;
     }
-
     offset = 16;
     size_t local_count = 0;
     context.program->visit_blocks(r, [&](compiler::block* scope) {
@@ -93,7 +96,11 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
               return true;
           }
           for (auto var : scope->identifiers().as_list()) {
-              stack_frame->add(stack_frame_entry_type_t::local,  var->name(), offset);
+              if (var->type()->element_type() == element_type_t::proc_type) {
+                  continue;
+              }
+              stack_frame->add(stack_frame_entry_type_t::local,  var->symbol()->name(), offset);
+              var->usage(identifier_usage_t::stack);
               offset += 8;
               local_count++;
           }
@@ -101,9 +108,12 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
         }, scope_);
 
     instruction_block->move_ireg_to_ireg(i_registers_t::fp, i_registers_t::sp);
-    if (local_count > 0) {
-        instruction_block->sub_ireg_by_immediate(i_registers_t::sp, i_registers_t::sp,
-            8 * local_count);
+    auto size =  8 * local_count;
+    if (!return_list.empty()) {
+        size += 8;
+    }
+    if (size > 0) {
+        instruction_block->sub_ireg_by_immediate(i_registers_t::sp, i_registers_t::sp, size);
     }
 
     context.assembler->push_block(instruction_block);

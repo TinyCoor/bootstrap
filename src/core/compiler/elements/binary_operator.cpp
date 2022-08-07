@@ -3,6 +3,7 @@
 //
 
 #include "binary_operator.h"
+#include "symbol_element.h"
 #include "program.h"
 namespace gfx::compiler {
 binary_operator::binary_operator(block* parent, operator_type_t type, element* lhs, element* rhs)
@@ -116,7 +117,7 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
             int64_t offset = 0;
             auto identifier = dynamic_cast<compiler::identifier*>(lhs_);
             if (identifier->usage() == identifier_usage_t::stack) {
-                auto entry = instruction_block->stack_frame()->find_up(identifier->name());
+                auto entry = instruction_block->stack_frame()->find_up(identifier->symbol()->name());
                 if (entry == nullptr) {
                     // XXX: this is bad
                     return false;

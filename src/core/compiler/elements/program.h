@@ -11,8 +11,16 @@
 #include "../element_map.h"
 
 namespace gfx::compiler {
+struct qualified_symbol_t {
+    bool is_qualified() const {
+        return !namespaces.empty();
+    }
+    std::string name {};
+    string_list_t namespaces {};
+};
+
 struct type_find_result_t {
-    std::string type_name{};
+    qualified_symbol_t type_name{};
     bool is_array{false};
     size_t array_size{0};
     compiler::type* type = nullptr;
@@ -40,7 +48,6 @@ public:
     compiler::type* find_type_down(const std::string& name) ;
 
 protected:
-	friend class directive;
 
 	terp* terp();
 
@@ -57,10 +64,12 @@ private:
 private:
 	void add_composite_type_fields(result& r, composite_type* struct_type, const ast_node_shared_ptr& block);
 
-	compiler::identifier* add_identifier_to_scope(result& r, const ast_node_shared_ptr& symbol,
+	compiler::identifier* add_identifier_to_scope(result& r, symbol_element* symbol, type_find_result_t& find_type_result,
 		const ast_node_shared_ptr& rhs, compiler::block* parent_scope = nullptr);
 
-	void add_procedure_instance(result& r, compiler::procedure_type* proc_type, const ast_node_shared_ptr& node);
+    compiler::symbol_element* make_symbol_from_node(result& r, const ast_node_shared_ptr& node);
+
+    void add_procedure_instance(result& r, compiler::procedure_type* proc_type, const ast_node_shared_ptr& node);
 
     void add_expression_to_scope(compiler::block* scope, compiler::element* expr);
 
@@ -69,13 +78,27 @@ private:
     bool within_procedure_scope(compiler::block* parent_scope) const;
 private:
     friend class any_type;
+    friend class directive;
+    friend class tuple_type;
     friend class type_info;
     friend class array_type;
     friend class string_type;
     friend class numeric_type;
+    friend class namespace_type;
     friend class procedure_type;
 
-	cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
+    compiler::symbol_element* make_symbol(compiler::block* parent_scope,
+        const std::string& name, const string_list_t& namespaces = {});
+
+    compiler::symbol_element* make_temp_symbol(compiler::block* parent_scope,
+        const std::string& name, const string_list_t& namespaces);
+
+    void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node);
+
+    compiler::element* resolve_symbol_or_evaluate(result& r, const ast_node_shared_ptr& node);
+
+    cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
+
 
 	alias* make_alias(compiler::block* parent_scope, element* expr);
 
@@ -106,7 +129,8 @@ private:
 
 	expression* make_expression(compiler::block* parent_scope, element* expr);
 
-	identifier* make_identifier(compiler::block* parent_scope, const std::string& name, initializer* expr);
+	identifier* make_identifier(compiler::block* parent_scope,
+        symbol_element* symbol, initializer* expr, bool resolved);
 
 	namespace_element* make_namespace(compiler::block* parent_scope, element* expr, const std::string &name = "");
 
@@ -125,8 +149,8 @@ private:
 
 	class block* push_new_block(element_type_t type = element_type_t::block);
 
-	unknown_type* make_unknown_type(result &r, compiler::block* parent_scope, const std::string& name,
-		bool is_array, size_t array_size);
+	unknown_type* make_unknown_type(result &r, compiler::block* parent_scope, compiler::symbol_element* symbol,
+                                    bool is_array, size_t array_size);
 
 	numeric_type* make_numeric_type(result &r, compiler::block* parent_scope, const std::string& name,
 		int64_t min, uint64_t max);
@@ -173,7 +197,7 @@ private:
     unknown_type* unknown_type_from_result(result& r, compiler::block* scope, compiler::identifier* identifier,
        type_find_result_t& result);
 private:
-	element* evaluate(result& r, const ast_node_shared_ptr& node,
+    element* evaluate(result& r, const ast_node_shared_ptr& node,
 		element_type_t default_block_type = element_type_t::block);
 
 	class block* pop_scope();
@@ -182,9 +206,9 @@ private:
 
 	void push_scope(class block* block);
 
-	compiler::identifier* find_identifier(const ast_node_shared_ptr& node);
+	compiler::identifier* find_identifier(const qualified_symbol_t& symbol);
 
-    type_find_result_t find_identifier_type(result& r, const ast_node_shared_ptr& symbol);
+    bool find_identifier_type(result& r, type_find_result_t& result, const ast_node_shared_ptr& type_node);
 
 private:
 	assembler assembler_;

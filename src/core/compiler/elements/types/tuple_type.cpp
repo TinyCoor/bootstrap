@@ -6,7 +6,7 @@
 namespace gfx::compiler {
 
 tuple_type::tuple_type(block *parent_scope)
-    : composite_type(parent_scope, composite_types_t::struct_type, "tuple")
+    : composite_type(parent_scope, composite_types_t::struct_type, nullptr)
 {
 
 }

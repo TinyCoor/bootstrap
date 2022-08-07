@@ -29,7 +29,9 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
 		return nullptr;
 	}
 
-	auto type_node = parser->ast_builder()->type_identifier_node(type_identifier);
+    auto symbol_node = create_symbol_node(r, parser, nullptr, type_identifier);
+    auto type_node = parser->ast_builder()->type_identifier_node();
+    type_node->lhs = symbol_node;
 
 	if (array_node != nullptr) {
 		type_node->rhs = array_node;
@@ -45,7 +47,7 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
 
 void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr& root)
 {
-    if (root ==nullptr) {
+    if (root == nullptr) {
         return;
     }
 	if (root->type != ast_node_types_t::pair) {
@@ -128,7 +130,8 @@ ast_node_shared_ptr create_cast_node(result& r, parser* parser, token_t& token)
 		return nullptr;
 	}
 
-	cast_node->lhs = parser->ast_builder()->type_identifier_node(identifier);
+	cast_node->lhs = parser->ast_builder()->type_identifier_node();
+    cast_node->lhs->lhs = create_symbol_node(r, parser, nullptr, identifier);
 
 	token_t greater_than;
 	greater_than.type = token_types_t::greater_than;

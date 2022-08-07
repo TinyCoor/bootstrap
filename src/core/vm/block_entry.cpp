@@ -10,6 +10,12 @@ block_entry_t::block_entry_t()
 {
 }
 
+block_entry_t::block_entry_t(const align_t& align)
+    : data_(std::any(align)), type_(block_entry_type_t::align)
+{
+
+}
+
 block_entry_t::block_entry_t(const section_t& section)
     : data_(std::any(section)), type_(block_entry_type_t::section)
 {

@@ -231,6 +231,8 @@ public:
 
 	ast_node_shared_ptr proc_call_node();
 
+    ast_node_shared_ptr type_identifier_node();
+
 	ast_node_shared_ptr else_if_node();
 
 	ast_node_shared_ptr statement_node();
@@ -298,8 +300,6 @@ public:
 	ast_node_shared_ptr string_literal_node(const token_t& token);
 
 	ast_node_shared_ptr unary_operator_node(const token_t& token);
-
-	ast_node_shared_ptr type_identifier_node(const token_t& token);
 
 	ast_node_shared_ptr boolean_literal_node(const token_t& token);
 

@@ -5,11 +5,11 @@
 #ifndef COMPILER_ELEMENTS_PROCEDURE_TYPE_H_
 #define COMPILER_ELEMENTS_PROCEDURE_TYPE_H_
 #include "type.h"
-#include "field.h"
+#include "core/compiler/elements/field.h"
 namespace gfx::compiler {
 class procedure_type : public type {
 public:
-	explicit procedure_type(block* parent_scope, compiler::block* scope, const std::string& name);
+	explicit procedure_type(block* parent_scope, compiler::block* scope, symbol_element* symbol);
 
 	compiler::block* scope();
 

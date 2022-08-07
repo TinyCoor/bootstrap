@@ -12,15 +12,14 @@
 #include "vm/instruction.h"
 
 namespace gfx::compiler {
-enum class emit_context_type_t {
-    empty,
-    if_element,
-    procedure_type
-};
 
 enum class emit_access_type_t {
     read,
     write
+};
+
+struct block_data_t {
+    bool recurse = true;
 };
 
 struct if_data_t {
@@ -45,6 +44,8 @@ struct emit_context_t {
     }
 
     void push_if(const std::string& true_label_name, const std::string& false_label_name);
+
+    void push_block(bool recurse);
 
     void push_access(emit_access_type_t type);
 

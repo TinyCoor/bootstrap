@@ -28,6 +28,10 @@ inline static std::string_view section_name(section_t type)
     return "unknown";
 }
 
+struct align_t {
+    uint8_t size = 0;
+};
+
 enum data_definition_type_t : uint8_t {
     initialized = 1,
     uninitialized
@@ -42,12 +46,15 @@ struct data_definition_t {
 enum class block_entry_type_t : uint8_t {
     section = 1,
     memo,
+    align,
     instruction,
     data_definition,
 };
 
 struct block_entry_t {
-    block_entry_t() ;
+    block_entry_t();
+
+    explicit block_entry_t(const align_t& align);
 
     explicit block_entry_t(const section_t& section);
 
@@ -68,6 +75,16 @@ struct block_entry_t {
         }
     }
 
+    inline void blank_lines(uint16_t count)
+    {
+        blank_lines_ += count;
+    }
+
+    inline uint16_t blank_lines() const
+    {
+        return blank_lines_;
+    }
+
     void label(class label *label);
 
     [[nodiscard]] block_entry_type_t type() const;
@@ -81,6 +98,7 @@ struct block_entry_t {
 private:
     std::any data_;
     block_entry_type_t type_;
+    uint16_t blank_lines_ = 0;
     std::vector<class label *> labels_{};
     std::vector<std::string> comments_{};
 };

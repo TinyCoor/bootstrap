@@ -4,7 +4,7 @@
 
 #ifndef COMPILER_ELEMENTS_STRING_TYPE_H_
 #define COMPILER_ELEMENTS_STRING_TYPE_H_
-#include "composite_type.h"
+#include "core/compiler/elements/types/composite_type.h"
 namespace gfx::compiler {
 class string_type : public composite_type {
 public:

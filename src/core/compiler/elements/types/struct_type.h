@@ -4,12 +4,12 @@
 
 #ifndef BOOTSTRAP_SRC_CORE_COMPILER_ELEMENTS_STRUCT_TYPE_H_
 #define BOOTSTRAP_SRC_CORE_COMPILER_ELEMENTS_STRUCT_TYPE_H_
-#include "composite_type.h"
-#include "element.h"
+#include "core/compiler/elements/types/composite_type.h"
+#include "core/compiler/elements/element.h"
 namespace gfx::compiler {
 class struct_type : public composite_type {
 public:
-    struct_type(block* parent_scope, const std::string &name);
+    struct_type(block* parent_scope, symbol_element* symbol);
 private:
 protected:
     bool on_initialize(result &r, compiler::program *program) override;

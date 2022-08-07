@@ -6,7 +6,8 @@
 #include "program.h"
 #include "string_literal.h"
 #include "attribute.h"
-#include "procedure_type.h"
+#include "types/procedure_type.h"
+#include "symbol_element.h"
 #include "fmt/format.h"
 
 namespace gfx::compiler {
@@ -98,7 +99,7 @@ bool directive::on_execute_foreign(result &r, compiler::program *program)
 	}
 
 	auto ffi_identifier = dynamic_cast<compiler::identifier*>(expression_);
-	std::string symbol_name = ffi_identifier->name();
+	std::string symbol_name = ffi_identifier->symbol()->name();
 	auto alias_attribute = attributes().find("alias");
 	if (alias_attribute != nullptr) {
         if (!alias_attribute->as_string(symbol_name)) {

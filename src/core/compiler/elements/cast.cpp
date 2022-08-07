@@ -3,7 +3,8 @@
 //
 
 #include "cast.h"
-#include "type.h"
+#include "types/type.h"
+#include "symbol_element.h"
 #include "fmt/format.h"
 namespace gfx::compiler {
 cast::cast(block* parent, compiler::type* type, element* expr)
@@ -33,7 +34,7 @@ bool cast::on_emit(result &r, emit_context_t &context)
     }
     auto assembler = context.assembler;
     auto instruction_block = assembler->current_block();
-    instruction_block->current_entry()->comment(fmt::format("XXX: cast<{}> not yet implemented", type_->name()));
+    instruction_block->current_entry()->comment(fmt::format("XXX: cast<{}> not yet implemented", type_->symbol()->name()));
     return expression_->emit(r, context);
 }
 

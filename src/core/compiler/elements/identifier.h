@@ -16,11 +16,15 @@ enum class identifier_usage_t : uint8_t {
 
 class identifier : public element {
 public:
-	identifier(block* parent_scope, const std::string& name, compiler::initializer* initializer);
+	identifier(block* parent_scope, symbol_element* symbol, compiler::initializer* initializer);
 
 	compiler::type* type();
 
-	std::string name() const;
+    bool resolved() const;
+
+    void resolved(bool value);
+
+    compiler::symbol_element* symbol() const;
 
 	bool constant() const;
 
@@ -53,10 +57,11 @@ protected:
     void emit_stack_based_load(instruction_block* instruction_block);
 
 private:
-	std::string name_;
+    bool resolved_ = false;
 	bool constant_ = false;
 	bool inferred_type_ = false;
 	compiler::type* type_ = nullptr;
+    compiler::symbol_element* symbol_;
 	compiler::initializer* initializer_;
     identifier_usage_t usage_ = identifier_usage_t::heap;
 };

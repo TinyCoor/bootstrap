@@ -5,7 +5,7 @@
 #include "block.h"
 #include "vm/assembler.h"
 #include "initializer.h"
-#include "procedure_type.h"
+#include "core/compiler/elements/types/procedure_type.h"
 #include "statement.h"
 #include "string_literal.h"
 #include "namespace_element.h"
@@ -54,7 +54,9 @@ bool block::on_emit(result &r, emit_context_t& context)
             instruction_block->memo();
             auto parent_ns = parent_element_as<compiler::namespace_element>();
             if (parent_ns != nullptr) {
-                instruction_block->current_entry()->comment(fmt::format("namespace: {}", parent_ns->name()));
+                auto current_entry = instruction_block->current_entry();
+                current_entry->comment(fmt::format("namespace: {}", parent_ns->name()));
+                current_entry->blank_lines(1);
             }
             auto block_label = instruction_block->make_label(label_name());
             instruction_block->current_entry()->label(block_label);
@@ -76,8 +78,11 @@ bool block::on_emit(result &r, emit_context_t& context)
         stmt->emit(r, context);
     }
 
-    for (auto blk : blocks_) {
-        blk->emit(r, context);
+    auto block_data = context.top<block_data_t>();
+    if (block_data == nullptr || block_data->recurse) {
+        for (auto blk : blocks_) {
+            blk->emit(r, context);
+        }
     }
 
     if (element_type() == element_type_t::block) {

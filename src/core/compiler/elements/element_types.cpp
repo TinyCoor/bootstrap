@@ -6,7 +6,8 @@
 #include "attribute.h"
 #include "field.h"
 #include "identifier.h"
-#include "type.h"
+#include "symbol_element.h"
+#include "types/type.h"
 
 namespace gfx::compiler {
 
@@ -45,7 +46,7 @@ void attribute_map_t::add(attribute* value)
 //////////////////////////////////////////////////////////////////////////////////////////
 void field_map_t:: add(field* value)
 {
-	fields_.insert(std::make_pair(value->identifier()->name(), value));
+	fields_.insert(std::make_pair(value->id(), value));
 }
 
 field_list_t field_map_t::as_list()
@@ -62,14 +63,14 @@ size_t field_map_t:: size() const
 	return fields_.size();
 }
 
-bool field_map_t:: remove(const std::string& name)
+bool field_map_t::remove(id_t id)
 {
-	return fields_.erase(name) > 0;
+	return fields_.erase(id) > 0;
 }
 
-compiler::field* field_map_t:: find(const std::string& name)
+compiler::field* field_map_t:: find(id_t id)
 {
-	auto it = fields_.find(name);
+	auto it = fields_.find(id);
 	if (it != fields_.end()) {
 		return it->second;
 	}
@@ -81,7 +82,7 @@ compiler::field* field_map_t:: find(const std::string& name)
 
 void identifier_map_t::add(identifier* value)
 {
-	identifiers_.insert(std::make_pair(value->name(), value));
+	identifiers_.insert(std::make_pair(value->symbol()->name(), value));
 }
 
 size_t identifier_map_t::size() const
@@ -93,53 +94,6 @@ identifier_list_t identifier_map_t::as_list() const {
 	identifier_list_t list {};
 	for (const auto& it : identifiers_) {
 		list.push_back(it.second);
-	}
-	return list;
-}
-
-identifier_list_t identifier_map_t::globals(bool initialized)
-{
-	identifier_list_t list {};
-	for (const auto& it : identifiers_) {
-		if (it.second->constant()) {
-			continue;
-		}
-
-		auto init = it.second->initializer();
-		if (!initialized) {
-			if (init == nullptr) {
-				list.push_back(it.second);
-			}
-		} else {
-			if (init != nullptr) {
-				if (init->expression()->element_type() == element_type_t::namespace_e
-					||  init->expression()->element_type() == element_type_t::proc_type) {
-					continue;
-				}
-				list.push_back(it.second);
-			}
-		}
-	}
-	return list;
-}
-
-identifier_list_t identifier_map_t::constants(bool initialized)
-{
-	identifier_list_t list {};
-	for (const auto& it : identifiers_) {
-		if (!it.second->constant()) {
-			continue;
-		}
-		auto init = it.second->initializer();
-		if (!initialized) {
-			if (init == nullptr) {
-				list.push_back(it.second);
-			}
-		} else {
-			if (init != nullptr) {
-				list.push_back(it.second);
-			}
-		}
 	}
 	return list;
 }
@@ -161,7 +115,7 @@ identifier* identifier_map_t::find(const std::string& name)
 /////////////////////////////////////////////////////////////////////////////////
 void type_map_t::add(compiler::type* type)
 {
-	types_.insert(std::make_pair(type->name(), type));
+	types_.insert(std::make_pair(type->symbol()->name(), type));
 }
 
 size_t type_map_t::size() const

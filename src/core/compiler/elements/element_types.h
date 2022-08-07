@@ -30,7 +30,6 @@ class attribute;
 class identifier;
 class expression;
 class initializer;
-
 class statement;
 class type_info;
 class if_element;
@@ -39,10 +38,10 @@ class array_type;
 class string_type;
 class unknown_type;
 class numeric_type;
-
 class float_literal;
 class argument_list;
 class return_element;
+class symbol_element;
 class procedure_call;
 class operator_base;
 class procedure_type;
@@ -58,6 +57,7 @@ class namespace_element;
 class procedure_instance;
 
 using string_set_t = std::set<std::string>;
+using string_list_t = std::vector<std::string>;
 using type_list_t = std::vector<type*>;
 using label_list_t = std::vector<label*>;
 using block_list_t = std::vector<block*>;
@@ -99,6 +99,7 @@ enum class element_type_t {
 	cast,
 	label,
 	block,
+    symbol,
 	field,
 	if_e,
 	comment,
@@ -147,6 +148,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::field, 				"field"},
 	{element_type_t::return_e, 				"return"},
 	{element_type_t::import_e, 				"import"},
+    {element_type_t::symbol,            "symbol_element"},
 	{element_type_t::element, 				"element"},
 	{element_type_t::comment, 				"comment"},
 	{element_type_t::program, 				"program"},
@@ -316,12 +318,12 @@ struct field_map_t {
 
 	size_t size() const;
 
-	bool remove(const std::string& name);
+	bool remove(id_t id);
 
-	compiler::field* find(const std::string& name);
+	compiler::field* find(id_t id);
 
 private:
-	std::unordered_map<std::string, field*> fields_ {};
+	std::unordered_map<id_t , field*> fields_ {};
 };
 
 struct identifier_map_t {
@@ -336,10 +338,6 @@ struct identifier_map_t {
 	identifier* find(const std::string& name);
 
 	identifier_list_t as_list() const;
-
-	identifier_list_t globals(bool initialized);
-
-	identifier_list_t constants(bool initialized);
 
 private:
 	std::unordered_multimap<std::string, identifier*> identifiers_ {};

@@ -3,11 +3,11 @@
 //
 
 #include "composite_type.h"
-#include "identifier.h"
+#include "core/compiler/elements/identifier.h"
 namespace gfx::compiler {
-composite_type::composite_type(block* parent, composite_types_t type, const std::string& name,
+composite_type::composite_type(block* parent, composite_types_t type, compiler::symbol_element* symbol,
     element_type_t element_type)
-	: compiler::type(parent, element_type, name), type_(type)
+	: compiler::type(parent, element_type, symbol), type_(type)
 {
 
 }

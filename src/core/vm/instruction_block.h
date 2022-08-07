@@ -73,6 +73,8 @@ public:
 public:
     void byte(uint8_t value);
 
+    void align(uint8_t size);
+
     void word(uint16_t value);
 
     void dword(uint32_t value);
@@ -388,6 +390,8 @@ private:
     void make_block_entry(const data_definition_t& data);
 
     void make_block_entry(const section_t &data);
+
+    void make_block_entry(const align_t &data);
 
     label_ref_t* make_unresolved_label_ref(const std::string& label_name);
 

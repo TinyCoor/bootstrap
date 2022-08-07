@@ -3,7 +3,7 @@
 //
 #include "common/id_pool.h"
 #include "element.h"
-#include "type.h"
+#include "types/type.h"
 #include "vm/assembler.h"
 #include "fmt/format.h"
 

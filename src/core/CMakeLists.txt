@@ -77,7 +77,8 @@ set(VM_SRC
         )
 
 set(ELEMENT_SRC
-        compiler/elements/attribute.cpp
+        compiler/elements/element_types.cpp
+
         # operator
         compiler/elements/operator_base.cpp
         compiler/elements/unary_operator.cpp
@@ -88,21 +89,26 @@ set(ELEMENT_SRC
         compiler/elements/integer_literal.cpp
         compiler/elements/boolean_literal.cpp
         compiler/elements/string_literal.cpp
-        # type
-        compiler/elements/type.cpp
-        compiler/elements/tuple_type.cpp
-        compiler/elements/unknown_type.cpp
-        compiler/elements/any_type.cpp
-        compiler/elements/element_types.cpp
-        compiler/elements/string_type.cpp
-        compiler/elements/composite_type.cpp
-        compiler/elements/numeric_type.cpp
-        compiler/elements/procedure_type.cpp
-        compiler/elements/struct_type.cpp
-        compiler/elements/type_info.cpp
+# types
+        compiler/elements/types/type.cpp
+        compiler/elements/types/tuple_type.cpp
+        compiler/elements/types/unknown_type.cpp
+        compiler/elements/types/any_type.cpp
+        compiler/elements/types/type_info.cpp
+        compiler/elements/types/string_type.cpp
+        compiler/elements/types/composite_type.cpp
+        compiler/elements/types/numeric_type.cpp
+        compiler/elements/types/procedure_type.cpp
+        compiler/elements/types/struct_type.cpp
+        compiler/elements/types/array_type.cpp
+        compiler/elements/types/namespace_type.cpp
+
+# elements
+        compiler/elements/attribute.cpp
 
         compiler/elements/if_element.cpp
         compiler/elements/return_element.cpp
+        compiler/elements/symbol_element.cpp
         compiler/elements/procedure_call.cpp
         compiler/elements/block.cpp
         compiler/elements/directive.cpp
@@ -119,9 +125,9 @@ set(ELEMENT_SRC
         compiler/elements/statement.cpp
         compiler/elements/alias.cpp
         compiler/elements/cast.cpp
-        compiler/elements/array_type.cpp
+
         compiler/elements/procedure_instance.cpp
-        compiler/elements/namespace_type.cpp
+
         compiler/elements/argument_list.cpp
         compiler/elements/import.cpp
         compiler/extern.cpp

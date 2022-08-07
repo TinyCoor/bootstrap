@@ -4,7 +4,7 @@
 
 #ifndef COMPILER_ELEMENTS_TUPLE_TYPE_H_
 #define COMPILER_ELEMENTS_TUPLE_TYPE_H_
-#include "composite_type.h"
+#include "core/compiler/elements/types/composite_type.h"
 namespace gfx::compiler {
 class tuple_type : public composite_type {
 public:

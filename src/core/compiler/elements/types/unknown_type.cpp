@@ -3,9 +3,8 @@
 //
 
 #include "unknown_type.h"
-gfx::compiler::unknown_type::unknown_type(block *parent, const std::string &name,
-   bool is_array, size_t size)
-	: type(parent, element_type_t::unknown_type, name),  array_size_(size), is_array_(is_array)
+gfx::compiler::unknown_type::unknown_type(block* parent_scope, compiler::symbol_element* symbol)
+	: type(parent_scope, element_type_t::unknown_type, symbol)
 {
 
 }

@@ -3,23 +3,19 @@
 //
 
 #include "identifier.h"
-#include "type.h"
+#include "types/type.h"
 #include "initializer.h"
 #include "fmt/format.h"
+#include "symbol_element.h"
 #include "vm/instruction_block.h"
 namespace gfx::compiler {
-identifier::identifier(block *parent, const std::string& name, compiler::initializer* initializer)
-	: element(parent, element_type_t::identifier), name_(name), initializer_(initializer) {
+identifier::identifier(block* parent_scope, symbol_element* symbol, compiler::initializer* initializer)
+	: element(parent_scope, element_type_t::identifier), symbol_(symbol), initializer_(initializer) {
 }
 
 compiler::type* identifier::type()
 {
 	return type_;
-}
-
-std::string identifier::name() const
-{
-	return name_;
 }
 
 bool identifier::constant() const
@@ -100,7 +96,7 @@ bool identifier::on_emit(result &r, emit_context_t &context)
         if (assembler->in_procedure_scope() && usage_ == identifier_usage_t::stack) {
             emit_stack_based_load(instruction_block);
         } else {
-            instruction_block->move_label_to_ireg(target_reg->reg.i, name_);
+            instruction_block->move_label_to_ireg(target_reg->reg.i, symbol_->name());
         }
     } else {
         switch (type_->element_type()) {
@@ -113,14 +109,14 @@ bool identifier::on_emit(result &r, emit_context_t &context)
                     if (!instruction_block->allocate_reg(ptr_reg)) {
 
                     }
-                    instruction_block->move_label_to_ireg(ptr_reg, name_);
+                    instruction_block->move_label_to_ireg(ptr_reg, symbol_->name());
                     instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i, ptr_reg);
                     instruction_block->free_reg(ptr_reg);
                 }
                 break;
             }
             default: {
-                instruction_block->move_label_to_ireg(target_reg->reg.i, name_);
+                instruction_block->move_label_to_ireg(target_reg->reg.i, symbol_->name());
                 break;
             }
         }
@@ -146,13 +142,28 @@ bool identifier::on_is_constant() const
 void identifier::emit_stack_based_load(instruction_block* instruction_block)
 {
     auto target_reg = instruction_block->current_target_register();
-    auto entry = instruction_block->stack_frame()->find_up(name());
+    auto entry = instruction_block->stack_frame()->find_up(symbol_->name());
     if (entry == nullptr) {
         // XXX: error
         return;
     }
     instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i, i_registers_t::fp, entry->offset);
     instruction_block->current_entry()->comment(fmt::format("{} identifier: {}",
-        stack_frame_entry_type_name(entry->type), name()));
+        stack_frame_entry_type_name(entry->type), symbol_->name()));
+}
+
+bool identifier::resolved() const
+{
+    return resolved_;
+}
+
+void identifier::resolved(bool value)
+{
+    resolved_ = value;
+}
+
+compiler::symbol_element *identifier::symbol() const
+{
+    return symbol_;
 }
 }

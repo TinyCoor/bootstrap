@@ -5,10 +5,9 @@
 #ifndef COMPILER_ELEMENTS_TYPE_H_
 #define COMPILER_ELEMENTS_TYPE_H_
 #include <string>
-#include "element.h"
-#include "element_types.h"
+#include "../element.h"
+#include "../element_types.h"
 namespace gfx::compiler {
-
 /// todo make its template
 // enum class type_t {
 // 	int_t,
@@ -28,17 +27,13 @@ namespace gfx::compiler {
 /// template<>
 class type : public element {
 public:
-    type(block* parent_scope, element_type_t type, const std::string& name);
+    type(block* parent_scope, element_type_t type, compiler::symbol_element* name);
 
 	~type() override;
 
     bool packed() const;
 
     void packed(bool value);
-
-	std::string name() const;
-
-	void name(const std::string& value);
 
     size_t alignment() const;
 
@@ -47,6 +42,10 @@ public:
     size_t size_in_bytes() const;
 
     bool initialize(result &r, compiler::program* program);
+
+    compiler::symbol_element* symbol() const;
+
+    void symbol(compiler::symbol_element* value);
 protected:
 	void size_in_bytes(size_t value);
 
@@ -56,6 +55,7 @@ private:
     bool packed_ = false;
     size_t alignment_ = 0;
 	size_t size_in_bytes_ {};
+    compiler::symbol_element *symbol_;
 };
 
 }

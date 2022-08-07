@@ -3,38 +3,39 @@
 //
 #include "fmt/format.h"
 #include "code_dom_formatter.h"
-#include "core/compiler/elements/cast.h"
-#include "core/compiler/elements/label.h"
-#include "core/compiler/elements/alias.h"
-#include "core/compiler/elements/import.h"
-#include "core/compiler/elements/program.h"
-#include "core/compiler/elements/comment.h"
-#include "core/compiler/elements/any_type.h"
-#include "core/compiler/elements/attribute.h"
-#include "core/compiler/elements/type_info.h"
-#include "core/compiler/elements/directive.h"
-#include "core/compiler/elements/statement.h"
-#include "core/compiler/elements/expression.h"
-#include "core/compiler/elements/array_type.h"
-#include "core/compiler/elements/identifier.h"
-#include "core/compiler/elements/if_element.h"
-#include "core/compiler/elements/initializer.h"
-#include "core/compiler/elements/string_type.h"
-#include "core/compiler/elements/numeric_type.h"
-#include "core/compiler/elements/argument_list.h"
-#include "core/compiler/elements/float_literal.h"
-#include "core/compiler/elements/procedure_type.h"
-#include "core/compiler/elements/return_element.h"
-#include "core/compiler/elements/procedure_call.h"
-#include "core/compiler/elements/composite_type.h"
-#include "core/compiler/elements/string_literal.h"
-#include "core/compiler/elements/namespace_type.h"
-#include "core/compiler/elements/unary_operator.h"
-#include "core/compiler/elements/integer_literal.h"
-#include "core/compiler/elements/boolean_literal.h"
-#include "core/compiler/elements/binary_operator.h"
-#include "core/compiler/elements/namespace_element.h"
-#include "core/compiler/elements/procedure_instance.h"
+#include "elements/symbol_element.h"
+#include "elements/cast.h"
+#include "elements/label.h"
+#include "elements/alias.h"
+#include "elements/import.h"
+#include "elements/program.h"
+#include "elements/comment.h"
+#include "elements/attribute.h"
+#include "elements/directive.h"
+#include "elements/statement.h"
+#include "elements/expression.h"
+#include "elements/identifier.h"
+#include "elements/if_element.h"
+#include "elements/initializer.h"
+#include "elements/argument_list.h"
+#include "elements/float_literal.h"
+#include "elements/return_element.h"
+#include "elements/procedure_call.h"
+#include "elements/string_literal.h"
+#include "elements/unary_operator.h"
+#include "elements/integer_literal.h"
+#include "elements/boolean_literal.h"
+#include "elements/binary_operator.h"
+#include "elements/namespace_element.h"
+#include "elements/procedure_instance.h"
+#include "elements/types/any_type.h"
+#include "elements/types/type_info.h"
+#include "elements/types/array_type.h"
+#include "elements/types/string_type.h"
+#include "elements/types/numeric_type.h"
+#include "elements/types/procedure_type.h"
+#include "elements/types/composite_type.h"
+#include "elements/types/namespace_type.h"
 
 namespace gfx::compiler {
 code_dom_formatter::code_dom_formatter(const compiler::program* program_element,FILE* file)
@@ -92,7 +93,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto style = ", fillcolor=deeppink, style=\"filled\"";
 			add_primary_edge(element, element->expression());
 			return fmt::format("{}[shape=record,label=\"cast|{}\"{}];", node_vertex_name,
-				element->type()->name(), style);
+				element->type()->symbol()->name(), style);
 		}
         case element_type_t::type_info: {
             auto element = dynamic_cast<type_info*>(node);
@@ -100,7 +101,7 @@ std::string code_dom_formatter::format_node(element* node)
             for (auto fld : element->fields().as_list())
                 add_primary_edge(element, fld);
             return fmt::format("{}[shape=record,label=\"type_info|{}\"{}];",
-                node_vertex_name, element->name(), style);
+                node_vertex_name, element->symbol()->name(), style);
         }
 		case element_type_t::if_e: {
 			auto element = dynamic_cast<if_element*>(node);
@@ -143,7 +144,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
 			add_primary_edge(element, element->identifier());
 			return fmt::format("{}[shape=record,label=\"field|{}\"{}];", node_vertex_name,
-				element->identifier()->name(), style);
+				element->identifier()->symbol()->name(), style);
 		}
 		case element_type_t::program: {
 			auto program_element = dynamic_cast<program*>(node);
@@ -157,8 +158,8 @@ std::string code_dom_formatter::format_node(element* node)
             for (auto &field : element->fields().as_list()) {
                 add_primary_edge(element,field);
             }
-			return fmt::format("{}[shape=record,label=\"any_type|{}\"{}];",node_vertex_name, element->name(),
-				style);
+			return fmt::format("{}[shape=record,label=\"any_type|{}\"{}];",node_vertex_name,
+                element->symbol()->name(), style);
 		}
 		case element_type_t::return_e: {
 			auto element = dynamic_cast<return_element*>(node);
@@ -172,8 +173,8 @@ std::string code_dom_formatter::format_node(element* node)
 			auto element = dynamic_cast<procedure_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
 			add_primary_edge(element, element->scope());
-			return fmt::format(   "{}[shape=record,label=\"proc_type|{}|foreign: {}\"{}];", node_vertex_name, element->name(),
-				element->is_foreign(), style);
+			return fmt::format("{}[shape=record,label=\"proc_type|{}|foreign: {}\"{}];", node_vertex_name,
+                element->symbol()->name(), element->is_foreign(), style);
 		}
 		case element_type_t::directive: {
 			auto directive_element = dynamic_cast<directive*>(node);
@@ -212,7 +213,7 @@ std::string code_dom_formatter::format_node(element* node)
 			add_primary_edge(element, element->arguments());
 			add_primary_edge(element, element->identifier()->type());
 			return fmt::format("{}[shape=record,label=\"proc_call|{}\"{}];", node_vertex_name,
-				element->identifier()->name(), style);
+				element->identifier()->symbol()->name(), style);
 		}
 		case element_type_t::alias_type: {
 			auto element = dynamic_cast<alias*>(node);
@@ -225,7 +226,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
 			std::string entry_type_name = "unknown";
 			if (element->entry_type() != nullptr) {
-				entry_type_name = element->entry_type()->name();
+				entry_type_name = element->entry_type()->symbol()->name();
 			}
 			add_primary_edge(element, element->entry_type());
             for (auto &field : element->fields().as_list()) {
@@ -239,10 +240,10 @@ std::string code_dom_formatter::format_node(element* node)
 			auto style = ", fillcolor=deepskyblue1, style=\"filled\"";
 			std::string type_name = "unknown";
 			if (identifier_element->type() != nullptr) {
-				type_name = identifier_element->type()->name();
+				type_name = identifier_element->type()->symbol()->name();
 			}
 			auto details = fmt::format( "identifier|{}|{{type: {} | inferred: {} | constant: {} }}",
-				identifier_element->name(), type_name, identifier_element->inferred_type(),
+				identifier_element->symbol()->name(), type_name, identifier_element->inferred_type(),
 				identifier_element->constant());
 			add_primary_edge(identifier_element, identifier_element->type());
 			add_primary_edge(identifier_element, identifier_element->initializer());
@@ -260,8 +261,8 @@ std::string code_dom_formatter::format_node(element* node)
             for (auto &field : element->fields().as_list()) {
                 add_primary_edge(element,field);
             }
-			return fmt::format("{}[shape=record,label=\"string_type|{}\"{}];", node_vertex_name, element->name(),
-				style);
+			return fmt::format("{}[shape=record,label=\"string_type|{}\"{}];", node_vertex_name,
+                element->symbol()->name(), style);
 		}
 		case element_type_t::namespace_e: {
 			auto ns_element = dynamic_cast<namespace_element*>(node);
@@ -279,8 +280,8 @@ std::string code_dom_formatter::format_node(element* node)
 		case element_type_t::numeric_type: {
 			auto element = dynamic_cast<numeric_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"numeric_type|{}\"{}];", node_vertex_name, element->name(),
-				style);
+			return fmt::format("{}[shape=record,label=\"numeric_type|{}\"{}];", node_vertex_name,
+                               element->symbol()->name(), style);
 		}
 		case element_type_t::proc_instance: {
 			auto element = dynamic_cast<procedure_instance*>(node);
@@ -305,7 +306,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto element = dynamic_cast<composite_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
 			return fmt::format("{}[shape=record,label=\"composite_type|{}\"{}];", node_vertex_name,
-                element->name(), style);
+                element->symbol()->name(), style);
 		}
 		case element_type_t::unary_operator: {
 			auto element = dynamic_cast<unary_operator*>(node);
@@ -338,7 +339,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto element = dynamic_cast<namespace_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
 			return fmt::format("{}[shape=record,label=\"namespace_type|{}\"{}];", node_vertex_name,
-                 element->name(), style);
+                 element->symbol()->name(), style);
 		}
 		default:
 			break;

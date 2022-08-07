@@ -5,11 +5,11 @@
 #ifndef COMPILER_ELEMENTS_COMPOSITE_TYPE_H_
 #define COMPILER_ELEMENTS_COMPOSITE_TYPE_H_
 #include "type.h"
-#include "field.h"
+#include "core/compiler/elements/field.h"
 namespace gfx::compiler {
 class composite_type : public type {
 public:
-  	explicit composite_type(block* parent_scope, composite_types_t type, const std::string& name,
+  	explicit composite_type(block* parent_scope, composite_types_t type, compiler::symbol_element *symbol,
        element_type_t element = element_type_t::composite_type);
 
 	field_map_t& fields();

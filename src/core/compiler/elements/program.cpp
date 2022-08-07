@@ -6,22 +6,22 @@
 #include "cast.h"
 #include "label.h"
 #include "alias.h"
-#include "type.h"
+#include "types/type.h"
 #include "import.h"
 #include "comment.h"
-#include "any_type.h"
-#include "tuple_type.h"
-#include "array_type.h"
+#include "types/any_type.h"
+#include "types/tuple_type.h"
+#include "types/array_type.h"
 #include "if_element.h"
 #include "expression.h"
 #include "attribute.h"
 #include "directive.h"
 #include "statement.h"
-#include "type_info.h"
-#include "string_type.h"
-#include "numeric_type.h"
-#include "procedure_type.h"
-#include "unknown_type.h"
+#include "types/type_info.h"
+#include "types/string_type.h"
+#include "types/numeric_type.h"
+#include "types/procedure_type.h"
+#include "types/unknown_type.h"
 #include "argument_list.h"
 #include "boolean_literal.h"
 #include "string_literal.h"
@@ -29,14 +29,17 @@
 #include "integer_literal.h"
 #include "return_element.h"
 #include "unary_operator.h"
-#include "composite_type.h"
+#include "symbol_element.h"
+#include "types/composite_type.h"
 #include "procedure_call.h"
 #include "binary_operator.h"
 #include "namespace_element.h"
-#include "namespace_type.h"
+#include "types/namespace_type.h"
 #include "procedure_instance.h"
 #include "fmt/format.h"
-#include <array>
+#include "common/defer.h"
+#include "vm/assembler.h"
+
 namespace gfx::compiler {
 
 program::program(class terp* terp)
@@ -45,9 +48,7 @@ program::program(class terp* terp)
 
 }
 
-program::~program()
-{
-}
+program::~program() = default;
 
 compiler::block* program::block()
 {
@@ -61,11 +62,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 	}
 	switch (node->type) {
 		case ast_node_types_t::symbol: {
-			if (node->has_type_identifier()) {
-				return add_identifier_to_scope(r, node, nullptr);
-			} else {
-				return find_identifier(node);
-			}
+            return make_symbol_from_node(r, node);
 		}
 		case ast_node_types_t::attribute: {
 			return make_attribute(current_scope(), node->token.value, evaluate(r, node->lhs));
@@ -84,9 +81,12 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			return block_;
 		}
 		case ast_node_types_t::basic_block: {
-			auto active_block = push_new_block(default_block_type);
+			auto active_scope = push_new_block(default_block_type);
 			for (auto &it : node->children) {
-				add_expression_to_scope(active_block, evaluate(r, it, default_block_type));
+                auto expr = evaluate(r, it, default_block_type);
+                if (expr != nullptr) {
+                    add_expression_to_scope(active_scope, expr);
+                }
 			}
 			return pop_scope();
 		}
@@ -97,7 +97,19 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 					labels.push_back(make_label(current_scope(), label->token.value));
 				}
 			}
-			return make_statement(current_scope(), labels, evaluate(r, node->rhs));
+            auto expr = evaluate(r, node->rhs);
+            if (expr->element_type() == element_type_t::symbol) {
+                type_find_result_t find_type_result {};
+                 find_identifier_type(r, find_type_result, node->rhs->rhs);
+                if (find_type_result.type == nullptr) {
+                    r.add_message("P002", fmt::format("unknown type '{}'.", find_type_result.type_name.name),
+                                  true);
+                    return nullptr;
+                }
+                add_identifier_to_scope(r, dynamic_cast<compiler::symbol_element*>(expr),
+                    find_type_result, nullptr);
+            }
+			return make_statement(current_scope(), labels, expr);
 		}
 		case ast_node_types_t::expression: {
 			return make_expression(current_scope(), evaluate(r, node->lhs));
@@ -106,14 +118,19 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			const auto &assignment_target_list = node->lhs;
 
 			identifier_list_t list {};
-			for (const auto& symbol : assignment_target_list->children) {
-				auto existing_identifier = find_identifier(symbol);
+			for (const auto& symbol_node : assignment_target_list->children) {
+                qualified_symbol_t qualified_symbol {};
+                make_qualified_symbol(qualified_symbol, symbol_node);
+				auto existing_identifier = find_identifier(qualified_symbol);
 				if (existing_identifier != nullptr) {
 					return make_binary_operator(current_scope(), operator_type_t::assignment, existing_identifier,
 						evaluate(r, node->rhs));
 				} else {
+                    auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate(r, symbol_node));
+                    type_find_result_t find_type_result {};
+                    find_identifier_type(r, find_type_result, symbol_node->rhs);
                     // bug in this
-					auto new_identifier = add_identifier_to_scope(r, symbol, node->rhs);
+					auto new_identifier = add_identifier_to_scope(r, symbol, find_type_result, node->rhs);
 					list.push_back(new_identifier);
 				}
 			}
@@ -157,7 +174,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			return evaluate(r, node->children[0]);
 		}
 		case ast_node_types_t::import_expression: {
-			return make_import(current_scope(), evaluate(r, node->lhs));
+			return make_import(current_scope(), resolve_symbol_or_evaluate(r, node->lhs));
 		}
 		case ast_node_types_t::if_expression:
 		case ast_node_types_t::elseif_expression: {
@@ -171,36 +188,41 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			if (it == s_unary_operators.end()) {
 				return nullptr;
 			}
-			return make_unary_operator(current_scope(), it->second, evaluate(r, node->rhs));
+			return make_unary_operator(current_scope(), it->second, resolve_symbol_or_evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::binary_operator: {
 			auto it = s_binary_operators.find(node->token.type);
 			if (it == s_binary_operators.end()) {
 				return nullptr;
 			}
-            auto lhs = evaluate(r, node->lhs);
-            auto rhs = evaluate(r, node->rhs);
+            auto lhs = resolve_symbol_or_evaluate(r, node->lhs);
+            auto rhs = resolve_symbol_or_evaluate(r, node->rhs);
 			return make_binary_operator(current_scope(), it->second, lhs, rhs);
 		}
 		case ast_node_types_t::argument_list: {
 			auto args = make_argument_list(current_scope());
-			for (const auto& arg : node->children) {
-                auto element = evaluate(r, arg);
-				args->add(element);
-                element->parent_element(args);
+			for (const auto& arg_node : node->children) {
+                auto arg = resolve_symbol_or_evaluate(r, arg_node);
+				args->add(arg);
+                arg->parent_element(args);
 			}
 			return args;
 		}
 		case ast_node_types_t::proc_call: {
-			auto proc_identifier = find_identifier(node->lhs);
-			if (proc_identifier != nullptr) {
-				auto args = (argument_list*)nullptr;
-				auto expr = evaluate(r, node->rhs);
-				if (expr != nullptr) {
-					args = dynamic_cast<argument_list*>(expr);
-				}
-				return make_procedure_call(current_scope(), proc_identifier, args);
-			}
+            qualified_symbol_t qualified_symbol {};
+            make_qualified_symbol(qualified_symbol, node->lhs);
+			auto proc_identifier = find_identifier(qualified_symbol);
+			if (proc_identifier == nullptr) {
+                proc_identifier = make_identifier(current_scope(),
+                    dynamic_cast<compiler::symbol_element*>(evaluate(r, node->lhs)), nullptr, false);
+            }
+            argument_list* args = nullptr;
+            auto expr = evaluate(r, node->rhs);
+            if (expr != nullptr) {
+                args = dynamic_cast<argument_list*>(expr);
+            }
+            return make_procedure_call(current_scope(), proc_identifier, args);
+
 			return nullptr;
 		}
 		case ast_node_types_t::proc_expression: {
@@ -213,7 +235,8 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			for (const auto& type_node : node->lhs->children) {
 				switch (type_node->type) {
 					case ast_node_types_t::symbol: {
-						auto return_identifier = make_identifier(block_scope, fmt::format("_{}", count++), nullptr);
+						auto return_identifier = make_identifier(block_scope,
+                            make_symbol(block_scope, fmt::format("_{}", count++)), nullptr, true);
                         return_identifier->usage(identifier_usage_t::stack);
                         return_identifier->type(find_type(type_node->children[0]->token.value));
 						proc_type->returns().add(make_field(block_scope, return_identifier));
@@ -229,15 +252,22 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 				switch (param_node->type) {
 					case ast_node_types_t::assignment: {
 						// XXX: in the parameter list, multiple targets is an error
-						const auto& symbol_node = param_node->lhs->children[0];
-						auto param_identifier = add_identifier_to_scope(r, symbol_node, param_node->rhs, block_scope);
+						const auto& first_target = param_node->lhs->children[0];
+                        auto symbol = dynamic_cast<symbol_element*>(evaluate(r, first_target));
+                        type_find_result_t find_type_result {};
+                        find_identifier_type(r, find_type_result, first_target->rhs);
+						auto param_identifier = add_identifier_to_scope(r, symbol,
+                            find_type_result, param_node->rhs, block_scope);
                         param_identifier->usage(identifier_usage_t::stack);
                         auto field = make_field(current_scope(), param_identifier);
 						proc_type->parameters().add(field);
 						break;
 					}
 					case ast_node_types_t ::symbol: {
-						auto param_identifier = add_identifier_to_scope(r, param_node, nullptr, block_scope);
+                        auto symbol = dynamic_cast<symbol_element*>(evaluate(r, param_node));
+                        type_find_result_t find_type_result {};
+                        find_identifier_type(r, find_type_result, param_node->rhs);
+						auto param_identifier = add_identifier_to_scope(r, symbol, find_type_result, nullptr, block_scope);
                         param_identifier->usage(identifier_usage_t::stack);
                         auto field = make_field(block_scope, param_identifier);
 						proc_type->parameters().add(field);
@@ -262,11 +292,12 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			return enum_type;
 		}
 		case ast_node_types_t::cast_expression: {
-			auto type = find_type(node->lhs->token.value);
+            auto type_name = node->lhs->lhs->children[0]->token.value;
+			auto type = find_type(type_name);
 			if (type == nullptr) {
-				r.add_message("P002", fmt::format("unknown type '{}'.", node->lhs->token.value), true);
+				r.add_message("P002", fmt::format("unknown type '{}'.", type_name), true);
 			}
-			return make_cast(current_scope(), type, evaluate(r, node->rhs));
+			return make_cast(current_scope(), type, resolve_symbol_or_evaluate(r, node->rhs));
 		}
 		case ast_node_types_t::alias_expression: {
 			return make_alias(current_scope(), evaluate(r, node->lhs));
@@ -291,8 +322,11 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 		}
 		case ast_node_types_t::return_statement: {
 			auto return_element = make_return(current_scope());
+            auto& expressions = return_element->expressions();
 			for (const auto& arg_node : node->rhs->children) {
-				return_element->expressions().push_back(evaluate(r, arg_node));
+                auto arg = resolve_symbol_or_evaluate(r, arg_node);
+                expressions.push_back(arg);
+                arg->parent_element(return_element);
 			}
 			return return_element;
 		}
@@ -339,7 +373,7 @@ string_type *program::make_string_type(result &r, compiler::block* parent_scope)
 
 numeric_type *program::make_numeric_type(result &r, compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max)
 {
-    return make_type<numeric_type>(r, parent_scope, name, min, max);
+    return make_type<numeric_type>(r, parent_scope, make_symbol(parent_scope, name), min, max);
 }
 
 block *program::pop_scope()
@@ -412,19 +446,19 @@ attribute *program::make_attribute(compiler::block* parent_scope, const std::str
 composite_type* program::make_enum_type(result &r, compiler::block* parent_block)
 {
     std::string name = fmt::format("__enum_{}__", id_pool::instance()->allocate());
-    return make_type<composite_type>(r, parent_block, composite_types_t::enum_type, name);
+    return make_type<composite_type>(r, parent_block, composite_types_t::enum_type, make_symbol(parent_block, name));
 }
 
 composite_type* program::make_union_type(result& r, compiler::block* parent_block)
 {
     std::string name = fmt::format("__union_{}__", id_pool::instance()->allocate());
-    return make_type<composite_type>(r, parent_block, composite_types_t::union_type, name);
+    return make_type<composite_type>(r, parent_block, composite_types_t::union_type, make_symbol(parent_block, name));
 }
 
 composite_type* program::make_struct_type(result& r, compiler::block* parent_scope)
 {
     std::string name = fmt::format("__struct_{}__", id_pool::instance()->allocate());
-    return make_type<composite_type>(r, parent_scope, composite_types_t::struct_type, name);
+    return make_type<composite_type>(r, parent_scope, composite_types_t::struct_type, make_symbol(parent_scope, name));
 }
 
 comment *program::make_comment(compiler::block* parent_scope, comment_type_t type, const std::string &value)
@@ -466,12 +500,14 @@ label *program::make_label(compiler::block* parent_scope, const std::string &nam
     return label;
 }
 
-identifier* program::make_identifier(compiler::block* parent_scope, const std::string& name, initializer* expr)
+identifier* program::make_identifier(compiler::block* parent_scope, compiler::symbol_element* symbol, initializer* expr, bool resolved)
 {
-    auto identifier = new compiler::identifier(parent_scope, name, expr);
+    auto identifier = new compiler::identifier(parent_scope, symbol, expr);
+    identifier->resolved(resolved);
     if (expr != nullptr) {
         expr->parent_element(identifier);
     }
+    symbol->parent_element(identifier);
     elements_.add(identifier);
     return identifier;
 }
@@ -517,7 +553,7 @@ procedure_type* program::make_procedure_type(result &r, compiler::block* parent_
 {
 	// XXX: the name of the proc isn't correct here, but it works temporarily.
     std::string name = fmt::format("__proc_{}__", id_pool::instance()->allocate());
-    auto procedure_type = new compiler::procedure_type(parent_scope, block_scope, name);
+    auto procedure_type = new compiler::procedure_type(parent_scope, block_scope, make_symbol(parent_scope, name));
     if (block_scope != nullptr) {
         block_scope->parent_element(procedure_type);
     }
@@ -644,13 +680,12 @@ string_literal *program::make_string(compiler::block* parent_scope, const std::s
     return string_literal;
 }
 
-compiler::identifier *program::find_identifier(const ast_node_shared_ptr &node)
+compiler::identifier *program::find_identifier(const qualified_symbol_t& symbol)
 {
-	auto var = (identifier*) nullptr;
-	if (node->is_qualified_symbol()) {
+    if (symbol.is_qualified()) {
 		auto block_scope = block();
-		for (const auto& symbol_node : node->children) {
-			var = block_scope->identifiers().find(symbol_node->token.value);
+		for (const auto& namespace_name : symbol.namespaces) {
+		    auto var = block_scope->identifiers().find(namespace_name);
 			if (var == nullptr || var->initializer() == nullptr) {
                 return nullptr;
             }
@@ -660,14 +695,14 @@ compiler::identifier *program::find_identifier(const ast_node_shared_ptr &node)
 				auto ns = dynamic_cast<namespace_element*>(expr);
 				block_scope = dynamic_cast<compiler::block*>(ns->expression());
 			} else {
-				break;
+                return nullptr;
 			}
 		}
+        return block_scope->identifiers().find(symbol.name);
 	} else {
-		const auto& symbol_part = node->children[0];
 		auto block_scope = current_scope();
 		while (block_scope != nullptr) {
-			var = block_scope->identifiers().find(symbol_part->token.value);
+			auto var = block_scope->identifiers().find(symbol.name);
 			if (var != nullptr) {
                 return var;
             }
@@ -675,7 +710,6 @@ compiler::identifier *program::find_identifier(const ast_node_shared_ptr &node)
 		}
 		return nullptr;
 	}
-	return var;
 }
 
 element_map &program::elements()
@@ -683,22 +717,41 @@ element_map &program::elements()
 	return elements_;
 }
 
-compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node_shared_ptr &symbol,
+compiler::element* program::resolve_symbol_or_evaluate(result& r, const ast_node_shared_ptr& node)
+{
+    compiler::element* element = nullptr;
+    if (node->type == ast_node_types_t::symbol) {
+        qualified_symbol_t qualified_symbol {};
+        make_qualified_symbol(qualified_symbol, node);
+        element = find_identifier(qualified_symbol);
+    } else {
+        element = evaluate(r, node);
+    }
+    return element;
+}
+
+compiler::identifier *program::add_identifier_to_scope(result &r, symbol_element *symbol, type_find_result_t& type_find_result,
 	const ast_node_shared_ptr &rhs, compiler::block* parent_scope)
 {
 	auto namespace_type = find_type("namespace");
-    auto type_find_result = find_identifier_type(r, symbol);
 
-	auto scope = symbol->is_qualified_symbol() ? block()
+	auto scope = symbol->is_qualified() ? block()
 		: (parent_scope != nullptr ? parent_scope : current_scope());
 
-	for (size_t i = 0; i < symbol->children.size() - 1; i++) {
-		const auto& symbol_node = symbol->children[i];
-		auto var = scope->identifiers().find(symbol_node->token.value);
+    auto namespaces = symbol->namespaces();
+    string_list_t temp_list {};
+    std::string namespace_name {};
+	for (size_t i = 0; i < namespaces.size(); i++) {
+        if (!namespace_name.empty()) {
+            temp_list.push_back(namespace_name);
+        }
+        namespace_name = namespaces[i];
+        auto var = scope->identifiers().find(namespace_name);
 		if (var == nullptr) {
 			auto new_scope = make_block(scope, element_type_t::block);
-            auto ns = make_namespace(scope, new_scope, symbol_node->token.value);
-			auto ns_identifier = make_identifier(scope, symbol_node->token.value, make_initializer(scope, ns));
+            auto ns = make_namespace(scope, new_scope, namespace_name);
+			auto ns_identifier = make_identifier(scope, make_symbol(parent_scope, namespace_name), make_initializer(scope, ns),
+                 true);
 			ns_identifier->type(namespace_type);
 			ns_identifier->inferred_type(true);
             scope->blocks().push_back(new_scope);
@@ -716,34 +769,38 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 		}
 	}
 
-	const auto& final_symbol = symbol->children.back();
-
     compiler::element* init_expr = nullptr;
 	compiler::initializer * init = nullptr;
 	if (rhs != nullptr) {
         push_scope(scope);
         init_expr = evaluate(r, rhs);
         pop_scope();
-
-        if (init_expr->element_type() == element_type_t::namespace_e) {
-            auto ns = dynamic_cast<compiler::namespace_element*>(init_expr);
-            ns->name(final_symbol->token.value);
+        if (init_expr !=nullptr) {
+            if (init_expr->is_constant()) {
+                init = make_initializer(scope, init_expr);
+            }
+            if (init_expr->element_type() == element_type_t::namespace_e) {
+                auto ns = dynamic_cast<compiler::namespace_element*>(init_expr);
+                ns->name(symbol->name());
+            }
         }
-		if (init_expr != nullptr && init_expr->is_constant()) {
-			init = make_initializer(scope, init_expr);
-		}
 	}
 
-	auto new_identifier = make_identifier(scope, final_symbol->token.value, init);
+	auto new_identifier = make_identifier(scope, symbol, init, true);
 	if (type_find_result.type == nullptr) {
-        type_find_result.type = init_expr->infer_type(this);
-		new_identifier->inferred_type(type_find_result.type != nullptr);
-	}
-	new_identifier->type(type_find_result.type);
-	if (type_find_result.type == nullptr) {
-		new_identifier->type(unknown_type_from_result(r, scope, new_identifier, type_find_result));
+        if (init_expr !=nullptr) {
+            type_find_result.type = init_expr->infer_type(this);
+            new_identifier->type(type_find_result.type);
+            new_identifier->inferred_type(type_find_result.type != nullptr);
+        }
+        if (type_find_result.type == nullptr) {
+            new_identifier->type(unknown_type_from_result(r, scope, new_identifier, type_find_result));
+        }
+	} else {
+        new_identifier->type(type_find_result.type);
     }
-	new_identifier->constant(symbol->is_constant_expression());
+
+	new_identifier->constant(symbol->is_constant());
 	scope->identifiers().add(new_identifier);
 	if (init != nullptr
 		&& init->expression()->element_type() == element_type_t::proc_type) {
@@ -751,7 +808,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 	}
     if (init == nullptr && init_expr != nullptr) {
         if (new_identifier->type()->element_type() == element_type_t::unknown_type) {
-            r.add_message("P019", fmt::format("unable to infer type: {}", new_identifier->name()), true);
+            r.add_message("P019", fmt::format("unable to infer type: {}", new_identifier->symbol()->name()), true);
             return nullptr;
         } else {
             auto assign_bin_op = make_binary_operator(scope, operator_type_t::assignment, new_identifier, init_expr);
@@ -764,13 +821,13 @@ compiler::identifier *program::add_identifier_to_scope(result &r, const ast_node
 
 array_type *program::make_array_type(result &r, compiler::block* parent_scope, compiler::type *entry_type, size_t size)
 {
-    std::string name = fmt::format("__array_{}_{}__", entry_type->name(), size);
-    return make_type<array_type>(r, parent_scope, name, entry_type, size);
+    std::string name = fmt::format("__array_{}_{}__", entry_type->symbol()->name(), size);
+    return make_type<array_type>(r, parent_scope, make_symbol(parent_scope, name), entry_type, size);
 }
 
 compiler::type *program::find_array_type(compiler::type *entry_type, size_t size) const
 {
-	return find_type(fmt::format("__array_{}_{}__", entry_type->name(), size));
+	return find_type(fmt::format("__array_{}_{}__", entry_type->symbol()->name(), size));
 }
 
 namespace_type *program::make_namespace_type(result &r, compiler::block* parent_scope)
@@ -790,11 +847,12 @@ void program::add_composite_type_fields(result &r, composite_type *type, const a
 		auto expr_node = child->rhs;
 		switch (expr_node->type) {
 			case ast_node_types_t::assignment: {
-				auto symbol_node = expr_node->lhs->children[0];
-                auto type_find_result = find_identifier_type(r, symbol_node);
+                auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate(r, expr_node->lhs));
+                type_find_result_t type_find_result {};
+                find_identifier_type(r, type_find_result, expr_node->rhs);
                 auto init = make_initializer(current_scope(), evaluate(r, expr_node->rhs));
-                auto field_identifier = make_identifier(current_scope(), symbol_node->children[0]->token.value, init);
-                if (type_find_result.type ==nullptr) {
+                auto field_identifier = make_identifier(current_scope(), symbol, init, true);
+                if (type_find_result.type == nullptr) {
                     type_find_result.type = init->expression()->infer_type(this);
                     field_identifier->inferred_type(type_find_result.type != nullptr);
                 }
@@ -805,9 +863,10 @@ void program::add_composite_type_fields(result &r, composite_type *type, const a
 				break;
 			}
 			case ast_node_types_t::symbol: {
-				auto type_find_result = find_identifier_type(r, expr_node);
-				auto field_identifier = make_identifier(current_scope(), expr_node->children[0]->token.value,
-					nullptr);
+                auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate(r, expr_node));
+                type_find_result_t type_find_result {};
+                find_identifier_type(r, type_find_result, expr_node->rhs);
+				auto field_identifier = make_identifier(current_scope(), symbol, nullptr, true);
                 if (type_find_result.type == nullptr) {
                     if (type->type() == composite_types_t::enum_type) {
                         field_identifier->type(u32_type);
@@ -880,9 +939,11 @@ bool program::compile(result& r, assembly_listing& listing, const ast_node_share
 	if (!resolve_unknown_types(r)) {
 		return false;
 	}
+    if (!r.is_failed()) {
+        emit_context_t context(terp_, &assembler_, this);
+        emit(r, context);
+    }
 
-    emit_context_t context(terp_, &assembler_, this);
-    emit(r, context);
 
     auto root_block = assembler_.root_block();
     root_block->disassemble(listing);
@@ -942,10 +1003,20 @@ type* program::find_type_down(const std::string &name)
     return recursive_find(block());
 }
 
-unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scope, const std::string &name,
+unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scope, symbol_element* symbol,
 	bool is_array, size_t array_size)
 {
-    return make_type<unknown_type>(r, parent_scope, name, is_array, array_size);
+    auto type = new compiler::unknown_type(parent_scope, symbol);
+    if (!type->initialize(r, this)) {
+        return nullptr;
+    }
+
+    type->is_array(is_array);
+    type->array_size(array_size);
+    symbol->parent_element(type);
+    elements_.add(type);
+    return type;
+
 }
 
 bool program::resolve_unknown_types(result& r)
@@ -961,7 +1032,7 @@ bool program::resolve_unknown_types(result& r)
 		compiler::type* identifier_type = nullptr;
 		if (var->initializer() == nullptr) {
 			auto unknown_type = dynamic_cast<compiler::unknown_type*>(var->type());
-			identifier_type = find_type_down(unknown_type->name());
+			identifier_type = find_type_down(unknown_type->symbol()->name());
 			if (unknown_type->is_array()) {
 				auto array_type = find_array_type(identifier_type, unknown_type->array_size());
 				if (array_type == nullptr) {
@@ -985,7 +1056,7 @@ bool program::resolve_unknown_types(result& r)
 			it = identifiers_with_unknown_types_.erase(it);
 		} else {
 			++it;
-			r.add_message("P004", fmt::format("unable to resolve type for identifier: {}", var->name()), true);
+			r.add_message("P004", fmt::format("unable to resolve type for identifier: {}", var->symbol()->name()), true);
 		}
 	}
 
@@ -1044,33 +1115,49 @@ void program::add_type_to_scope(compiler::type *value)
     current_scope()->types().add(value);
 }
 
-type_find_result_t program::find_identifier_type(result& r, const ast_node_shared_ptr &symbol)
+bool program::find_identifier_type(result& r, type_find_result_t &result, const ast_node_shared_ptr &type_node)
 {
-    type_find_result_t result{};
-    if (symbol->rhs != nullptr) {
-        result.type_name = symbol->rhs->token.value;
-        result.is_array= symbol->rhs->is_array();
-        result.array_size = 0; // XXX: this needs to be fixed!
-        if (!result.type_name.empty()) {
-            result.type  = find_type(result.type_name);
-            if (result.is_array) {
-                auto array_type = find_array_type(result.type, result.array_size);
-                if (array_type == nullptr) {
-                    array_type = make_array_type(r, current_scope(), result.type, result.array_size);
-                }
-                result.type = array_type;
-            }
-        }
+    if (type_node == nullptr) {
+        return false;
     }
-    return result;
+    make_qualified_symbol(result.type_name, type_node->lhs);
+    result.is_array = type_node->is_array();
+    result.array_size = 0; // XXX: this needs to be fixed!
+    if (result.type_name.is_qualified()) {
+//      result.type = find_type_down(result.type_name);
+    }
+    else {
+        result.type = find_type(result.type_name.name);
+    }
+
+    if (result.is_array) {
+        auto array_type = find_array_type(result.type, result.array_size);
+        if (array_type == nullptr) {
+            array_type = make_array_type(r, current_scope(), result.type, result.array_size);
+        }
+        result.type = array_type;
+    }
+
+    return result.type !=nullptr;
 }
 
 unknown_type *program::unknown_type_from_result(result &r,compiler::block *scope,
     compiler::identifier *identifier, type_find_result_t &result)
 {
-    auto type = make_unknown_type(r, scope, result.type_name, result.is_array, result.array_size);
+    auto symbol = make_symbol(scope, result.type_name.name, result.type_name.namespaces);
+    auto type = make_unknown_type(r, scope, symbol, result.is_array, result.array_size);
     identifiers_with_unknown_types_.push_back(identifier);
     return type;
+}
+
+void program::make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node)
+{
+    if (!node->children.empty()) {
+        for (size_t i = 0; i < node->children.size() - 1; i++) {
+            symbol.namespaces.push_back(node->children[i]->token.value);
+        }
+    }
+    symbol.name = node->children.back()->token.value;
 }
 
 type_info *program::make_type_info_type(result &r, compiler::block *parent_scope)
@@ -1118,7 +1205,7 @@ tuple_type *program::make_tuple_type(result &r, compiler::block *parent_scope)
 bool program::on_emit(result &r, emit_context_t &context)
 {
     auto instruction_block = context.assembler->make_basic_block();
-    instruction_block->jump_direct("_start");
+    instruction_block->jump_direct("_initializer");
 
     std::map<section_t, element_list_t> vars_by_section {};
     auto bss  = vars_by_section.insert(std::make_pair(section_t::bss,     element_list_t()));
@@ -1129,7 +1216,8 @@ bool program::on_emit(result &r, emit_context_t &context)
     auto identifiers = elements().find_by_type(element_type_t::identifier);
     for (auto identifier : identifiers) {
         auto var = dynamic_cast<compiler::identifier*>(identifier);
-        if (var->type()->element_type() == element_type_t::namespace_type) {
+        auto var_type = var->type();
+        if (var_type ==nullptr || var->type()->element_type() == element_type_t::namespace_type ) {
             continue;
         }
 
@@ -1174,7 +1262,7 @@ bool program::on_emit(result &r, emit_context_t &context)
 
     for (const auto& section : vars_by_section) {
         instruction_block->section(section.first);
-
+        instruction_block->current_entry()->blank_lines(1);
         for (auto e : section.second) {
             switch (e->element_type()) {
                 case element_type_t::string_literal: {
@@ -1182,11 +1270,13 @@ bool program::on_emit(result &r, emit_context_t &context)
                     instruction_block->memo();
                     auto it = interned_string_literals_.find(string_literal->value());
                     if (it != interned_string_literals_.end()) {
+                        auto current_entry = instruction_block->current_entry();
                         string_literal_list_t& str_list = it->second;
                         for (auto str : str_list) {
                             auto var_label = instruction_block->make_label(str->label_name());
-                            instruction_block->current_entry()->label(var_label);
+                            current_entry->label(var_label);
                         }
+                        current_entry->blank_lines(1);
                     }
                     instruction_block->current_entry()->comment(fmt::format("\"{}\"", string_literal->value()));
                     instruction_block->string(string_literal->value());
@@ -1195,10 +1285,11 @@ bool program::on_emit(result &r, emit_context_t &context)
                 case element_type_t::identifier: {
                     auto var = dynamic_cast<compiler::identifier*>(e);
                     auto init = var->initializer();
-
                     instruction_block->memo();
-                    auto var_label = instruction_block->make_label(var->name());
-                    instruction_block->current_entry()->label(var_label);
+                    auto var_label = instruction_block->make_label(var->symbol()->name());
+                    auto current_entry = instruction_block->current_entry();
+                    current_entry->label(var_label);
+                    current_entry->blank_lines(1);
 
                     switch (var->type()->element_type()) {
                         case element_type_t::numeric_type: {
@@ -1288,15 +1379,62 @@ bool program::on_emit(result &r, emit_context_t &context)
     }
 
     auto top_level_block = context.assembler->make_basic_block();
+    top_level_block->align(instruction_t::alignment);
+    top_level_block->current_entry()->blank_lines(1);
     top_level_block->memo();
-    auto start_label = top_level_block->make_label("_start");
-    top_level_block->current_entry()->label(start_label);
+    top_level_block->current_entry()->label(top_level_block->make_label("_initializer"));
+
+    auto all_blocks = elements().find_by_type(element_type_t::block);
+    block_list_t implicit_blocks {};
+    for (auto block : all_blocks) {
+        if (block->is_parent_element(element_type_t::namespace_e)
+            ||  block->is_parent_element(element_type_t::program)) {
+            implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
+        }
+    }
 
     context.assembler->push_block(top_level_block);
-    context.assembler->pop_block();
+    context.push_block(false);
+    for (auto block : implicit_blocks) {
+        block->emit(r, context);
+    }
 
+    context.pop();
+
+    auto finalizer_block = context.assembler->make_basic_block();
+    finalizer_block->align(instruction_t::alignment);
+    finalizer_block->current_entry()->blank_lines(1);
+    finalizer_block->exit();
+    finalizer_block->current_entry()->label(finalizer_block->make_label("_finalizer"));
+
+    context.assembler->pop_block();
     context.assembler->pop_block();
 
     return true;
 }
+
+compiler::symbol_element* program::make_symbol(compiler::block* parent_scope, const std::string& name,
+       const string_list_t& namespaces)
+{
+
+    auto symbol = new compiler::symbol_element(parent_scope, name, namespaces);
+    elements_.add(symbol);
+    return symbol;
+}
+
+compiler::symbol_element* program::make_temp_symbol(compiler::block* parent_scope, const std::string& name, const string_list_t& namespaces)
+{
+    return new compiler::symbol_element(parent_scope, name, namespaces);
+}
+
+compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_node_shared_ptr& node) {
+    qualified_symbol_t qualified_symbol {};
+    make_qualified_symbol(qualified_symbol, node);
+
+    auto symbol = make_symbol(current_scope(), qualified_symbol.name, qualified_symbol.namespaces);
+    symbol->constant(node->is_constant_expression());
+
+    return symbol;
+}
+
 }

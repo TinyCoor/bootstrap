@@ -352,19 +352,21 @@ void instruction_block::disassemble(assembly_listing& listing, instruction_block
 
     size_t index = 0;
     for (auto& entry : block->entries_) {
+        source_file->add_blank_lines(entry.blank_lines());
         for (const auto& comment : entry.comments()) {
-//            source_file->add_source_line(0, "");
             source_file->add_source_line(0, fmt::format("; {}", comment));
         }
         for (auto label : entry.labels()) {
-//            if (entry.comments().empty()) {
-//                source_file->add_source_line(0, "");
-//            }
             source_file->add_source_line(0, fmt::format("{}:", label->name()));
         }
         switch (entry.type()) {
             case block_entry_type_t::memo: {
                     break;
+            }
+            case block_entry_type_t::align: {
+                auto align = entry.data<align_t>();
+                source_file->add_source_line(0, fmt::format(".align {}", align->size));
+                break;
             }
             case block_entry_type_t::section: {
                 auto section = entry.data<section_t>();
@@ -1045,6 +1047,7 @@ void instruction_block::string(const std::string &value)
     for (const auto &c : value) {
         byte(static_cast<uint8_t>(c));
     }
+    byte(0);
 }
 
 void instruction_block::make_block_entry(const instruction_t &inst)
@@ -1078,6 +1081,17 @@ block_entry_t *instruction_block::current_entry()
 void instruction_block::memo()
 {
     entries_.emplace_back(block_entry_t());
+}
+
+void instruction_block::align(uint8_t size)
+{
+    make_block_entry(align_t {
+        .size = size
+    });
+}
+void instruction_block::make_block_entry(const align_t &align)
+{
+    entries_.push_back(block_entry_t(align));
 }
 
 }

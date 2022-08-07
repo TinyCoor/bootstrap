@@ -2,7 +2,9 @@
 // Created by 12132 on 2022/5/14.
 //
 #include "program.h"
-#include "procedure_type.h"
+#include "identifier.h"
+#include "symbol_element.h"
+#include "types/procedure_type.h"
 #include "procedure_call.h"
 namespace gfx::compiler {
 
@@ -31,21 +33,24 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
 {
     auto assembler = context.assembler;
     auto instruction_block = assembler->current_block();
+    auto init = identifier()->initializer();
+    if (init == nullptr) {
+        return false;
+    }
 
     if (arguments_ != nullptr) {
         arguments_->emit(r, context);
     }
-    auto procedure_type = identifier()->initializer()->procedure_type();
+    auto procedure_type = init->procedure_type();
     if (procedure_type->is_foreign()) {
-        instruction_block->call_foreign(identifier()->name());
+        instruction_block->call_foreign(identifier()->symbol()->name());
     } else {
-        instruction_block->call(identifier()->name());
+        instruction_block->call(identifier()->symbol()->name());
     }
     auto target_reg = instruction_block->current_target_register();
     if (target_reg != nullptr) {
-        for (auto  & return_type : procedure_type->returns().as_list()) {
+        if (!procedure_type->returns().as_list().empty()) {
             instruction_block->pop<uint64_t>(target_reg->reg.i);
-            (void)return_type;
         }
     }
     return true;

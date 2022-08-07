@@ -3,10 +3,11 @@
 //
 
 #include "numeric_type.h"
-#include "program.h"
+#include "../symbol_element.h"
+#include "core/compiler/elements/program.h"
 namespace gfx::compiler {
-numeric_type::numeric_type(block* parent, const std::string &name, int64_t min, uint64_t max)
-	: type(parent, element_type_t::numeric_type, name), min_(min), max_(max)
+numeric_type::numeric_type(block* parent, symbol_element* symbol,  int64_t min, uint64_t max)
+	: type(parent, element_type_t::numeric_type, symbol), min_(min), max_(max)
 {
 
 }
@@ -39,7 +40,7 @@ type_list_t numeric_type::make_types(result& r, compiler::block* parent, compile
 
 bool numeric_type::on_initialize(result &r, compiler::program* program)
 {
-	auto it = s_types_map.find(name());
+	auto it = s_types_map.find(symbol()->name());
 	if (it == s_types_map.end()) {
 		return false;
 	}

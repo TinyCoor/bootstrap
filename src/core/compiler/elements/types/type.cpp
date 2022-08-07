@@ -3,24 +3,15 @@
 //
 
 #include "type.h"
-#include "field.h"
+#include "../field.h"
 namespace gfx::compiler {
-type::type(block* parent, element_type_t type, const std::string& name)
-	: element(parent,type), name_(name)
+type::type(block* parent, element_type_t type, compiler::symbol_element* symbol)
+	: element(parent,type), symbol_(symbol)
 {
 }
 
 type::~type()
 {
-}
-std::string type::name() const
-{
-	return name_;
-}
-
-void type::name(const std::string &value)
-{
-	name_ =value;
 }
 
 size_t type::size_in_bytes() const
@@ -60,6 +51,16 @@ size_t type::alignment() const
 void type::alignment(size_t value)
 {
     alignment_ = value;
+}
+
+compiler::symbol_element *type::symbol() const
+{
+    return symbol_;
+}
+
+void type::symbol(compiler::symbol_element *value)
+{
+    symbol_ = value;
 }
 
 }

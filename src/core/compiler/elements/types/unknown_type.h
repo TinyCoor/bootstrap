@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class unknown_type : public type {
 public:
-    unknown_type(block* parent_scope, const std::string& name, bool is_array, size_t size);
+    unknown_type(block* parent_scope, compiler::symbol_element* symbol);
 
 	bool is_array() const;
 

@@ -4,7 +4,7 @@
 
 #include "initializer.h"
 #include "binary_operator.h"
-#include "procedure_type.h"
+#include "core/compiler/elements/types/procedure_type.h"
 
 namespace gfx::compiler {
 

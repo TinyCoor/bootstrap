@@ -22,6 +22,11 @@ enum class instruction_block_type_t {
 };
 
 class instruction_block {
+    struct label_ref_t {
+        id_t id;
+        std::string name;
+        label* resolved = nullptr;
+    };
 public:
     explicit instruction_block(instruction_block* parent, instruction_block_type_t type);
 
@@ -307,7 +312,6 @@ public:
     {
         make_pop_instruction(TypeToOpSize::ToOpSize<T>(), reg);
     }
-
 
     void call(const std::string& proc_name);
 

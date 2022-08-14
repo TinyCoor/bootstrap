@@ -10,11 +10,6 @@
 
 namespace gfx {
 
-struct listing_source_line_t {
-    uint64_t address = 0;
-    std::string source {};
-};
-
 struct listing_source_file_t {
     void add_source_line(uint64_t address, const std::string& source)
     {
@@ -31,6 +26,11 @@ struct listing_source_file_t {
             });
         }
     }
+
+    struct listing_source_line_t {
+        uint64_t address = 0;
+        std::string source {};
+    };
     std::string filename;
     std::vector<listing_source_line_t> lines {};
 };

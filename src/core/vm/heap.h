@@ -24,19 +24,23 @@ struct heap_block_t {
 		allocated  = 0b00000001,
 	};
 
-	inline void mark_allocated() {
+	inline void mark_allocated()
+    {
 		flags |= flags_t::allocated;
 	}
 
-	inline void clear_allocated() {
+	inline void clear_allocated()
+    {
 		flags &= ~flags_t::allocated;
 	}
 
-	inline bool is_free() const {
+	inline bool is_free() const
+    {
 		return (flags & flags_t::allocated) == 0;
 	}
 
-	inline bool is_allocated() const {
+	inline bool is_allocated() const
+    {
 		return (flags & flags_t::allocated) != 0;
 	}
 

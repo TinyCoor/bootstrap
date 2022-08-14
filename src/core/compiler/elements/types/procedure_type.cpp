@@ -3,7 +3,6 @@
 //
 #include "core/compiler/elements/program.h"
 #include "procedure_type.h"
-#include "procedure_type.h"
 #include "../symbol_element.h"
 #include "fmt/core.h"
 namespace gfx::compiler {
@@ -105,7 +104,7 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
               local_count++;
           }
           return true;
-        }, scope_);
+    }, scope_);
 
     instruction_block->move_ireg_to_ireg(i_registers_t::fp, i_registers_t::sp);
     auto size =  8 * local_count;

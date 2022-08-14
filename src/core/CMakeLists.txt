@@ -105,7 +105,6 @@ set(ELEMENT_SRC
 
 # elements
         compiler/elements/attribute.cpp
-
         compiler/elements/if_element.cpp
         compiler/elements/return_element.cpp
         compiler/elements/symbol_element.cpp
@@ -119,15 +118,12 @@ set(ELEMENT_SRC
         compiler/elements/initializer.cpp
         compiler/elements/namespace_element.cpp
         compiler/elements/program.cpp
-
         compiler/elements/label.cpp
         compiler/elements/comment.cpp
         compiler/elements/statement.cpp
         compiler/elements/alias.cpp
         compiler/elements/cast.cpp
-
         compiler/elements/procedure_instance.cpp
-
         compiler/elements/argument_list.cpp
         compiler/elements/import.cpp
         compiler/extern.cpp
@@ -163,7 +159,7 @@ target_link_libraries(compiler-rt PUBLIC
         dyncall_s
         dynload_s
         )
-#set_target_properties(compiler-rt PUBLIC )
+
 
 add_custom_target(bootstrap-configured DEPENDS dummy-target bootstrap)
 add_dependencies(bootstrap-configured all-unit-tests)

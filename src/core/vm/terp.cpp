@@ -3,12 +3,10 @@
 //
 #include "ffi.h"
 #include "terp.h"
-#include "../src/common/formatter.h"
+#include "common/formatter.h"
 #include "instruction.h"
 #include "common/bytes.h"
 #include "fmt/format.h"
-#include <sstream>
-#include <iomanip>
 
 namespace gfx {
 
@@ -25,7 +23,6 @@ terp::~terp()
 		heap_size_ = 0;
 	}
 	free_heap_block_list();
-
 }
 
 bool terp::initialize(result& r)

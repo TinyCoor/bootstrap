@@ -24,8 +24,8 @@ inline static std::string_view section_name(section_t type)
         case section_t::ro_data:return "ro_data";
         case section_t::data:   return "data";
         case section_t::text:   return "text";
+        default: return "unknown";
     }
-    return "unknown";
 }
 
 struct align_t {
@@ -38,9 +38,9 @@ enum data_definition_type_t : uint8_t {
 };
 
 struct data_definition_t {
-    op_sizes size;
+    op_sizes size = op_sizes::byte;
     uint64_t value = 0;
-    data_definition_type_t type;
+    data_definition_type_t type = data_definition_type_t::uninitialized;
 };
 
 enum class block_entry_type_t : uint8_t {

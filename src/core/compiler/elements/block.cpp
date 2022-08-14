@@ -5,9 +5,8 @@
 #include "block.h"
 #include "vm/assembler.h"
 #include "initializer.h"
-#include "core/compiler/elements/types/procedure_type.h"
+#include "types/procedure_type.h"
 #include "statement.h"
-#include "string_literal.h"
 #include "namespace_element.h"
 #include <fmt/format.h>
 
@@ -68,7 +67,7 @@ bool block::on_emit(result &r, emit_context_t& context)
             break;
         }
         case element_type_t::proc_instance_block:
-            instruction_block =context.assembler->current_block();
+            instruction_block = context.assembler->current_block();
             break;
         default:
             return false;

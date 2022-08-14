@@ -26,8 +26,8 @@ inline static std::string_view stack_frame_entry_type_name(stack_frame_entry_typ
             return "parameter";
         case stack_frame_entry_type_t::return_slot:
             return "return_slot";
+        default:  return "unknown";
     }
-    return "unknown";
 }
 
 struct stack_frame_entry_t {

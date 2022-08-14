@@ -6,7 +6,7 @@
 #define TERP_H_
 #include "instruction.h"
 #include "heap.h"
-#include "../src/common/result.h"
+#include "common/result.h"
 #include "shared_library.h"
 #include "instruction_cache.h"
 #include <cstdint>

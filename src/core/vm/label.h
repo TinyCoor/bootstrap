@@ -7,14 +7,6 @@
 #include "common/id_pool.h"
 #include <string>
 namespace gfx {
-class label;
-
-struct label_ref_t {
-    id_t id;
-    std::string name;
-    label* resolved = nullptr;
-};
-
 class label {
 public:
     explicit label(const std::string& name);

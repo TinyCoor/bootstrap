@@ -361,7 +361,7 @@ void instruction_block::disassemble(assembly_listing& listing, instruction_block
         }
         switch (entry.type()) {
             case block_entry_type_t::memo: {
-                    break;
+                break;
             }
             case block_entry_type_t::align: {
                 auto align = entry.data<align_t>();
@@ -415,16 +415,16 @@ void instruction_block::disassemble(assembly_listing& listing, instruction_block
                         format_spec = "${:04X}";
                         switch (definition->size) {
                             case op_sizes::byte:
-                                directive << ".rb";
+                                directive << ".db";
                                 break;
                             case op_sizes::word:
-                                directive << ".rw";
+                                directive << ".dw";
                                 break;
                             case op_sizes::dword:
-                                directive << ".rd";
+                                directive << ".dd";
                                 break;
                             case op_sizes::qword:
-                                directive << ".rq";
+                                directive << ".dq";
                                 break;
                             default: {
                                 break;
@@ -433,8 +433,8 @@ void instruction_block::disassemble(assembly_listing& listing, instruction_block
                         break;
                     }
                 }
-                source_file->add_source_line(0,fmt::format("\t{:<10} {}", directive.str(),
-                        fmt::format(fmt::runtime(format_spec), definition->value)));
+                source_file->add_source_line(0, fmt::format("\t{:<10} {}", directive.str(),
+                    fmt::format(fmt::runtime(format_spec), definition->value)));
                 break;
             }
         }
@@ -471,7 +471,7 @@ void instruction_block::make_integer_constant_push_instruction(op_sizes size, ui
     make_block_entry(push_op);
 }
 
-label_ref_t *instruction_block::find_unresolved_label_up(id_t id)
+instruction_block::label_ref_t *instruction_block::find_unresolved_label_up(id_t id)
 {
     auto current_block = this;
     while (current_block != nullptr) {
@@ -520,7 +520,7 @@ void instruction_block::make_push_instruction(op_sizes size, f_registers_t reg)
     make_block_entry(push_op);
 }
 
-label_ref_t *instruction_block::make_unresolved_label_ref(const std::string &label_name)
+instruction_block::label_ref_t *instruction_block::make_unresolved_label_ref(const std::string &label_name)
 {
     auto it = label_to_unresolved_ids_.find(label_name);
     if (it != label_to_unresolved_ids_.end()) {
@@ -934,6 +934,7 @@ void instruction_block::setnz(i_registers_t dest_reg)
     setnz_op.operands[0].value.r8 = dest_reg;
     make_block_entry(setnz_op);
 }
+
 void instruction_block::sub_ireg_by_immediate(i_registers_t dest_reg, i_registers_t minuend_reg,
     uint64_t subtrahend_immediate)
 {

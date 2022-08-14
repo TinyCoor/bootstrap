@@ -10,10 +10,6 @@
 #include "instruction.h"
 namespace gfx {
 class terp;
-struct inst_cache_entry_t {
-	size_t size;
-	instruction_t inst;
-};
 
 class instruction_cache {
 public:
@@ -23,8 +19,12 @@ public:
 
 	size_t fetch(result& r, instruction_t& inst);
 
-	size_t fetch_at(result& r, instruction_t& inst,uint64_t address);
+	size_t fetch_at(result& r, instruction_t& inst, uint64_t address);
 private:
+    struct inst_cache_entry_t {
+        size_t size;
+        instruction_t inst;
+    };
 	terp* terp_ = nullptr;
 	std::unordered_map<uint64_t, inst_cache_entry_t> cache_;
 };

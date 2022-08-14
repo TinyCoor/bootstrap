@@ -43,7 +43,7 @@
 namespace gfx::compiler {
 
 program::program(class terp* terp)
-	: element(nullptr,  element_type_t::program), assembler_(terp), terp_(terp)
+	: element(nullptr, element_type_t::program), assembler_(terp), terp_(terp)
 {
 
 }
@@ -103,7 +103,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
                  find_identifier_type(r, find_type_result, node->rhs->rhs);
                 if (find_type_result.type == nullptr) {
                     r.add_message("P002", fmt::format("unknown type '{}'.", find_type_result.type_name.name),
-                                  true);
+                        true);
                     return nullptr;
                 }
                 add_identifier_to_scope(r, dynamic_cast<compiler::symbol_element*>(expr),
@@ -129,7 +129,6 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
                     auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate(r, symbol_node));
                     type_find_result_t find_type_result {};
                     find_identifier_type(r, find_type_result, symbol_node->rhs);
-                    // bug in this
 					auto new_identifier = add_identifier_to_scope(r, symbol, find_type_result, node->rhs);
 					list.push_back(new_identifier);
 				}
@@ -222,8 +221,6 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
                 args = dynamic_cast<argument_list*>(expr);
             }
             return make_procedure_call(current_scope(), proc_identifier, args);
-
-			return nullptr;
 		}
 		case ast_node_types_t::proc_expression: {
 			auto active_scope = current_scope();
@@ -741,17 +738,17 @@ compiler::identifier *program::add_identifier_to_scope(result &r, symbol_element
     auto namespaces = symbol->namespaces();
     string_list_t temp_list {};
     std::string namespace_name {};
-	for (size_t i = 0; i < namespaces.size(); i++) {
+	for (auto & i : namespaces) {
         if (!namespace_name.empty()) {
             temp_list.push_back(namespace_name);
         }
-        namespace_name = namespaces[i];
+        namespace_name = i;
         auto var = scope->identifiers().find(namespace_name);
 		if (var == nullptr) {
 			auto new_scope = make_block(scope, element_type_t::block);
             auto ns = make_namespace(scope, new_scope, namespace_name);
-			auto ns_identifier = make_identifier(scope, make_symbol(parent_scope, namespace_name), make_initializer(scope, ns),
-                 true);
+			auto ns_identifier = make_identifier(scope, make_symbol(parent_scope, namespace_name),
+                make_initializer(scope, ns), true);
 			ns_identifier->type(namespace_type);
 			ns_identifier->inferred_type(true);
             scope->blocks().push_back(new_scope);
@@ -898,7 +895,7 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 		switch (child_node->type) {
 			case ast_node_types_t::attribute: {
                 auto attribute = make_attribute(proc_type->scope(), child_node->token.value,
-                                                evaluate(r, child_node->lhs));
+                    evaluate(r, child_node->lhs));
                 attribute->parent_element(proc_type);
                 proc_type->attributes().add(attribute);
 				break;
@@ -906,7 +903,7 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 			case ast_node_types_t::basic_block: {
                 push_scope(proc_type->scope());
 				auto basic_block = dynamic_cast<compiler::block*>(evaluate(r, child_node,
-					 element_type_t::proc_instance_block));
+					element_type_t::proc_instance_block));
                 pop_scope();
                 auto instance = make_procedure_instance(
                     proc_type->scope(), proc_type, basic_block);
@@ -943,7 +940,6 @@ bool program::compile(result& r, assembly_listing& listing, const ast_node_share
         emit_context_t context(terp_, &assembler_, this);
         emit(r, context);
     }
-
 
     auto root_block = assembler_.root_block();
     root_block->disassemble(listing);
@@ -1016,7 +1012,6 @@ unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scop
     symbol->parent_element(type);
     elements_.add(type);
     return type;
-
 }
 
 bool program::resolve_unknown_types(result& r)
@@ -1217,7 +1212,7 @@ bool program::on_emit(result &r, emit_context_t &context)
     for (auto identifier : identifiers) {
         auto var = dynamic_cast<compiler::identifier*>(identifier);
         auto var_type = var->type();
-        if (var_type ==nullptr || var->type()->element_type() == element_type_t::namespace_type ) {
+        if (var_type == nullptr || var->type()->element_type() == element_type_t::namespace_type ) {
             continue;
         }
 
@@ -1231,8 +1226,7 @@ bool program::on_emit(result &r, emit_context_t &context)
                 if (var->is_constant()) {
                     auto& list = ro.first->second;
                     list.emplace_back(var);
-                }
-                else {
+                } else {
                     auto& list = data.first->second;
                     list.emplace_back(var);
                 }
@@ -1416,18 +1410,13 @@ bool program::on_emit(result &r, emit_context_t &context)
 compiler::symbol_element* program::make_symbol(compiler::block* parent_scope, const std::string& name,
        const string_list_t& namespaces)
 {
-
     auto symbol = new compiler::symbol_element(parent_scope, name, namespaces);
     elements_.add(symbol);
     return symbol;
 }
 
-compiler::symbol_element* program::make_temp_symbol(compiler::block* parent_scope, const std::string& name, const string_list_t& namespaces)
+compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_node_shared_ptr& node)
 {
-    return new compiler::symbol_element(parent_scope, name, namespaces);
-}
-
-compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_node_shared_ptr& node) {
     qualified_symbol_t qualified_symbol {};
     make_qualified_symbol(qualified_symbol, node);
 

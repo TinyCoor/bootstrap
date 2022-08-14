@@ -27,8 +27,8 @@ public:
 
 	identifier_map_t& identifiers();
 private:
-
     bool on_emit(result& r, emit_context_t& context) override;
+
 private:
 	type_map_t types_ {};
 	comment_list_t comments_{};

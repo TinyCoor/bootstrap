@@ -90,15 +90,11 @@ private:
     compiler::symbol_element* make_symbol(compiler::block* parent_scope,
         const std::string& name, const string_list_t& namespaces = {});
 
-    compiler::symbol_element* make_temp_symbol(compiler::block* parent_scope,
-        const std::string& name, const string_list_t& namespaces);
-
     void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node);
 
     compiler::element* resolve_symbol_or_evaluate(result& r, const ast_node_shared_ptr& node);
 
     cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
-
 
 	alias* make_alias(compiler::block* parent_scope, element* expr);
 
@@ -150,7 +146,7 @@ private:
 	class block* push_new_block(element_type_t type = element_type_t::block);
 
 	unknown_type* make_unknown_type(result &r, compiler::block* parent_scope, compiler::symbol_element* symbol,
-                                    bool is_array, size_t array_size);
+        bool is_array, size_t array_size);
 
 	numeric_type* make_numeric_type(result &r, compiler::block* parent_scope, const std::string& name,
 		int64_t min, uint64_t max);

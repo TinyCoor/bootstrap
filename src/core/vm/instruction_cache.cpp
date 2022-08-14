@@ -6,11 +6,14 @@
 #include "terp.h"
 namespace gfx {
 
+
+
 instruction_cache::instruction_cache(terp *terp) : terp_(terp)
 {
 }
 
-void instruction_cache::reset() {
+void instruction_cache::reset()
+{
 	cache_.clear();
 }
 
@@ -34,6 +37,4 @@ size_t instruction_cache::fetch_at(result& r, instruction_t &inst, uint64_t addr
 		return it->second.size;
 	}
 }
-
-
 }

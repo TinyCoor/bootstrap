@@ -7,8 +7,9 @@ namespace gfx{
 
 segment::segment(const std::string &name, segment_type_t type)
     :   name_(name), type_(type)
-{}
+{
 
+}
 
 symbol *segment::symbol(const std::string &name)
 {

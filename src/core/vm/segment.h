@@ -49,7 +49,6 @@ public:
 
     gfx::symbol* symbol(const std::string& name, symbol_type_t type, size_t size = 0);
 private:
-    uint64_t address_ =0;
     uint64_t offset_ = 0;
     std::string name_;
     segment_type_t type_;

@@ -41,11 +41,14 @@ std::string symbol_element::fully_qualified_name() const
     std::stringstream stream {};
     auto count = 0;
     for (const auto& name : namespaces_) {
-        stream << name;
         if (count > 0) {
             stream << "::";
         }
+        stream << name;
         count++;
+    }
+    if (count > 0) {
+        stream << "::";
     }
     stream << name_;
     return stream.str();

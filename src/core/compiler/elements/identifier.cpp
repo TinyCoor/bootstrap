@@ -146,4 +146,9 @@ bool identifier::on_is_constant() const
 {
     return symbol_->is_constant();
 }
+
+void identifier::initializer(compiler::initializer *value)
+{
+    initializer_ = value;
+}
 }

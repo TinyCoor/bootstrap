@@ -3,10 +3,12 @@
 //
 
 #include "namespace_element.h"
+#include "initializer.h"
+#include "symbol_element.h"
 #include "program.h"
 namespace gfx::compiler {
-namespace_element::namespace_element(block* parent_scope, const std::string &name, element* expr)
-	: element(parent_scope, element_type_t::namespace_e), name_(name), expression_(expr)
+namespace_element::namespace_element(block* parent_scope, element* expr)
+	: element(parent_scope, element_type_t::namespace_e), expression_(expr)
 {
 }
 
@@ -34,13 +36,25 @@ bool namespace_element::on_emit(result &r, emit_context_t &context)
     return expression_->emit(r, context);
 }
 
-std::string namespace_element::name() const
+std::string namespace_element::name()
 {
-    return name_;
+    std::string name("unknown");
+    switch (parent_element()->element_type()) {
+        case element_type_t::initializer: {
+            auto parent_init = dynamic_cast<compiler::initializer*>(parent_element());
+            auto parent_identifier = dynamic_cast<compiler::identifier*>(parent_init->parent_element());
+            name = parent_identifier->symbol()->fully_qualified_name();
+            break;
+        }
+        case element_type_t::identifier: {
+            auto parent_identifier = dynamic_cast<compiler::identifier*>(parent_element());
+            name = parent_identifier->symbol()->fully_qualified_name();
+            break;
+        }
+        default:
+            break;
+    }
+    return name;
 }
 
-void namespace_element::name(const std::string &value)
-{
-    name_ = value;
-}
 }

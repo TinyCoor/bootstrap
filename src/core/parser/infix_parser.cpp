@@ -166,19 +166,7 @@ ast_node_shared_ptr proc_call_infix_parser::parse(result& r, parser* parser, con
 		proc_call_node->lhs = lhs;
 
 		if (!parser->peek(token_types_t::right_paren)) {
-			while (true) {
-				auto param_expr = parser->parse_expression(r, 0);
-				if (param_expr->type == ast_node_types_t::block_comment) {
-					proc_call_node->children.push_back(param_expr);
-					continue;
-				} else {
-					proc_call_node->rhs->children.push_back(param_expr);
-				}
-				if (!parser->peek(token_types_t::comma)) {
-					break;
-				}
-				parser->consume();
-			}
+            pairs_to_list(proc_call_node->rhs, parser->parse_expression(r, 0));
 		}
 		token_t right_paren_token;
 		right_paren_token.type = token_types_t::right_paren;

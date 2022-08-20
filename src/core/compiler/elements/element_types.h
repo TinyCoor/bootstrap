@@ -285,15 +285,29 @@ static inline std::unordered_map<token_types_t, operator_type_t> s_unary_operato
 };
 
 static inline std::unordered_map<token_types_t, operator_type_t> s_binary_operators = {
-	{ token_types_t::equals,     operator_type_t::equals},
-	{ token_types_t::minus,      operator_type_t::subtract},
-	{ token_types_t::plus,       operator_type_t::add},
-	{ token_types_t::asterisk,   operator_type_t::multiply},
-	{ token_types_t::slash,      operator_type_t::divide},
-	{ token_types_t::percent,    operator_type_t::modulo},
-	{ token_types_t::not_equals, operator_type_t::not_equals},
-	{ token_types_t::assignment, operator_type_t::assignment},
-	{ token_types_t::logical_or, operator_type_t::logical_or}
+    {token_types_t::plus,               operator_type_t::add},
+    {token_types_t::minus,              operator_type_t::subtract},
+    {token_types_t::asterisk,           operator_type_t::multiply},
+    {token_types_t::slash,              operator_type_t::divide},
+    {token_types_t::percent,            operator_type_t::modulo},
+    {token_types_t::equals,             operator_type_t::equals},
+    {token_types_t::not_equals,         operator_type_t::not_equals},
+    {token_types_t::greater_than,       operator_type_t::greater_than},
+    {token_types_t::less_than,          operator_type_t::less_than},
+    {token_types_t::greater_than_equal, operator_type_t::greater_than_or_equal},
+    {token_types_t::less_than_equal,    operator_type_t::less_than_or_equal},
+    {token_types_t::not_equals,         operator_type_t::not_equals},
+    {token_types_t::logical_or,         operator_type_t::logical_or},
+    {token_types_t::logical_and,        operator_type_t::logical_and},
+    {token_types_t::pipe,               operator_type_t::binary_or},
+    {token_types_t::ampersand,          operator_type_t::binary_and},
+    {token_types_t::xor_literal,        operator_type_t::binary_xor},
+    {token_types_t::shl_literal,        operator_type_t::shift_left},
+    {token_types_t::shr_literal,        operator_type_t::shift_right},
+    {token_types_t::rol_literal,        operator_type_t::rotate_left},
+    {token_types_t::ror_literal,        operator_type_t::rotate_right},
+    {token_types_t::caret,              operator_type_t::exponent},
+    {token_types_t::assignment,         operator_type_t::assignment},
 };
 
 struct attribute_map_t {

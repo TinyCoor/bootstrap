@@ -53,10 +53,9 @@ bool block::on_emit(result &r, emit_context_t& context)
             instruction_block->memo();
             auto parent_ns = parent_element_as<compiler::namespace_element>();
             if (parent_ns != nullptr) {
-                auto current_entry = instruction_block->current_entry();
-                current_entry->comment(fmt::format("namespace: {}", parent_ns->name()));
-                current_entry->blank_lines(1);
+                instruction_block->current_entry()->comment(fmt::format("namespace: {}", parent_ns->name()));
             }
+            instruction_block->current_entry()->blank_lines(1);
             auto block_label = instruction_block->make_label(label_name());
             instruction_block->current_entry()->label(block_label);
             context.assembler->push_block(instruction_block);

@@ -33,6 +33,8 @@ public:
 	void inferred_type(bool value);
 
 	compiler::initializer* initializer() const;
+
+    void initializer(compiler::initializer* value);
 protected:
     bool on_is_constant() const override;
 

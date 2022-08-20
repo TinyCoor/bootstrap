@@ -51,7 +51,6 @@ protected:
 
 	virtual bool on_initialize(result& r, compiler::program* program);
 private:
-	std::string name_;
     bool packed_ = false;
     size_t alignment_ = 0;
 	size_t size_in_bytes_ {};

@@ -121,7 +121,7 @@ private:
 	identifier* make_identifier(compiler::block* parent_scope,
         symbol_element* symbol, initializer* expr);
 
-	namespace_element* make_namespace(compiler::block* parent_scope, element* expr, const std::string &name = "");
+	namespace_element* make_namespace(compiler::block* parent_scope, element* expr);
 
     template<typename T, typename Result, typename ... Args>
     auto make_type(Result r, Args&& ...args) -> decltype(new T(std::forward<Args>(args)...))

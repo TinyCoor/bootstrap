@@ -100,7 +100,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
             auto expr = evaluate(r, node->rhs);
             if (expr->element_type() == element_type_t::symbol) {
                 type_find_result_t find_type_result {};
-                 find_identifier_type(r, find_type_result, node->rhs->rhs);
+                find_identifier_type(r, find_type_result, node->rhs->rhs);
                 if (find_type_result.type == nullptr) {
                     r.add_message("P002", fmt::format("unknown type '{}'.", find_type_result.type_name.name),
                         true);
@@ -217,7 +217,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
                 args = dynamic_cast<argument_list*>(expr);
             }
             return make_procedure_call(current_scope(), make_identifier_reference(
-                current_scope(),qualified_symbol, proc_identifier), args);
+                current_scope(), qualified_symbol, proc_identifier), args);
 		}
 		case ast_node_types_t::proc_expression: {
 			auto active_scope = current_scope();
@@ -643,9 +643,9 @@ procedure_call *program::make_procedure_call(compiler::block* parent_scope, comp
     return call;
 }
 
-namespace_element *program::make_namespace(compiler::block* parent_scope, element *expr, const std::string &name)
+namespace_element *program::make_namespace(compiler::block* parent_scope, element *expr)
 {
-    auto ns = new compiler::namespace_element(parent_scope, name, expr);
+    auto ns = new compiler::namespace_element(parent_scope, expr);
     if (expr != nullptr) {
         expr->parent_element(ns);
     }
@@ -766,11 +766,12 @@ compiler::identifier *program::add_identifier_to_scope(result &r, symbol_element
         auto var = scope->identifiers().find(namespace_name);
 		if (var == nullptr) {
 			auto new_scope = make_block(scope, element_type_t::block);
-            auto ns = make_namespace(scope, new_scope, namespace_name);
+            auto ns = make_namespace(scope, new_scope);
 			auto ns_identifier = make_identifier(scope, make_symbol(parent_scope, namespace_name),
                 make_initializer(scope, ns));
 			ns_identifier->type(namespace_type);
 			ns_identifier->inferred_type(true);
+            ns_identifier->parent_element(scope->parent_element());
             scope->blocks().push_back(new_scope);
 			scope->identifiers().add(ns_identifier);
 			scope = new_scope;
@@ -790,20 +791,19 @@ compiler::identifier *program::add_identifier_to_scope(result &r, symbol_element
 	compiler::initializer * init = nullptr;
 	if (rhs != nullptr) {
         init_expr = evaluate_in_scope(r, rhs, scope);
-        if (init_expr !=nullptr) {
+        if (init_expr != nullptr) {
             if (init_expr->is_constant()) {
                 init = make_initializer(scope, init_expr);
-            }
-            if (init_expr->element_type() == element_type_t::namespace_e) {
-                auto ns = dynamic_cast<compiler::namespace_element*>(init_expr);
-                ns->name(symbol->name());
             }
         }
 	}
 
 	auto new_identifier = make_identifier(scope, symbol, init);
-	if (type_find_result.type == nullptr) {
-        if (init_expr !=nullptr) {
+    if (init_expr != nullptr && init == nullptr) {
+        init_expr->parent_element(new_identifier);
+    }
+    if (type_find_result.type == nullptr) {
+        if (init_expr != nullptr) {
             type_find_result.type = init_expr->infer_type(this);
             new_identifier->type(type_find_result.type);
             new_identifier->inferred_type(type_find_result.type != nullptr);
@@ -942,6 +942,7 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 bool program::compile(result& r, assembly_listing& listing, const ast_node_shared_ptr& root)
 {
 	block_ = push_new_block();
+    block_->parent_element(this);
 	initialize_core_types(r);
 	if (!compile_module(r, listing, root)) {
 		return false;

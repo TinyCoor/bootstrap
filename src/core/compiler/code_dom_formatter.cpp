@@ -267,7 +267,8 @@ std::string code_dom_formatter::format_node(element* node)
 				identifier_element->symbol()->name(), type_name, identifier_element->inferred_type(),
 				identifier_element->symbol()->is_constant());
 			add_primary_edge(identifier_element, identifier_element->type());
-			add_primary_edge(identifier_element, identifier_element->initializer());
+            add_primary_edge(identifier_element, identifier_element->symbol());
+            add_primary_edge(identifier_element, identifier_element->initializer());
 			return fmt::format("{}[shape=record,label=\"{}\"{}];", node_vertex_name, details, style);
 		}
 		case element_type_t::expression: {

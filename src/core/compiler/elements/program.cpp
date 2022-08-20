@@ -39,13 +39,13 @@
 #include "fmt/format.h"
 #include "common/defer.h"
 #include "vm/assembler.h"
+#include "identifier_reference.h"
 
 namespace gfx::compiler {
 
 program::program(class terp* terp)
 	: element(nullptr, element_type_t::program), assembler_(terp), terp_(terp)
 {
-
 }
 
 program::~program() = default;
@@ -211,16 +211,13 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
             qualified_symbol_t qualified_symbol {};
             make_qualified_symbol(qualified_symbol, node->lhs);
 			auto proc_identifier = find_identifier(qualified_symbol);
-			if (proc_identifier == nullptr) {
-                proc_identifier = make_identifier(current_scope(),
-                    dynamic_cast<compiler::symbol_element*>(evaluate(r, node->lhs)), nullptr, false);
-            }
             argument_list* args = nullptr;
             auto expr = evaluate(r, node->rhs);
             if (expr != nullptr) {
                 args = dynamic_cast<argument_list*>(expr);
             }
-            return make_procedure_call(current_scope(), proc_identifier, args);
+            return make_procedure_call(current_scope(), make_identifier_reference(
+                current_scope(),qualified_symbol, proc_identifier), args);
 		}
 		case ast_node_types_t::proc_expression: {
 			auto active_scope = current_scope();
@@ -233,7 +230,7 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 				switch (type_node->type) {
 					case ast_node_types_t::symbol: {
 						auto return_identifier = make_identifier(block_scope,
-                            make_symbol(block_scope, fmt::format("_{}", count++)), nullptr, true);
+                            make_symbol(block_scope, fmt::format("_{}", count++)), nullptr);
                         return_identifier->usage(identifier_usage_t::stack);
                         auto type_name = type_node->children[0]->token.value;
                         return_identifier->type(find_type(qualified_symbol_t{.name = type_name}));
@@ -331,13 +328,13 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			}
 			return return_element;
 		}
-		case ast_node_types_t::constant_expression: {
-			auto identifier = dynamic_cast<class identifier*>(evaluate(r, node->rhs));
-			if (identifier != nullptr) {
-				identifier->constant(true);
-			}
-			return identifier;
-		}
+//		case ast_node_types_t::constant_expression: {
+//			auto identifier = dynamic_cast<class identifier*>(evaluate(r, node->rhs));
+//			if (identifier != nullptr) {
+//				identifier->constant(true);
+//			}
+//			return identifier;
+//		}
 		case ast_node_types_t::namespace_expression: {
 			return make_namespace(current_scope(), evaluate(r, node->rhs));
 		}
@@ -519,17 +516,13 @@ label *program::make_label(compiler::block* parent_scope, const std::string &nam
     return label;
 }
 
-identifier* program::make_identifier(compiler::block* parent_scope, compiler::symbol_element* symbol, initializer* expr, bool resolved)
+identifier* program::make_identifier(compiler::block* parent_scope, compiler::symbol_element* symbol, initializer* expr)
 {
     auto identifier = new compiler::identifier(parent_scope, symbol, expr);
-    identifier->resolved(resolved);
     if (expr != nullptr) {
         expr->parent_element(identifier);
     }
     symbol->parent_element(identifier);
-    if (!resolved) {
-        unresolved_identifiers_.emplace_back(identifier);
-    }
     elements_.add(identifier);
     return identifier;
 }
@@ -640,12 +633,12 @@ argument_list* program::make_argument_list(compiler::block* parent_scope)
     return arg;
 }
 
-procedure_call *program::make_procedure_call(compiler::block* parent_scope, compiler::identifier* identifier,
+procedure_call *program::make_procedure_call(compiler::block* parent_scope, compiler::identifier_reference* reference,
 	compiler::argument_list* args)
 {
-    auto call = new compiler::procedure_call(parent_scope, identifier, args);
+    auto call = new compiler::procedure_call(parent_scope, reference, args);
     args->parent_element(call);
-    identifier->parent_element(call);
+    reference->parent_element(call);
     elements_.add(call);
     return call;
 }
@@ -747,7 +740,8 @@ compiler::element* program::resolve_symbol_or_evaluate(result& r, const ast_node
     if (node->type == ast_node_types_t::symbol) {
         qualified_symbol_t qualified_symbol {};
         make_qualified_symbol(qualified_symbol, node);
-        element = find_identifier(qualified_symbol);
+        element = make_identifier_reference(current_scope(), qualified_symbol,
+            find_identifier(qualified_symbol));
     } else {
         element = evaluate(r, node);
     }
@@ -774,7 +768,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, symbol_element
 			auto new_scope = make_block(scope, element_type_t::block);
             auto ns = make_namespace(scope, new_scope, namespace_name);
 			auto ns_identifier = make_identifier(scope, make_symbol(parent_scope, namespace_name),
-                make_initializer(scope, ns), true);
+                make_initializer(scope, ns));
 			ns_identifier->type(namespace_type);
 			ns_identifier->inferred_type(true);
             scope->blocks().push_back(new_scope);
@@ -807,7 +801,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, symbol_element
         }
 	}
 
-	auto new_identifier = make_identifier(scope, symbol, init, true);
+	auto new_identifier = make_identifier(scope, symbol, init);
 	if (type_find_result.type == nullptr) {
         if (init_expr !=nullptr) {
             type_find_result.type = init_expr->infer_type(this);
@@ -821,7 +815,6 @@ compiler::identifier *program::add_identifier_to_scope(result &r, symbol_element
         new_identifier->type(type_find_result.type);
     }
 
-	new_identifier->constant(symbol->is_constant());
 	scope->identifiers().add(new_identifier);
 	if (init != nullptr
 		&& init->expression()->element_type() == element_type_t::proc_type) {
@@ -878,7 +871,7 @@ void program::add_composite_type_fields(result &r, composite_type *type, const a
                 type_find_result_t type_find_result {};
                 find_identifier_type(r, type_find_result, expr_node->rhs, type->scope());
                 auto init = make_initializer(type->scope(), evaluate_in_scope(r, expr_node->rhs, type->scope()));
-                auto field_identifier = make_identifier(type->scope(), symbol, init, true);
+                auto field_identifier = make_identifier(type->scope(), symbol, init);
                 if (type_find_result.type == nullptr) {
                     type_find_result.type = init->expression()->infer_type(this);
                     field_identifier->inferred_type(type_find_result.type != nullptr);
@@ -893,7 +886,7 @@ void program::add_composite_type_fields(result &r, composite_type *type, const a
                 auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate_in_scope(r, expr_node, type->scope()));
                 type_find_result_t type_find_result {};
                 find_identifier_type(r, type_find_result, expr_node->rhs, type->scope());
-				auto field_identifier = make_identifier(type->scope(), symbol, nullptr, true);
+				auto field_identifier = make_identifier(type->scope(), symbol, nullptr);
                 if (type_find_result.type == nullptr) {
                     if (type->type() == composite_types_t::enum_type) {
                         field_identifier->type(u32_type);
@@ -1486,12 +1479,11 @@ element *program::evaluate_in_scope(result& r, const ast_node_shared_ptr& node,
 
 bool program::resolve_unknown_identifiers(result &r)
 {
-    auto it = unresolved_identifiers_.begin();
-    while (it != unresolved_identifiers_.end()) {
-        auto unknown_identifier = *it;
-
-        if (unknown_identifier->resolved()) {
-            it = unresolved_identifiers_.erase(it);
+    auto it = unresolved_identifier_references_.begin();
+    while (it != unresolved_identifier_references_.end()) {
+        auto unresolved_reference = *it;
+        if (unresolved_reference->resolved()) {
+            it = unresolved_identifier_references_.erase(it);
             continue;
         }
 
@@ -1499,39 +1491,34 @@ bool program::resolve_unknown_identifiers(result &r)
         auto all_identifiers = elements_.find_by_type(element_type_t::identifier);
         for (auto element : all_identifiers) {
             auto identifier = dynamic_cast<compiler::identifier*>(element);
-            if (identifier->resolved()
-                &&  identifier->symbol()->name() == unknown_identifier->symbol()->name())
+            if ( identifier->symbol()->name() == unresolved_reference->symbol().name)
                 candidates.emplace_back(identifier);
         }
 
         if (candidates.empty()) {
             ++it;
-            r.add_message(
-                "P004",
-                fmt::format(
-                    "unable to resolve identifier: {}",
-                    unknown_identifier->symbol()->name()),
+            r.add_message("P004", fmt::format("unable to resolve identifier: {}",
+                    unresolved_reference->symbol().name),
                 true);
             continue;
         }
 
         auto winner = candidates.front();
-        auto parent_element = unknown_identifier->parent_element();
-        switch (parent_element->element_type()) {
-            case element_type_t::proc_call: {
-                auto proc_call = dynamic_cast<compiler::procedure_call*>(parent_element);
-                proc_call->identifier(winner);
-                elements_.remove(unknown_identifier->id());
-                break;
-            }
-            default:
-                break;
-        }
-
-        it = unresolved_identifiers_.erase(it);
+        unresolved_reference->identifier(winner);
+        it = unresolved_identifier_references_.erase(it);
     }
 
-    return unresolved_identifiers_.empty();
+    return unresolved_identifier_references_.empty();
+}
+identifier_reference *program::make_identifier_reference(compiler::block *parent_scope,
+    const qualified_symbol_t &symbol, compiler::identifier *identifier)
+{
+    auto reference = new compiler::identifier_reference(parent_scope, symbol, identifier);
+    elements_.add(reference);
+    if (!reference->resolved()) {
+        unresolved_identifier_references_.emplace_back(reference);
+    }
+    return reference;
 }
 
 }

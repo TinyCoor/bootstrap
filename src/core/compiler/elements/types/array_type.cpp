@@ -36,28 +36,28 @@ bool array_type::on_initialize(result &r, compiler::program* program)
     auto type_info_type = program->find_type(qualified_symbol_t{.name = "type"});
     auto address_type = program->find_type(qualified_symbol_t{.name = "address"});
     auto flags_identifier = program->make_identifier(block_scope,
-        program->make_symbol(block_scope,"flags"), nullptr, true);
+        program->make_symbol(block_scope,"flags"), nullptr);
     flags_identifier->type(u8_type);
     auto flags_field = program->make_field(block_scope, flags_identifier);
 
     auto length_identifier = program->make_identifier(block_scope,
-          program->make_symbol(block_scope,"length"), nullptr, true);
+          program->make_symbol(block_scope,"length"), nullptr);
     length_identifier->type(u32_type);
     auto length_field = program->make_field(block_scope, length_identifier);
 
     auto capacity_identifier = program->make_identifier(block_scope,
-         program->make_symbol(block_scope,"capacity"), nullptr, true);
+         program->make_symbol(block_scope,"capacity"), nullptr);
     capacity_identifier->type(u32_type);
     auto capacity_field = program->make_field(block_scope, capacity_identifier);
 
     auto element_type_identifier = program->make_identifier(block_scope,
-         program->make_symbol(block_scope, "element_type"), nullptr, true);
+         program->make_symbol(block_scope, "element_type"), nullptr);
 
     element_type_identifier->type(type_info_type);
     auto element_type_field = program->make_field(block_scope, element_type_identifier);
 
     auto data_identifier = program->make_identifier(block_scope,
-        program->make_symbol(block_scope, "data"), nullptr, true);
+        program->make_symbol(block_scope, "data"), nullptr);
 
     data_identifier->type(address_type);
     auto data_field = program->make_field(block_scope, data_identifier);

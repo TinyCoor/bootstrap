@@ -8,13 +8,15 @@
 namespace gfx::compiler {
 class procedure_call : public element {
 public:
-	procedure_call(block* parent_scope, identifier* identifier, argument_list* args);
+	procedure_call(block* parent_scope, compiler::identifier_reference* reference, argument_list* args);
 
 	identifier* identifier();
 
 	argument_list* arguments();
 
-    void identifier(compiler::identifier* value);
+    compiler::identifier_reference* reference();
+
+    void reference(compiler::identifier_reference* value);
 
 protected:
     bool on_emit(result& r, emit_context_t& context)  override;
@@ -23,7 +25,7 @@ protected:
 
 private:
 	compiler::argument_list* arguments_ = nullptr;
-	compiler::identifier* identifier_ = nullptr;
+    compiler::identifier_reference* reference_ = nullptr;
 };
 }
 

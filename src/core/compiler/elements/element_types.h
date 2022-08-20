@@ -53,8 +53,8 @@ class composite_type;
 class string_literal;
 class binary_operator;
 class namespace_element;
-
 class procedure_instance;
+class identifier_reference;
 
 using string_set_t = std::set<std::string>;
 using string_list_t = std::vector<std::string>;
@@ -71,6 +71,7 @@ using directive_map_t = std::map<std::string, directive*>;
 using string_literal_list_t = std::vector<string_literal*>;
 using procedure_type_list_t = std::vector<procedure_type*>;
 using procedure_instance_list_t = std::vector<procedure_instance*>;
+using identifier_reference_list_t = std::vector<identifier_reference*>;
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -138,6 +139,7 @@ enum class element_type_t {
 	proc_type_block,
 	unknown_identifier,
 	proc_instance_block,
+    identifier_reference,
 };
 
 static inline std::unordered_map<element_type_t, std::string_view> s_element_type_names = {
@@ -184,7 +186,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::proc_type_block, 		"proc_type_block"},
 	{element_type_t::unknown_identifier, 	"unknown_identifier"},
 	{element_type_t::proc_instance_block, 	"proc_instance_block"},
-
+    {element_type_t::identifier_reference, 	"identifier_reference"},
 };
 
 static inline std::string_view element_type_name(element_type_t type) {
@@ -356,6 +358,14 @@ struct type_map_t {
 
 private:
 	std::unordered_map<std::string, type*> types_ {};
+};
+
+struct qualified_symbol_t {
+    bool is_qualified() const {
+        return !namespaces.empty();
+    }
+    std::string name {};
+    string_list_t namespaces {};
 };
 
 }

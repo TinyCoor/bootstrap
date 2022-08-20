@@ -11,13 +11,6 @@
 #include "../element_map.h"
 
 namespace gfx::compiler {
-struct qualified_symbol_t {
-    bool is_qualified() const {
-        return !namespaces.empty();
-    }
-    std::string name {};
-    string_list_t namespaces {};
-};
 
 struct type_find_result_t {
     qualified_symbol_t type_name{};
@@ -126,7 +119,7 @@ private:
 	expression* make_expression(compiler::block* parent_scope, element* expr);
 
 	identifier* make_identifier(compiler::block* parent_scope,
-        symbol_element* symbol, initializer* expr, bool resolved);
+        symbol_element* symbol, initializer* expr);
 
 	namespace_element* make_namespace(compiler::block* parent_scope, element* expr, const std::string &name = "");
 
@@ -182,7 +175,10 @@ private:
 
 	argument_list* make_argument_list(compiler::block* parent_scope);
 
-	procedure_call* make_procedure_call(compiler::block* parent_scope, compiler::identifier* identifier,
+    identifier_reference* make_identifier_reference(compiler::block* parent_scope,
+        const qualified_symbol_t& symbol, compiler::identifier* identifier);
+
+	procedure_call* make_procedure_call(compiler::block* parent_scope, compiler::identifier_reference* reference,
 		compiler::argument_list* args);
 
 	return_element* make_return(compiler::block* parent_scope);
@@ -217,8 +213,8 @@ private:
 	element_map elements_ {};
 	compiler::block* block_ = nullptr;
 	std::stack<compiler::block*> scope_stack_ {};
-    identifier_list_t unresolved_identifiers_ {};
 	identifier_list_t identifiers_with_unknown_types_ {};
+    identifier_reference_list_t unresolved_identifier_references_ {};
     std::unordered_map<std::string, string_literal_list_t> interned_string_literals_ {};
 };
 }

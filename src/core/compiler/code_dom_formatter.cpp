@@ -36,6 +36,7 @@
 #include "elements/types/procedure_type.h"
 #include "elements/types/composite_type.h"
 #include "elements/types/namespace_type.h"
+#include <compiler/elements/identifier_reference.h>
 
 namespace gfx::compiler {
 code_dom_formatter::code_dom_formatter(const compiler::program* program_element,FILE* file)
@@ -81,6 +82,13 @@ std::string code_dom_formatter::format_node(element* node)
 	}
 
 	switch (node->element_type()) {
+        case element_type_t::symbol: {
+            auto element = dynamic_cast<symbol_element*>(node);
+            auto style = ", fillcolor=pink, style=\"filled\"";
+            return fmt::format("{}[shape=record,label=\"symbol|{}\"{}];",
+                node_vertex_name, element->fully_qualified_name(),
+                style);
+        }
 		case element_type_t::comment: {
 			auto comment_element = dynamic_cast<comment*>(node);
 			auto style = ", fillcolor=green, style=\"filled\"";
@@ -210,13 +218,22 @@ std::string code_dom_formatter::format_node(element* node)
 			}
 			return fmt::format("{}[shape=record,label=\"argument_list\"{}];", node_vertex_name, style);
 		}
+        case element_type_t::identifier_reference: {
+            auto element = dynamic_cast<identifier_reference*>(node);
+            auto style = ", fillcolor=yellow, style=\"filled\"";
+            if (element->identifier() != nullptr) {
+                add_primary_edge(element, element->identifier());
+            }
+            return fmt::format("{}[shape=record,label=\"identifier_reference\"{}];",
+                node_vertex_name,
+                style);
+        }
 		case element_type_t::proc_call: {
 			auto element = dynamic_cast<procedure_call*>(node);
 			auto style = ", fillcolor=darkorchid1, style=\"filled\"";
 			add_primary_edge(element, element->arguments());
-			add_primary_edge(element, element->identifier()->type());
-			return fmt::format("{}[shape=record,label=\"proc_call|{}\"{}];", node_vertex_name,
-				element->identifier()->symbol()->name(), style);
+			add_primary_edge(element, element->reference());
+			return fmt::format("{}[shape=record,label=\"proc_call\"{}];", node_vertex_name, style);
 		}
 		case element_type_t::alias_type: {
 			auto element = dynamic_cast<alias*>(node);
@@ -248,7 +265,7 @@ std::string code_dom_formatter::format_node(element* node)
 			}
 			auto details = fmt::format( "identifier|{}|{{type: {} | inferred: {} | constant: {} }}",
 				identifier_element->symbol()->name(), type_name, identifier_element->inferred_type(),
-				identifier_element->constant());
+				identifier_element->symbol()->is_constant());
 			add_primary_edge(identifier_element, identifier_element->type());
 			add_primary_edge(identifier_element, identifier_element->initializer());
 			return fmt::format("{}[shape=record,label=\"{}\"{}];", node_vertex_name, details, style);

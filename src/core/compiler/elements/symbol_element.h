@@ -18,6 +18,9 @@ public:
 
     const string_list_t &namespaces() const;
 
+    std::string fully_qualified_name() const;
+
+
 protected:
     bool on_is_constant() const override;
 

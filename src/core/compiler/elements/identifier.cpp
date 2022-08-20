@@ -18,11 +18,6 @@ compiler::type* identifier::type()
 	return type_;
 }
 
-bool identifier::constant() const
-{
-	return constant_;
-}
-
 compiler::initializer* identifier::initializer() const
 {
 	return initializer_;
@@ -41,11 +36,6 @@ void identifier::inferred_type(bool value)
 void identifier::type(compiler::type* t)
 {
 	type_ = t;
-}
-
-void identifier::constant(bool value)
-{
-	constant_ =value;
 }
 
 bool identifier::on_as_integer(uint64_t &value) const
@@ -134,10 +124,6 @@ void identifier::usage(identifier_usage_t value)
     usage_ = value;
 }
 
-bool identifier::on_is_constant() const
-{
-    return constant_;
-}
 
 void identifier::emit_stack_based_load(instruction_block* instruction_block)
 {
@@ -152,18 +138,12 @@ void identifier::emit_stack_based_load(instruction_block* instruction_block)
         stack_frame_entry_type_name(entry->type), symbol_->name()));
 }
 
-[[maybe_unused]] bool identifier::resolved() const
-{
-    return resolved_;
-}
-
-void identifier::resolved(bool value)
-{
-    resolved_ = value;
-}
-
 compiler::symbol_element *identifier::symbol() const
 {
     return symbol_;
+}
+bool identifier::on_is_constant() const
+{
+    return symbol_->is_constant();
 }
 }

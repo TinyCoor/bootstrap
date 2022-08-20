@@ -20,21 +20,13 @@ public:
 
 	compiler::type* type();
 
-    [[maybe_unused]] bool resolved() const;
-
-    void resolved(bool value);
-
     compiler::symbol_element* symbol() const;
-
-	bool constant() const;
 
 	bool inferred_type() const;
 
     identifier_usage_t usage() const;
 
     void usage(identifier_usage_t value);
-
-	void constant(bool value);
 
 	void type(compiler::type* t);
 
@@ -57,8 +49,6 @@ protected:
     void emit_stack_based_load(instruction_block* instruction_block);
 
 private:
-    bool resolved_ = false;
-	bool constant_ = false;
 	bool inferred_type_ = false;
 	compiler::type* type_ = nullptr;
     compiler::symbol_element* symbol_;

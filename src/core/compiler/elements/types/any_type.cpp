@@ -30,13 +30,13 @@ bool any_type::on_initialize(result &r, compiler::program* program)
     auto address_type = program->find_type(qualified_symbol_t{.name = "address"});
 
     auto type_info_identifier = program->make_identifier(block_scope,
-        program->make_symbol(parent_scope(), "type_info"), nullptr, true);
+        program->make_symbol(parent_scope(), "type_info"), nullptr);
 
     type_info_identifier->type(type_info_type);
     auto type_info_field = program->make_field(block_scope, type_info_identifier);
 
     auto data_identifier = program->make_identifier(block_scope,
-       program->make_symbol(parent_scope(), "data"), nullptr, true);
+       program->make_symbol(parent_scope(), "data"), nullptr);
 
     data_identifier->type(address_type);
     auto data_field = program->make_field(block_scope, data_identifier);

@@ -124,6 +124,7 @@ set(ELEMENT_SRC
         compiler/elements/alias.cpp
         compiler/elements/cast.cpp
         compiler/elements/procedure_instance.cpp
+        compiler/elements/identifier_reference.cpp
         compiler/elements/argument_list.cpp
         compiler/elements/import.cpp
         compiler/extern.cpp

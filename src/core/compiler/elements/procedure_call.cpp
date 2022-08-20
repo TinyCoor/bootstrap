@@ -55,4 +55,8 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
     }
     return true;
 }
+void procedure_call::identifier(compiler::identifier *value)
+{
+    identifier_ = value;
+}
 }

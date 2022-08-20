@@ -5,7 +5,7 @@
 #ifndef COMPILER_CODE_DOM_FORMATTER_H_
 #define COMPILER_CODE_DOM_FORMATTER_H_
 #include <string>
-#include "core/compiler/elements/program.h"
+#include "elements/program.h"
 namespace gfx::compiler {
 class code_dom_formatter {
 public:

@@ -5,8 +5,8 @@
 #include "string_type.h"
 #include "core/compiler/elements/program.h"
 namespace gfx::compiler {
-string_type::string_type(block* parent)
-	: composite_type(parent, composite_types_t::struct_type, nullptr, element_type_t::string_type)
+string_type::string_type(block* parent, block* scope)
+	: composite_type(parent, composite_types_t::struct_type, scope, nullptr, element_type_t::string_type)
 {
 
 }
@@ -14,10 +14,10 @@ string_type::string_type(block* parent)
 bool string_type::on_initialize(result &r, compiler::program *program)
 {
     symbol(program->make_symbol(parent_scope(), "string"));
-    auto block_scope = parent_scope();
+    auto block_scope = scope();
 
-    auto u32_type = program->find_type_down("u32");
-    auto address_type = program->find_type_down("address");
+    auto u32_type = program->find_type(qualified_symbol_t{.name = "u32"});
+    auto address_type = program->find_type(qualified_symbol_t{.name ="address"});
 
     auto length_identifier = program->make_identifier(block_scope,
         program->make_symbol(block_scope, "length"), nullptr, true);

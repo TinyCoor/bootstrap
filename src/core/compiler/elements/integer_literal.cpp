@@ -18,7 +18,7 @@ uint64_t integer_literal::value() const
 compiler::type *integer_literal::on_infer_type(const compiler::program *program)
 {
 	/// XXX: i'm a bad person, i should do type narrowing here
-	return program->find_type("u32");
+	return program->find_type(qualified_symbol_t{.name = "u32"});
 }
 
 bool integer_literal::on_as_integer(uint64_t &value) const

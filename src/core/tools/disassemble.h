@@ -5,8 +5,8 @@
 #ifndef DISASSEMBLE_H_
 #define DISASSEMBLE_H_
 #include <string>
-#include "src/common/result.h"
-#include "src/vm/instruction.h"
+#include "common/result.h"
+#include "vm/instruction.h"
 namespace gfx {
 class Disassemble {
 public:

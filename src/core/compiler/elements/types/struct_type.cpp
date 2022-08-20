@@ -4,8 +4,8 @@
 
 #include "struct_type.h"
 namespace gfx::compiler {
-struct_type::struct_type(block *parent, symbol_element* symbol)
-    : composite_type(parent, composite_types_t::struct_type, symbol, element_type_t::struct_type)
+struct_type::struct_type(block *parent, symbol_element* symbol, block* scope)
+    : composite_type(parent, composite_types_t::struct_type, scope, symbol,element_type_t::struct_type)
 {
 
 }

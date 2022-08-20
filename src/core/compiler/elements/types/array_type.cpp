@@ -5,8 +5,9 @@
 #include "array_type.h"
 #include "core/compiler/elements/program.h"
 namespace gfx::compiler {
-array_type::array_type(block* parent,  compiler::symbol_element* symbol, compiler::type* entry_type, size_t size)
-	:   composite_type(parent,composite_types_t::struct_type, symbol, element_type_t::array_type),
+array_type::array_type(block* parent,  compiler::symbol_element* symbol,
+                      compiler::block* scope, compiler::type* entry_type,size_t size)
+	:   composite_type(parent, composite_types_t::struct_type, scope, symbol,  element_type_t::array_type),
         size_(size), entry_type_(entry_type)
 {
 }
@@ -28,13 +29,12 @@ compiler::type* array_type::entry_type()
 
 bool array_type::on_initialize(result &r, compiler::program* program)
 {
-    auto block_scope = parent_scope();
+    auto block_scope = scope();
 
-    auto u8_type = program->find_type_down("u8");
-    auto u32_type = program->find_type_down("u32");
-    auto type_info_type = program->find_type_down("type");
-    auto address_type = program->find_type_down("address");
-
+    auto u8_type = program->find_type(qualified_symbol_t{.name =  "u8"});
+    auto u32_type = program->find_type(qualified_symbol_t{.name = "u32"});
+    auto type_info_type = program->find_type(qualified_symbol_t{.name = "type"});
+    auto address_type = program->find_type(qualified_symbol_t{.name = "address"});
     auto flags_identifier = program->make_identifier(block_scope,
         program->make_symbol(block_scope,"flags"), nullptr, true);
     flags_identifier->type(u8_type);

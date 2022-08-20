@@ -14,16 +14,16 @@ element* unary_operator::rhs()
 {
 	return rhs_;
 }
-/// TODO more
+
 compiler::type *unary_operator::on_infer_type(const compiler::program *program)
 {
 	switch (operator_type()) {
 		case operator_type_t::negate:
 		case operator_type_t::binary_not: {
-			return program->find_type("u64");
+			return program->find_type(qualified_symbol_t{.name= "u64"});
 		}
 		case operator_type_t::logical_not: {
-			return program->find_type("bool");
+			return program->find_type(qualified_symbol_t{.name = "bool"});
 		}
 		default:
 			return nullptr;

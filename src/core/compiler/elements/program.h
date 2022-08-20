@@ -33,7 +33,7 @@ public:
 
 	~program() override;
 
-	compiler::block* block();
+	compiler::block * block() const;
 
 	bool compile(result& r, assembly_listing& listing, const ast_node_shared_ptr& root);
 
@@ -43,9 +43,7 @@ public:
 
     element_map& elements();
 
-	compiler::type* find_type(const std::string& name) const;
-
-    compiler::type* find_type_down(const std::string& name) ;
+    compiler::type* find_type(const qualified_symbol_t& symbol) const;
 
 protected:
 
@@ -60,6 +58,8 @@ private:
         compiler::block* root_block = nullptr);
 
     bool resolve_unknown_types(result& r);
+
+    bool resolve_unknown_identifiers(result& r);
 
 private:
 	void add_composite_type_fields(result& r, composite_type* struct_type, const ast_node_shared_ptr& block);
@@ -151,21 +151,22 @@ private:
 	numeric_type* make_numeric_type(result &r, compiler::block* parent_scope, const std::string& name,
 		int64_t min, uint64_t max);
 
-	array_type* make_array_type(result &r, compiler::block* parent_scope, compiler::type* entry_type, size_t size);
+	array_type* make_array_type(result &r, compiler::block* parent_scope,
+        compiler::type* entry_type, size_t size, compiler::block* scope);
 
-	composite_type* make_enum_type(result &r, compiler::block* parent_scope);
+	composite_type* make_enum_type(result &r, compiler::block* parent_scope, compiler::block* scope);
 
-	composite_type* make_struct_type(result &r, compiler::block* parent_scope);
+	composite_type* make_struct_type(result &r, compiler::block* parent_scope, compiler::block* scope);
 
-	composite_type* make_union_type(result &r, compiler::block* parent_scope);
+	composite_type* make_union_type(result &r, compiler::block* parent_scope, compiler::block* scope);
 
-	string_type* make_string_type(result& r, compiler::block* parent_scope);
+	string_type* make_string_type(result& r, compiler::block* parent_scope, compiler::block* scope);
 
-    type_info* make_type_info_type(result& r, compiler::block* parent_scope);
+    type_info* make_type_info_type(result& r, compiler::block* parent_scope, compiler::block* scope);
 
-    tuple_type* make_tuple_type(result& r, compiler::block* parent_scope);
+    tuple_type* make_tuple_type(result& r, compiler::block* parent_scope, compiler::block* scope);
 
-	any_type* make_any_type(result&r, compiler::block* parent_scope);
+	any_type* make_any_type(result&r, compiler::block* parent_scope, compiler::block* scope);
 
 	procedure_type* make_procedure_type(result& r, compiler::block* parent_scope, compiler::block* block_scope);
 
@@ -196,6 +197,12 @@ private:
     element* evaluate(result& r, const ast_node_shared_ptr& node,
 		element_type_t default_block_type = element_type_t::block);
 
+    element* evaluate_in_scope(result& r, const ast_node_shared_ptr& node,
+        compiler::block* scope, element_type_t default_block_type = element_type_t::block);
+
+    bool find_identifier_type(result& r, type_find_result_t& result, const ast_node_shared_ptr& type_node,
+        compiler::block* parent_scope = nullptr);
+
 	class block* pop_scope();
 
 	class block* current_scope() const;
@@ -204,14 +211,13 @@ private:
 
 	compiler::identifier* find_identifier(const qualified_symbol_t& symbol);
 
-    bool find_identifier_type(result& r, type_find_result_t& result, const ast_node_shared_ptr& type_node);
-
 private:
 	assembler assembler_;
 	class terp* terp_ = nullptr;
 	element_map elements_ {};
 	compiler::block* block_ = nullptr;
 	std::stack<compiler::block*> scope_stack_ {};
+    identifier_list_t unresolved_identifiers_ {};
 	identifier_list_t identifiers_with_unknown_types_ {};
     std::unordered_map<std::string, string_literal_list_t> interned_string_literals_ {};
 };

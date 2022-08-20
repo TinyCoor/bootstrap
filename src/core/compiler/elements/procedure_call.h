@@ -14,6 +14,8 @@ public:
 
 	argument_list* arguments();
 
+    void identifier(compiler::identifier* value);
+
 protected:
     bool on_emit(result& r, emit_context_t& context)  override;
 

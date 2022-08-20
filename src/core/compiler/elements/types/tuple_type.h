@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class tuple_type : public composite_type {
 public:
-    explicit tuple_type(block* parent_scope);
+    explicit tuple_type(block* parent_scope, block* scope);
 protected:
     bool on_initialize(result &r, compiler::program *program) override;
 };

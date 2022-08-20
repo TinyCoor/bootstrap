@@ -1,4 +1,3 @@
-
 //
 // Created by 12132 on 2022/5/14.
 //
@@ -9,9 +8,9 @@
 namespace gfx::compiler {
 class return_element : public element {
 public:
-	 explicit return_element(block* parent_scope);
+	explicit return_element(block* parent_scope);
 
-	element_list_t& expressions();
+    element_list_t& expressions();
 protected:
     bool on_emit(result &r, emit_context_t &context ) override;
 

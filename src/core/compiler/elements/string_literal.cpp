@@ -17,7 +17,7 @@ std::string string_literal::value() const
 
 compiler::type *string_literal::on_infer_type(const compiler::program *program)
 {
-	return program->find_type("string");
+	return program->find_type(qualified_symbol_t{.name =  "string"});
 }
 
 bool string_literal::on_as_string(std::string &value) const

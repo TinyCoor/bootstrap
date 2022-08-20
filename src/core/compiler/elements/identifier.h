@@ -20,7 +20,7 @@ public:
 
 	compiler::type* type();
 
-    bool resolved() const;
+    [[maybe_unused]] bool resolved() const;
 
     void resolved(bool value);
 

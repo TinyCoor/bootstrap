@@ -152,7 +152,7 @@ void identifier::emit_stack_based_load(instruction_block* instruction_block)
         stack_frame_entry_type_name(entry->type), symbol_->name()));
 }
 
-bool identifier::resolved() const
+[[maybe_unused]] bool identifier::resolved() const
 {
     return resolved_;
 }

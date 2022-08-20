@@ -5,8 +5,8 @@
 #include "any_type.h"
 #include "core/compiler/elements/program.h"
 namespace gfx::compiler {
-any_type::any_type(block * parent)
-	: composite_type(parent, composite_types_t::struct_type , nullptr, element_type_t::any_type)
+any_type::any_type(block * parent, block* scope)
+	: composite_type(parent, composite_types_t::struct_type, scope, nullptr, element_type_t::any_type)
 {
 
 }
@@ -24,10 +24,10 @@ void any_type::underlying_type(compiler::type *value)
 bool any_type::on_initialize(result &r, compiler::program* program)
 {
     symbol(program->make_symbol(parent_scope(), "any"));
-    auto block_scope = parent_scope();
+    auto block_scope = scope();
 
-    auto type_info_type = program->find_type_down("type");
-    auto address_type = program->find_type_down("address");
+    auto type_info_type = program->find_type(qualified_symbol_t{.name = "type"});
+    auto address_type = program->find_type(qualified_symbol_t{.name = "address"});
 
     auto type_info_identifier = program->make_identifier(block_scope,
         program->make_symbol(parent_scope(), "type_info"), nullptr, true);

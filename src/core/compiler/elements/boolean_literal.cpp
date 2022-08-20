@@ -18,7 +18,7 @@ bool boolean_literal::value() const
 
 compiler::type *boolean_literal::on_infer_type(const compiler::program *program)
 {
-	return program->find_type("bool");
+	return program->find_type(qualified_symbol_t{.name = "bool"});
 }
 
 bool boolean_literal::on_as_bool(bool &value) const

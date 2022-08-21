@@ -225,8 +225,7 @@ std::string code_dom_formatter::format_node(element* node)
                 add_primary_edge(element, element->identifier());
             }
             return fmt::format("{}[shape=record,label=\"identifier_reference\"{}];",
-                node_vertex_name,
-                style);
+                node_vertex_name, style);
         }
 		case element_type_t::proc_call: {
 			auto element = dynamic_cast<procedure_call*>(node);

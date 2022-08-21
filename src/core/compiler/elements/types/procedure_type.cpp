@@ -126,5 +126,19 @@ bool procedure_type::on_is_constant() const
 {
     return true;
 }
+void procedure_type::on_owned_elements(element_list_t &list)
+{
+    if (scope_ != nullptr) {
+        list.emplace_back(scope_);
+    }
+    for (auto element : returns_.as_list()) {
+        list.emplace_back(element);
+    }
+
+    for (auto element : parameters_.as_list()) {
+        list.emplace_back(element);
+    }
+
+}
 
 }

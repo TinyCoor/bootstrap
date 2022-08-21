@@ -20,7 +20,6 @@ public:
 
     std::string fully_qualified_name() const;
 
-
 protected:
     bool on_is_constant() const override;
 

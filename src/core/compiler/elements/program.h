@@ -58,7 +58,7 @@ private:
 	void add_composite_type_fields(result& r, composite_type* struct_type, const ast_node_shared_ptr& block);
 
 	compiler::identifier* add_identifier_to_scope(result& r, symbol_element* symbol, type_find_result_t& find_type_result,
-		const ast_node_shared_ptr& rhs, compiler::block* parent_scope = nullptr);
+		const ast_node_shared_ptr& node, compiler::block* parent_scope = nullptr);
 
     compiler::symbol_element* make_symbol_from_node(result& r, const ast_node_shared_ptr& node);
 
@@ -77,8 +77,10 @@ private:
     friend class array_type;
     friend class string_type;
     friend class numeric_type;
+    friend class unary_operator;
     friend class namespace_type;
     friend class procedure_type;
+    friend class binary_operator;
 
     compiler::symbol_element* make_symbol(compiler::block* parent_scope,
         const std::string& name, const string_list_t& namespaces = {});

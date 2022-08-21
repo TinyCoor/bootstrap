@@ -151,4 +151,14 @@ void identifier::initializer(compiler::initializer *value)
 {
     initializer_ = value;
 }
+void identifier::on_owned_elements(element_list_t &list)
+{
+    if (initializer_ != nullptr) {
+        list.emplace_back(initializer_);
+    }
+
+    if (symbol_ != nullptr) {
+        list.emplace_back(symbol_);
+    }
+}
 }

@@ -32,4 +32,17 @@ bool if_element::on_emit(result &r, emit_context_t &context)
     context.push_if(true_branch_->label_name(), false_branch_ != nullptr ? false_branch_->label_name(): "");
     return predicate_->emit(r, context);
 }
+
+void if_element::on_owned_elements(element_list_t &list)
+{
+    if (predicate_ != nullptr) {
+        list.emplace_back(predicate_);
+    }
+    if (true_branch_ != nullptr) {
+        list.emplace_back(true_branch_);
+    }
+    if (false_branch_ != nullptr) {
+        list.emplace_back(false_branch_);
+    }
+}
 }

@@ -38,4 +38,11 @@ bool cast::on_emit(result &r, emit_context_t &context)
     return expression_->emit(r, context);
 }
 
+void cast::on_owned_elements(element_list_t &list)
+{
+    if (expression_ != nullptr) {
+        list.emplace_back(expression_);
+    }
+}
+
 }

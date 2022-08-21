@@ -38,5 +38,11 @@ bool compiler::expression::on_emit(gfx::result &r, emit_context_t& context)
 
     return root_->emit(r, context);
 }
+void expression::on_owned_elements(element_list_t &list)
+{
+    if (root_ != nullptr) {
+        list.emplace_back(root_);
+    }
+}
 
 }

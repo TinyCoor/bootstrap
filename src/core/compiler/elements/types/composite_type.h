@@ -24,6 +24,8 @@ public:
 protected:
     bool on_is_constant() const override;
 
+    void on_owned_elements(element_list_t& list) override;
+
 	bool on_initialize(result& r, compiler::program* program) override;
 
 private:

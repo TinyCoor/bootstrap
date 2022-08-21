@@ -9,7 +9,15 @@ import::import(block* parent, element* expr)
 {
 }
 
-element* import::expression() {
+element* import::expression()
+{
 	return expression_;
+}
+
+void import::on_owned_elements(element_list_t &list)
+{
+    if (expression_ != nullptr) {
+        list.emplace_back(expression_);
+    }
 }
 }

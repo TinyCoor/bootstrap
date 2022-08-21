@@ -49,6 +49,8 @@ public:
 protected:
 	void size_in_bytes(size_t value);
 
+    void on_owned_elements(element_list_t& list) override;
+
 	virtual bool on_initialize(result& r, compiler::program* program);
 private:
     bool packed_ = false;

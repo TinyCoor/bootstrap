@@ -3,6 +3,7 @@
 //
 
 #include "composite_type.h"
+#include "core/compiler/elements/block.h"
 #include "core/compiler/elements/identifier.h"
 namespace gfx::compiler {
 composite_type::composite_type(block* parent, composite_types_t type, block* scope,
@@ -45,5 +46,15 @@ block *composite_type::scope()
 bool composite_type::on_is_constant() const
 {
     return true;
+}
+void composite_type::on_owned_elements(element_list_t &list)
+{
+    for (auto element : fields_.as_list()) {
+        list.emplace_back(element);
+    }
+
+    if (scope_ != nullptr) {
+        list.emplace_back(scope_);
+    }
 }
 }

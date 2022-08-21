@@ -69,5 +69,9 @@ bool initializer::on_emit(result &r, emit_context_t &context)
     }
     return true;
 }
+void initializer::expression(element *value)
+{
+    expr_ = value;
+}
 
 }

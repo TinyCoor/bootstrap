@@ -23,4 +23,11 @@ bool procedure_instance::on_emit(result &r, emit_context_t& context)
 {
     return scope_->emit(r, context);
 }
+
+void procedure_instance::on_owned_elements(element_list_t &list)
+{
+    if (scope_ != nullptr) {
+        list.emplace_back(scope_);
+    }
+}
 }

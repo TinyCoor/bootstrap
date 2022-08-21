@@ -13,6 +13,10 @@ public:
 	alias(block* parent_scope, element* expr);
 
 	element* expression();
+
+protected:
+    void on_owned_elements(element_list_t& list) override;
+
 private:
 	element* expression_ = nullptr;
 };

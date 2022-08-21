@@ -26,11 +26,14 @@ public:
 	procedure_instance_list_t& instances();
 
 protected:
-	bool on_initialize(result& r, compiler::program* program) override;
+    bool on_is_constant() const override;
+
+    void on_owned_elements(element_list_t& list) override;
 
     bool on_emit(result& r, emit_context_t& context)  override;
 
-    bool on_is_constant() const override;
+    bool on_initialize(result& r, compiler::program* program) override;
+
 private:
 	field_map_t returns_{};
 	field_map_t parameters_{};

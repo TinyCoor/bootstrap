@@ -68,4 +68,10 @@ bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
 
     return true;
 }
+void unary_operator::on_owned_elements(element_list_t &list)
+{
+    if (rhs_ != nullptr) {
+        list.emplace_back(rhs_);
+    }
+}
 }

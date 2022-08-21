@@ -3,6 +3,7 @@
 //
 
 #include "block.h"
+#include "comment.h"
 #include "vm/assembler.h"
 #include "initializer.h"
 #include "types/procedure_type.h"
@@ -88,5 +89,27 @@ bool block::on_emit(result &r, emit_context_t& context)
     }
 
     return !r.is_failed();
+}
+void block::on_owned_elements(element_list_t &list)
+{
+    for (auto element : types_.as_list()) {
+        list.emplace_back(element);
+    }
+
+    for (auto element : blocks_) {
+        list.emplace_back(element);
+    }
+
+    for (auto element : comments_) {
+        list.emplace_back(element);
+    }
+
+    for (auto element : statements_) {
+        list.emplace_back(element);
+    }
+
+    for (auto element : identifiers_.as_list()) {
+        list.emplace_back(element);
+    }
 }
 }

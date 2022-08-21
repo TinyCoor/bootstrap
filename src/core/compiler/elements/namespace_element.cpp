@@ -57,4 +57,11 @@ std::string namespace_element::name()
     return name;
 }
 
+void namespace_element::on_owned_elements(element_list_t &list)
+{
+    if (expression_ != nullptr) {
+        list.emplace_back(expression_);
+    }
+}
+
 }

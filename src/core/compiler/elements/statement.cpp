@@ -1,7 +1,7 @@
 //
 // Created by 12132 on 2022/5/8.
 //
-
+#include "label.h"
 #include "statement.h"
 namespace gfx::compiler {
 statement::statement(block* parent, element* expr)
@@ -28,5 +28,15 @@ bool statement::on_emit(result &r, emit_context_t &context)
     // need to loop over labels and add them to the assembler here
     //
     return expression_->emit(r, context);
+}
+
+void statement::on_owned_elements(element_list_t &list)
+{
+    if (expression_ != nullptr) {
+        list.emplace_back(expression_);
+    }
+    for (auto element : labels_) {
+        list.emplace_back(element);
+    }
 }
 }

@@ -26,6 +26,9 @@ public:
 	statement_list_t& statements();
 
 	identifier_map_t& identifiers();
+protected:
+    void on_owned_elements(element_list_t& list) override;
+
 private:
     bool on_emit(result& r, emit_context_t& context) override;
 

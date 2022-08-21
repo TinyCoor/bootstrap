@@ -19,7 +19,7 @@ public:
 
 	id_t id() const;
 
-	bool fold(result& r);
+	element* fold(result& r, compiler::program* program);
 
 	block* parent_scope();
 
@@ -56,14 +56,14 @@ public:
 
 	element_type_t element_type() const;
 
-	compiler::type* infer_type(const compiler::program* program);
+    void owned_elements(element_list_t& list);
+
+    attribute* find_attribute(const std::string& name);
+
+    compiler::type* infer_type(const compiler::program* program);
 
 protected:
-    virtual bool on_emit(result& r, emit_context_t& context);
-
     virtual bool on_is_constant() const;
-
-	virtual bool on_fold(result& result);
 
     virtual bool on_as_bool(bool &value) const;
 
@@ -72,6 +72,12 @@ protected:
     virtual bool on_as_integer(uint64_t &value) const;
 
     virtual bool on_as_string(std::string &value) const;
+
+    virtual void on_owned_elements(element_list_t& list);
+
+    virtual bool on_emit(result& r, emit_context_t& context);
+
+    virtual element *on_fold(result& result, compiler::program* program);
 
 	virtual compiler::type* on_infer_type(const compiler::program* program);
 

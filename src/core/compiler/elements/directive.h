@@ -33,6 +33,9 @@ private:
 
 	bool on_evaluate_foreign(result& r, compiler::program* program);
 
+protected:
+    void on_owned_elements(element_list_t& list) override;
+
 private:
 	static inline std::unordered_map<std::string, directive_callable> s_evaluate_handlers = {
 		{"run",     std::bind(&directive::on_evaluate_run,     std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},

@@ -21,14 +21,18 @@ id_t element::id() const
 	return id_;
 }
 
-bool element::fold(result& result)
+element *element::fold(result& result, compiler::program* program)
 {
-	return on_fold(result);
+    auto no_fold_attribute = find_attribute("no_fold");
+    if (no_fold_attribute != nullptr) {
+        return nullptr;
+    }
+    return on_fold(result, program);
 }
 
-bool element::on_fold(result& result)
+element *element::on_fold(result& result, compiler::program* program)
 {
-	return true;
+	return nullptr;
 }
 
 block *element::parent_scope()
@@ -150,6 +154,29 @@ bool element::is_parent_element(element_type_t type)
         return false;
     }
     return parent_element_->element_type() == type;
+}
+
+attribute *element::find_attribute(const std::string &name)
+{
+    auto current_element = this;
+    while (current_element != nullptr) {
+        auto attr = current_element->attributes_.find(name);
+        if (attr != nullptr) {
+            return attr;
+        }
+        current_element = current_element->parent_element();
+    }
+    return nullptr;
+}
+
+void element::owned_elements(element_list_t &list)
+{
+    on_owned_elements(list);
+}
+
+void element::on_owned_elements(element_list_t &list)
+{
+
 }
 }
 

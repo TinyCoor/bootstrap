@@ -33,4 +33,10 @@ bool compiler::return_element::on_emit(gfx::result &r, emit_context_t &context )
     instruction_block->rts();
     return true;
 }
+void return_element::on_owned_elements(element_list_t &list)
+{
+    for (auto element : expressions_) {
+        list.emplace_back(element);
+    }
+}
 }

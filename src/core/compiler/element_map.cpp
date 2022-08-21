@@ -29,6 +29,13 @@ void element_map::remove(id_t id)
     if (element == nullptr) {
         return;
     }
+    element_list_t owned_elements {};
+    element->owned_elements(owned_elements);
+
+    for (auto owned : owned_elements) {
+        remove(owned->id());
+    }
+
 
     remove_index_by_type(element);
     elements_by_id_.erase(id);

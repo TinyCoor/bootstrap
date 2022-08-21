@@ -11,7 +11,15 @@ alias::alias(block* parent, element* expr)
 
 }
 
-element* alias::expression() {
+element* alias::expression()
+{
 	return expression_;
+}
+
+void alias::on_owned_elements(element_list_t &list)
+{
+    if (expression_ != nullptr) {
+        list.emplace_back(expression_);
+    }
 }
 }

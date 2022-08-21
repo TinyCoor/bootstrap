@@ -20,6 +20,8 @@ public:
 
 	const element_list_t& elements() const;
 protected:
+    void on_owned_elements(element_list_t& list) override;
+
     bool on_emit(result& r, emit_context_t& context) override;
 
 private:

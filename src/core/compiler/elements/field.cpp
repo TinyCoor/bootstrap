@@ -3,6 +3,7 @@
 //
 
 #include "field.h"
+#include "identifier.h"
 namespace gfx::compiler {
 
 field::field(block *parent, compiler::identifier *identifier)
@@ -14,6 +15,12 @@ field::field(block *parent, compiler::identifier *identifier)
 compiler::identifier *field::identifier()
 {
 	return identifier_;
+}
+void field::on_owned_elements(element_list_t &list)
+{
+    if (identifier_ != nullptr) {
+        list.emplace_back(identifier_);
+    }
 }
 
 }

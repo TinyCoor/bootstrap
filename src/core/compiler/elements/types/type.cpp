@@ -3,7 +3,7 @@
 //
 
 #include "type.h"
-#include "../field.h"
+#include "../symbol_element.h"
 namespace gfx::compiler {
 type::type(block* parent, element_type_t type, compiler::symbol_element* symbol)
 	: element(parent,type), symbol_(symbol)
@@ -61,6 +61,12 @@ compiler::symbol_element *type::symbol() const
 void type::symbol(compiler::symbol_element *value)
 {
     symbol_ = value;
+}
+void type::on_owned_elements(element_list_t &list)
+{
+    if (symbol_ != nullptr) {
+        list.emplace_back(symbol_);
+    }
 }
 
 }

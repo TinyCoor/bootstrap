@@ -52,4 +52,11 @@ bool attribute::on_as_integer(uint64_t &value) const
     }
     return expr_->as_integer(value);
 }
+
+void attribute::on_owned_elements(element_list_t &list)
+{
+    if (expr_ != nullptr) {
+        list.emplace_back(expr_);
+    }
+}
 }

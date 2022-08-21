@@ -552,11 +552,11 @@ void instruction_block::move_label_to_ireg(i_registers_t dest_reg, const std::st
     move_op.size = op_sizes::qword;
     move_op.operands_count = 2;
     move_op.operands[0].type = operand_encoding_t::flags::integer
-        | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
-    move_op.operands[0].value.u64 = label_ref->id;
-    move_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    move_op.operands[1].value.r8 = dest_reg;
+    move_op.operands[0].value.r8 = dest_reg;
+    move_op.operands[1].type = operand_encoding_t::flags::integer
+        | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
+    move_op.operands[1].value.u64 = label_ref->id;
     make_block_entry(move_op);
 }
 

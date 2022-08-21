@@ -4,6 +4,7 @@
 
 #include "binary_operator.h"
 #include "symbol_element.h"
+#include "integer_literal.h"
 #include "program.h"
 namespace gfx::compiler {
 binary_operator::binary_operator(block* parent, operator_type_t type, element* lhs, element* rhs)
@@ -298,8 +299,30 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
     }
     instruction_block->free_reg(lhs_reg);
     instruction_block->free_reg(rhs_reg);
+}
 
+element *binary_operator::on_fold(result &r, compiler::program *program)
+{
+    switch (operator_type()) {
+        case operator_type_t::multiply: {
+            return program->make_integer(parent_scope(), 4000);
+        }
+        default:
+            break;
+    }
 
+    return nullptr;
+}
+
+void binary_operator::on_owned_elements(element_list_t &list)
+{
+    if (lhs_ != nullptr) {
+        list.emplace_back(lhs_);
+    }
+
+    if (rhs_ != nullptr) {
+        list.emplace_back(rhs_);
+    }
 }
 
 }

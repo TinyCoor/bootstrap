@@ -14,7 +14,10 @@ public:
 
 	compiler::type *procedure_type();
 protected:
+    void on_owned_elements(element_list_t& list) override;
+
     bool on_emit(result& r, emit_context_t& context) override;
+
 private:
 	block * scope_ = nullptr;
 	compiler::type *procedure_type_ = nullptr;

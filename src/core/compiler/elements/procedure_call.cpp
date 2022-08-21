@@ -61,8 +61,15 @@ compiler::identifier_reference* procedure_call::reference()
     return reference_;
 }
 
-void procedure_call::reference(compiler::identifier_reference* value) {
+void procedure_call::reference(compiler::identifier_reference* value)
+{
     reference_ = value;
+}
+void procedure_call::on_owned_elements(element_list_t &list)
+{
+    if (arguments_ != nullptr) {
+        list.emplace_back(arguments_);
+    }
 }
 
 }

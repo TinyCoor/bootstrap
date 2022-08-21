@@ -73,5 +73,11 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
     }
     return true;
 }
+void argument_list::on_owned_elements(element_list_t &list)
+{
+    for (auto element : elements_) {
+        list.emplace_back(element);
+    }
+}
 
 }

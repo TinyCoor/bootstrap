@@ -74,4 +74,11 @@ void initializer::expression(element *value)
     expr_ = value;
 }
 
+void initializer::on_owned_elements(element_list_t &list)
+{
+    if (expr_ != nullptr) {
+        list.emplace_back(expr_);
+    }
+}
+
 }

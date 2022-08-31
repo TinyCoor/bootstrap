@@ -223,6 +223,7 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
     instruction_block->free_reg(lhs_reg);
 
 }
+
 void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
     auto result_reg = instruction_block->current_target_register();

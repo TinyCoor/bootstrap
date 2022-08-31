@@ -15,7 +15,8 @@ element_map::~element_map()
     clear();
 }
 
-void element_map::clear() {
+void element_map::clear()
+{
     elements_by_type_.clear();
     for (const auto& it : elements_by_id_) {
         delete it.second;
@@ -35,7 +36,6 @@ void element_map::remove(id_t id)
     for (auto owned : owned_elements) {
         remove(owned->id());
     }
-
 
     remove_index_by_type(element);
     elements_by_id_.erase(id);
@@ -62,11 +62,13 @@ void element_map::add(compiler::element* element)
     add_index_by_type(element);
 }
 
-element_by_id_map_t::iterator element_map::begin() {
+element_by_id_map_t::iterator element_map::begin()
+{
     return elements_by_id_.begin();
 }
 
-void element_map::add_index_by_type(compiler::element* element) {
+void element_map::add_index_by_type(compiler::element* element)
+{
     auto it = elements_by_type_.find(element->element_type());
     if (it == elements_by_type_.end()) {
         element_list_t list {};

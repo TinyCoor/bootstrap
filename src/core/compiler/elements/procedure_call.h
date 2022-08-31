@@ -10,8 +10,6 @@ class procedure_call : public element {
 public:
 	procedure_call(block* parent_scope, compiler::identifier_reference* reference, argument_list* args);
 
-	identifier* identifier();
-
 	argument_list* arguments();
 
     compiler::identifier_reference* reference();
@@ -21,7 +19,7 @@ public:
 protected:
     void on_owned_elements(element_list_t& list) override;
 
-    bool on_emit(result& r, emit_context_t& context)  override;
+    bool on_emit(result& r, emit_context_t& context) override;
 
 	compiler::type* on_infer_type(const compiler::program* program) override;
 

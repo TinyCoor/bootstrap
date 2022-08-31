@@ -7,6 +7,7 @@
 #include "block.h"
 #include "element.h"
 #include "parser/ast.h"
+#include "../session.h"
 #include "core/compiler/bytecode_emitter.h"
 #include "../element_map.h"
 
@@ -28,15 +29,17 @@ public:
 
 	compiler::block * block() const;
 
-	bool compile(result& r, assembly_listing& listing, const ast_node_shared_ptr& root);
+	bool compile(result& r, compiler::session& session);
 
-	bool compile_module(result& r, assembly_listing& listing, const ast_node_shared_ptr& root);
+	bool compile_module(result& r, compiler::session& session, const fs::path &source_files);
 
 	bool run(result& r);
 
     element_map& elements();
 
     compiler::type* find_type(const qualified_symbol_t& symbol) const;
+
+    void disassemble(assembly_listing& listing);
 
 protected:
 

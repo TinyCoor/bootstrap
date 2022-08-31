@@ -6,8 +6,6 @@
 #include "terp.h"
 namespace gfx {
 
-
-
 instruction_cache::instruction_cache(terp *terp) : terp_(terp)
 {
 }
@@ -32,7 +30,7 @@ size_t instruction_cache::fetch_at(result& r, instruction_t &inst, uint64_t addr
 		}
 		cache_.insert(std::make_pair(address, inst_cache_entry_t{.size = inst_size, .inst = inst}));
 		return inst_size;
-	} else{
+	} else {
 		inst = it->second.inst;
 		return it->second.size;
 	}

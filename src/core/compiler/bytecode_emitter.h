@@ -8,16 +8,13 @@
 #include <cstdint>
 #include "vm/terp.h"
 #include <filesystem>
-#include "parser/parser.h"
-#include <vm/assembly_listing.h>
+#include "session.h"
 namespace gfx::compiler {
 class program;
+namespace fs = std::filesystem;
 struct bytecode_emitter_options_t {
-	bool verbose = false;
 	size_t heap_size = 0;
 	size_t stack_size = 0;
-	std::filesystem::path ast_graph_file_name{};
-	std::filesystem::path code_dom_graph_file_name {};
 };
 
 class bytecode_emitter {
@@ -28,17 +25,10 @@ public:
 
     bool initialize(result &r);
 
-	bool compile_files(result &r, assembly_listing& listing, const std::vector<std::filesystem::path> &source_files);
+	bool compile(result &r, compiler::session& session);
 
-	bool compile(result &r,assembly_listing& listing, std::istream &input);
-
-	bool compile_stream(result &r, assembly_listing& listing, std::istream &input);
-
-private:
-	void write_code_dom_graph(const std::filesystem::path& path, const program* program);
 private:
 	terp terp_;
-	bytecode_emitter_options_t options_{};
 };
 
 }

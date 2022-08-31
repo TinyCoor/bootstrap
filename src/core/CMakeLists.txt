@@ -23,7 +23,6 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH "/usr/local/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-
 enable_testing()
 set_property(GLOBAL PROPERTY UNIT_TEST_TARGETS "")
 macro(add_unit_test target test_name args)
@@ -130,6 +129,7 @@ set(ELEMENT_SRC
         compiler/extern.cpp
         compiler/emit_context.cpp
         compiler/element_map.cpp
+        compiler/session.cpp
         )
 
 set(COMPILER_SRC

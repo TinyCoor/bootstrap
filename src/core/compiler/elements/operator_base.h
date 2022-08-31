@@ -7,7 +7,7 @@
 #include "element.h"
 namespace gfx::compiler {
 
-class operator_base : public  element {
+class operator_base : public element {
 public:
 	explicit operator_base(block* parent_scope, element_type_t element_type, operator_type_t type);
 

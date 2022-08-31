@@ -10,7 +10,8 @@
 #include "vm/instruction_block.h"
 namespace gfx::compiler {
 identifier::identifier(block* parent_scope, symbol_element* symbol, compiler::initializer* initializer)
-	: element(parent_scope, element_type_t::identifier), symbol_(symbol), initializer_(initializer) {
+	: element(parent_scope, element_type_t::identifier), symbol_(symbol), initializer_(initializer)
+{
 }
 
 compiler::type* identifier::type()
@@ -142,6 +143,7 @@ compiler::symbol_element *identifier::symbol() const
 {
     return symbol_;
 }
+
 bool identifier::on_is_constant() const
 {
     return symbol_->is_constant();
@@ -151,6 +153,7 @@ void identifier::initializer(compiler::initializer *value)
 {
     initializer_ = value;
 }
+
 void identifier::on_owned_elements(element_list_t &list)
 {
     if (initializer_ != nullptr) {

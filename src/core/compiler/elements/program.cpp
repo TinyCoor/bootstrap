@@ -1,4 +1,5 @@
 //
+//
 // Created by 12132 on 2022/4/23.
 //
 
@@ -37,7 +38,6 @@
 #include "types/namespace_type.h"
 #include "procedure_instance.h"
 #include "fmt/format.h"
-#include "common/defer.h"
 #include "vm/assembler.h"
 #include "identifier_reference.h"
 
@@ -812,12 +812,9 @@ compiler::identifier *program::add_identifier_to_scope(result &r, symbol_element
                 init_expr = folded_expr;
                 auto old_expr = init->expression();
                 init->expression(init_expr);
-
-                // XXX: need a better way to do this
                 elements_.remove(old_expr->id());
             }
         }
-
     }
     if (type_find_result.type == nullptr) {
         if (init_expr != nullptr) {
@@ -956,14 +953,16 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 	}
 }
 
-bool program::compile(result& r, assembly_listing& listing, const ast_node_shared_ptr& root)
+bool program::compile(result& r, compiler::session& session)
 {
 	block_ = push_new_block();
     block_->parent_element(this);
 	initialize_core_types(r);
-	if (!compile_module(r, listing, root)) {
-		return false;
-	}
+    for (const auto &source_file: session.source_files()) {
+        if (!compile_module(r, session, source_file)) {
+            return false;
+        }
+    }
 
     // process directives
     auto directives = elements().find_by_type(element_type_t::directive);
@@ -974,26 +973,31 @@ bool program::compile(result& r, assembly_listing& listing, const ast_node_share
         }
     }
 
-	if (!resolve_unknown_types(r)) {
+	if (!resolve_unknown_types(r) || !resolve_unknown_identifiers(r)) {
 		return false;
 	}
-    if (!resolve_unknown_identifiers(r)) {
-        return false;
-    }
+
     if (!r.is_failed()) {
         emit_context_t context(terp_, &assembler_, this);
         emit(r, context);
     }
-
-    auto root_block = assembler_.root_block();
-    root_block->disassemble(listing);
+    session.post_processing(this);
 	return !r.is_failed();
 }
 
-bool program::compile_module(result& r, assembly_listing& listing, const ast_node_shared_ptr& root)
+bool program::compile_module(result& r, compiler::session& session, const fs::path& source_file)
 {
-	evaluate(r, root);
-	return !r.is_failed();
+    session.raise_phase(session_compile_phase_t::start, source_file);
+    auto module_node = session.parse(r, source_file);
+    session.listing().add_source_file(source_file.string());
+	evaluate(r, module_node);
+    if (r.is_failed()) {
+        session.raise_phase(session_compile_phase_t::failed, source_file);
+        return false;
+    } else {
+        session.raise_phase(session_compile_phase_t::success, source_file);
+        return true;
+    }
 }
 
 bool program::run(result &r)
@@ -1541,6 +1545,12 @@ identifier_reference *program::make_identifier_reference(compiler::block *parent
         unresolved_identifier_references_.emplace_back(reference);
     }
     return reference;
+}
+
+void program::disassemble(assembly_listing& listing)
+{
+    auto root_block = assembler_.root_block();
+    root_block->disassemble(listing);
 }
 
 }

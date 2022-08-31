@@ -20,7 +20,6 @@ argument_list* procedure_call::arguments()
 	return arguments_;
 }
 
-
 compiler::type *procedure_call::on_infer_type(const compiler::program *program)
 {
     auto identifier = reference_->identifier();

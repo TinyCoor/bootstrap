@@ -26,45 +26,46 @@ element *directive::expression()
 	return expression_;
 }
 
-bool directive::evaluate(result& r, compiler::program* program)
+bool directive::evaluate(result& r, compiler::session& session, compiler::program* program)
 {
 	auto it = s_evaluate_handlers.find(name_);
 	if (it == s_evaluate_handlers.end()) {
 		return true;
 	}
-	return it->second(this, r, program);
+	return it->second(this, r, session, program);
 }
 
-bool directive::execute(result &r, compiler::program *program)
+bool directive::execute(result &r, compiler::session& session, compiler::program *program)
 {
 	auto it = s_execute_handlers.find(name_);
 	if (it == s_execute_handlers.end()) {
 		return true;
 	}
-	return it->second(this, r, program);
+	return it->second(this, r, session, program);
 }
 
-bool directive::on_execute_run(result &r, compiler::program *program)
+bool directive::on_execute_run(result &r, compiler::session& session, compiler::program *program)
 {
-	return false;
+	return true;
 }
 
-bool directive::on_evaluate_run(result &r, compiler::program *program)
+bool directive::on_evaluate_run(result &r, compiler::session& session, compiler::program *program)
 {
-	return false;
+	return true;
 }
 
-bool directive::on_execute_load(result &r, compiler::program *program)
+bool directive::on_execute_load(result &r, compiler::session& session, compiler::program *program)
 {
-	return false;
+	return true;
 }
 
-bool directive::on_evaluate_load(result &r, compiler::program *program)
+bool directive::on_evaluate_load(result &r, compiler::session& session, compiler::program *program)
 {
-	return false;
+    auto source_file = dynamic_cast<compiler::string_literal*>(expression_);
+    return program->compile_module(r, session, source_file->value());
 }
 
-bool directive::on_evaluate_foreign(result &r, compiler::program *program)
+bool directive::on_evaluate_foreign(result &r, compiler::session& session, compiler::program *program)
 {
 	auto proc_identifier = dynamic_cast<compiler::identifier*>(expression_);
 	auto proc_type = proc_identifier->initializer()->procedure_type();
@@ -80,15 +81,14 @@ bool directive::on_evaluate_foreign(result &r, compiler::program *program)
 	return false;
 }
 
-bool directive::on_execute_foreign(result &r, compiler::program *program)
+bool directive::on_execute_foreign(result &r, compiler::session& session, compiler::program *program)
 {
 	auto terp = program->terp();
 	std::string library_name = "compiler-rt.dll";
 	auto library_attribute = attributes().find("library");
 	if (library_attribute != nullptr) {
         if (!library_attribute->as_string(library_name)) {
-            r.add_message("P005",
-              "unable to convert library attribute's name.", true);
+            r.add_message("P005", "unable to convert library attribute's name.", true);
             return false;
         }
 	}
@@ -103,8 +103,7 @@ bool directive::on_execute_foreign(result &r, compiler::program *program)
 	auto alias_attribute = attributes().find("alias");
 	if (alias_attribute != nullptr) {
         if (!alias_attribute->as_string(symbol_name)) {
-            r.add_message("P006",
-                "unable to convert alias attribute's name.", true);
+            r.add_message("P006", "unable to convert alias attribute's name.", true);
             return false;
         }
 	}
@@ -128,6 +127,4 @@ void directive::on_owned_elements(element_list_t& list)
         list.emplace_back(expression_);
     }
 }
-
-
 }

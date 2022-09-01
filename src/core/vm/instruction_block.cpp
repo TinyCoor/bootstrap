@@ -166,9 +166,9 @@ void instruction_block::jump_direct(const std::string &label_name)
     make_block_entry(jmp_op);
 }
 
-void instruction_block::disassemble(assembly_listing &listing)
+void instruction_block::disassemble(listing_source_file_t* source_file)
 {
-    disassemble(listing, this);
+    disassemble(this, source_file);
 }
 
 void instruction_block::free_reg(i_registers_t reg)
@@ -346,10 +346,8 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
     make_block_entry(move_op);
 }
 
-void instruction_block::disassemble(assembly_listing& listing, instruction_block *block)
+void instruction_block::disassemble(instruction_block *block, listing_source_file_t* source_file)
 {
-    auto source_file = listing.current_source_file();
-
     size_t index = 0;
     for (auto& entry : block->entries_) {
         source_file->add_blank_lines(entry.blank_lines());
@@ -442,9 +440,8 @@ void instruction_block::disassemble(assembly_listing& listing, instruction_block
     }
 
     for (auto child_block : block->blocks_) {
-        disassemble(listing, child_block);
+        disassemble(child_block, source_file);
     }
-
 }
 
 void instruction_block::make_float_constant_push_instruction(op_sizes size, double value)

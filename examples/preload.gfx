@@ -1,0 +1,7 @@
+alpha::compiler::config := ns {
+    vector3 := struct {
+        x:f64;
+        y:f64;
+        z:f64;
+    };
+}

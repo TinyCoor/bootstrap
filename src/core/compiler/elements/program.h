@@ -40,7 +40,7 @@ public:
 
     compiler::type* find_type(const qualified_symbol_t& symbol) const;
 
-    void disassemble(assembly_listing& listing);
+    void disassemble(listing_source_file_t *source_file);
 
 protected:
 	terp* terp();
@@ -50,26 +50,31 @@ private:
 
 	void initialize_core_types(result &r);
 
-    bool visit_blocks(result& r, const block_visitor_callable& callable,
-        compiler::block* root_block = nullptr);
-
     bool resolve_unknown_types(result& r);
 
     bool resolve_unknown_identifiers(result& r);
 
-private:
-	void add_composite_type_fields(result& r, composite_type* struct_type, const ast_node_shared_ptr& block);
+    bool visit_blocks(result& r, const block_visitor_callable& callable,
+        compiler::block* root_block = nullptr);
 
-	compiler::identifier* add_identifier_to_scope(result& r, symbol_element* symbol, type_find_result_t& find_type_result,
+private:
+	void add_composite_type_fields(result& r, compiler::session& session, composite_type* struct_type, const ast_node_shared_ptr& block);
+
+    void apply_attributes(result& r, compiler::session& session, compiler::element* element, const ast_node_shared_ptr& node);
+
+	compiler::identifier* add_identifier_to_scope(result& r, compiler::session& session, symbol_element* symbol, type_find_result_t& find_type_result,
 		const ast_node_shared_ptr& node, compiler::block* parent_scope = nullptr);
 
     compiler::symbol_element* make_symbol_from_node(result& r, const ast_node_shared_ptr& node);
 
-    void add_procedure_instance(result& r, compiler::procedure_type* proc_type, const ast_node_shared_ptr& node);
+    void add_procedure_instance(result& r, compiler::session& session, compiler::procedure_type* proc_type, const ast_node_shared_ptr& node);
 
-    void add_expression_to_scope(compiler::block* scope, compiler::element* expr);
+    static void add_expression_to_scope(compiler::block* scope, compiler::element* expr);
 
     void add_type_to_scope(compiler::type* value);
+
+    compiler::element* resolve_symbol_or_evaluate(result& r, compiler::session& session,
+        const ast_node_shared_ptr& node);
 
     bool within_procedure_scope(compiler::block* parent_scope) const;
 private:
@@ -88,9 +93,8 @@ private:
     compiler::symbol_element* make_symbol(compiler::block* parent_scope,
         const std::string& name, const string_list_t& namespaces = {});
 
-    void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node);
+    static void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node);
 
-    compiler::element* resolve_symbol_or_evaluate(result& r, const ast_node_shared_ptr& node);
 
     cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
 
@@ -192,15 +196,13 @@ private:
 
 	compiler::type* find_array_type(compiler::type* entry_type, size_t size) const;
 
-	void apply_attributes(result& r, compiler::element* element, const ast_node_shared_ptr& node);
-
     unknown_type* unknown_type_from_result(result& r, compiler::block* scope, compiler::identifier* identifier,
        type_find_result_t& result);
 private:
-    element* evaluate(result& r, const ast_node_shared_ptr& node,
+    element* evaluate(result& r, compiler::session& session, const ast_node_shared_ptr& node,
 		element_type_t default_block_type = element_type_t::block);
 
-    element* evaluate_in_scope(result& r, const ast_node_shared_ptr& node,
+    element* evaluate_in_scope(result& r, compiler::session& session, const ast_node_shared_ptr& node,
         compiler::block* scope, element_type_t default_block_type = element_type_t::block);
 
     bool find_identifier_type(result& r, type_find_result_t& result, const ast_node_shared_ptr& type_node,
@@ -219,7 +221,7 @@ private:
 	class terp* terp_ = nullptr;
 	element_map elements_ {};
 	compiler::block* block_ = nullptr;
-    std::stack<compiler::block*> top_level_block;
+    std::stack<compiler::block*> top_level_block_;
 	std::stack<compiler::block*> scope_stack_ {};
 	identifier_list_t identifiers_with_unknown_types_ {};
     identifier_reference_list_t unresolved_identifier_references_ {};

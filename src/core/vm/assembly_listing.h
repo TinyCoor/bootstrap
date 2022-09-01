@@ -6,6 +6,7 @@
 #define VM_ASSEMBLY_LISTING_H_
 
 #include <string>
+#include <stack>
 #include <vector>
 
 namespace gfx {
@@ -43,11 +44,16 @@ public:
 
     void write(FILE* file);
 
+    void push_source_file(size_t index);
+
+    void pop_source_file();
+
     listing_source_file_t* current_source_file();
 
-    void add_source_file(const std::string& filename);
+    size_t add_source_file(const std::string& filename);
 
 private:
+    std::stack<size_t> source_file_stack{};
     std::vector<listing_source_file_t> source_files_ {};
 };
 }

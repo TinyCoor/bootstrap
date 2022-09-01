@@ -7,11 +7,13 @@
 namespace gfx {
 assembly_listing::assembly_listing() = default;
 
-void assembly_listing::reset() {
+void assembly_listing::reset()
+{
     source_files_.clear();
 }
 
-void assembly_listing::write(FILE* file) {
+void assembly_listing::write(FILE* file)
+{
     size_t count = 0;
     for (const auto& source_file : source_files_) {
         fmt::print(file, "FILE: {:<64} GFX Compiler\n", source_file.filename);
@@ -28,18 +30,34 @@ void assembly_listing::write(FILE* file) {
     }
 }
 
-listing_source_file_t* assembly_listing::current_source_file() {
-    if (source_files_.empty()) {
+listing_source_file_t* assembly_listing::current_source_file()
+{
+    if (source_file_stack.empty()) {
         return nullptr;
     }
-    return &source_files_.back();
+    return &source_files_[source_file_stack.top()];
 }
 
-void assembly_listing::add_source_file(const std::string& filename) {
+size_t assembly_listing::add_source_file(const std::string& filename)
+{
     if (source_files_.capacity() < 256) {
         source_files_.reserve(256);
     }
     source_files_.push_back(listing_source_file_t {.filename = filename});
+    return source_files_.size() - 1u;
+}
+
+void assembly_listing::push_source_file(size_t index)
+{
+    source_file_stack.push(index);
+}
+
+void assembly_listing::pop_source_file()
+{
+    if (source_file_stack.empty()) {
+        return;
+    }
+    source_file_stack.pop();
 }
 
 }

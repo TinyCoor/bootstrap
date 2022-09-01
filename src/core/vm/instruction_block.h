@@ -50,7 +50,7 @@ public:
 
     void add_block(instruction_block* block);
 
-    void disassemble(assembly_listing& listing);
+    void disassemble(listing_source_file_t* source_file);
 
     void remove_block(instruction_block* block);
 
@@ -399,7 +399,7 @@ private:
 
     label_ref_t* make_unresolved_label_ref(const std::string& label_name);
 
-    void disassemble(assembly_listing& listing, instruction_block* block);
+    void disassemble(instruction_block* block, listing_source_file_t* source_file);
 private:
     stack_frame_t stack_frame_;
     instruction_block* parent_ = nullptr;

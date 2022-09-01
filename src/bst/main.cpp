@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
 				auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 				fmt::print("Total compilation time (in μs): {}\n", duration);
                 fmt::print("\n");
-                session.listing().write(stdout);
+                session.finalize();
 			}
 		}
 	}

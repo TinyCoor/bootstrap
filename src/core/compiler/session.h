@@ -40,9 +40,9 @@ public:
 
     assembly_listing& listing();
 
-    const path_list_t& source_files() const;
+    [[nodiscard]] const path_list_t& source_files() const;
 
-    const session_options_t& options() const;
+    [[nodiscard]] const session_options_t& options() const;
 
     void post_processing(compiler::program* program);
 

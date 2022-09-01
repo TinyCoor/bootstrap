@@ -28,7 +28,6 @@ bool compiler::return_element::on_emit(gfx::result &r, emit_context_t &context )
         instruction_block->store_from_ireg<uint64_t>(i_registers_t::fp, target_reg, 8);
         instruction_block->pop_target_register();
         instruction_block->free_reg(target_reg);
-
     }
     instruction_block->rts();
     return true;

@@ -5,6 +5,7 @@
 #include "code_dom_formatter.h"
 #include "elements/symbol_element.h"
 #include "elements/cast.h"
+#include "elements/module.h"
 #include "elements/label.h"
 #include "elements/alias.h"
 #include "elements/import.h"
@@ -29,6 +30,7 @@
 #include "elements/namespace_element.h"
 #include "elements/procedure_instance.h"
 #include "elements/types/any_type.h"
+#include "elements/types/tuple_type.h"
 #include "elements/types/type_info.h"
 #include "elements/types/array_type.h"
 #include "elements/types/string_type.h"
@@ -82,6 +84,13 @@ std::string code_dom_formatter::format_node(element* node)
 	}
 
 	switch (node->element_type()) {
+        case element_type_t::module: {
+            auto element = dynamic_cast<module*>(node);
+            auto style = ", fillcolor=grey, style=\"filled\"";
+            add_primary_edge(element, element->scope());
+            return fmt::format("{}[shape=record,label=\"symbol|{}\"{}];",
+                node_vertex_name, element->source_file().string(), style);
+        }
         case element_type_t::symbol: {
             auto element = dynamic_cast<symbol_element*>(node);
             auto style = ", fillcolor=pink, style=\"filled\"";
@@ -137,17 +146,25 @@ std::string code_dom_formatter::format_node(element* node)
             auto element = dynamic_cast<block*>(node);
 			auto style = ", fillcolor=floralwhite, style=\"filled\"";
 			return fmt::format("{}[shape=record,label=\"block|{}\"{}];", node_vertex_name,
-                               element->id(), style);
+                element->id(), style);
 		}
+        case element_type_t::module_block: {
+            auto element = dynamic_cast<block*>(node);
+            auto style = ", fillcolor=aliceblue, style=\"filled\"";
+            return fmt::format("{}[shape=record,label=\"block|module|{}\"{}];", node_vertex_name,
+                element->id(), style);
+        }
 		case element_type_t::proc_type_block: {
+            auto element = dynamic_cast<block*>(node);
 			auto style = ", fillcolor=floralwhite, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"block|proc_type\"{}];",
-				node_vertex_name, style);
+			return fmt::format("{}[shape=record,label=\"block|proc_type|{}\"{}];",
+				node_vertex_name, element->id(), style);
 		}
 		case element_type_t::proc_instance_block: {
+            auto element = dynamic_cast<block*>(node);
 			auto style = ", fillcolor=floralwhite, style=\"filled\"";
-			return fmt::format("{}[shape=record,label=\"block|proc_instance\"{}];",
-				node_vertex_name, style);
+			return fmt::format("{}[shape=record,label=\"block|proc_instance|{}\"{}];",
+				node_vertex_name, element->id(), style);
 		}
 		case element_type_t::field:{
 			auto element = dynamic_cast<field*>(node);
@@ -162,7 +179,7 @@ std::string code_dom_formatter::format_node(element* node)
 			add_primary_edge(program_element, program_element->block());
 			return fmt::format("{}[shape=record,label=\"program\"{}];", node_vertex_name, style);
 		}
-		case element_type_t::any_type:{
+		case element_type_t::any_type: {
 			auto element = dynamic_cast<any_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
             for (auto &field : element->fields().as_list()) {
@@ -180,6 +197,7 @@ std::string code_dom_formatter::format_node(element* node)
 			}
 			return fmt::format("{}[shape=record,label=\"return\"{}];", node_vertex_name, style);
 		}
+
 		case element_type_t::proc_type: {
 			auto element = dynamic_cast<procedure_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
@@ -324,9 +342,22 @@ std::string code_dom_formatter::format_node(element* node)
 			return fmt::format("{}[shape=record,label=\"string_literal|{}\"{}];", node_vertex_name,
                 element->value(), style);
 		}
+        case element_type_t::tuple_type: {
+            auto element = dynamic_cast<tuple_type*>(node);
+            auto style = ", fillcolor=gainsboro, style=\"filled\"";
+            for (auto fld : element->fields().as_list()) {
+                add_primary_edge(element, fld);
+            }
+            add_primary_edge(element, element->scope());
+            return fmt::format("{}[shape=record,label=\"tuple_type|{}\"{}];", node_vertex_name,
+                element->symbol()->name(), style);
+        }
 		case element_type_t::composite_type: {
 			auto element = dynamic_cast<composite_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
+            for (auto fld : element->fields().as_list()) {
+                add_primary_edge(element, fld);
+            }
             add_primary_edge(element, element->scope());
 			return fmt::format("{}[shape=record,label=\"composite_type|{}\"{}];", node_vertex_name,
                 element->symbol()->name(), style);

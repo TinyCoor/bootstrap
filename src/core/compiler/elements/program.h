@@ -7,9 +7,9 @@
 #include "block.h"
 #include "element.h"
 #include "parser/ast.h"
-#include "../session.h"
-#include "core/compiler/bytecode_emitter.h"
+#include "../bytecode_emitter.h"
 #include "../element_map.h"
+#include "../session.h"
 
 namespace gfx::compiler {
 
@@ -23,11 +23,12 @@ struct type_find_result_t {
 class program : public element {
 public:
     using block_visitor_callable = std::function<bool (compiler::block*)>;
+
     explicit program(terp* terp);
 
 	~program() override;
 
-	compiler::block * block() const;
+	compiler::block *block() const;
 
 	bool compile(result& r, compiler::session& session);
 
@@ -42,7 +43,6 @@ public:
     void disassemble(assembly_listing& listing);
 
 protected:
-
 	terp* terp();
 
 private:
@@ -101,6 +101,8 @@ private:
 	label* make_label(compiler::block* parent_scope, const std::string& name);
 
 	field* make_field(compiler::block* parent_scope, compiler::identifier* identifier);
+
+    module* make_module(compiler::block* parent_scope, compiler::block* scope);
 
 	if_element* make_if(compiler::block* parent_scope, element* predicate, element* true_branch,
 		element* false_branch);
@@ -217,6 +219,7 @@ private:
 	class terp* terp_ = nullptr;
 	element_map elements_ {};
 	compiler::block* block_ = nullptr;
+    std::stack<compiler::block*> top_level_block;
 	std::stack<compiler::block*> scope_stack_ {};
 	identifier_list_t identifiers_with_unknown_types_ {};
     identifier_reference_list_t unresolved_identifier_references_ {};

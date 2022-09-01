@@ -103,6 +103,7 @@ set(ELEMENT_SRC
         compiler/elements/types/namespace_type.cpp
 
 # elements
+        compiler/elements/module.cpp
         compiler/elements/attribute.cpp
         compiler/elements/if_element.cpp
         compiler/elements/return_element.cpp

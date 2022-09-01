@@ -4,3 +4,7 @@ boost/1.79.0
 
 [generators]
 cmake
+
+[options]
+fmt:shared= True
+

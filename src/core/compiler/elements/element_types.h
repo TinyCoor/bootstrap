@@ -21,6 +21,7 @@ class field;
 class block;
 class label;
 class import;
+class module;
 class element;
 class program;
 class comment;
@@ -105,6 +106,7 @@ enum class element_type_t {
 	if_e,
 	comment,
 	program,
+    module,
 	any_type,
     type_info,
 	proc_type,
@@ -120,6 +122,7 @@ enum class element_type_t {
 	array_type,
 	identifier,
 	expression,
+    module_block,
 	string_type,
     struct_type,
 	namespace_e,
@@ -150,7 +153,8 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::field, 				"field"},
 	{element_type_t::return_e, 				"return"},
 	{element_type_t::import_e, 				"import"},
-    {element_type_t::symbol,            "symbol_element"},
+    {element_type_t::module, 				"module"},
+    {element_type_t::symbol,                "symbol"},
 	{element_type_t::element, 				"element"},
 	{element_type_t::comment, 				"comment"},
 	{element_type_t::program, 				"program"},
@@ -162,6 +166,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::bool_type, 			"bool_type"},
 	{element_type_t::statement, 			"statement"},
 	{element_type_t::proc_call, 			"proc_call"},
+    {element_type_t::module_block, 			"module_block"},
     {element_type_t::namespace_e, 			"namespace"},
     {element_type_t::tuple_type, 			"tuple_type"},
 	{element_type_t::alias_type, 			"alias_type"},

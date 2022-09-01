@@ -6,6 +6,7 @@
 #include "program.h"
 #include "cast.h"
 #include "label.h"
+#include "module.h"
 #include "alias.h"
 #include "types/type.h"
 #include "import.h"
@@ -50,9 +51,68 @@ program::program(class terp* terp)
 
 program::~program() = default;
 
-block * program::block() const
+bool program::compile(result& r, compiler::session& session)
 {
-	return block_;
+    block_ = push_new_block();
+    block_->parent_element(this);
+    top_level_block.push(block_);
+    initialize_core_types(r);
+    for (const auto &source_file : session.source_files()) {
+        if (!compile_module(r, session, source_file)) {
+            return false;
+        }
+    }
+
+    // process directives
+    auto directives = elements().find_by_type(element_type_t::directive);
+    for (auto directive : directives) {
+        auto directive_element = dynamic_cast<compiler::directive*>(directive);
+        if (!directive_element->execute(r, this)) {
+            return false;
+        }
+    }
+
+    if (!resolve_unknown_types(r) || !resolve_unknown_identifiers(r)) {
+        return false;
+    }
+
+    if (!r.is_failed()) {
+        emit_context_t context(terp_, &assembler_, this);
+        emit(r, context);
+    }
+    session.post_processing(this);
+    top_level_block.pop();
+    return !r.is_failed();
+}
+
+bool program::compile_module(result& r, compiler::session& session, const fs::path& source_file)
+{
+    session.raise_phase(session_compile_phase_t::start, source_file);
+    session.listing().add_source_file(source_file.string());
+    auto module_node = session.parse(r, source_file);
+    if (module_node != nullptr) {
+        auto module = dynamic_cast<compiler::module*>(evaluate(r, module_node));
+        module->parent_element(this);
+        module->source_file(source_file);
+    }
+
+    if (r.is_failed()) {
+        session.raise_phase(session_compile_phase_t::failed, source_file);
+        return false;
+    } else {
+        session.raise_phase(session_compile_phase_t::success, source_file);
+        return true;
+    }
+}
+
+bool program::run(result &r)
+{
+    while (!terp_->has_exited()) {
+        if (!terp_->step(r)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_type_t default_block_type)
@@ -75,10 +135,13 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			return directive_element;
 		}
 		case ast_node_types_t::module: {
+            auto module_block = push_new_block(element_type_t::module_block);
+            top_level_block.push(module_block);
 			for (auto &it : node->children) {
-				add_expression_to_scope(block_, evaluate(r, it));
+				add_expression_to_scope(module_block, evaluate(r, it, default_block_type));
 			}
-			return block_;
+            top_level_block.pop();
+			return make_module(block_, pop_scope());
 		}
 		case ast_node_types_t::basic_block: {
 			auto active_scope = push_new_block(default_block_type);
@@ -330,16 +393,8 @@ element* program::evaluate(result& r, const ast_node_shared_ptr& node, element_t
 			}
 			return return_element;
 		}
-//		case ast_node_types_t::constant_expression: {
-//          auto expr = evaluate(r, node->rhs);
-//			auto identifier = dynamic_cast<class identifier*>(expr);
-//			if (identifier != nullptr) {
-//				identifier->constant(true);
-//			}
-//			return identifier;
-//		}
 		case ast_node_types_t::namespace_expression: {
-			return make_namespace(current_scope(), evaluate(r, node->rhs));
+			return make_namespace(current_scope(), evaluate(r, node->rhs, default_block_type));
 		}
 		default: {
 			break;
@@ -703,7 +758,7 @@ string_literal *program::make_string(compiler::block* parent_scope, const std::s
 compiler::identifier *program::find_identifier(const qualified_symbol_t& symbol)
 {
     if (symbol.is_qualified()) {
-		auto block_scope = block();
+		auto block_scope = top_level_block.top();
 		for (const auto& namespace_name : symbol.namespaces) {
 		    auto var = block_scope->identifiers().find(namespace_name);
 			if (var == nullptr || var->initializer() == nullptr) {
@@ -755,7 +810,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, symbol_element
 	const ast_node_shared_ptr &node, compiler::block* parent_scope)
 {
 	auto namespace_type = find_type(qualified_symbol_t{.name = "namespace"});
-	auto scope = symbol->is_qualified() ? block()
+	auto scope = symbol->is_qualified() ? top_level_block.top()
 		: (parent_scope != nullptr ? parent_scope : current_scope());
 
     auto namespaces = symbol->namespaces();
@@ -953,63 +1008,6 @@ void program::add_procedure_instance(result &r, procedure_type *proc_type, const
 	}
 }
 
-bool program::compile(result& r, compiler::session& session)
-{
-	block_ = push_new_block();
-    block_->parent_element(this);
-	initialize_core_types(r);
-    for (const auto &source_file: session.source_files()) {
-        if (!compile_module(r, session, source_file)) {
-            return false;
-        }
-    }
-
-    // process directives
-    auto directives = elements().find_by_type(element_type_t::directive);
-    for (auto directive : directives) {
-        auto directive_element = dynamic_cast<compiler::directive*>(directive);
-        if (!directive_element->execute(r, this)) {
-            return false;
-        }
-    }
-
-	if (!resolve_unknown_types(r) || !resolve_unknown_identifiers(r)) {
-		return false;
-	}
-
-    if (!r.is_failed()) {
-        emit_context_t context(terp_, &assembler_, this);
-        emit(r, context);
-    }
-    session.post_processing(this);
-	return !r.is_failed();
-}
-
-bool program::compile_module(result& r, compiler::session& session, const fs::path& source_file)
-{
-    session.raise_phase(session_compile_phase_t::start, source_file);
-    auto module_node = session.parse(r, source_file);
-    session.listing().add_source_file(source_file.string());
-	evaluate(r, module_node);
-    if (r.is_failed()) {
-        session.raise_phase(session_compile_phase_t::failed, source_file);
-        return false;
-    } else {
-        session.raise_phase(session_compile_phase_t::success, source_file);
-        return true;
-    }
-}
-
-bool program::run(result &r)
-{
-	while (!terp_->has_exited()) {
-		if (!terp_->step(r)) {
-			return false;
-		}
-	}
-	return true;
-}
-
 unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scope, symbol_element* symbol,
 	bool is_array, size_t array_size)
 {
@@ -1205,7 +1203,7 @@ bool program::visit_blocks(result &r, const block_visitor_callable &callable,
           }
           return true;
         };
-    return recursive_execute(root_block != nullptr ? root_block : block());
+    return recursive_execute(root_block != nullptr ? root_block : top_level_block.top());
 }
 
 tuple_type *program::make_tuple_type(result &r, compiler::block *parent_scope, compiler::block* scope)
@@ -1455,7 +1453,7 @@ compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_no
 compiler::type *program::find_type(const qualified_symbol_t &symbol) const
 {
     if (symbol.is_qualified()) {
-        auto block_scope = block();
+        auto block_scope = top_level_block.top();
         for (const auto& namespace_name : symbol.namespaces) {
             auto var = block_scope->identifiers().find(namespace_name);
             if (var == nullptr || var->initializer() == nullptr) {
@@ -1551,6 +1549,19 @@ void program::disassemble(assembly_listing& listing)
 {
     auto root_block = assembler_.root_block();
     root_block->disassemble(listing);
+}
+
+module *program::make_module(compiler::block* parent_scope, compiler::block* scope)
+{
+    auto module_element = new compiler::module(parent_scope, scope);
+    elements_.add(module_element);
+    scope->parent_element(module_element);
+    return module_element;
+}
+
+compiler::block *program::block() const
+{
+    return block_;
 }
 
 }

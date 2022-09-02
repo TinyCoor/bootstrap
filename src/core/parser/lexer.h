@@ -22,6 +22,8 @@ public:
 
 	bool next(token_t& token);
 
+	char peek();
+
 private:
 	bool plus(token_t& token);
 

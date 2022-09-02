@@ -36,8 +36,9 @@ bool parser::consume(token_t &token)
 
 bool parser::peek(token_types_t type)
 {
-	if (!look_ahead(0))
-		return false;
+	if (!look_ahead(0)) {
+        return false;
+    }
 	auto& token = tokens_.front();
 	return token.type == type;
 }
@@ -270,16 +271,16 @@ void parser::error(result &r, const std::string &code, const std::string &messag
 
 	std::stringstream stream;
 	stream << "\n";
-	auto start_line = std::max<int32_t>(0, static_cast<int32_t>(location.line()) - 4);
+	auto start_line = std::max<int32_t>(0, static_cast<int32_t>(location.start().line) - 4);
 	auto stop_line = std::min<int32_t>(static_cast<int32_t>(source_lines.size()),
-		static_cast<int32_t>(location.line() + 4));
+		static_cast<int32_t>(location.start().line + 4));
 	auto message_indicator = "^ " + message;
-    auto target_line = static_cast<int32_t>(location.line());
+    auto target_line = static_cast<int32_t>(location.start().line);
 	for (int32_t i = start_line; i < stop_line; i++) {
 		if (i == target_line) {
 			stream << fmt::format("{:04d}: ", i + 1)
 				   << source_lines[i] << "\n"
-				   << fmt::format("{}{}", std::string(location.start_column(), ' '), message_indicator);
+				   << fmt::format("{}{}", std::string(location.start().column, ' '), message_indicator);
 		} else {
 			stream << fmt::format("{:04d}: ", i + 1)
 				   << source_lines[i];
@@ -290,7 +291,7 @@ void parser::error(result &r, const std::string &code, const std::string &messag
 		}
 	}
 
-	r.add_message(code, fmt::format("{} @ {}:{}", message, location.line(), location.start_column()),
+	r.add_message(code, fmt::format("{} @ {}:{}", message, location.start().line, location.start().column),
                   stream.str(), true);
 }
 

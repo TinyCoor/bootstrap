@@ -12,7 +12,7 @@
 namespace gfx {
 
 enum class token_types_t {
-	unknown,
+	invalid,
 	plus,						/// '+'
 	bang,						/// '!'
 	pipe,						/// '|'
@@ -86,7 +86,7 @@ enum class token_types_t {
 };
 
 static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name = {
-	{token_types_t::unknown,                "unknown"},
+	{token_types_t::invalid,                "invalid"},
 	{token_types_t::comma,                  "comma"},
 	{token_types_t::label,  				"label"},
 	{token_types_t::equals,                 "equals"},
@@ -192,7 +192,7 @@ struct token_t {
 
 	conversion_result_t parse(uint64_t& out) const;
 
-	token_types_t type = token_types_t::unknown;
+	token_types_t type = token_types_t::invalid;
 	std::string value;
 	uint8_t radix = 10;
 	source_location location;

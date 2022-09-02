@@ -7,19 +7,10 @@
 #include <fmt/format.h>
 namespace gfx {
 
-template<typename Key, typename Value, size_t size>
-struct Map {
-	std::array<std::pair<Key,Value>, size> contents;
-
-	constexpr Value At(Key key)  const noexcept
-    {
-		auto iter = std::find(std::begin(contents), std::end(contents), key);
-		if (iter != contents.end()) {
-			return iter.second;
-		}
-	}
+static inline token_t s_invalid = {
+    .type = token_types_t::invalid,
+    .value = ""
 };
-
 
 static inline token_t s_proc_literal = {
 	.type = token_types_t::proc_literal,
@@ -552,17 +543,19 @@ lexer::lexer(std::istream& source)
 	source_.seekg(0, std::ios::beg);
 }
 
-
-//char lexer::peek()
-//{
-//	while (!source_.eof()) {
-//		auto ch = static_cast<char>(source_.get());
-//		if (!isspace(ch)) {
-//			return ch;
-//		}
-//	}
-//	return 0;
-//}
+char lexer::peek()
+{
+	while (!source_.eof()) {
+		auto ch = static_cast<char>(source_.get());
+        if (ch == std::char_traits<char>::eof()) {
+            return ch;
+        }
+		if (!isspace(ch)) {
+			return ch;
+		}
+	}
+	return 0;
+}
 
 void lexer::mark_position()
 {
@@ -570,7 +563,6 @@ void lexer::mark_position()
     marked_line_ = line_;
     marked_column_ = column_;
 }
-
 
 void lexer::increment_line()
 {
@@ -590,7 +582,10 @@ bool lexer::has_next() const
 
 void lexer::rewind_one_char()
 {
-	source_.seekg(-1, std::istream::cur);
+	source_.seekg(-1,  std::istream::cur);
+    if (column_ > 1 ) {
+        column_--;
+    }
 }
 
 void lexer::restore_position()
@@ -602,16 +597,15 @@ void lexer::restore_position()
 
 bool lexer::next(token_t& token)
 {
-	if (source_.eof()) {
+    const auto ch = static_cast<char>(tolower(read()));
+	if (ch == std::char_traits<char>::eof()) {
 		has_next_ = false;
-        token.location.line(line_);
-        token.location.start_column(column_);
-        token.location.end_column(column_);
+        token.location.end(line_, column_);
+        token.location.start(line_, column_);
 		token.type = token_types_t::end_of_file;
 		return true;
 	}
 
-	const auto ch = static_cast<char>(tolower(read()));
 	rewind_one_char();
 	mark_position();
 
@@ -622,24 +616,23 @@ bool lexer::next(token_t& token)
         auto line = line_;
         auto start_column = column_ - 1;
 		if (it->second(this, token)) {
-			token.location.line(line_);
-            token.location.start_column(start_column);
-            token.location.end_column(line_ > line ? previous_line_column_ : column_ - 1);
-            fmt::print("token.type = {}, value ={} , line = {}, start_column = {}, end_column = {}\n",
+			token.location.start(line_, start_column);
+            token.location.end(line_, line_ > line ? previous_line_column_ : column_ - 1);
+            fmt::print("token.type = {}, start = {}@{}, end = {}@{}\n",
                 token.name(),
-                token.value,
-                token.location.line() + 1,
-                token.location.start_column(),
-                token.location.end_column());
+                token.location.start().line,
+                token.location.start().column,
+                token.location.end().line,
+                token.location.end().column);
             return true;
 		}
 		restore_position();
 	}
 
-	token = s_end_of_file;
-    token.location.line(line_);
-    token.location.start_column(column_);
-    token.location.end_column(column_);
+	token = s_invalid;
+    token.value = ch;
+    token.location.end(line_, column_);
+    token.location.start(line_, column_);
 	has_next_ = false;
 
 	return true;
@@ -649,14 +642,18 @@ char lexer::read(bool skip_whitespace)
 {
 	while (true) {
 		auto ch = static_cast<char>(source_.get());
-
+        if (ch == std::char_traits<char>::eof()) {
+            return ch;
+        }
 		column_++;
 
-		if (ch == '\n')
-			increment_line();
+		if (ch == '\n') {
+            increment_line();
+        }
 
-		if (skip_whitespace && isspace(ch))
-			continue;
+		if (skip_whitespace && isspace(ch)) {
+            continue;
+        }
 
 		return ch;
 	}
@@ -668,7 +665,6 @@ std::string lexer::read_identifier()
 	if (ch != '_' && !isalpha(ch)) {
 		return "";
 	}
-	column_++;
 	std::stringstream stream;
 	stream << ch;
 	while (true) {
@@ -690,7 +686,7 @@ bool lexer::alias_literal(token_t& token)
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token =s_alias_literal;
+			token = s_alias_literal;
 			return true;
 		}
 	}
@@ -1502,14 +1498,12 @@ bool lexer::block_comment(token_t &token)
 	if (match_literal("/*")) {
 		auto block_count = 1;
 		token = s_block_comment;
-
 		std::stringstream stream;
 		while (true) {
 			if (source_.eof()) {
 				token = s_end_of_file;
-                token.location.line(line_);
-                token.location.start_column(column_);
-                token.location.end_column(column_);
+                token.location.end(line_, column_);
+                token.location.start(line_, column_);
 				return true;
 			}
 
@@ -1527,8 +1521,9 @@ bool lexer::block_comment(token_t &token)
 				ch = read(false);
 				if (ch == '/') {
 					block_count--;
-					if (block_count == 0)
-						break;
+					if (block_count == 0) {
+                        break;
+                    }
 					continue;
 				} else {
 					rewind_one_char();

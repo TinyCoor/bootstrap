@@ -3,42 +3,34 @@
 //
 
 #include "source_location.h"
-source_location::source_location()
+const location_t &source_location::end() const
 {
-
+    return end_;
 }
 
-source_location::source_location(uint32_t line, uint32_t start_column, uint32_t end_column)
-    : line_(line), end_column_(end_column), start_column_(start_column)
+const location_t &source_location::start() const
 {
-
-}
-uint32_t source_location::line() const
-{
-    return line_;
+    return start_;
 }
 
-void source_location::line(uint32_t value)
+void source_location::end(const location_t &value)
 {
-    line_ = value;
+    end_ = value;
 }
 
-uint32_t source_location::end_column() const
+void source_location::start(const location_t &value)
 {
-    return end_column_;
+    start_ = value;
 }
 
-uint32_t source_location::start_column() const
+void source_location::end(uint32_t line, uint32_t column)
 {
-    return start_column_;
+    end_.line = line;
+    end_.column = column;
 }
 
-void source_location::end_column(uint32_t value)
+void source_location::start(uint32_t line, uint32_t column)
 {
-    end_column_ = value;
-}
-
-void source_location::start_column(uint32_t value)
-{
-    start_column_ = value;
+    start_.line = line;
+    start_.column = column;
 }

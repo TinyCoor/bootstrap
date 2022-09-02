@@ -93,12 +93,15 @@ ast_node_shared_ptr create_symbol_node(result& r, parser* parser, const ast_node
 	token_t& token)
 {
 	auto symbol_node = parser->ast_builder()->symbol_node();
+    symbol_node->location.line(token.location.line());
+    symbol_node->location.start_column(token.location.start_column());
 
 	while (true) {
 		auto symbol_part_node = parser->ast_builder()->symbol_part_node(token);
 		symbol_node->children.push_back(symbol_part_node);
 		if (!parser->peek(token_types_t::scope_operator)) {
-			break;
+            symbol_node->location.end_column(token.location.end_column());
+            break;
 		}
 		parser->consume();
 		if (!parser->expect(r, token)) {

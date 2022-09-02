@@ -1468,8 +1468,8 @@ compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_no
 {
     qualified_symbol_t qualified_symbol {};
     make_qualified_symbol(qualified_symbol, node);
-
     auto symbol = make_symbol(current_scope(), qualified_symbol.name, qualified_symbol.namespaces);
+    symbol->location(node->location);
     symbol->constant(node->is_constant_expression());
 
     return symbol;

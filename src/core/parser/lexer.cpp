@@ -3,8 +3,8 @@
 //
 
 #include "lexer.h"
-
 #include <sstream>
+#include <fmt/format.h>
 namespace gfx {
 
 template<typename Key, typename Value, size_t size>
@@ -567,6 +567,8 @@ lexer::lexer(std::istream& source)
 void lexer::mark_position()
 {
 	mark_ = source_.tellg();
+    marked_line_ = line_;
+    marked_column_ = column_;
 }
 
 
@@ -575,6 +577,7 @@ void lexer::increment_line()
 	auto pos = source_.tellg();
 	if (line_breaks_.count(pos) == 0) {
 		line_++;
+        previous_line_column_ = column_;
 		column_ = 0;
 		line_breaks_.insert(pos);
 	}
@@ -588,14 +591,13 @@ bool lexer::has_next() const
 void lexer::rewind_one_char()
 {
 	source_.seekg(-1, std::istream::cur);
-	if (column_ > 0) {
-		column_--;
-	}
 }
 
 void lexer::restore_position()
 {
 	source_.seekg(mark_);
+    line_ = marked_line_;
+    column_ = marked_column_;
 }
 
 bool lexer::next(token_t& token)
@@ -617,11 +619,19 @@ bool lexer::next(token_t& token)
 	for (auto it = case_range.first; it != case_range.second; ++it) {
 		token.radix = 10;
 		token.number_type = number_types_t::none;
+        auto line = line_;
+        auto start_column = column_ - 1;
 		if (it->second(this, token)) {
 			token.location.line(line_);
-            token.location.start_column(column_);
-            token.location.end_column(column_);
-			return true;
+            token.location.start_column(start_column);
+            token.location.end_column(line_ > line ? previous_line_column_ : column_ - 1);
+            fmt::print("token.type = {}, value ={} , line = {}, start_column = {}, end_column = {}\n",
+                token.name(),
+                token.value,
+                token.location.line() + 1,
+                token.location.start_column(),
+                token.location.end_column());
+            return true;
 		}
 		restore_position();
 	}

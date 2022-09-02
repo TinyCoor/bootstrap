@@ -92,7 +92,7 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::equals,                 "equals"},
 	{token_types_t::period, 				"period"},
 	{token_types_t::percent,  				"percent"},
-    {token_types_t::line_comment,           "label"},
+    {token_types_t::line_comment,           "comment"},
     {token_types_t::block_comment,          "comment"},
 	{token_types_t::ampersand, 				"ampersand"},
 	{token_types_t::assignment,             "assignment"},

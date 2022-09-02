@@ -34,7 +34,7 @@ public:
 
 	ast_node_shared_ptr parse_expression(result& r, uint8_t precedence);
 
-    void write_ast_graph(const std::filesystem::path& path, const ast_node_shared_ptr& program_node);
+    static void write_ast_graph(const std::filesystem::path& path, const ast_node_shared_ptr& program_node);
 
 	ast_node_shared_ptr expect_expression(result& r,ast_node_types_t expected_type, uint8_t precedence);
 

@@ -196,6 +196,7 @@ struct ast_node_t {
 	ast_node_list children {};
 	ast_node_shared_ptr lhs = nullptr;
 	ast_node_shared_ptr rhs = nullptr;
+    source_location location {};
 	flags_value_t flags = flags_t::none;
 	ast_node_shared_ptr parent = nullptr;
 	ast_node_list pending_attributes {};

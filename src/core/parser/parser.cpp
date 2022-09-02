@@ -274,11 +274,12 @@ void parser::error(result &r, const std::string &code, const std::string &messag
 	auto stop_line = std::min<int32_t>(static_cast<int32_t>(source_lines.size()),
 		static_cast<int32_t>(location.line() + 4));
 	auto message_indicator = "^ " + message;
+    auto target_line = static_cast<int32_t>(location.line());
 	for (int32_t i = start_line; i < stop_line; i++) {
-		if (i == static_cast<int32_t>(location.line() + 1)) {
+		if (i == target_line) {
 			stream << fmt::format("{:04d}: ", i + 1)
 				   << source_lines[i] << "\n"
-				   << fmt::format("{}{}", std::string(location.start_column() + 6, ' '), message_indicator);
+				   << fmt::format("{}{}", std::string(location.start_column(), ' '), message_indicator);
 		} else {
 			stream << fmt::format("{:04d}: ", i + 1)
 				   << source_lines[i];

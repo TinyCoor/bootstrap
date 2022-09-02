@@ -10,6 +10,7 @@
 #include "common/result.h"
 #include "common/id_pool.h"
 #include "instruction_block.h"
+#include "assembly_listing.h"
 #include <stack>
 
 namespace gfx {
@@ -18,6 +19,10 @@ public:
 	explicit assembler(terp* terp);
 
 	virtual ~assembler();
+
+    bool initialize(result& r);
+
+    assembly_listing& listing();
 
     bool assemble(result& r, instruction_block* block);
 
@@ -49,6 +54,7 @@ private:
 private:
 	terp* terp_ = nullptr;
     uint64_t location_counter_ = 0;
+    assembly_listing listing_ {};
     uint32_t procedure_block_count_ = 0;
     std::vector<instruction_block*> blocks_ {};
     std::stack<instruction_block*> block_stack_{};

@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <common/source_location.h>
 namespace gfx {
 
 enum class token_types_t {
@@ -194,8 +195,7 @@ struct token_t {
 	token_types_t type = token_types_t::unknown;
 	std::string value;
 	uint8_t radix = 10;
-	uint32_t line = 0;
-	uint32_t column = 0;
+	source_location location;
 	number_types_t number_type = number_types_t::none;
 };
 

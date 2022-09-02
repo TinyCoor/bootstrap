@@ -50,11 +50,15 @@ public:
 
     void add_block(instruction_block* block);
 
-    void disassemble(listing_source_file_t* source_file);
+    void disassemble();
 
     void remove_block(instruction_block* block);
 
     label* make_label(const std::string& name);
+
+    listing_source_file_t* source_file();
+
+    void source_file(listing_source_file_t* value);
 
 /// register alloctor
 public:
@@ -399,13 +403,14 @@ private:
 
     label_ref_t* make_unresolved_label_ref(const std::string& label_name);
 
-    void disassemble(instruction_block* block, listing_source_file_t* source_file);
+    void disassemble(instruction_block* block);
 private:
     stack_frame_t stack_frame_;
     instruction_block* parent_ = nullptr;
     instruction_block_type_t type_;
     std::vector<block_entry_t> entries_ {};
     std::vector<instruction_block*> blocks_ {};
+    listing_source_file_t* source_file_ = nullptr;
     std::unordered_map<std::string, label*> labels_ {};
     std::stack<target_register_t> target_registers_ {};
     register_allocator_t<i_registers_t> i_register_allocator_ {};

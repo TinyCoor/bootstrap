@@ -9,7 +9,6 @@ namespace gfx {
 assembler::assembler(terp* terp)
 	: terp_(terp)
 {
-	location_counter_ = terp_->heap_vector(heap_vectors_t::program_start);
 }
 
 assembler::~assembler()
@@ -20,6 +19,11 @@ assembler::~assembler()
     blocks_.clear();
 }
 
+bool assembler::initialize(result &r)
+{
+    location_counter_ = terp_->heap_vector(heap_vectors_t::program_start);
+    return true;
+}
 bool assembler::assemble(result &r, instruction_block *block)
 {
     return false;
@@ -101,6 +105,10 @@ instruction_block *assembler::make_procedure_block(instruction_block* parent)
 
 void assembler::add_new_block(instruction_block *block)
 {
+    auto source_file = listing_.current_source_file();
+    if (source_file != nullptr) {
+        block->source_file(source_file);
+    }
     blocks_.push_back(block);
     auto top_block = current_block();
     if (top_block != nullptr) {
@@ -115,5 +123,10 @@ instruction_block *assembler::root_block()
 bool assembler::in_procedure_scope() const
 {
     return procedure_block_count_ > 0;
+}
+
+assembly_listing &assembler::listing()
+{
+    return listing_;
 }
 }

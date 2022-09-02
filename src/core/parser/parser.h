@@ -38,7 +38,7 @@ public:
 
 	ast_node_shared_ptr expect_expression(result& r,ast_node_types_t expected_type, uint8_t precedence);
 
-    void error(result& r, const std::string& code, const std::string& message, uint32_t line, uint32_t column);
+    void error(result& r, const std::string& code, const std::string& message, const source_location& location);
 
 protected:
 	ast_node_shared_ptr parse_statement(result& r);

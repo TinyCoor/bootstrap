@@ -5,7 +5,6 @@
 #include "common/ya_getopt.h"
 #include "common/result.h"
 #include "core/compiler/session.h"
-#include "core/compiler/bytecode_emitter.h"
 using namespace gfx;
 
 static constexpr size_t heap_size = (1024 * 1024) * 32;
@@ -60,7 +59,7 @@ int main(int argc, char** argv) {
 
 	while (true) {
 		int option_index = -1;
-		opt = ya_getopt_long(argc, argv, "?:v:G:H:", long_options, &option_index);
+		opt = ya_getopt_long(argc, argv, "?vG:H:", long_options, &option_index);
 		if (opt == -1) {
 			break;
 		}
@@ -109,61 +108,51 @@ int main(int argc, char** argv) {
 	verbose_flag = true;
 
 	high_resolution_clock::time_point start = high_resolution_clock::now();
-    compiler::bytecode_emitter_options_t emitter_options{
-        .heap_size = heap_size,
-        .stack_size = stack_size,
-    };
-	compiler::bytecode_emitter compiler(emitter_options);
+    std::vector<std::filesystem::path> source_files {};
+    while (ya_optind < argc) {
+        std::filesystem::path source_file_path(argv[ya_optind++]);
+        source_files.push_back(source_file_path);
+    }
+    if (source_files.empty()) {
+        usage();
+        return 1;
+    }
 	result r;
-	int rc = 0;
 
-	if (!compiler.initialize(r)) {
-		rc = 1;
-	} else {
-		std::vector<std::filesystem::path> source_files {};
-		while (ya_optind < argc) {
-			std::filesystem::path source_file_path(argv[ya_optind++]);
-			source_files.push_back(source_file_path);
-		}
-
-		if (source_files.empty()) {
-			usage();
-			rc = 1;
-		} else {
-            compiler::session_options_t session_options {
-                .verbose = verbose_flag,
-                .ast_graph_file = ast_graph_file_name,
-                .dom_graph_file = code_dom_graph_file_name,
-                .compile_callback = [&](gfx::compiler::session_compile_phase_t phase,
-                    const std::filesystem::path &source_file) {
-                  switch (phase) {
-                      case gfx::compiler::session_compile_phase_t::start:
-                          fmt::print("Compile: {} ... ",source_file.string());
-                          break;
-                      case gfx::compiler::session_compile_phase_t::success:
-                          fmt::print("ok.\n",source_file.string());
-                          break;
-                      case gfx::compiler::session_compile_phase_t::failed:
-                          fmt::print("failed.\n",source_file.string());
-                          break;
-                  }
-
-                },
-            };
-            compiler::session session(session_options, source_files);
-			if (!compiler.compile(r, session)) {
-				rc = 1;
-			} else {
-				high_resolution_clock::time_point end = high_resolution_clock::now();
-				auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-				fmt::print("Total compilation time (in μs): {}\n", duration);
-                fmt::print("\n");
-                session.finalize();
-			}
-		}
-	}
-
-	print_results(r);
-
-	return rc;
+    compiler::session_options_t session_options {
+        .verbose = verbose_flag,
+        .heap_size =heap_size,
+        .stack_size = stack_size,
+        .ast_graph_file = ast_graph_file_name,
+        .dom_graph_file = code_dom_graph_file_name,
+        .compile_callback = [&](gfx::compiler::session_compile_phase_t phase,
+            const std::filesystem::path &source_file) {
+            switch (phase) {
+              case gfx::compiler::session_compile_phase_t::start:
+                  fmt::print("{}\n",source_file.filename().string());
+                  break;
+              case gfx::compiler::session_compile_phase_t::success:
+                  break;
+              case gfx::compiler::session_compile_phase_t::failed:
+                  break;
+            }
+        }
+    };
+    compiler::session session(session_options, source_files);
+    if (!session.initialize(r)) {
+        print_results(r);
+        return 1;
+    } else {
+        if (!session.compile(r)) {
+            print_results(r);
+            return 1;
+        } else {
+            high_resolution_clock::time_point end = high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+            fmt::print("Total compilation time (in μs): {}\n", duration);
+            fmt::print("\n");
+            session.finalize();
+            return 0;
+        }
+    }
 }

@@ -11,7 +11,9 @@
 #include "code_dom_formatter.h"
 namespace gfx::compiler {
 session::session(const session_options_t& options, const path_list_t& source_files)
-        : source_files_(source_files), options_(options)
+        : terp_(options.heap_size, options.stack_size),
+          assembler_(&terp_), program_(&terp_, &assembler_),
+          source_files_(source_files), options_(options)
 {
 }
 
@@ -27,18 +29,21 @@ void session::raise_phase(session_compile_phase_t phase, const fs::path& source_
 
 void session::finalize()
 {
-    listing_.write(stdout);
+    if (options_.verbose) {
+        program_.disassemble(stdout);
+        if (!options_.dom_graph_file.empty())
+            write_code_dom_graph(options_.dom_graph_file);
+    }
 }
 
-void session::write_code_dom_graph(compiler::program* program, const fs::path& path)
+void session::write_code_dom_graph(const fs::path& path)
 {
     FILE* output_file = stdout;
     if (!path.empty()) {
         output_file = fopen(path.string().c_str(), "wt");
-//        defer({fclose(output_file);});
     }
 
-    compiler::code_dom_formatter formatter(program, output_file);
+    compiler::code_dom_formatter formatter(&program_, output_file);
     formatter.format(fmt::format("Code DOM Graph: {}", path.string()));
     fclose(output_file);
 }
@@ -61,11 +66,6 @@ ast_node_shared_ptr session::parse(result& r, const fs::path& source_file)
     return nullptr;
 }
 
-assembly_listing& session::listing()
-{
-    return listing_;
-}
-
 const path_list_t& session::source_files() const
 {
     return source_files_;
@@ -76,12 +76,27 @@ const session_options_t& session::options() const
     return options_;
 }
 
-void session::post_processing(compiler::program* program)
+bool session::initialize(result &r)
 {
-    if (options_.verbose && !options_.dom_graph_file.empty()) {
-        write_code_dom_graph(program, options_.dom_graph_file);
-//        program->disassemble(listing_);
-    }
+    terp_.initialize(r);
+    assembler_.initialize(r);
+    return !r.is_failed();
+}
+assembler &session::assembler()
+{
+    return assembler_;
+}
+compiler::program &session::program()
+{
+    return program_;
+}
+bool session::compile(result &r)
+{
+    return program_.compile(r, *this);
+}
+class terp &session::terp()
+{
+    return terp_;
 }
 
 }

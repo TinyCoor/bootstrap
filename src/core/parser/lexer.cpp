@@ -602,9 +602,9 @@ bool lexer::next(token_t& token)
 {
 	if (source_.eof()) {
 		has_next_ = false;
-		token.value = "";
-		token.line = line_;
-		token.column = column_;
+        token.location.line(line_);
+        token.location.start_column(column_);
+        token.location.end_column(column_);
 		token.type = token_types_t::end_of_file;
 		return true;
 	}
@@ -617,21 +617,19 @@ bool lexer::next(token_t& token)
 	for (auto it = case_range.first; it != case_range.second; ++it) {
 		token.radix = 10;
 		token.number_type = number_types_t::none;
-		token.line = line_;
-		token.column = column_;
-		token.number_type = number_types_t::none;
 		if (it->second(this, token)) {
-			token.line = line_;
-			token.column = column_;
+			token.location.line(line_);
+            token.location.start_column(column_);
+            token.location.end_column(column_);
 			return true;
 		}
 		restore_position();
 	}
 
-	token=s_end_of_file;
-	token.line = line_;
-	token.column = column_;
-
+	token = s_end_of_file;
+    token.location.line(line_);
+    token.location.start_column(column_);
+    token.location.end_column(column_);
 	has_next_ = false;
 
 	return true;
@@ -1499,8 +1497,9 @@ bool lexer::block_comment(token_t &token)
 		while (true) {
 			if (source_.eof()) {
 				token = s_end_of_file;
-				token.line = line_;
-				token.column = column_;
+                token.location.line(line_);
+                token.location.start_column(column_);
+                token.location.end_column(column_);
 				return true;
 			}
 

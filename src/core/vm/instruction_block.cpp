@@ -166,9 +166,9 @@ void instruction_block::jump_direct(const std::string &label_name)
     make_block_entry(jmp_op);
 }
 
-void instruction_block::disassemble(listing_source_file_t* source_file)
+void instruction_block::disassemble()
 {
-    disassemble(this, source_file);
+    disassemble(this);
 }
 
 void instruction_block::free_reg(i_registers_t reg)
@@ -346,8 +346,13 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
     make_block_entry(move_op);
 }
 
-void instruction_block::disassemble(instruction_block *block, listing_source_file_t* source_file)
+void instruction_block::disassemble(instruction_block *block)
 {
+    auto source_file = block->source_file();
+    if (source_file == nullptr) {
+        return;
+    }
+
     size_t index = 0;
     for (auto& entry : block->entries_) {
         source_file->add_blank_lines(entry.blank_lines());
@@ -440,7 +445,7 @@ void instruction_block::disassemble(instruction_block *block, listing_source_fil
     }
 
     for (auto child_block : block->blocks_) {
-        disassemble(child_block, source_file);
+        disassemble(child_block);
     }
 }
 
@@ -1090,6 +1095,16 @@ void instruction_block::align(uint8_t size)
 void instruction_block::make_block_entry(const align_t &align)
 {
     entries_.push_back(block_entry_t(align));
+}
+
+listing_source_file_t *instruction_block::source_file()
+{
+    return source_file_;
+}
+
+void instruction_block::source_file(listing_source_file_t *value)
+{
+    source_file_ = value;
 }
 
 }

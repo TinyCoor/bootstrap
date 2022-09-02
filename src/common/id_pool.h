@@ -19,12 +19,12 @@ public:
 				(value_.upper() < s.value_.lower());
 	}
 
-	id_t left() const
+	[[nodiscard]] id_t left() const
 	{
 		return value_.lower();
 	}
 
-	id_t right() const
+	[[nodiscard]] id_t right() const
 	{
 		return value_.upper();
 	}
@@ -45,9 +45,9 @@ public:
 
 	bool mark_used(id_t id);
 
-	bool mark_range(id_t start_id, id_t end_id);
+    [[maybe_unused]] bool mark_range(id_t start_id, id_t end_id);
 
-	id_t allocate_from_range(id_t start_id, id_t end_id);
+    [[maybe_unused]] id_t allocate_from_range(id_t start_id, id_t end_id);
 
 protected:
 	id_pool();

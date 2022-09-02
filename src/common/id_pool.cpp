@@ -6,11 +6,13 @@
 #include <numeric>
 
 namespace gfx {
-id_pool::id_pool() {
+id_pool::id_pool()
+{
 	pool_.insert(id_interval(1, std::numeric_limits<id_t>::max()));
 }
 
-id_t id_pool::allocate() {
+id_t id_pool::allocate()
+{
 	id_interval first = *(pool_.begin());
 	auto id = first.left();
 	pool_.erase(pool_.begin());
@@ -20,12 +22,14 @@ id_t id_pool::allocate() {
 	return id;
 }
 
-id_pool* id_pool::instance() {
+id_pool* id_pool::instance()
+{
 	static id_pool pool;
 	return &pool;
 }
 
-void id_pool::release(id_t id) {
+void id_pool::release(id_t id)
+{
 	auto it = pool_.find(id_interval(id, id));
 	if (it != pool_.end() && it->left() <= id && it->right() > id) {
 		return;
@@ -60,7 +64,8 @@ void id_pool::release(id_t id) {
 	}
 }
 
-bool id_pool::mark_used(id_t id) {
+bool id_pool::mark_used(id_t id)
+{
 	auto it = pool_.find(id_interval(id, id));
 	if (it == pool_.end()) {
 		return false;
@@ -77,7 +82,8 @@ bool id_pool::mark_used(id_t id) {
 	}
 }
 
-bool id_pool::mark_range(id_t start_id, id_t end_id) {
+[[maybe_unused]] bool id_pool::mark_range(id_t start_id, id_t end_id)
+{
 	for (size_t id = static_cast<size_t>(start_id);
 		 id < static_cast<size_t>(end_id);
 		 ++id) {
@@ -88,8 +94,9 @@ bool id_pool::mark_range(id_t start_id, id_t end_id) {
 	return true;
 }
 
-id_t id_pool::allocate_from_range(id_t start_id, id_t end_id) {
-	for (size_t id = static_cast<size_t>(start_id); id < static_cast<size_t>(end_id); ++id) {
+[[maybe_unused]] id_t id_pool::allocate_from_range(id_t start_id, id_t end_id)
+{
+	for (auto id = static_cast<size_t>(start_id); id < static_cast<size_t>(end_id); ++id) {
 		auto success = mark_used(static_cast<id_t>(id));
 		if (success) {
 			return static_cast<id_t>(id);

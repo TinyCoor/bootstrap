@@ -4,31 +4,15 @@
 
 #ifndef COMPILER_SESSION_H_
 #define COMPILER_SESSION_H_
-#include <cstdio>
-#include <string>
-#include <filesystem>
-#include <vm/assembly_listing.h>
+
+#include <vm/terp.h>
+#include <vm/assembler.h>
+#include "compiler_types.h"
+#include "elements/program.h"
 #include "elements/element_types.h"
 #include "parser/ast.h"
 #include "common/result.h"
 namespace gfx::compiler {
-namespace fs = std::filesystem;
-using path_list_t = std::vector<fs::path>;
-
-enum class session_compile_phase_t : uint8_t {
-    start,
-    success,
-    failed
-};
-
-using session_compile_callback = std::function<void (session_compile_phase_t, const fs::path&)>;
-
-struct session_options_t {
-    bool verbose = false;
-    fs::path ast_graph_file;
-    fs::path dom_graph_file;
-    session_compile_callback compile_callback;
-};
 
 class session {
 public:
@@ -38,25 +22,33 @@ public:
 
     void finalize();
 
-    assembly_listing& listing();
+    bool initialize(result& r);
+
+    assembler& assembler();
+
+    compiler::program& program();
+
+    bool compile(result& r);
+
+    class terp &terp();
 
     [[nodiscard]] const path_list_t& source_files() const;
 
     [[nodiscard]] const session_options_t& options() const;
-
-    void post_processing(compiler::program* program);
 
     ast_node_shared_ptr parse(result& r, const fs::path& source_file);
 
     void raise_phase(session_compile_phase_t phase, const fs::path& source_file);
 
 private:
-    void write_code_dom_graph(compiler::program* program, const fs::path& path);
+    void write_code_dom_graph(const fs::path& path);
 
 private:
+    class terp terp_;
+    class assembler assembler_;
+    compiler::program program_;
     path_list_t source_files_ {};
     session_options_t options_ {};
-    assembly_listing listing_ {};
 };
 }
 #endif // COMPILER_SESSION_H_

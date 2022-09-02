@@ -178,5 +178,14 @@ void element::on_owned_elements(element_list_t &list)
 {
 
 }
+const source_location &element::location() const
+{
+    return location_;
+}
+
+void element::location(const source_location &location)
+{
+    location_ = location;
+}
 }
 

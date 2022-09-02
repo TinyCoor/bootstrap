@@ -57,7 +57,8 @@ add_custom_command(TARGET all-unit-tests
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(COMMON_SRC
-        ../common/id_pool.cpp)
+        ../common/id_pool.h ../common/id_pool.cpp
+        ../common/source_location.h ../common/source_location.cpp)
 
 set(VM_SRC
         vm/terp.h                           vm/terp.cpp
@@ -76,77 +77,76 @@ set(VM_SRC
         )
 
 set(ELEMENT_SRC
-        compiler/elements/element_types.cpp
-
+        compiler/extern.cpp             compiler/extern.cpp
+        compiler/session.h              compiler/session.cpp
+        compiler/element_map.h          compiler/element_map.cpp
+        compiler/emit_context.h         compiler/emit_context.cpp
         # operator
-        compiler/elements/operator_base.cpp
-        compiler/elements/unary_operator.cpp
-        compiler/elements/binary_operator.cpp
+        compiler/elements/operator_base.h           compiler/elements/operator_base.cpp
+        compiler/elements/unary_operator.h          compiler/elements/unary_operator.cpp
+        compiler/elements/binary_operator.h         compiler/elements/binary_operator.cpp
 
         # literal
-        compiler/elements/float_literal.cpp
-        compiler/elements/integer_literal.cpp
-        compiler/elements/boolean_literal.cpp
-        compiler/elements/string_literal.cpp
+        compiler/elements/float_literal.h           compiler/elements/float_literal.cpp
+        compiler/elements/integer_literal.h         compiler/elements/integer_literal.cpp
+        compiler/elements/boolean_literal.h         compiler/elements/boolean_literal.cpp
+        compiler/elements/string_literal.h          compiler/elements/string_literal.cpp
 # types
-        compiler/elements/types/type.cpp
-        compiler/elements/types/tuple_type.cpp
-        compiler/elements/types/unknown_type.cpp
-        compiler/elements/types/any_type.cpp
-        compiler/elements/types/type_info.cpp
-        compiler/elements/types/string_type.cpp
-        compiler/elements/types/composite_type.cpp
-        compiler/elements/types/numeric_type.cpp
-        compiler/elements/types/procedure_type.cpp
-        compiler/elements/types/struct_type.cpp
-        compiler/elements/types/array_type.cpp
-        compiler/elements/types/namespace_type.cpp
-
+        compiler/elements/types/type.h              compiler/elements/types/type.cpp
+        compiler/elements/types/any_type.h          compiler/elements/types/any_type.cpp
+        compiler/elements/types/type_info.h         compiler/elements/types/type_info.cpp
+        compiler/elements/types/array_type.h        compiler/elements/types/array_type.cpp
+        compiler/elements/types/tuple_type.h        compiler/elements/types/tuple_type.cpp
+        compiler/elements/types/struct_type.h       compiler/elements/types/struct_type.cpp
+        compiler/elements/types/string_type.h       compiler/elements/types/string_type.cpp
+        compiler/elements/types/numeric_type.h      compiler/elements/types/numeric_type.cpp
+        compiler/elements/types/unknown_type.h      compiler/elements/types/unknown_type.cpp
+        compiler/elements/types/composite_type.h    compiler/elements/types/composite_type.cpp
+        compiler/elements/types/procedure_type.h    compiler/elements/types/procedure_type.cpp
+        compiler/elements/types/namespace_type.h    compiler/elements/types/namespace_type.cpp
 # elements
-        compiler/elements/module.cpp
-        compiler/elements/attribute.cpp
-        compiler/elements/if_element.cpp
-        compiler/elements/return_element.cpp
-        compiler/elements/symbol_element.cpp
-        compiler/elements/procedure_call.cpp
-        compiler/elements/block.cpp
-        compiler/elements/directive.cpp
-        compiler/elements/element.cpp
-        compiler/elements/expression.cpp
-        compiler/elements/field.cpp
-        compiler/elements/identifier.cpp
-        compiler/elements/initializer.cpp
-        compiler/elements/namespace_element.cpp
-        compiler/elements/program.cpp
-        compiler/elements/label.cpp
-        compiler/elements/comment.cpp
-        compiler/elements/statement.cpp
-        compiler/elements/alias.cpp
-        compiler/elements/cast.cpp
-        compiler/elements/procedure_instance.cpp
-        compiler/elements/identifier_reference.cpp
-        compiler/elements/argument_list.cpp
-        compiler/elements/import.cpp
-        compiler/extern.cpp
-        compiler/emit_context.cpp
-        compiler/element_map.cpp
-        compiler/session.cpp
+        compiler/elements/cast.h                    compiler/elements/cast.cpp
+        compiler/elements/label.h                   compiler/elements/label.cpp
+        compiler/elements/alias.h                   compiler/elements/alias.cpp
+        compiler/elements/field.h                   compiler/elements/field.cpp
+        compiler/elements/block.h                   compiler/elements/block.cpp
+        compiler/elements/import.h                  compiler/elements/import.cpp
+        compiler/elements/module.h                  compiler/elements/module.cpp
+        compiler/elements/element.h                 compiler/elements/element.cpp
+        compiler/elements/program.h                 compiler/elements/program.cpp
+        compiler/elements/comment.h                 compiler/elements/comment.cpp
+        compiler/elements/statement.h               compiler/elements/statement.cpp
+        compiler/elements/identifier.h              compiler/elements/identifier.cpp
+        compiler/elements/directive.h               compiler/elements/directive.cpp
+        compiler/elements/attribute.h               compiler/elements/attribute.cpp
+        compiler/elements/if_element.h              compiler/elements/if_element.cpp
+        compiler/elements/expression.h              compiler/elements/expression.cpp
+        compiler/elements/initializer.h             compiler/elements/initializer.cpp
+        compiler/elements/argument_list.h           compiler/elements/argument_list.cpp
+        compiler/elements/element_types.h           compiler/elements/element_types.cpp
+        compiler/elements/return_element.h          compiler/elements/return_element.cpp
+        compiler/elements/symbol_element.h          compiler/elements/symbol_element.cpp
+        compiler/elements/procedure_call.h          compiler/elements/procedure_call.cpp
+        compiler/elements/namespace_element.h       compiler/elements/namespace_element.cpp
+        compiler/elements/procedure_instance.h      compiler/elements/procedure_instance.cpp
+        compiler/elements/identifier_reference.h    compiler/elements/identifier_reference.cpp
+
+
         )
 
 set(COMPILER_SRC
         ${ELEMENT_SRC}
-        compiler/code_dom_formatter.cpp
-        compiler/bytecode_emitter.cpp
+        compiler/code_dom_formatter.h compiler/code_dom_formatter.cpp
        )
 
 set(PARSER_SRC
-        parser/lexer.cpp
-        parser/token.cpp
-        parser/parser.cpp
-        parser/ast.cpp
-        parser/infix_parser.cpp
-        parser/prefix_parser.cpp
-        parser/ast_formatter.cpp)
+        parser/lexer.h parser/lexer.cpp
+        parser/token.h  parser/token.cpp
+        parser/parser.h parser/parser.cpp
+        parser/ast.h parser/ast.cpp
+        parser/infix_parser.h parser/infix_parser.cpp
+        parser/prefix_parser.h parser/prefix_parser.cpp
+        parser/ast_formatter.h parser/ast_formatter.cpp)
 
 add_library(compiler-rt SHARED
         ${COMMON_SRC}

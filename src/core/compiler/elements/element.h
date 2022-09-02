@@ -7,6 +7,7 @@
 #include "common/id_pool.h"
 #include "compiler/emit_context.h"
 #include "common/result.h"
+#include "common/source_location.h"
 #include "element_types.h"
 #include "vm/assembler.h"
 namespace gfx::compiler {
@@ -35,6 +36,10 @@ public:
     bool is_parent_element(element_type_t type);
 
     element* parent_element();
+
+    const source_location& location() const;
+
+    void location(const source_location& location);
 
     void parent_element(element* parent);
 
@@ -85,8 +90,10 @@ private:
 	id_t id_;
 	block* parent_scope_ = nullptr;
     element* parent_element_ = nullptr;
-	element_type_t element_type_ = element_type_t::element;
+    source_location location_ {};
     attribute_map_t attributes_ {};
+	element_type_t element_type_ = element_type_t::element;
+
 };
 }
 

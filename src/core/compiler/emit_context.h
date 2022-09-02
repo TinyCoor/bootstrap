@@ -17,7 +17,6 @@ enum class emit_access_type_t {
     read,
     write
 };
-
 struct block_data_t {
     bool recurse = true;
 };
@@ -26,8 +25,8 @@ struct if_data_t {
     std::string true_branch_label;
     std::string false_branch_label;
 };
-class program;
 
+class program;
 struct emit_context_t {
     emit_context_t(gfx::terp* terp, gfx::assembler* assembler, compiler::program* program);
 

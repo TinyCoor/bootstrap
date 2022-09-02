@@ -41,11 +41,12 @@
 #include "fmt/format.h"
 #include "vm/assembler.h"
 #include "identifier_reference.h"
+#include "../session.h"
 
 namespace gfx::compiler {
 
-program::program(class terp* terp)
-	: element(nullptr, element_type_t::program), assembler_(terp), terp_(terp)
+program::program(class terp* terp ,assembler *assembler)
+	: element(nullptr, element_type_t::program), assembler_(assembler), terp_(terp)
 {
 }
 
@@ -77,29 +78,28 @@ bool program::compile(result& r, compiler::session& session)
     }
 
     if (!r.is_failed()) {
-        emit_context_t context(terp_, &assembler_, this);
+        auto& listing = assembler_->listing();
+        listing.add_source_file("top_level.basm");
+        listing.select_source_file("top_level.basm");
+
+        emit_context_t context(terp_, assembler_, this);
         emit(r, context);
+
     }
-    session.post_processing(this);
     top_level_block_.pop();
     return !r.is_failed();
 }
 
 bool program::compile_module(result& r, compiler::session& session, const fs::path& source_file)
 {
-    auto& listing = session.listing();
     session.raise_phase(session_compile_phase_t::start, source_file);
-   listing.push_source_file(listing.add_source_file(source_file.string()));
     auto module_node = session.parse(r, source_file);
     if (module_node != nullptr) {
         auto module = dynamic_cast<compiler::module*>(evaluate(r, session, module_node));
         module->parent_element(this);
         module->source_file(source_file);
     }
-//    if (session.options().verbose) {
-//        disassemble(listing.current_source_file());
-//    }
-    listing.pop_source_file();
+
     if (r.is_failed()) {
         session.raise_phase(session_compile_phase_t::failed, source_file);
         return false;
@@ -118,6 +118,16 @@ bool program::run(result &r)
     }
     return true;
 }
+
+void program::disassemble(FILE * file)
+{
+    auto root_block = assembler_->root_block();
+    root_block->disassemble();
+    if (file != nullptr) {
+        assembler_->listing().write(file);
+    }
+}
+
 element *program::evaluate_in_scope(result& r,compiler::session& session, const ast_node_shared_ptr& node,
     compiler::block* scope, element_type_t default_block_type)
 {
@@ -126,6 +136,7 @@ element *program::evaluate_in_scope(result& r,compiler::session& session, const 
     pop_scope();
     return result;
 }
+
 element* program::evaluate(result& r, compiler::session& session,  const ast_node_shared_ptr& node,
    element_type_t default_block_type)
 {
@@ -1547,12 +1558,6 @@ identifier_reference *program::make_identifier_reference(compiler::block *parent
         unresolved_identifier_references_.emplace_back(reference);
     }
     return reference;
-}
-
-void program::disassemble(listing_source_file_t* source_file)
-{
-    auto root_block = assembler_.root_block();
-    root_block->disassemble(source_file);
 }
 
 module *program::make_module(compiler::block* parent_scope, compiler::block* scope)

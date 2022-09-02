@@ -16,11 +16,11 @@ void assembly_listing::write(FILE* file)
 {
     size_t count = 0;
     for (const auto& source_file : source_files_) {
-        fmt::print(file, "FILE: {:<64} GFX Compiler\n", source_file.filename);
+        fmt::print(file, "FILE: {:<64} GFX Compiler\n", source_file.first);
         fmt::print(file, "      {:>91}\n\n", "Assembly Listing (byte code)");
         fmt::print(file, "LINE    ADDRESS     SOURCE\n");
         size_t line_number = 1;
-        for (const auto& line : source_file.lines) {
+        for (const auto& line : source_file.second.lines) {
             fmt::print(file, "{:06d}: ${:08x}   {}\n", line_number++, line.address, line.source);
         }
         count++;
@@ -32,32 +32,23 @@ void assembly_listing::write(FILE* file)
 
 listing_source_file_t* assembly_listing::current_source_file()
 {
-    if (source_file_stack.empty()) {
-        return nullptr;
-    }
-    return &source_files_[source_file_stack.top()];
+    return current_source_file_;
 }
 
-size_t assembly_listing::add_source_file(const std::string& filename)
+size_t assembly_listing::add_source_file(const fs::path& path)
 {
-    if (source_files_.capacity() < 256) {
-        source_files_.reserve(256);
-    }
-    source_files_.push_back(listing_source_file_t {.filename = filename});
-    return source_files_.size() - 1u;
+    source_files_.insert(std::make_pair(path.string(), listing_source_file_t {.path = path}));
 }
 
-void assembly_listing::push_source_file(size_t index)
+void assembly_listing::select_source_file(const std::filesystem::path &path)
 {
-    source_file_stack.push(index);
-}
-
-void assembly_listing::pop_source_file()
-{
-    if (source_file_stack.empty()) {
+    auto it = source_files_.find(path.string());
+    if (it == source_files_.end()) {
+        current_source_file_ = nullptr;
         return;
     }
-    source_file_stack.pop();
+    current_source_file_ = &it->second;
 }
+
 
 }

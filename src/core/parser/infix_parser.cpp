@@ -25,7 +25,7 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
 	type_identifier.type = token_types_t::identifier;
 
 	if (!parser->expect(r, type_identifier)) {
-		parser->error(r, "B027", "type expected.", token.line, token.column);
+		parser->error(r, "B027", "type expected.", token.location);
 		return nullptr;
 	}
 

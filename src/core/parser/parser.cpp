@@ -64,7 +64,7 @@ bool parser::expect(class result &r, token_t &token)
 	token = tokens_.front();
 	if (token.type != expected_type) {
 		error(r, "B016", fmt::format("expected token '{}' but found '{}'.", expected_name, token.name()),
-			token.line, token.column);
+			token.location);
 		return false;
 	}
 	tokens_.erase(tokens_.begin());
@@ -207,13 +207,13 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 	auto prefix_parser = prefix_parser_for(token.type);
 	if (prefix_parser == nullptr) {
 		error(r, "B021", fmt::format("prefix parser for token '{}' not found.",
-			 token.name()), token.line, token.column);
+			 token.name()), token.location);
 		return nullptr;
 	}
 
 	auto lhs = prefix_parser->parse(r, this, token);
 	if (lhs == nullptr) {
-		error(r, "B021", "unexpected empty ast node.", token.line, token.column);
+		error(r, "B021", "unexpected empty ast node.", token.location);
 		return nullptr;
 	}
 
@@ -229,7 +229,7 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 		auto infix_parser = infix_parser_for(token.type);
 		if (infix_parser == nullptr) {
 			error(r, "B021", fmt::format("infix parser for token '{}' not found.",
-				 token.name()), token.line, token.column);
+				 token.name()), token.location);
 			break;
 		}
 		lhs = infix_parser->parse(r, this, lhs, token);
@@ -251,14 +251,14 @@ ast_node_shared_ptr parser::expect_expression(result& r, ast_node_types_t expect
 	if (node->type != expected_type) {
 		error(r, "B031",
 			fmt::format("unexpected '{}', wanted '{}'.", node->name(), ast_node_type_name(expected_type)),
-			node->token.line, node->token.column);
+			node->token.location);
 		return nullptr;
 	}
 
 	return node;
 }
 
-void parser::error(result &r, const std::string &code, const std::string &message, uint32_t line, uint32_t column)
+void parser::error(result &r, const std::string &code, const std::string &message, const source_location& location)
 {
 	source_.seekg(0, std::ios::beg);
 
@@ -270,15 +270,15 @@ void parser::error(result &r, const std::string &code, const std::string &messag
 
 	std::stringstream stream;
 	stream << "\n";
-	auto start_line = std::max<int32_t>(0, static_cast<int32_t>(line) - 4);
+	auto start_line = std::max<int32_t>(0, static_cast<int32_t>(location.line()) - 4);
 	auto stop_line = std::min<int32_t>(static_cast<int32_t>(source_lines.size()),
-		static_cast<int32_t>(line + 4));
+		static_cast<int32_t>(location.line() + 4));
 	auto message_indicator = "^ " + message;
 	for (int32_t i = start_line; i < stop_line; i++) {
-		if (i == static_cast<int32_t>(line + 1)) {
+		if (i == static_cast<int32_t>(location.line() + 1)) {
 			stream << fmt::format("{:04d}: ", i + 1)
 				   << source_lines[i] << "\n"
-				   << fmt::format("{}{}", std::string(column + 6, ' '), message_indicator);
+				   << fmt::format("{}{}", std::string(location.start_column() + 6, ' '), message_indicator);
 		} else {
 			stream << fmt::format("{:04d}: ", i + 1)
 				   << source_lines[i];
@@ -289,7 +289,8 @@ void parser::error(result &r, const std::string &code, const std::string &messag
 		}
 	}
 
-	r.add_message(code, fmt::format("{} @ {}:{}", message, line, column), stream.str(), true);
+	r.add_message(code, fmt::format("{} @ {}:{}", message, location.line(), location.start_column()),
+                  stream.str(), true);
 }
 
 void parser::write_ast_graph(const std::filesystem::path &path, const ast_node_shared_ptr &program_node)

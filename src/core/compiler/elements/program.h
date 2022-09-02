@@ -7,12 +7,11 @@
 #include "block.h"
 #include "element.h"
 #include "parser/ast.h"
-#include "../bytecode_emitter.h"
 #include "../element_map.h"
-#include "../session.h"
+#include "element_types.h"
+#include "compiler/compiler_types.h"
 
 namespace gfx::compiler {
-
 struct type_find_result_t {
     qualified_symbol_t type_name{};
     bool is_array{false};
@@ -24,7 +23,7 @@ class program : public element {
 public:
     using block_visitor_callable = std::function<bool (compiler::block*)>;
 
-    explicit program(terp* terp);
+    program(terp* terp, assembler* assembler);
 
 	~program() override;
 
@@ -40,7 +39,7 @@ public:
 
     compiler::type* find_type(const qualified_symbol_t& symbol) const;
 
-    void disassemble(listing_source_file_t *source_file);
+    void disassemble(FILE *file);
 
 protected:
 	terp* terp();
@@ -217,7 +216,7 @@ private:
 	compiler::identifier* find_identifier(const qualified_symbol_t& symbol);
 
 private:
-	assembler assembler_;
+	assembler* assembler_ = nullptr;
 	class terp* terp_ = nullptr;
 	element_map elements_ {};
 	compiler::block* block_ = nullptr;

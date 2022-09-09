@@ -5,6 +5,7 @@
 #define PARSER_H_
 #include "lexer.h"
 #include "prefix_parser.h"
+#include "common/source_file.h"
 #include <map>
 #include <string>
 #include <filesystem>
@@ -12,7 +13,7 @@
 namespace gfx {
 class parser {
 public:
-	explicit parser(std::istream& source);
+	explicit parser(source_file* source);
 
 	virtual ~parser();
 
@@ -165,7 +166,7 @@ private:
 	};
 
 private:
-	std::istream& source_;
+	source_file *source_ = nullptr;
 	lexer lexer_;
 	class ast_builder ast_builder_;
 	std::vector<token_t> tokens_{};

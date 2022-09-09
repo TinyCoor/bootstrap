@@ -90,21 +90,21 @@ bool program::compile(result& r, compiler::session& session)
     return !r.is_failed();
 }
 
-bool program::compile_module(result& r, compiler::session& session, const fs::path& source_file)
+bool program::compile_module(result& r, compiler::session& session, source_file *source)
 {
-    session.raise_phase(session_compile_phase_t::start, source_file);
-    auto module_node = session.parse(r, source_file);
+    session.raise_phase(session_compile_phase_t::start, source->path());
+    auto module_node = session.parse(r, source->path());
     if (module_node != nullptr) {
         auto module = dynamic_cast<compiler::module*>(evaluate(r, session, module_node));
         module->parent_element(this);
-        module->source_file(source_file);
+        module->source_file(source);
     }
 
     if (r.is_failed()) {
-        session.raise_phase(session_compile_phase_t::failed, source_file);
+        session.raise_phase(session_compile_phase_t::failed, source->path());
         return false;
     } else {
-        session.raise_phase(session_compile_phase_t::success, source_file);
+        session.raise_phase(session_compile_phase_t::success, source->path());
         return true;
     }
 }

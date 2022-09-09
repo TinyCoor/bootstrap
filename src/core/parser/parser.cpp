@@ -8,7 +8,7 @@
 #include <ostream>
 
 namespace gfx {
-parser::parser(std::istream &source)
+parser::parser(source_file *source)
 	: source_(source), lexer_(source)
 {
 
@@ -64,7 +64,7 @@ bool parser::expect(class result &r, token_t &token)
 	auto expected_type = token.type;
 	token = tokens_.front();
 	if (token.type != expected_type) {
-		error(r, "B016", fmt::format("expected token '{}' but found '{}'.", expected_name, token.name()),
+		source_->error(r, "B016", fmt::format("expected token '{}' but found '{}'.", expected_name, token.name()),
 			token.location);
 		return false;
 	}
@@ -207,14 +207,14 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 
 	auto prefix_parser = prefix_parser_for(token.type);
 	if (prefix_parser == nullptr) {
-		error(r, "B021", fmt::format("prefix parser for token '{}' not found.",
+        source_->error(r, "B021", fmt::format("prefix parser for token '{}' not found.",
 			 token.name()), token.location);
 		return nullptr;
 	}
 
 	auto lhs = prefix_parser->parse(r, this, token);
 	if (lhs == nullptr) {
-		error(r, "B021", "unexpected empty ast node.", token.location);
+        source_->error(r, "B021", "unexpected empty ast node.", token.location);
 		return nullptr;
 	}
 
@@ -229,7 +229,7 @@ ast_node_shared_ptr parser::parse_expression(result& r, uint8_t precedence)
 
 		auto infix_parser = infix_parser_for(token.type);
 		if (infix_parser == nullptr) {
-			error(r, "B021", fmt::format("infix parser for token '{}' not found.",
+            source_->error(r, "B021", fmt::format("infix parser for token '{}' not found.",
 				 token.name()), token.location);
 			break;
 		}
@@ -250,49 +250,13 @@ ast_node_shared_ptr parser::expect_expression(result& r, ast_node_types_t expect
 	}
 
 	if (node->type != expected_type) {
-		error(r, "B031",
+        source_->error(r, "B031",
 			fmt::format("unexpected '{}', wanted '{}'.", node->name(), ast_node_type_name(expected_type)),
 			node->token.location);
 		return nullptr;
 	}
 
 	return node;
-}
-
-void parser::error(result &r, const std::string &code, const std::string &message, const source_location& location)
-{
-	source_.seekg(0, std::ios::beg);
-
-	std::vector<std::string> source_lines {};
-	std::string source_line;
-	while (std::getline(source_, source_line)) {
-		source_lines.push_back(source_line);
-	}
-
-	std::stringstream stream;
-	stream << "\n";
-	auto start_line = std::max<int32_t>(0, static_cast<int32_t>(location.start().line) - 4);
-	auto stop_line = std::min<int32_t>(static_cast<int32_t>(source_lines.size()),
-		static_cast<int32_t>(location.start().line + 4));
-	auto message_indicator = "^ " + message;
-    auto target_line = static_cast<int32_t>(location.start().line);
-	for (int32_t i = start_line; i < stop_line; i++) {
-		if (i == target_line) {
-			stream << fmt::format("{:04d}: ", i + 1)
-				   << source_lines[i] << "\n"
-				   << fmt::format("{}{}", std::string(location.start().column, ' '), message_indicator);
-		} else {
-			stream << fmt::format("{:04d}: ", i + 1)
-				   << source_lines[i];
-		}
-
-		if (i < static_cast<int32_t>(stop_line - 1)) {
-			stream << "\n";
-		}
-	}
-
-	r.add_message(code, fmt::format("{} @ {}:{}", message, location.start().line, location.start().column),
-                  stream.str(), true);
 }
 
 void parser::write_ast_graph(const std::filesystem::path &path, const ast_node_shared_ptr &program_node)
@@ -310,6 +274,10 @@ void parser::write_ast_graph(const std::filesystem::path &path, const ast_node_s
 	if (close_required) {
 		fclose(ast_output_file);
 	}
+}
+void parser::error(result &r, const std::string &code, const std::string &message, const source_location &location)
+{
+    source_->error(r, code, message, location);
 }
 
 }

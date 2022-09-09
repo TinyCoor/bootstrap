@@ -26,7 +26,7 @@ rune_t source_file::next()
     return c;
 }
 
-bool source_file::eof() const
+[[maybe_unused]] bool source_file::eof() const
 {
     return index_ >= buffer_.size();
 }
@@ -41,7 +41,7 @@ size_t source_file::length() const
     return buffer_.size();
 }
 
-bool source_file::load(result &r)
+[[maybe_unused]] bool source_file::load(result &r)
 {
     buffer_.clear();
     lines_by_number_.clear();
@@ -54,12 +54,10 @@ bool source_file::load(result &r)
         auto file_size = file.tellg();
         file.seekg(0, std::ios::beg);
         buffer_.reserve(static_cast<size_t>(file_size));
-        buffer_.insert(buffer_.begin(),
-            std::istream_iterator<uint8_t>(file), std::istream_iterator<uint8_t>());
+        buffer_.insert(buffer_.begin(), std::istream_iterator<uint8_t>(file), std::istream_iterator<uint8_t>());
         build_lines();
     } else {
-        r.add_message("S001", fmt::format("unable to open source file: {}", path_.string()),
-            true );
+        r.add_message("S001", fmt::format("unable to open source file: {}", path_.string()), true);
     }
     return true;
 }
@@ -116,8 +114,7 @@ void source_file::build_lines()
         auto end_of_buffer = i == buffer_.size() - 1;
         if (buffer_[i] == '\n' || end_of_buffer) {
             auto end = end_of_buffer ? buffer_.size() : i;
-            auto it = lines_by_index_range_.insert(std::make_pair(
-                std::make_pair(line_start, end),
+            auto it = lines_by_index_range_.insert(std::make_pair(std::make_pair(line_start, end),
                 source_file_line_t {
                     .end = end,
                     .begin = line_start,
@@ -133,4 +130,84 @@ void source_file::build_lines()
         }
     }
 }
+
+void source_file::seek(size_t index)
+{
+    index_ = index;
+}
+
+void source_file::push_mark()
+{
+    mark_stack_.push(index_);
+}
+
+size_t source_file::pop_mark()
+{
+    if (mark_stack_.empty()) {
+        return index_;
+    }
+    auto mark = mark_stack_.top();
+    mark_stack_.pop();
+    return mark;
+}
+
+size_t source_file::current_mark() const
+{
+    if  (mark_stack_.empty()) {
+        return index_;
+    }
+    return mark_stack_.top();
+}
+
+uint32_t source_file::column_by_index(size_t index) const
+{
+    auto line = line_by_index(index);
+    if (line == nullptr) {
+        return 0;
+    }
+    return static_cast<uint32_t>(index - line->begin);
+}
+size_t source_file::pos() const
+{
+    return index_;
+}
+
+void source_file::restore_top_mark()
+{
+    if (mark_stack_.empty()) {
+        return;
+    }
+    index_ = mark_stack_.top();
+}
+
+void source_file::error(result &r, const std::string &code, const std::string &message, const source_location& location)
+{
+    std::stringstream stream;
+    stream << "\n";
+    auto start_line = std::max<int32_t>(0, static_cast<int32_t>(location.start().line) - 4);
+    auto stop_line = std::min<int32_t>(static_cast<int32_t>(number_of_lines()),
+                                       static_cast<int32_t>(location.start().line + 4));
+    auto message_indicator = "^ " + message;
+    auto target_line = static_cast<int32_t>(location.start().line);
+    for (int32_t i = start_line; i < stop_line; i++) {
+        auto source_line = line_by_number(i);
+        auto source_text = substring(source_line->begin, source_line->end);
+        if (i == target_line) {
+            stream << fmt::format("{:04d}: ", i + 1)
+                   << source_text<< "\n"
+                   << fmt::format("{}{}", std::string(location.start().column, ' '), message_indicator);
+        } else {
+            stream << fmt::format("{:04d}: ", i + 1)
+                   << source_text;
+        }
+
+        if (i < static_cast<int32_t>(stop_line - 1)) {
+            stream << "\n";
+        }
+    }
+
+    r.add_message(code, fmt::format("{} @ {}:{}", message, location.start().line, location.start().column),
+                  stream.str(), true);
+}
+
 }

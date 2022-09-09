@@ -10,6 +10,7 @@
 #include "../element_map.h"
 #include "element_types.h"
 #include "compiler/compiler_types.h"
+#include "common/source_file.h"
 
 namespace gfx::compiler {
 struct type_find_result_t {
@@ -31,7 +32,7 @@ public:
 
 	bool compile(result& r, compiler::session& session);
 
-	bool compile_module(result& r, compiler::session& session, const fs::path &source_files);
+	bool compile_module(result& r, compiler::session& session, source_file *source);
 
 	bool run(result& r);
 

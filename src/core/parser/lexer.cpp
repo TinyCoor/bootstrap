@@ -537,42 +537,20 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 };
 
-lexer::lexer(std::istream& source)
+lexer::lexer(source_file* source)
 	: source_(source)
 {
-	source_.seekg(0, std::ios::beg);
 }
 
-char lexer::peek()
+rune_t lexer::peek()
 {
-	while (!source_.eof()) {
-		auto ch = static_cast<char>(source_.get());
-        if (ch == std::char_traits<char>::eof()) {
-            return ch;
-        }
+	while (!source_->eof()) {
+		auto ch = static_cast<char>(source_->next());
 		if (!isspace(ch)) {
 			return ch;
 		}
 	}
 	return 0;
-}
-
-void lexer::mark_position()
-{
-	mark_ = source_.tellg();
-    marked_line_ = line_;
-    marked_column_ = column_;
-}
-
-void lexer::increment_line()
-{
-	auto pos = source_.tellg();
-	if (line_breaks_.count(pos) == 0) {
-		line_++;
-        previous_line_column_ = column_;
-		column_ = 0;
-		line_breaks_.insert(pos);
-	}
 }
 
 bool lexer::has_next() const
@@ -582,79 +560,62 @@ bool lexer::has_next() const
 
 void lexer::rewind_one_char()
 {
-	source_.seekg(-1,  std::istream::cur);
-    if (column_ > 1 ) {
-        column_--;
+    auto pos = source_->pos();
+    if (pos == 0) {
+        return;
     }
-}
-
-void lexer::restore_position()
-{
-	source_.seekg(mark_);
-    line_ = marked_line_;
-    column_ = marked_column_;
+    source_->seek(pos - 1);
 }
 
 bool lexer::next(token_t& token)
-{
-    const auto ch = static_cast<char>(tolower(read()));
-	if (ch == std::char_traits<char>::eof()) {
-		has_next_ = false;
-        token.location.end(line_, column_);
-        token.location.start(line_, column_);
-		token.type = token_types_t::end_of_file;
-		return true;
-	}
+{	if (source_->eof()) {
+        has_next_ = false;
+        token = s_end_of_file;
+        set_token_location(token);
+        return true;
+    }
 
-	rewind_one_char();
-	mark_position();
+    const auto ch = tolower(read());
+    rewind_one_char();
+    source_->push_mark();
 
 	auto case_range = s_cases.equal_range(ch);
 	for (auto it = case_range.first; it != case_range.second; ++it) {
 		token.radix = 10;
 		token.number_type = number_types_t::none;
-        auto line = line_;
-        auto start_column = column_ - 1;
+        auto start_column = source_->column_by_index(source_->pos());
+        auto start_line = source_->line_by_index(source_->pos());
 		if (it->second(this, token)) {
-			token.location.start(line_, start_column);
-            token.location.end(line_, line_ > line ? previous_line_column_ : column_ - 1);
-            fmt::print("token.type = {}, start = {}@{}, end = {}@{}\n",
-                token.name(),
-                token.location.start().line,
-                token.location.start().column,
-                token.location.end().line,
-                token.location.end().column);
+            auto end_column = source_->column_by_index(source_->pos());
+            auto end_line = source_->line_by_index(source_->pos());
+            token.location.start(start_line->line, start_column);
+            token.location.end(end_line->line, end_column);
+//            fmt::print("token.type = {}, start = {}@{}, end = {}@{}\n",
+//                token.name(),
+//                token.location.start().line,
+//                token.location.start().column,
+//                token.location.end().line,
+//                token.location.end().column);
             return true;
 		}
-		restore_position();
+        source_->restore_top_mark();
 	}
-
+    source_->pop_mark();
 	token = s_invalid;
     token.value = ch;
-    token.location.end(line_, column_);
-    token.location.start(line_, column_);
+    set_token_location(token);
 	has_next_ = false;
 
 	return true;
 }
 
-char lexer::read(bool skip_whitespace)
+rune_t lexer::read(bool skip_whitespace)
 {
 	while (true) {
-		auto ch = static_cast<char>(source_.get());
-        if (ch == std::char_traits<char>::eof()) {
-            return ch;
-        }
-		column_++;
-
-		if (ch == '\n') {
-            increment_line();
-        }
-
+		auto ch = source_->next();
 		if (skip_whitespace && isspace(ch)) {
             continue;
         }
-
 		return ch;
 	}
 }
@@ -666,14 +627,14 @@ std::string lexer::read_identifier()
 		return "";
 	}
 	std::stringstream stream;
-	stream << ch;
+	stream << static_cast<char>(ch);
 	while (true) {
 		ch = read(false);
 		if (ch == ';') {
 			return stream.str();
 		}
 		if (ch == '_' || isalnum(ch)) {
-			stream << ch;
+			stream << static_cast<char>(ch);
 			continue;
 		}
 		return stream.str();
@@ -773,7 +734,7 @@ std::string lexer::read_until(char target_ch)
 		if (ch == target_ch) {
 			break;
 		}
-		stream << ch;
+		stream << static_cast<char>(ch);
 	}
 	return stream.str();
 }
@@ -1156,7 +1117,7 @@ bool lexer::number_literal(token_t& token)
 				break;
 			}
 
-			stream << ch;
+			stream << static_cast<char> (ch);
 		}
 	} else if (ch == '@') {
 		const std::string valid = "012345678";
@@ -1167,11 +1128,10 @@ bool lexer::number_literal(token_t& token)
 				continue;
 			}
 
-			if (valid.find_first_of(ch) == std::string::npos) {
+			if (valid.find_first_of(static_cast<char>(ch)) == std::string::npos) {
 				break;
 			}
-
-			stream << ch;
+            stream << static_cast<char> (ch);
 		}
 	} else if (ch == '%') {
 		token.radix = 2;
@@ -1183,17 +1143,16 @@ bool lexer::number_literal(token_t& token)
 			if (ch != '0' && ch != '1') {
 				break;
 			}
-
-			stream << ch;
+            stream << static_cast<char> (ch);
 		}
 	} else {
 		const std::string valid = "0123456789_.";
-		while (valid.find_first_of(ch) != std::string::npos) {
+		while (valid.find_first_of(static_cast<char>(ch)) != std::string::npos) {
 			if (ch!='_') {
 				if (ch=='.') {
 					token.number_type = number_types_t::floating_point;
 				}
-				stream << ch;
+                stream << static_cast<char> (ch);
 			}
 			ch = read();
 		}
@@ -1500,10 +1459,9 @@ bool lexer::block_comment(token_t &token)
 		token = s_block_comment;
 		std::stringstream stream;
 		while (true) {
-			if (source_.eof()) {
+			if (source_->eof()) {
 				token = s_end_of_file;
-                token.location.end(line_, column_);
-                token.location.start(line_, column_);
+                set_token_location(token);
 				return true;
 			}
 
@@ -1633,6 +1591,14 @@ bool lexer::import_literal(token_t &token)
 		}
 	}
 	return false;
+}
+
+void lexer::set_token_location(token_t& token)
+{
+    auto column = source_->column_by_index(source_->pos());
+    auto source_line = source_->line_by_index(source_->pos());
+    token.location.end(source_line->line, column);
+    token.location.start(source_line->line, column);
 }
 
 }

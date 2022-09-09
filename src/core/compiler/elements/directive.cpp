@@ -61,8 +61,9 @@ bool directive::on_execute_load(result &r, compiler::session& session, compiler:
 
 bool directive::on_evaluate_load(result &r, compiler::session& session, compiler::program *program)
 {
-    auto source_file = dynamic_cast<compiler::string_literal*>(expression_);
-    return program->compile_module(r, session, source_file->value());
+    auto path = dynamic_cast<compiler::string_literal*>(expression_);
+    auto source_file = session.add_source_file(path->value());
+    return program->compile_module(r, session, source_file);
 }
 
 bool directive::on_evaluate_foreign(result &r, compiler::session& session, compiler::program *program)

@@ -38,6 +38,7 @@ listing_source_file_t* assembly_listing::current_source_file()
 size_t assembly_listing::add_source_file(const fs::path& path)
 {
     source_files_.insert(std::make_pair(path.string(), listing_source_file_t {.path = path}));
+    return source_files_.size();
 }
 
 void assembly_listing::select_source_file(const std::filesystem::path &path)

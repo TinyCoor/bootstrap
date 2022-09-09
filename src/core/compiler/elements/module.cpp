@@ -31,12 +31,12 @@ bool module::on_emit(result &r, emit_context_t &context)
     return scope_->emit(r, context);
 }
 
-const fs::path &module::source_file() const
+gfx::source_file *module::source_file() const
 {
     return source_file_;
 }
 
-void module::source_file(const fs::path &value)
+void module::source_file(gfx::source_file *value)
 {
     source_file_ = value;
 }

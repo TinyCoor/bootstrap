@@ -13,9 +13,9 @@ struct location_t {
 
 class source_location {
 public:
-    const location_t &end() const;
+    [[nodiscard]] const location_t &end() const;
 
-    const location_t &start() const;
+    [[nodiscard]] const location_t &start() const;
 
     void end(const location_t &value);
 
@@ -24,6 +24,7 @@ public:
     void end(uint32_t line, uint32_t column);
 
     void start(uint32_t line, uint32_t column);
+
 private:
     location_t start_ {};
     location_t end_ {};

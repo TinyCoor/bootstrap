@@ -5,6 +5,7 @@
 #ifndef COMPILER_ELEMENTS_MODULE_H_
 #define COMPILER_ELEMENTS_MODULE_H_
 #include "element.h"
+#include "common/source_file.h"
 namespace gfx::compiler {
 namespace fs = std::filesystem;
 class module : public element {
@@ -13,9 +14,9 @@ public:
 
     compiler::block* scope();
 
-    const fs::path& source_file() const;
+    gfx::source_file* source_file() const;
 
-    void source_file(const fs::path& value);
+    void source_file(gfx::source_file* value);
 
 protected:
     void on_owned_elements(gfx::compiler::element_list_t &list) override;
@@ -23,7 +24,7 @@ protected:
     bool on_emit(gfx::result &r, gfx::compiler::emit_context_t &context) override;
 private:
     block* scope_ = nullptr;
-    fs::path source_file_;
+    gfx::source_file *source_file_ = nullptr;
 
 };
 }

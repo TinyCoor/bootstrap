@@ -6,18 +6,18 @@
 #define COMMON_SOURCE_FILE_H_
 
 #include <map>
+#include <stack>
 #include <cstdint>
 #include <filesystem>
 #include "result.h"
 #include "rune.h"
+#include "source_location.h"
 namespace gfx {
 using source_file_range_t = std::pair<size_t, size_t>;
 namespace fs = std::filesystem;
 
 struct source_file_range_compare_t {
-    bool operator()(
-        const source_file_range_t &lhs,
-        const source_file_range_t &rhs) const
+    bool operator()(const source_file_range_t &lhs, const source_file_range_t &rhs) const
     {
         return lhs.second < rhs.first;
     }
@@ -38,25 +38,41 @@ public:
 
     rune_t next();
 
-    bool eof() const;
+    [[nodiscard]] size_t pos() const;
 
-    bool empty() const;
+    void seek(size_t index);
 
-    size_t length() const;
+    void push_mark();
 
-    bool load(result &r);
+    size_t pop_mark();
 
-    size_t number_of_lines() const;
+    void restore_top_mark();
+
+    size_t current_mark() const;
+
+    [[maybe_unused]] bool eof() const;
+
+    [[nodiscard]] bool empty() const;
+
+    [[nodiscard]] size_t length() const;
+
+    [[maybe_unused]] bool load(result &r);
+
+    [[nodiscard]] size_t number_of_lines() const;
 
     uint8_t operator[](size_t index);
 
-    const std::filesystem::path &path() const;
+    [[nodiscard]] const fs::path &path() const;
 
     std::string substring(size_t start, size_t end);
 
-    const source_file_line_t *line_by_number(size_t line) const;
+    [[nodiscard]] const source_file_line_t *line_by_number(size_t line) const;
 
-    const source_file_line_t *line_by_index(size_t index) const;
+    [[nodiscard]] const source_file_line_t *line_by_index(size_t index) const;
+
+    uint32_t column_by_index(size_t index) const;
+
+    void error(result& r, const std::string& code, const std::string& message, const source_location& location);
 
 private:
     void build_lines();
@@ -64,7 +80,8 @@ private:
 private:
     size_t index_ = 0;
     fs::path path_;
-    std::vector<uint8_t> buffer_;
+    std::vector<uint8_t> buffer_{};
+    std::stack<size_t> mark_stack_{};
     std::map<size_t, source_file_line_t *> lines_by_number_{};
     std::map<source_file_range_t, source_file_line_t, source_file_range_compare_t> lines_by_index_range_{};
 };

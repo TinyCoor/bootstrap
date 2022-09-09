@@ -13,8 +13,11 @@ namespace gfx::compiler {
 session::session(const session_options_t& options, const path_list_t& source_files)
         : terp_(options.heap_size, options.stack_size),
           assembler_(&terp_), program_(&terp_, &assembler_),
-          source_files_(source_files), options_(options)
+          options_(options)
 {
+    for (const auto &path : source_files) {
+        add_source_file(path);
+    }
 }
 
 session::~session() = default;
@@ -48,28 +51,32 @@ void session::write_code_dom_graph(const fs::path& path)
     fclose(output_file);
 }
 
-ast_node_shared_ptr session::parse(result& r, const fs::path& source_file)
+ast_node_shared_ptr session::parse(result& r, const fs::path& path)
 {
-    std::ifstream input_stream(source_file);
-    if (input_stream.is_open()) {
-        parser alpha_parser(input_stream);
-        auto module_node = alpha_parser.parse(r);
-        if (module_node != nullptr && !r.is_failed()) {
-            if (options_.verbose && !options_.ast_graph_file.empty()) {
-                alpha_parser.write_ast_graph(options_.ast_graph_file, module_node);
-            }
-        }
-        return module_node;
-    } else {
-        r.add_message("S001", fmt::format("unable to open source file: {}", source_file.string()), true);
+    auto source_file = find_source_file(path);
+    if (source_file == nullptr) {
+        source_file = add_source_file(path);
     }
-    return nullptr;
+    return parse(r, source_file);
 }
 
-const path_list_t& session::source_files() const
+ast_node_shared_ptr session::parse(result &r, source_file *source)
 {
-    return source_files_;
+    if (source->empty()) {
+        if (!source->load(r)) {
+            return nullptr;
+        }
+    }
+    parser alpha_parser(source);
+    auto module_node = alpha_parser.parse(r);
+    if (module_node != nullptr && !r.is_failed()) {
+        if (options_.verbose && !options_.ast_graph_file.empty()) {
+            gfx::parser::write_ast_graph(options_.ast_graph_file, module_node);
+        }
+    }
+    return module_node;
 }
+
 
 const session_options_t& session::options() const
 {
@@ -82,21 +89,52 @@ bool session::initialize(result &r)
     assembler_.initialize(r);
     return !r.is_failed();
 }
+
 assembler &session::assembler()
 {
     return assembler_;
 }
+
 compiler::program &session::program()
 {
     return program_;
 }
+
 bool session::compile(result &r)
 {
     return program_.compile(r, *this);
 }
+
 class terp &session::terp()
 {
     return terp_;
+}
+
+source_file* session::add_source_file(const fs::path &path)
+{
+    auto it = source_files_.insert(std::make_pair(path.string(), source_file(path)));
+    if (!it.second) {
+        return nullptr;
+    }
+    return &it.first->second;
+}
+
+std::vector<source_file *> session::source_files()
+{
+    std::vector<source_file *> list {};
+    for (auto &it : source_files_) {
+        list.push_back(&it.second);
+    }
+    return list;
+}
+
+source_file *session::find_source_file(const fs::path &path)
+{
+    auto res = source_files_.find(path.string());
+    if (res == source_files_.end()) {
+        return nullptr;
+    }
+    return &res->second;
 }
 
 }

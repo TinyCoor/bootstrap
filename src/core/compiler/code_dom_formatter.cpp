@@ -89,7 +89,7 @@ std::string code_dom_formatter::format_node(element* node)
             auto style = ", fillcolor=grey, style=\"filled\"";
             add_primary_edge(element, element->scope());
             return fmt::format("{}[shape=record,label=\"symbol|{}\"{}];",
-                node_vertex_name, element->source_file().string(), style);
+                node_vertex_name, element->source_file()->path().string(), style);
         }
         case element_type_t::symbol: {
             auto element = dynamic_cast<symbol_element*>(node);

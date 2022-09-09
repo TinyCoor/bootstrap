@@ -7,7 +7,6 @@
 #include "element.h"
 
 namespace gfx::compiler {
-
 class boolean_literal : public element {
 public:
 	boolean_literal(block* parent_scope, bool value);

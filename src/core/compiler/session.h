@@ -12,6 +12,7 @@
 #include "elements/element_types.h"
 #include "parser/ast.h"
 #include "common/result.h"
+#include "common/source_file.h"
 namespace gfx::compiler {
 
 class session {
@@ -32,11 +33,17 @@ public:
 
     class terp &terp();
 
-    [[nodiscard]] const path_list_t& source_files() const;
+    source_file *add_source_file(const fs::path &path);
+
+    std::vector<source_file*> source_files();
 
     [[nodiscard]] const session_options_t& options() const;
 
-    ast_node_shared_ptr parse(result& r, const fs::path& source_file);
+    source_file* find_source_file(const fs::path &path);
+
+    ast_node_shared_ptr parse(result& r, const fs::path& path);
+
+    ast_node_shared_ptr parse(result& r, source_file* source);
 
     void raise_phase(session_compile_phase_t phase, const fs::path& source_file);
 
@@ -47,8 +54,8 @@ private:
     class terp terp_;
     class assembler assembler_;
     compiler::program program_;
-    path_list_t source_files_ {};
     session_options_t options_ {};
+    std::map<std::string, source_file> source_files_ {};
 };
 }
 #endif // COMPILER_SESSION_H_

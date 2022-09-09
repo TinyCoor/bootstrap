@@ -5,6 +5,7 @@
 #ifndef LEXER_H_
 #define LEXER_H_
 #include "token.h"
+#include "common/source_file.h"
 #include <functional>
 #include <fstream>
 #include <set>
@@ -16,13 +17,11 @@ class lexer {
 public:
 	using lexer_case_callable = std::function<bool (lexer*, token_t&)>;
 
-	explicit lexer(std::istream& source);
+	explicit lexer(source_file* source);
 
 	[[nodiscard]] bool has_next() const;
 
 	bool next(token_t& token);
-
-	char peek();
 
 private:
 	bool plus(token_t& token);
@@ -164,32 +163,21 @@ private:
 	bool greater_than_equal_operator(token_t& token);
 
 private:
-	// char peek();
-
-	void mark_position();
-
-	void increment_line();
+    void set_token_location(token_t &token);
+	rune_t peek();
 
 	void rewind_one_char();
-
-	void restore_position();
 
 	std::string read_identifier();
 
 	std::string read_until(char target_ch);
 
-	char read(bool skip_whitespace = true);
+	rune_t read(bool skip_whitespace = true);
 
 	bool match_literal(const std::string& literal);
 private:
-	uint32_t line_ = 0;
-	uint32_t column_ = 0;
 	bool has_next_ = true;
-	std::istream& source_;
-	uint32_t marked_line_ = 0;
-	uint32_t marked_column_ = 0;
-	std::istream::pos_type mark_;
-	uint32_t previous_line_column_ = 0;
+	source_file* source_;
 	std::set<std::istream::pos_type> line_breaks_ {};
     static std::multimap<char, lexer_case_callable> s_cases;
 };

@@ -1425,7 +1425,6 @@ uint64_t terp::free(uint64_t address)
 		return 0;
 	}
 
-
 	heap_block_t* freed_block = it->second;
 	auto freed_size = freed_block->size;
 	freed_block->clear_allocated();

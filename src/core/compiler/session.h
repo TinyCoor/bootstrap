@@ -35,7 +35,13 @@ public:
 
     source_file *add_source_file(const fs::path &path);
 
+    void push_source_file(source_file* source);
+
+    source_file* pop_source_file();
+
     std::vector<source_file*> source_files();
+
+    source_file* current_source_file();
 
     [[nodiscard]] const session_options_t& options() const;
 
@@ -55,6 +61,7 @@ private:
     class assembler assembler_;
     compiler::program program_;
     session_options_t options_ {};
+    std::stack<source_file*> source_file_stack_{};
     std::map<std::string, source_file> source_files_ {};
 };
 }

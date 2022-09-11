@@ -41,7 +41,7 @@
 #include "fmt/format.h"
 #include "vm/assembler.h"
 #include "identifier_reference.h"
-#include "../session.h"
+#include "common/defer.h"
 
 namespace gfx::compiler {
 
@@ -56,7 +56,7 @@ bool program::compile(result& r, compiler::session& session)
 {
     block_ = push_new_block();
     block_->parent_element(this);
-    top_level_block_.push(block_);
+    top_level_stack_.push(block_);
     initialize_core_types(r);
     for (const auto &source_file : session.source_files()) {
         if (!compile_module(r, session, source_file)) {
@@ -86,26 +86,27 @@ bool program::compile(result& r, compiler::session& session)
         emit(r, context);
 
     }
-    top_level_block_.pop();
+    top_level_stack_.pop();
     return !r.is_failed();
 }
 
 bool program::compile_module(result& r, compiler::session& session, source_file *source)
 {
+    session.push_source_file(source);
+//    defer({session.pop_source_file();});
     session.raise_phase(session_compile_phase_t::start, source->path());
     auto module_node = session.parse(r, source->path());
     if (module_node != nullptr) {
         auto module = dynamic_cast<compiler::module*>(evaluate(r, session, module_node));
         module->parent_element(this);
-        module->source_file(source);
     }
-
-    if (r.is_failed()) {
-        session.raise_phase(session_compile_phase_t::failed, source->path());
-        return false;
-    } else {
+    session.pop_source_file();
+    if (!r.is_failed()) {
         session.raise_phase(session_compile_phase_t::success, source->path());
         return true;
+    } else {
+        session.raise_phase(session_compile_phase_t::failed, source->path());
+        return false;
     }
 }
 
@@ -159,13 +160,18 @@ element* program::evaluate(result& r, compiler::session& session,  const ast_nod
 		}
 		case ast_node_types_t::module: {
             auto module_block = make_block(block_, element_type_t::module_block);
+            auto module = make_module(block_, module_block);
+            module->source_file(session.current_source_file());
             push_scope(module_block);
-            top_level_block_.push(module_block);
+            top_level_stack_.push(module_block);
+
 			for (auto &it : node->children) {
-				add_expression_to_scope(module_block, evaluate(r, session, it, default_block_type));
+                auto expr = evaluate(r, session, it, default_block_type);
+				add_expression_to_scope(module_block, expr);
+                expr->parent_element(module);
 			}
-            top_level_block_.pop();
-			return make_module(block_, pop_scope());
+            top_level_stack_.pop();
+			return module;
 		}
 		case ast_node_types_t::basic_block: {
 			auto active_scope = push_new_block(default_block_type);
@@ -173,6 +179,7 @@ element* program::evaluate(result& r, compiler::session& session,  const ast_nod
                 auto expr = evaluate(r, session, it, default_block_type);
                 if (expr != nullptr) {
                     add_expression_to_scope(active_scope, expr);
+                    expr->parent_element(active_scope);
                 }
 			}
 			return pop_scope();
@@ -189,8 +196,8 @@ element* program::evaluate(result& r, compiler::session& session,  const ast_nod
                 type_find_result_t find_type_result {};
                 find_identifier_type(r, find_type_result, node->rhs->rhs);
                 if (find_type_result.type == nullptr) {
-                    r.add_message("P002", fmt::format("unknown type '{}'.", find_type_result.type_name.name),
-                        true);
+                    session.current_source_file()->error(r, "P002",
+                         fmt::format("unknown type '{}'.", find_type_result.type_name.name), expr->location());
                     return nullptr;
                 }
                 add_identifier_to_scope(r, session, dynamic_cast<compiler::symbol_element*>(expr),
@@ -782,7 +789,7 @@ string_literal *program::make_string(compiler::block* parent_scope, const std::s
 compiler::identifier *program::find_identifier(const qualified_symbol_t& symbol)
 {
     if (symbol.is_qualified()) {
-		auto block_scope = top_level_block_.top();
+		auto block_scope = top_level_stack_.top();
 		for (const auto& namespace_name : symbol.namespaces) {
 		    auto var = block_scope->identifiers().find(namespace_name);
 			if (var == nullptr || var->initializer() == nullptr) {
@@ -834,7 +841,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
 	const ast_node_shared_ptr &node, compiler::block* parent_scope)
 {
 	auto namespace_type = find_type(qualified_symbol_t{.name = "namespace"});
-	auto scope = symbol->is_qualified() ? top_level_block_.top()
+	auto scope = symbol->is_qualified() ? top_level_stack_.top()
 		: (parent_scope != nullptr ? parent_scope : current_scope());
 
     auto namespaces = symbol->namespaces();
@@ -919,7 +926,9 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
             return nullptr;
         } else {
             auto assign_bin_op = make_binary_operator(scope, operator_type_t::assignment, new_identifier, init_expr);
-            add_expression_to_scope(scope, make_statement(current_scope(), label_list_t {}, assign_bin_op));
+            auto statement = make_statement(current_scope(), label_list_t {}, assign_bin_op);
+            add_expression_to_scope(scope, statement);
+            statement->parent_element(scope);
         }
     }
 
@@ -1087,7 +1096,11 @@ bool program::resolve_unknown_types(result& r)
 			it = identifiers_with_unknown_types_.erase(it);
 		} else {
 			++it;
-			r.add_message("P004", fmt::format("unable to resolve type for identifier: {}", var->symbol()->name()), true);
+            auto module = find_module(var);
+            if (module != nullptr) {
+                module->source_file()->error(r, "P004", fmt::format("unable to resolve type for identifier: {}", var->symbol()->name()),
+                    var->location());
+            }
 		}
 	}
 
@@ -1151,7 +1164,7 @@ void program::add_type_to_scope(compiler::type *value)
 }
 
 bool program::find_identifier_type(result& r, type_find_result_t &result, const ast_node_shared_ptr &type_node,
-                                   compiler::block* parent_scope)
+    compiler::block* parent_scope)
 {
     if (type_node == nullptr) {
         return false;
@@ -1228,7 +1241,7 @@ bool program::visit_blocks(result &r, const block_visitor_callable &callable,
           }
           return true;
         };
-    return recursive_execute(root_block != nullptr ? root_block : top_level_block_.top());
+    return recursive_execute(root_block != nullptr ? root_block : top_level_stack_.top());
 }
 
 tuple_type *program::make_tuple_type(result &r, compiler::block *parent_scope, compiler::block* scope)
@@ -1477,7 +1490,7 @@ compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_no
 compiler::type *program::find_type(const qualified_symbol_t &symbol) const
 {
     if (symbol.is_qualified()) {
-        auto block_scope = top_level_block_.top();
+        auto block_scope = top_level_stack_.top();
         for (const auto& namespace_name : symbol.namespaces) {
             auto var = block_scope->identifiers().find(namespace_name);
             if (var == nullptr || var->initializer() == nullptr) {
@@ -1537,8 +1550,11 @@ bool program::resolve_unknown_identifiers(result &r)
 
         if (candidates.empty()) {
             ++it;
-            r.add_message("P004", fmt::format("unable to resolve identifier: {}",
-                unresolved_reference->symbol().name), true);
+            auto module = find_module(unresolved_reference);
+            if (module != nullptr) {
+                module->source_file()->error(r, "P004",  fmt::format("unable to resolve identifier: {}", unresolved_reference->symbol().name),
+                                             unresolved_reference->location());
+            }
             continue;
         }
 
@@ -1571,6 +1587,26 @@ module *program::make_module(compiler::block* parent_scope, compiler::block* sco
 compiler::block *program::block() const
 {
     return block_;
+}
+
+compiler::block *program::current_top_level()
+{
+    if (top_level_stack_.empty()) {
+        return nullptr;
+    }
+    return top_level_stack_.top();
+}
+
+compiler::module *program::find_module(compiler::element *element)
+{
+    auto current = element;
+    while (element != nullptr) {
+        if (element->element_type() == element_type_t::module) {
+            return dynamic_cast<compiler::module*>(current);
+        }
+        current = current->parent_element();
+    }
+    return nullptr;
 }
 
 }

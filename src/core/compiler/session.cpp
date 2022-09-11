@@ -136,5 +136,27 @@ source_file *session::find_source_file(const fs::path &path)
     }
     return &res->second;
 }
+source_file *session::current_source_file()
+{
+    if (source_file_stack_.empty()) {
+        return nullptr;
+    }
+    return source_file_stack_.top();
+}
+
+void session::push_source_file(source_file *source)
+{
+    source_file_stack_.push(source);
+}
+
+source_file *session::pop_source_file()
+{
+    if (source_file_stack_.empty()) {
+        return nullptr;
+    }
+    auto source = source_file_stack_.top();
+    source_file_stack_.pop();
+    return source;
+}
 
 }

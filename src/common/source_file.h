@@ -7,6 +7,7 @@
 
 #include <map>
 #include <stack>
+#include <string_view>
 #include <cstdint>
 #include <filesystem>
 #include "result.h"
@@ -48,7 +49,7 @@ public:
 
     void restore_top_mark();
 
-    size_t current_mark() const;
+    [[nodiscard]] size_t current_mark() const;
 
     [[maybe_unused]] bool eof() const;
 

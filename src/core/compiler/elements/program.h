@@ -45,6 +45,7 @@ public:
 protected:
 	terp* terp();
 
+    compiler::block* current_top_level();
 private:
     bool on_emit(result& r, emit_context_t& context) override;
 
@@ -77,6 +78,8 @@ private:
         const ast_node_shared_ptr& node);
 
     bool within_procedure_scope(compiler::block* parent_scope) const;
+
+    static compiler::module* find_module(compiler::element* module);
 private:
     friend class any_type;
     friend class directive;
@@ -221,7 +224,7 @@ private:
 	class terp* terp_ = nullptr;
 	element_map elements_ {};
 	compiler::block* block_ = nullptr;
-    std::stack<compiler::block*> top_level_block_;
+    std::stack<compiler::block*> top_level_stack_;
 	std::stack<compiler::block*> scope_stack_ {};
 	identifier_list_t identifiers_with_unknown_types_ {};
     identifier_reference_list_t unresolved_identifier_references_ {};

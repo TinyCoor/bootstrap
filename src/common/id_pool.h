@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/4/23.
 //
 
-#ifndef ID_POOL_H_
-#define ID_POOL_H_
+#ifndef COMMON_ID_POOL_H_
+#define COMMON_ID_POOL_H_
 #include <set>
 #include <cstdint>
 #include <boost/numeric/interval.hpp>
@@ -58,4 +58,4 @@ private:
 
 }
 
-#endif // ID_POOL_H_
+#endif // COMMON_ID_POOL_H_

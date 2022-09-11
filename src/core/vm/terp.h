@@ -21,13 +21,13 @@ namespace gfx {
 		/// using to call cpp code
 		using trap_callable = std::function<void(terp*)>;
 
-		static constexpr uint64_t mask_byte        = 0b0000000000000000000000000000000000000000000000000000000011111111;
+		static constexpr uint64_t mask_byte        = 0xff;
 		static constexpr uint64_t mask_byte_clear  = ~mask_byte;
 
-		static constexpr uint64_t mask_word        = 0b0000000000000000000000000000000000000000000000001111111111111111;
+		static constexpr uint64_t mask_word        = 0xffff;
 		static constexpr uint64_t mask_word_clear  = ~mask_word;
 
-		static constexpr uint64_t mask_dword       = 0b0000000000000000000000000000000011111111111111111111111111111111;
+		static constexpr uint64_t mask_dword       = 0xffffffff;
 		static constexpr uint64_t mask_dword_clear = ~mask_dword;
 
 		static constexpr uint64_t mask_byte_negative  = 0b0000000000000000000000000000000000000000000000000000000010000000;

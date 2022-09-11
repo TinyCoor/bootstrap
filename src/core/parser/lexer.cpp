@@ -4,7 +4,7 @@
 
 #include "lexer.h"
 #include <sstream>
-#include <fmt/format.h>
+
 namespace gfx {
 
 static inline token_t s_invalid = {

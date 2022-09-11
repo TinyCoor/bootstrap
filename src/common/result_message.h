@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/3/26.
 //
 
-#ifndef BOOTSTRAP_RESULT_MESSAGE_H_
-#define BOOTSTRAP_RESULT_MESSAGE_H_
+#ifndef COMMON_RESULT_MESSAGE_H_
+#define COMMON_RESULT_MESSAGE_H_
 #include <vector>
 #include <string>
 
@@ -63,4 +63,4 @@ using result_message_list = std::vector<result_message> ;
 
 }
 
-#endif // BOOTSTRAP_RESULT_MESSAGE_H_
+#endif // COMMON_RESULT_MESSAGE_H_

@@ -59,7 +59,8 @@ add_custom_command(TARGET all-unit-tests
 set(COMMON_SRC
         ../common/id_pool.h ../common/id_pool.cpp
         ../common/source_location.h ../common/source_location.cpp
-        ../common/source_file.h ../common/source_file.cpp)
+        ../common/source_file.h ../common/source_file.cpp
+        ../common/colorizer.h ../common/colorizer.cpp)
 
 set(VM_SRC
         vm/terp.h                           vm/terp.cpp

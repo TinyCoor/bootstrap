@@ -4,6 +4,7 @@
 
 #include "source_file.h"
 #include "fmt/format.h"
+#include "common/colorizer.h"
 #include <fstream>
 namespace gfx {
 
@@ -183,13 +184,12 @@ void source_file::restore_top_mark()
 void source_file::error(result &r, const std::string &code, const std::string &message, const source_location& location)
 {
     std::stringstream stream;
-    stream << "\n";
     auto number_of_lines = static_cast<int32_t>(lines_by_number_.size());
     auto start_line = static_cast<int32_t>(location.start().line - 4);
     start_line = start_line < 0 ? 0 : start_line;
     auto stop_line = static_cast<int32_t>(location.end().line + 4);
-    stop_line = stop_line >= lines_by_number_.size() ? number_of_lines - 1 : stop_line;
-    auto message_indicator = "^ " + message;
+    stop_line = stop_line >= static_cast<int32_t>(lines_by_number_.size()) ? number_of_lines - 1 : stop_line;
+    auto message_indicator = colorizer::colorize("^ " + message, term_colors_t::red);
     auto target_line = static_cast<int32_t>(location.start().line);
     for (int32_t i = start_line; i < stop_line; i++) {
         auto source_line = line_by_number(i);
@@ -199,8 +199,8 @@ void source_file::error(result &r, const std::string &code, const std::string &m
         auto source_text = substring(source_line->begin, source_line->end);
         if (i == target_line) {
             stream << fmt::format("{:04d}: ", i + 1)
-                   << source_text<< "\n"
-                   << fmt::format("{}{}", std::string(location.start().column, ' '), message_indicator);
+                   << colorizer::colorize_range(source_text, location.start().column, location.end().column, term_colors_t::magenta) << "\n"
+                   << fmt::format("{}{}", std::string(6 + location.start().column, ' '), message_indicator);
         } else {
             stream << fmt::format("{:04d}: ", i + 1)
                    << source_text;
@@ -211,8 +211,8 @@ void source_file::error(result &r, const std::string &code, const std::string &m
         }
     }
 
-    r.add_message(code, fmt::format("{} @ {}:{}", message, location.start().line, location.start().column),
-                  stream.str(), true);
+    r.add_message(code, fmt::format("({}@{}:{}){}",path_.filename().string(),
+        location.start().line + 1, location.start().column + 1, message), stream.str(), true);
 }
 
 }

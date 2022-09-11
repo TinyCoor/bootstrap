@@ -276,7 +276,8 @@ static inline std::unordered_map<operator_type_t, std::string_view> s_operator_t
 	{operator_type_t::assignment,            "assignment"}
 };
 
-static inline std::string_view operator_type_name(operator_type_t type) {
+static inline std::string_view operator_type_name(operator_type_t type)
+{
 	auto it = s_operator_type_names.find(type);
 	if (it == s_operator_type_names.end())
 		return "";
@@ -380,10 +381,11 @@ private:
 };
 
 struct qualified_symbol_t {
-    bool is_qualified() const {
+    [[nodiscard]] bool is_qualified() const {
         return !namespaces.empty();
     }
     std::string name {};
+    source_location location {};
     string_list_t namespaces {};
 };
 

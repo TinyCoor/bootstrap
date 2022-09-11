@@ -93,14 +93,14 @@ bool program::compile(result& r, compiler::session& session)
 bool program::compile_module(result& r, compiler::session& session, source_file *source)
 {
     session.push_source_file(source);
-//    defer({session.pop_source_file();});
+    defer({session.pop_source_file();});
     session.raise_phase(session_compile_phase_t::start, source->path());
     auto module_node = session.parse(r, source->path());
     if (module_node != nullptr) {
         auto module = dynamic_cast<compiler::module*>(evaluate(r, session, module_node));
         module->parent_element(this);
     }
-    session.pop_source_file();
+//    session.pop_source_file();
     if (!r.is_failed()) {
         session.raise_phase(session_compile_phase_t::success, source->path());
         return true;
@@ -195,12 +195,7 @@ element* program::evaluate(result& r, compiler::session& session,  const ast_nod
             if (expr->element_type() == element_type_t::symbol) {
                 type_find_result_t find_type_result {};
                 find_identifier_type(r, find_type_result, node->rhs->rhs);
-                if (find_type_result.type == nullptr) {
-                    session.current_source_file()->error(r, "P002",
-                         fmt::format("unknown type '{}'.", find_type_result.type_name.name), expr->location());
-                    return nullptr;
-                }
-                add_identifier_to_scope(r, session, dynamic_cast<compiler::symbol_element*>(expr),
+                expr = add_identifier_to_scope(r, session, dynamic_cast<compiler::symbol_element*>(expr),
                     find_type_result, nullptr);
             }
 			return make_statement(current_scope(), labels, expr);
@@ -926,7 +921,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
             return nullptr;
         } else {
             auto assign_bin_op = make_binary_operator(scope, operator_type_t::assignment, new_identifier, init_expr);
-            auto statement = make_statement(current_scope(), label_list_t {}, assign_bin_op);
+            auto statement = make_statement(scope, label_list_t {}, assign_bin_op);
             add_expression_to_scope(scope, statement);
             statement->parent_element(scope);
         }
@@ -1096,11 +1091,8 @@ bool program::resolve_unknown_types(result& r)
 			it = identifiers_with_unknown_types_.erase(it);
 		} else {
 			++it;
-            auto module = find_module(var);
-            if (module != nullptr) {
-                module->source_file()->error(r, "P004", fmt::format("unable to resolve type for identifier: {}", var->symbol()->name()),
-                    var->location());
-            }
+            error(r, var, "P004", fmt::format("unable to resolve type for identifier: {}", var->symbol()->name()),
+                  var->symbol()->location());
 		}
 	}
 
@@ -1203,6 +1195,7 @@ void program::make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_s
         }
     }
     symbol.name = node->children.back()->token.value;
+    symbol.location = node->location;
 }
 
 type_info *program::make_type_info_type(result &r, compiler::block *parent_scope, compiler::block* scope)
@@ -1550,11 +1543,8 @@ bool program::resolve_unknown_identifiers(result &r)
 
         if (candidates.empty()) {
             ++it;
-            auto module = find_module(unresolved_reference);
-            if (module != nullptr) {
-                module->source_file()->error(r, "P004",  fmt::format("unable to resolve identifier: {}", unresolved_reference->symbol().name),
-                                             unresolved_reference->location());
-            }
+            error(r, unresolved_reference, "P004",  fmt::format("unable to resolve identifier: {}", unresolved_reference->symbol().name),
+                  unresolved_reference->symbol().location);
             continue;
         }
 
@@ -1600,13 +1590,31 @@ compiler::block *program::current_top_level()
 compiler::module *program::find_module(compiler::element *element)
 {
     auto current = element;
-    while (element != nullptr) {
-        if (element->element_type() == element_type_t::module) {
+    while (current != nullptr) {
+        if (current->element_type() == element_type_t::module) {
             return dynamic_cast<compiler::module*>(current);
         }
         current = current->parent_element();
     }
     return nullptr;
+}
+
+void program::error(result &r, compiler::session &session, const std::string &code,
+                    const std::string &message, const source_location &location)
+{
+    auto source_file = session.current_source_file();
+    if (source_file != nullptr) {
+        source_file->error(r, code, message, location);
+    }
+}
+
+void program::error(result &r, compiler::element *element, const std::string &code,
+                    const std::string &message, const source_location &location)
+{
+    auto module = find_module(element);
+    if (module != nullptr) {
+        module->source_file()->error(r, code, message, location);
+    }
 }
 
 }

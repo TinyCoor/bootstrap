@@ -4,7 +4,7 @@
 
 // N.B. this is how we define 'external' function prototypes
 #load "../../examples/preload.gfx";
-preload := module("../../examples/preload.gfx");
+//preload := module("../../examples/preload.gfx");
 @library "libcompiler-rt.dll";
 #foreign print := proc(format:string, values:...any) @alias "print";
 
@@ -19,8 +19,8 @@ alpha::compiler::examples := ns {
     max:u16 := 32767;
     count := 1;
     is_this_true := count == (max == 256) && count == (max / 2);
-    //bt::alpha::compiler::linear::vector3;
-    vec : alpha::compiler::linear::vector3;
+    bt::alpha::compiler::linear::vector3;
+    //vec : alpha::compiler::linear::vector3;
     bar := proc() {
         bing(256);
 

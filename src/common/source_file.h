@@ -51,7 +51,7 @@ public:
 
     [[nodiscard]] size_t current_mark() const;
 
-    [[maybe_unused]] bool eof() const;
+    [[nodiscard]] bool eof() const;
 
     [[nodiscard]] bool empty() const;
 
@@ -71,7 +71,7 @@ public:
 
     [[nodiscard]] const source_file_line_t *line_by_index(size_t index) const;
 
-    uint32_t column_by_index(size_t index) const;
+    [[nodiscard]] uint32_t column_by_index(size_t index) const;
 
     void error(result& r, const std::string& code, const std::string& message, const source_location& location);
 

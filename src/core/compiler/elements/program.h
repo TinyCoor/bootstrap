@@ -32,6 +32,13 @@ public:
 
 	bool compile(result& r, compiler::session& session);
 
+    void error(result& r, compiler::session& session, const std::string &code,
+        const std::string &message, const source_location& location);
+
+    void error(result& r, compiler::element *element, const std::string &code,
+         const std::string &message, const source_location& location);
+
+
 	bool compile_module(result& r, compiler::session& session, source_file *source);
 
 	bool run(result& r);
@@ -97,7 +104,6 @@ private:
         const std::string& name, const string_list_t& namespaces = {});
 
     static void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node);
-
 
     cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
 

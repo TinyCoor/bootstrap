@@ -41,6 +41,20 @@ public:
 	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
 
+class from_prefix_parser : public prefix_parser {
+public:
+    from_prefix_parser() = default;
+
+    ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
+};
+
+class module_prefix_parser : public prefix_parser {
+public:
+    module_prefix_parser() = default;
+
+    ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
+};
+
 class with_prefix_parser : public prefix_parser {
 public:
 	with_prefix_parser() = default;

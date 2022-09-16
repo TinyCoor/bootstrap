@@ -17,9 +17,19 @@ static inline token_t s_proc_literal = {
 	.value = "proc"
 };
 
+static inline token_t s_from_literal = {
+    .type = token_types_t::from_literal,
+    .value = "from"
+};
+
 static inline token_t s_if_literal = {
 	.type = token_types_t::if_literal,
 	.value = "if"
+};
+
+static inline token_t s_module_literal = {
+    .type = token_types_t::module_literal,
+    .value = "module"
 };
 
 static inline token_t s_in_literal = {
@@ -76,7 +86,6 @@ static inline token_t s_end_of_file = {
 	.type = token_types_t::end_of_file,
 	.value = ""
 };
-
 
 static inline token_t s_enum_literal = {
 	.type = token_types_t::enum_literal,
@@ -443,11 +452,16 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{'i', std::bind(&lexer::if_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'i', std::bind(&lexer::in_literal, std::placeholders::_1, std::placeholders::_2)},
 
+    // module literals
+    {'m', std::bind(&lexer::module_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// fn literal
 	// for literal
-	{'f', std::bind(&lexer::proc_literal, std::placeholders::_1, std::placeholders::_2)},
+	{'f', std::bind(&lexer::from_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'f', std::bind(&lexer::for_literal, std::placeholders::_1, std::placeholders::_2)},
+
+    // proc literal
+    {'p', std::bind(&lexer::proc_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// break literal
 	{'b', std::bind(&lexer::break_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -1445,7 +1459,7 @@ bool lexer::with_literal(token_t& token)
 		auto ch = read(false);
 		if (!isalnum(ch)) {
 			rewind_one_char();
-			token = s_true_literal;
+			token = s_with_literal;
 			return true;
 		}
 	}
@@ -1593,6 +1607,19 @@ bool lexer::import_literal(token_t &token)
 	return false;
 }
 
+bool lexer::from_literal(token_t &token)
+{
+    if (match_literal("from")) {
+        auto ch = read(false);
+        if (!isalnum(ch)) {
+            rewind_one_char();
+            token = s_from_literal;
+            return true;
+        }
+    }
+    return false;
+}
+
 void lexer::set_token_location(token_t& token)
 {
     auto column = source_->column_by_index(source_->pos());
@@ -1600,5 +1627,18 @@ void lexer::set_token_location(token_t& token)
     token.location.end(source_line->line, column);
     token.location.start(source_line->line, column);
 }
+
+bool lexer::module_literal(token_t& token) {
+    if (match_literal("module")) {
+        auto ch = read(false);
+        if (!isalnum(ch)) {
+            rewind_one_char();
+            token = s_module_literal;
+            return true;
+        }
+    }
+    return false;
+}
+
 
 }

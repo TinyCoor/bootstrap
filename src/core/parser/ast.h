@@ -35,6 +35,7 @@ enum class ast_node_types_t : uint32_t {
 	null_literal,
 	block_comment,
 	argument_list,
+    module_expression,
 	proc_expression,
 	if_expression,
 	parameter_list,
@@ -52,6 +53,7 @@ enum class ast_node_types_t : uint32_t {
 	type_identifier,
 	defer_expression,
 	enum_expression,
+    from_expression,
 	symbol_reference,
 	return_statement,
 	extend_statement,
@@ -99,6 +101,7 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
 	{ast_node_types_t::string_literal, 				"string_literal"},
 	{ast_node_types_t::unary_operator, 				"unary_operator"},
 	{ast_node_types_t::enum_expression, 			"enum_expression"},
+    {ast_node_types_t::from_expression, 			"from_expression"},
 	{ast_node_types_t::binary_operator, 			"binary_operator"},
 	{ast_node_types_t::boolean_literal, 			"boolean_literal"},
 	{ast_node_types_t::map_constructor, 			"map_constructor"},
@@ -124,6 +127,7 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
 	{ast_node_types_t::constant_expression, 		"constant_expression"},
 	{ast_node_types_t::namespace_expression, 		"namespace_statement"},
 	{ast_node_types_t::subscript_expression, 		"subscript_expression"},
+    {ast_node_types_t::module_expression, 		    "module_expression"},
 	{ast_node_types_t::return_argument_list, 		"return_argument_list"},
 	{ast_node_types_t::assignment_target_list, 		"assignment_target_list"},
 };
@@ -283,6 +287,10 @@ public:
 	ast_node_shared_ptr constant_node(const token_t& token);
 
 	ast_node_shared_ptr import_node(const token_t& token);
+
+    ast_node_shared_ptr from_node(const token_t& token);
+
+    ast_node_shared_ptr module_expression_node(const token_t& token);
 
 	ast_node_shared_ptr continue_node(const token_t& token);
 

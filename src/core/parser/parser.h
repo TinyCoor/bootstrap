@@ -53,6 +53,7 @@ private:
 
 private:
 	static inline if_prefix_parser s_if_prefix_parser {};
+    static inline from_prefix_parser s_from_prefix_parser {};
 	static inline with_prefix_parser s_with_prefix_parser{};
 	static inline cast_prefix_parser s_cast_prefix_parser {};
 	static inline enum_prefix_parser s_enum_prefix_parser {};
@@ -63,6 +64,7 @@ private:
 	static inline for_in_prefix_parser s_for_in_prefix_parser {};
 	static inline return_prefix_parser s_return_prefix_parser {};
 	static inline symbol_prefix_parser s_symbol_prefix_parser {};
+    static inline module_prefix_parser s_module_prefix_parser {};
 	static inline constant_prefix_parser s_constant_prefix_parser {};
 	static inline defer_prefix_parser s_defer_literal_prefix_parser {};
 	static inline namespace_prefix_parser s_namespace_prefix_parser {};
@@ -94,6 +96,8 @@ private:
 		{token_types_t::struct_literal,      &s_struct_prefix_parser},
 		{token_types_t::constant_literal,    &s_constant_prefix_parser},
 		{token_types_t::for_literal,         &s_for_in_prefix_parser},
+        {token_types_t::from_literal,        &s_from_prefix_parser},
+        {token_types_t::module_literal,      &s_module_prefix_parser},
 		{token_types_t::minus,               &s_negate_prefix_parser},
 		{token_types_t::return_literal,      &s_return_prefix_parser},
 		{token_types_t::identifier,          &s_symbol_prefix_parser},

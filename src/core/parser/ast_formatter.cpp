@@ -3,6 +3,7 @@
 //
 
 #include "ast_formatter.h"
+#include "common/graphviz_formatter.h"
 #include "fmt/format.h"
 #include <set>
 namespace gfx {
@@ -35,7 +36,7 @@ void ast_formatter::format_node(const ast_node_shared_ptr& node)
 		case ast_node_types_t::line_comment:
 		case ast_node_types_t::block_comment:
 			style = ", fillcolor=green, style=\"filled\"";
-			details = fmt::format("|{{ token: '{}' }}", node->token.value);
+			details = fmt::format("|{{ token: '{}' }}", graphviz_formatter::escape_chars(node->token.value));
 			break;
 		case ast_node_types_t::module:
 			style = ", fillcolor=cadetblue, style=\"filled\"";

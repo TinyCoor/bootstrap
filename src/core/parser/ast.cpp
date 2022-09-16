@@ -432,4 +432,18 @@ ast_node_shared_ptr ast_builder::type_identifier_node()
     return node;
 }
 
+ast_node_shared_ptr ast_builder::from_node(const token_t &token)
+{
+    auto node = std::make_shared<ast_node_t>();
+    configure_node(node, token, ast_node_types_t::from_expression);
+    return node;
+}
+
+ast_node_shared_ptr ast_builder::module_expression_node(const token_t &token)
+{
+    auto node = std::make_shared<ast_node_t>();
+    configure_node(node, token, ast_node_types_t::module_expression);
+    return node;
+}
+
 }

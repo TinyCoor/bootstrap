@@ -65,6 +65,7 @@ enum class token_types_t {
 	while_literal,				/// 'while'
 	defer_literal,				/// 'defer'
 	import_literal,				/// 'import'
+    from_literal,				/// 'from'
 	struct_literal,				/// 'struct'
 	number_literal,				/// [0-9]*
 	scope_operator,				/// '::'
@@ -77,6 +78,7 @@ enum class token_types_t {
 	left_curly_brace,			/// '{'
 	continue_literal,			/// 'continue'
 	constant_literal,			/// 'constant'
+    module_literal,			    /// 'module'
 	right_curly_brace,			/// '}'
 	character_literal,			/// '''
 	namespace_literal,			/// 'ns'
@@ -133,14 +135,17 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::identifier,             "identifier"},
 	{token_types_t::attribute,              "attribute"},
 	{token_types_t::string_literal,         "string_literal"},
+
 	{token_types_t::alias_literal, 			"alias_literal"},
 	{token_types_t::character_literal,      "character_literal"},
 	{token_types_t::true_literal,           "true_literal"},
 	{token_types_t::false_literal,          "false_literal"},
 	{token_types_t::import_literal,         "import_literal"},
+    {token_types_t::from_literal,           "from_literal"},
 	{token_types_t::null_literal,           "null_literal"},
 	{token_types_t::proc_literal,           "proc_literal"},
 	{token_types_t::number_literal,         "number_literal"},
+    {token_types_t::module_literal,         "module_literal"},
 	{token_types_t::namespace_literal,      "namespace_literal"},
 	{token_types_t::for_literal,            "for_literal"},
 	{token_types_t::in_literal,             "in_literal"},

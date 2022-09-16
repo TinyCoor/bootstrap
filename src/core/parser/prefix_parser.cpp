@@ -208,6 +208,10 @@ ast_node_shared_ptr keyword_literal_prefix_parser::parse(result& r, parser* pars
 		case token_types_t::import_literal: {
 			auto import_node = parser->ast_builder()->import_node(token);
 			import_node->lhs = parser->parse_expression(r, 0);
+            if (parser->peek(token_types_t::from_literal)) {
+                parser->consume();
+                import_node->rhs = parser->parse_expression(r, 0);
+            }
 			return import_node;
 		}
 		case token_types_t::alias_literal: {
@@ -328,4 +332,17 @@ ast_node_shared_ptr cast_prefix_parser::parse(result& r, parser* parser, token_t
 	return create_cast_node(r, parser, token);
 }
 
+
+ast_node_shared_ptr from_prefix_parser::parse(result &r, parser *parser, token_t &token)
+{
+    auto from_node = parser->ast_builder()->from_node(token);
+    from_node->rhs = parser->parse_expression(r, 0);
+    return from_node;
+}
+
+ast_node_shared_ptr module_prefix_parser::parse(result &r, parser *parser, token_t &token)
+{
+    return create_module_expression_node(r, parser, nullptr, token);
+
+}
 }

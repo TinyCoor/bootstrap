@@ -5,6 +5,23 @@
 #include "infix_parser.h"
 #include "parser.h"
 namespace gfx {
+ast_node_shared_ptr create_module_expression_node(result& r, parser* parser,
+     const ast_node_shared_ptr& lhs, token_t& token) {
+    auto module_expression_node = parser->ast_builder()->module_expression_node(token);
+    token_t left_paren;
+    left_paren.type = token_types_t::left_paren;
+    if (!parser->expect(r, left_paren)) {
+        return nullptr;
+    }
+    module_expression_node->rhs = parser->parse_expression(r, 0);
+
+    token_t right_paren;
+    right_paren.type = token_types_t::right_paren;
+    if (!parser->expect(r, right_paren)) {
+        return nullptr;
+    }
+    return module_expression_node;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token_t& token)

@@ -138,6 +138,8 @@ ast_node_shared_ptr create_symbol_node(result& r, parser* parser, const ast_node
 void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr& root);
 
 ast_node_shared_ptr create_expression_node(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token);
+ast_node_shared_ptr create_module_expression_node(result& r, parser* parser,
+    const ast_node_shared_ptr& lhs, token_t& token);
 
 }
 

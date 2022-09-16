@@ -116,6 +116,8 @@ private:
 
 	bool number_literal(token_t& token);
 
+    bool module_literal(token_t& token);
+
 	bool scope_operator(token_t& token);
 
 	bool string_literal(token_t& token);
@@ -135,6 +137,8 @@ private:
 	bool constant_literal(token_t& token);
 
 	bool with_literal(token_t& token);
+
+    bool from_literal(token_t& token);
 
 	bool right_curly_brace(token_t& token);
 

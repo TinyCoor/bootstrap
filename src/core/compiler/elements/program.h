@@ -39,7 +39,7 @@ public:
          const std::string &message, const source_location& location);
 
 
-	bool compile_module(result& r, compiler::session& session, source_file *source);
+	module* compile_module(result& r, compiler::session& session, source_file *source);
 
 	bool run(result& r);
 
@@ -93,6 +93,7 @@ private:
     friend class tuple_type;
     friend class type_info;
     friend class array_type;
+    friend class module_type;
     friend class string_type;
     friend class numeric_type;
     friend class unary_operator;
@@ -109,13 +110,15 @@ private:
 
 	alias* make_alias(compiler::block* parent_scope, element* expr);
 
-	import* make_import(compiler::block* parent_scope, element* expr);
+	import* make_import(compiler::block* parent_scope, element* expr, element* from_expr);
 
 	label* make_label(compiler::block* parent_scope, const std::string& name);
 
 	field* make_field(compiler::block* parent_scope, compiler::identifier* identifier);
 
     module* make_module(compiler::block* parent_scope, compiler::block* scope);
+
+    module_reference* make_module_reference(compiler::block* parent_scope, compiler::element* expr);
 
 	if_element* make_if(compiler::block* parent_scope, element* predicate, element* true_branch,
 		element* false_branch);
@@ -179,7 +182,9 @@ private:
 
     tuple_type* make_tuple_type(result& r, compiler::block* parent_scope, compiler::block* scope);
 
-	any_type* make_any_type(result&r, compiler::block* parent_scope, compiler::block* scope);
+    module_type* make_module_type(result& r, compiler::block* parent_scope, compiler::block* scope);
+
+    any_type* make_any_type(result&r, compiler::block* parent_scope, compiler::block* scope);
 
 	procedure_type* make_procedure_type(result& r, compiler::block* parent_scope, compiler::block* block_scope);
 

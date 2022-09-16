@@ -24,6 +24,7 @@
 #include "types/numeric_type.h"
 #include "types/procedure_type.h"
 #include "types/unknown_type.h"
+#include "types/module_type.h"
 #include "argument_list.h"
 #include "boolean_literal.h"
 #include "string_literal.h"
@@ -41,6 +42,7 @@
 #include "fmt/format.h"
 #include "vm/assembler.h"
 #include "identifier_reference.h"
+#include "module_reference.h"
 #include "common/defer.h"
 
 namespace gfx::compiler {
@@ -59,7 +61,8 @@ bool program::compile(result& r, compiler::session& session)
     top_level_stack_.push(block_);
     initialize_core_types(r);
     for (const auto &source_file : session.source_files()) {
-        if (!compile_module(r, session, source_file)) {
+        auto module = compile_module(r, session, source_file);
+        if (module == nullptr) {
             return false;
         }
     }
@@ -90,23 +93,23 @@ bool program::compile(result& r, compiler::session& session)
     return !r.is_failed();
 }
 
-bool program::compile_module(result& r, compiler::session& session, source_file *source)
+module *program::compile_module(result& r, compiler::session& session, source_file *source)
 {
     session.push_source_file(source);
     defer({session.pop_source_file();});
     session.raise_phase(session_compile_phase_t::start, source->path());
     auto module_node = session.parse(r, source->path());
+    compiler::module* module = nullptr;
     if (module_node != nullptr) {
-        auto module = dynamic_cast<compiler::module*>(evaluate(r, session, module_node));
+        module = dynamic_cast<compiler::module*>(evaluate(r, session, module_node));
         module->parent_element(this);
     }
-//    session.pop_source_file();
     if (!r.is_failed()) {
         session.raise_phase(session_compile_phase_t::success, source->path());
-        return true;
+        return module;
     } else {
         session.raise_phase(session_compile_phase_t::failed, source->path());
-        return false;
+        return nullptr;
     }
 }
 
@@ -138,7 +141,7 @@ element *program::evaluate_in_scope(result& r,compiler::session& session, const 
     return result;
 }
 
-element* program::evaluate(result& r, compiler::session& session,  const ast_node_shared_ptr& node,
+element* program::evaluate(result& r, compiler::session& session, const ast_node_shared_ptr& node,
    element_type_t default_block_type)
 {
 	if (node == nullptr) {
@@ -173,6 +176,17 @@ element* program::evaluate(result& r, compiler::session& session,  const ast_nod
             top_level_stack_.pop();
 			return module;
 		}
+        case ast_node_types_t::module_expression: {
+            auto expr = resolve_symbol_or_evaluate(r, session, node->rhs);
+            auto referene = make_module_reference(current_scope(), expr);
+            std::string path ;
+            if (expr->as_string(path)) {
+               auto source_file =  session.add_source_file(path);
+               auto module = compile_module(r, session, source_file);
+                    referene->module(nullptr);
+            }
+            return referene;
+        }
 		case ast_node_types_t::basic_block: {
 			auto active_scope = push_new_block(default_block_type);
 			for (auto &it : node->children) {
@@ -264,7 +278,12 @@ element* program::evaluate(result& r, compiler::session& session,  const ast_nod
 			return evaluate(r, session, node->children[0]);
 		}
 		case ast_node_types_t::import_expression: {
-			return make_import(current_scope(), resolve_symbol_or_evaluate(r, session, node->lhs));
+            compiler::element* from_expr = nullptr;
+            if (node->rhs !=nullptr) {
+                from_expr = resolve_symbol_or_evaluate(r, session, node->rhs);
+            }
+			return make_import(current_scope(), resolve_symbol_or_evaluate(r, session, node->lhs),
+                from_expr);
 		}
 		case ast_node_types_t::if_expression:
 		case ast_node_types_t::elseif_expression: {
@@ -480,6 +499,10 @@ void program::initialize_core_types(result &r)
     auto string_type = make_string_type(r, parent_scope, make_block(parent_scope, element_type_t::block));
     string_type->initialize(r, this);
 	add_type_to_scope(string_type);
+
+    auto module_type = make_module_type(r, parent_scope, make_block(parent_scope, element_type_t::block));
+    string_type->initialize(r, this);
+    add_type_to_scope(module_type);
 
     auto namespace_type = make_namespace_type(r, parent_scope);
     namespace_type->initialize(r, this);
@@ -821,11 +844,10 @@ element_map &program::elements()
 compiler::element* program::resolve_symbol_or_evaluate(result& r, compiler::session& session, const ast_node_shared_ptr& node)
 {
     compiler::element* element = nullptr;
-    if (node->type == ast_node_types_t::symbol) {
+    if (node != nullptr && node->type == ast_node_types_t::symbol) {
         qualified_symbol_t qualified_symbol {};
         make_qualified_symbol(qualified_symbol, node);
-        element = make_identifier_reference(current_scope(), qualified_symbol,
-            find_identifier(qualified_symbol));
+        element = make_identifier_reference(current_scope(), qualified_symbol, find_identifier(qualified_symbol));
     } else {
         element = evaluate(r, session, node);
     }
@@ -1143,10 +1165,16 @@ void program::apply_attributes(result& r, compiler::session& session, compiler::
 	}
 }
 
-import* program::make_import(compiler::block* parent_scope, element* expr)
+import* program::make_import(compiler::block* parent_scope, element* expr, element* from_expr)
 {
-	auto import_element = new compiler::import(parent_scope, expr);
+	auto import_element = new compiler::import(parent_scope, expr, from_expr);
     elements_.add(import_element);
+    if (expr !=nullptr) {
+        expr->parent_element(import_element);
+    }
+    if (from_expr !=nullptr) {
+        from_expr->parent_element(import_element);
+    }
 	return import_element;
 }
 
@@ -1237,6 +1265,13 @@ bool program::visit_blocks(result &r, const block_visitor_callable &callable,
     return recursive_execute(root_block != nullptr ? root_block : top_level_stack_.top());
 }
 
+module_type *program::make_module_type(gfx::result &r, compiler::block *parent_scope, compiler::block *scope)
+{
+    auto type = make_type<module_type>(r, parent_scope, scope);
+    scope->parent_element(type);
+    return type;
+}
+
 tuple_type *program::make_tuple_type(result &r, compiler::block *parent_scope, compiler::block* scope)
 {
     auto type = make_type<tuple_type>(r, parent_scope, scope);
@@ -1250,10 +1285,10 @@ bool program::on_emit(result &r, emit_context_t &context)
     instruction_block->jump_direct("_initializer");
 
     std::map<section_t, element_list_t> vars_by_section {};
-    auto bss  = vars_by_section.insert(std::make_pair(section_t::bss,     element_list_t()));
+    vars_by_section.insert(std::make_pair(section_t::bss,     element_list_t()));
     auto ro   = vars_by_section.insert(std::make_pair(section_t::ro_data, element_list_t()));
     auto data = vars_by_section.insert(std::make_pair(section_t::data,    element_list_t()));
-    auto text = vars_by_section.insert(std::make_pair(section_t::text,    element_list_t()));
+    vars_by_section.insert(std::make_pair(section_t::text,    element_list_t()));
 
     auto identifiers = elements().find_by_type(element_type_t::identifier);
     for (auto identifier : identifiers) {
@@ -1570,9 +1605,22 @@ module *program::make_module(compiler::block* parent_scope, compiler::block* sco
 {
     auto module_element = new compiler::module(parent_scope, scope);
     elements_.add(module_element);
-    scope->parent_element(module_element);
+    if (scope !=nullptr) {
+        scope->parent_element(module_element);
+    }
     return module_element;
 }
+
+module_reference *program::make_module_reference(compiler::block *parent_scope, compiler::element *expr)
+{
+    auto module_ref= new compiler::module_reference(parent_scope, expr);
+    elements_.add(module_ref);
+    if (expr != nullptr) {
+        expr->parent_element(module_ref);
+    }
+    return module_ref;
+}
+
 
 compiler::block *program::block() const
 {

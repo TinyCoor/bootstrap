@@ -37,6 +37,7 @@ class if_element;
 class tuple_type;
 class array_type;
 class string_type;
+class module_type;
 class unknown_type;
 class numeric_type;
 class float_literal;
@@ -55,6 +56,7 @@ class string_literal;
 class binary_operator;
 class namespace_element;
 class procedure_instance;
+class module_reference;
 class identifier_reference;
 
 using string_set_t = std::set<std::string>;
@@ -125,6 +127,7 @@ enum class element_type_t {
     module_block,
 	string_type,
     struct_type,
+    module_type,
 	namespace_e,
 	initializer,
 	numeric_type,
@@ -140,6 +143,7 @@ enum class element_type_t {
 	integer_literal,
 	binary_operator,
 	proc_type_block,
+    module_reference,
 	unknown_identifier,
 	proc_instance_block,
     identifier_reference,
@@ -169,6 +173,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
     {element_type_t::module_block, 			"module_block"},
     {element_type_t::namespace_e, 			"namespace"},
     {element_type_t::tuple_type, 			"tuple_type"},
+    {element_type_t::module_type, 			"module_type"},
 	{element_type_t::alias_type, 			"alias_type"},
 	{element_type_t::array_type, 			"array_type"},
 	{element_type_t::identifier, 			"identifier"},
@@ -186,6 +191,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::namespace_type, 		"namespace_type"},
 	{element_type_t::unary_operator, 		"unary_operator"},
 	{element_type_t::boolean_literal, 		"boolean_literal"},
+    {element_type_t::module_reference, 		"module_reference"},
 	{element_type_t::integer_literal, 		"integer_literal"},
 	{element_type_t::binary_operator, 		"binary_operator"},
 	{element_type_t::proc_type_block, 		"proc_type_block"},

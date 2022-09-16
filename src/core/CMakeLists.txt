@@ -58,9 +58,10 @@ add_custom_command(TARGET all-unit-tests
 
 set(COMMON_SRC
         ../common/id_pool.h ../common/id_pool.cpp
-        ../common/source_location.h ../common/source_location.cpp
+        ../common/colorizer.h ../common/colorizer.cpp
         ../common/source_file.h ../common/source_file.cpp
-        ../common/colorizer.h ../common/colorizer.cpp)
+        ../common/source_location.h ../common/source_location.cpp
+        ../common/graphviz_formatter.cpp ../common/graphviz_formatter.cpp)
 
 set(VM_SRC
         vm/terp.h                           vm/terp.cpp
@@ -99,6 +100,7 @@ set(ELEMENT_SRC
         compiler/elements/types/type_info.h         compiler/elements/types/type_info.cpp
         compiler/elements/types/array_type.h        compiler/elements/types/array_type.cpp
         compiler/elements/types/tuple_type.h        compiler/elements/types/tuple_type.cpp
+        compiler/elements/types/module_type.h       compiler/elements/types/module_type.cpp
         compiler/elements/types/struct_type.h       compiler/elements/types/struct_type.cpp
         compiler/elements/types/string_type.h       compiler/elements/types/string_type.cpp
         compiler/elements/types/numeric_type.h      compiler/elements/types/numeric_type.cpp
@@ -118,9 +120,9 @@ set(ELEMENT_SRC
         compiler/elements/program.h                 compiler/elements/program.cpp
         compiler/elements/comment.h                 compiler/elements/comment.cpp
         compiler/elements/statement.h               compiler/elements/statement.cpp
-        compiler/elements/identifier.h              compiler/elements/identifier.cpp
         compiler/elements/directive.h               compiler/elements/directive.cpp
         compiler/elements/attribute.h               compiler/elements/attribute.cpp
+        compiler/elements/identifier.h              compiler/elements/identifier.cpp
         compiler/elements/if_element.h              compiler/elements/if_element.cpp
         compiler/elements/expression.h              compiler/elements/expression.cpp
         compiler/elements/initializer.h             compiler/elements/initializer.cpp
@@ -129,11 +131,10 @@ set(ELEMENT_SRC
         compiler/elements/return_element.h          compiler/elements/return_element.cpp
         compiler/elements/symbol_element.h          compiler/elements/symbol_element.cpp
         compiler/elements/procedure_call.h          compiler/elements/procedure_call.cpp
+        compiler/elements/module_reference.h        compiler/elements/module_reference.cpp
         compiler/elements/namespace_element.h       compiler/elements/namespace_element.cpp
         compiler/elements/procedure_instance.h      compiler/elements/procedure_instance.cpp
         compiler/elements/identifier_reference.h    compiler/elements/identifier_reference.cpp
-
-
         )
 
 set(COMPILER_SRC

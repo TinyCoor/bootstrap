@@ -54,18 +54,6 @@ bool directive::on_evaluate_run(result &r, compiler::session& session, compiler:
 	return true;
 }
 
-bool directive::on_execute_load(result &r, compiler::session& session, compiler::program *program)
-{
-	return true;
-}
-
-bool directive::on_evaluate_load(result &r, compiler::session& session, compiler::program *program)
-{
-    auto path = dynamic_cast<compiler::string_literal*>(expression_);
-    auto source_file = session.add_source_file(path->value());
-    return program->compile_module(r, session, source_file);
-}
-
 bool directive::on_evaluate_foreign(result &r, compiler::session& session, compiler::program *program)
 {
 	auto proc_identifier = dynamic_cast<compiler::identifier*>(expression_);

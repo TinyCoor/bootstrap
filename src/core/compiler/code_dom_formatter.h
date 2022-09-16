@@ -18,8 +18,6 @@ private:
 
     static std::string get_vertex_name(element* node);
 
-    static std::string escape_graphviz_chars(const std::string& value);
-
     void add_primary_edge(element* parent, element* child, const std::string& label = "");
 
     void add_secondary_edge(element* parent, element* child, const std::string& label = "");

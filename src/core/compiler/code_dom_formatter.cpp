@@ -3,6 +3,7 @@
 //
 #include "fmt/format.h"
 #include "code_dom_formatter.h"
+#include "common/graphviz_formatter.h"
 #include "elements/symbol_element.h"
 #include "elements/cast.h"
 #include "elements/module.h"
@@ -32,13 +33,15 @@
 #include "elements/types/any_type.h"
 #include "elements/types/tuple_type.h"
 #include "elements/types/type_info.h"
+#include "elements/types/module_type.h"
 #include "elements/types/array_type.h"
 #include "elements/types/string_type.h"
 #include "elements/types/numeric_type.h"
 #include "elements/types/procedure_type.h"
 #include "elements/types/composite_type.h"
 #include "elements/types/namespace_type.h"
-#include <compiler/elements/identifier_reference.h>
+#include "elements/identifier_reference.h"
+#include "elements/module_reference.h"
 
 namespace gfx::compiler {
 code_dom_formatter::code_dom_formatter(const compiler::program* program_element,FILE* file)
@@ -88,8 +91,16 @@ std::string code_dom_formatter::format_node(element* node)
             auto element = dynamic_cast<module*>(node);
             auto style = ", fillcolor=grey, style=\"filled\"";
             add_primary_edge(element, element->scope());
-            return fmt::format("{}[shape=record,label=\"symbol|{}\"{}];",
+            return fmt::format("{}[shape=record,label=\"module|{}\"{}];",
                 node_vertex_name, element->source_file()->path().string(), style);
+        }
+        case element_type_t::module_reference: {
+            auto element = dynamic_cast<module_reference*>(node);
+            auto style = ", fillcolor=grey, style=\"filled\"";
+            add_primary_edge(element, element->expression());
+            add_primary_edge(element, element->module());
+            return fmt::format("{}[shape=record,label=\"module_reference\"{}];",
+                node_vertex_name, style);
         }
         case element_type_t::symbol: {
             auto element = dynamic_cast<symbol_element*>(node);
@@ -102,7 +113,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto comment_element = dynamic_cast<comment*>(node);
 			auto style = ", fillcolor=green, style=\"filled\"";
 			auto details = fmt::format("comment|{{type: {} | value: '{}' }}",
-				comment_type_name(comment_element->type()), escape_graphviz_chars(comment_element->value()));
+				comment_type_name(comment_element->type()), graphviz_formatter::escape_chars(comment_element->value()));
 			return fmt::format("{}[shape=record,label=\"{}\"{}];", node_vertex_name, details, style);
 		}
 		case element_type_t::cast: {
@@ -140,6 +151,10 @@ std::string code_dom_formatter::format_node(element* node)
 			auto element = dynamic_cast<import*>(node);
 			auto style = ", fillcolor=cyan, style=\"filled\"";
 			add_primary_edge(element, element->expression());
+            auto from_expr = element->from_expression();
+            if (from_expr != nullptr) {
+                add_primary_edge(element, from_expr);
+            }
 			return fmt::format("{}[shape=record,label=\"import\"{}];", node_vertex_name, style);
 		}
 		case element_type_t::block: {
@@ -186,6 +201,7 @@ std::string code_dom_formatter::format_node(element* node)
                 add_primary_edge(element,field);
             }
             add_primary_edge(element, element->scope());
+            add_primary_edge(element, element->symbol());
 			return fmt::format("{}[shape=record,label=\"any_type|{}\"{}];",node_vertex_name,
                 element->symbol()->name(), style);
 		}
@@ -202,6 +218,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto element = dynamic_cast<procedure_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
 			add_primary_edge(element, element->scope());
+            add_primary_edge(element, element->symbol());
 			return fmt::format("{}[shape=record,label=\"proc_type|{}|foreign: {}\"{}];", node_vertex_name,
                 element->symbol()->name(), element->is_foreign(), style);
 		}
@@ -256,6 +273,7 @@ std::string code_dom_formatter::format_node(element* node)
 			auto element = dynamic_cast<alias*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
 			add_primary_edge(element, element->expression());
+//            add_primary_edge(element, element->symbol());
 			return fmt::format("{}[shape=record,label=\"alias_type\"{}];", node_vertex_name, style);
 		}
 		case element_type_t::array_type: {
@@ -267,6 +285,7 @@ std::string code_dom_formatter::format_node(element* node)
 				entry_type_name = element->entry_type()->symbol()->name();
 			}
             add_primary_edge(element, element->scope());
+            add_primary_edge(element, element->symbol());
             for (auto &field : element->fields().as_list()) {
                 add_primary_edge(element,field);
             }
@@ -301,6 +320,7 @@ std::string code_dom_formatter::format_node(element* node)
                 add_primary_edge(element,field);
             }
             add_primary_edge(element, element->scope());
+            add_primary_edge(element, element->symbol());
 			return fmt::format("{}[shape=record,label=\"string_type|{}\"{}];", node_vertex_name,
                 element->symbol()->name(), style);
 		}
@@ -320,6 +340,7 @@ std::string code_dom_formatter::format_node(element* node)
 		case element_type_t::numeric_type: {
 			auto element = dynamic_cast<numeric_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";
+            add_primary_edge(element, element->symbol());
 			return fmt::format("{}[shape=record,label=\"numeric_type|{}\"{}];", node_vertex_name,
                                element->symbol()->name(), style);
 		}
@@ -342,12 +363,21 @@ std::string code_dom_formatter::format_node(element* node)
 			return fmt::format("{}[shape=record,label=\"string_literal|{}\"{}];", node_vertex_name,
                 element->value(), style);
 		}
+        case element_type_t::module_type: {
+            auto element = dynamic_cast<module_type*>(node);
+            auto style = ", fillcolor=gainsboro, style=\"filled\"";
+            add_primary_edge(element, element->scope());
+            add_primary_edge(element, element->symbol());
+            return fmt::format("{}[shape=record,label=\"module_type|{}\"{}];", node_vertex_name,
+                               element->symbol()->name(), style);
+        }
         case element_type_t::tuple_type: {
             auto element = dynamic_cast<tuple_type*>(node);
             auto style = ", fillcolor=gainsboro, style=\"filled\"";
             for (auto fld : element->fields().as_list()) {
                 add_primary_edge(element, fld);
             }
+            add_primary_edge(element, element->symbol());
             add_primary_edge(element, element->scope());
             return fmt::format("{}[shape=record,label=\"tuple_type|{}\"{}];", node_vertex_name,
                 element->symbol()->name(), style);
@@ -359,6 +389,7 @@ std::string code_dom_formatter::format_node(element* node)
                 add_primary_edge(element, fld);
             }
             add_primary_edge(element, element->scope());
+            add_primary_edge(element, element->symbol());
 			return fmt::format("{}[shape=record,label=\"composite_type|{}\"{}];", node_vertex_name,
                 element->symbol()->name(), style);
 		}
@@ -440,16 +471,4 @@ std::string code_dom_formatter::get_vertex_name(element* node)
 	return fmt::format("{}_{}", element_type_name(node->element_type()), node->id());
 }
 
-std::string code_dom_formatter::escape_graphviz_chars(const std::string& value)
-{
-    std::string buffer;
-    for (const auto &c : value) {
-        if (c == '\"') {
-            buffer += "\\\"";
-        } else {
-          buffer += c;
-        }
-    }
-    return buffer;
-}
 }

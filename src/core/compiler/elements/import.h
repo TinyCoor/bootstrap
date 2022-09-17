@@ -8,7 +8,9 @@
 namespace gfx::compiler {
 	class import : public element {
 	public:
-		import(block* parent_scope, element* expr, element* from_expr);
+		import(block* parent_scope, element* expr, element* from_expr, compiler::module* module);
+
+        compiler::module* module();
 
 		element* expression();
 
@@ -18,6 +20,7 @@ namespace gfx::compiler {
         void on_owned_elements(element_list_t& list) override;
 
 	private:
+        compiler::module* module_ = nullptr;
 		element* expression_ = nullptr;
         element* from_expression_ = nullptr;
 	};

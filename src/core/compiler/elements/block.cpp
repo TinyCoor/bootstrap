@@ -3,6 +3,7 @@
 //
 
 #include "block.h"
+#include "import.h"
 #include "comment.h"
 #include "vm/assembler.h"
 #include "initializer.h"
@@ -27,6 +28,11 @@ type_map_t& block::types()
 identifier_map_t& block::identifiers()
 {
 	return identifiers_;
+}
+
+import_list_t& block::imports()
+{
+    return imports_;
 }
 
 statement_list_t &block::statements()
@@ -109,6 +115,10 @@ void block::on_owned_elements(element_list_t &list)
     }
 
     for (auto element : identifiers_.as_list()) {
+        list.emplace_back(element);
+    }
+
+    for (auto element : imports_) {
         list.emplace_back(element);
     }
 }

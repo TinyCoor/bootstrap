@@ -23,36 +23,39 @@ struct type_find_result_t {
 class program : public element {
 public:
     using block_visitor_callable = std::function<bool (compiler::block*)>;
+    using scope_visitor_callable = std::function<compiler::element* (compiler::block*)>;
+    using element_visitor_callable = std::function<compiler::element* (compiler::element*)>;
+    using namespace_visitor_callable = std::function<compiler::element* (compiler::block*)>;
+
 
     program(terp* terp, assembler* assembler);
 
 	~program() override;
 
-	compiler::block *block() const;
-
-	bool compile(result& r, compiler::session& session);
-
-    void error(result& r, compiler::session& session, const std::string &code,
-        const std::string &message, const source_location& location);
-
-    void error(result& r, compiler::element *element, const std::string &code,
-         const std::string &message, const source_location& location);
-
-
-	module* compile_module(result& r, compiler::session& session, source_file *source);
-
-	bool run(result& r);
+    bool run(result& r);
 
     element_map& elements();
 
+    void disassemble(FILE *file);
+
+    compiler::block *block() const;
+
+	bool compile(result& r, compiler::session& session);
+
     compiler::type* find_type(const qualified_symbol_t& symbol) const;
 
-    void disassemble(FILE *file);
+	module* compile_module(result& r, compiler::session& session, source_file *source);
 
 protected:
 	terp* terp();
 
     compiler::block* current_top_level();
+
+    void error(result& r, compiler::session& session, const std::string &code,
+               const std::string &message, const source_location& location);
+
+    void error(result& r, compiler::element *element, const std::string &code,
+               const std::string &message, const source_location& location);
 private:
     bool on_emit(result& r, emit_context_t& context) override;
 
@@ -86,7 +89,7 @@ private:
 
     bool within_procedure_scope(compiler::block* parent_scope) const;
 
-    static compiler::module* find_module(compiler::element* module);
+    compiler::module* find_module(compiler::element* module) const;
 private:
     friend class any_type;
     friend class directive;
@@ -110,7 +113,8 @@ private:
 
 	alias* make_alias(compiler::block* parent_scope, element* expr);
 
-	import* make_import(compiler::block* parent_scope, element* expr, element* from_expr);
+	import* make_import(compiler::block* parent_scope, element* expr,
+                        element* from_expr, compiler::module* module);
 
 	label* make_label(compiler::block* parent_scope, const std::string& name);
 
@@ -213,14 +217,7 @@ private:
     unknown_type* unknown_type_from_result(result& r, compiler::block* scope, compiler::identifier* identifier,
        type_find_result_t& result);
 private:
-    element* evaluate(result& r, compiler::session& session, const ast_node_shared_ptr& node,
-		element_type_t default_block_type = element_type_t::block);
 
-    element* evaluate_in_scope(result& r, compiler::session& session, const ast_node_shared_ptr& node,
-        compiler::block* scope, element_type_t default_block_type = element_type_t::block);
-
-    bool find_identifier_type(result& r, type_find_result_t& result, const ast_node_shared_ptr& type_node,
-        compiler::block* parent_scope = nullptr);
 
 	class block* pop_scope();
 
@@ -228,7 +225,25 @@ private:
 
 	void push_scope(class block* block);
 
-	compiler::identifier* find_identifier(const qualified_symbol_t& symbol);
+    element* walk_parent_scopes(compiler::block* scope,
+        const scope_visitor_callable& callable) const;
+
+    element* walk_parent_elements(compiler::element* element,
+        const element_visitor_callable& callable) const;
+
+    element* walk_qualified_symbol(const qualified_symbol_t& symbol, compiler::block* scope,
+        const namespace_visitor_callable& callable) const;
+
+    element* evaluate(result& r, compiler::session& session, const ast_node_shared_ptr& node,
+                      element_type_t default_block_type = element_type_t::block);
+
+    element* evaluate_in_scope(result& r, compiler::session& session, const ast_node_shared_ptr& node,
+                               compiler::block* scope, element_type_t default_block_type = element_type_t::block);
+
+    bool find_identifier_type(result& r, type_find_result_t& result, const ast_node_shared_ptr& type_node,
+                              compiler::block* parent_scope = nullptr);
+
+	compiler::identifier* find_identifier(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
 
 private:
 	assembler* assembler_ = nullptr;

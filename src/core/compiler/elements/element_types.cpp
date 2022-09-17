@@ -145,5 +145,44 @@ type_list_t type_map_t::as_list() const
     }
     return list;
 }
+///////////////////////////////////////////////////////////////////////////
+
+std::string make_fully_qualified_name(const symbol_element* symbol)
+{
+    std::stringstream stream {};
+    auto count = 0;
+    for (const auto& name : symbol->namespaces()) {
+        if (count > 0) {
+            stream << "::";
+        }
+        stream << name;
+        count++;
+    }
+    if (count > 0) {
+        stream << "::";
+    }
+
+    stream << symbol->name();
+    return stream.str();
+}
+
+std::string make_fully_qualified_name(const qualified_symbol_t& symbol)
+{
+    std::stringstream stream {};
+    auto count = 0;
+    for (const auto& name : symbol.namespaces) {
+        if (count > 0) {
+            stream << "::";
+        }
+        stream << name;
+        count++;
+    }
+    if (count > 0) {
+        stream << "::";
+    }
+
+    stream << symbol.name;
+    return stream.str();
+}
 
 }

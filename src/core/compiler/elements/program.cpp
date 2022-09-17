@@ -76,7 +76,11 @@ bool program::compile(result& r, compiler::session& session)
         }
     }
 
-    if (!resolve_unknown_types(r) || !resolve_unknown_identifiers(r)) {
+    if (!resolve_unknown_identifiers(r)) {
+        return false;
+    }
+
+    if (!resolve_unknown_types(r))  {
         return false;
     }
 
@@ -106,11 +110,10 @@ module *program::compile_module(result& r, compiler::session& session, source_fi
     }
     if (!r.is_failed()) {
         session.raise_phase(session_compile_phase_t::success, source->path());
-        return module;
     } else {
         session.raise_phase(session_compile_phase_t::failed, source->path());
-        return nullptr;
     }
+    return module;
 }
 
 bool program::run(result &r)
@@ -165,6 +168,8 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
             auto module_block = make_block(block_, element_type_t::module_block);
             auto module = make_module(block_, module_block);
             module->source_file(session.current_source_file());
+            block_->blocks().push_back(module_block);
+
             push_scope(module_block);
             top_level_stack_.push(module_block);
 
@@ -179,22 +184,29 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
         case ast_node_types_t::module_expression: {
             auto expr = resolve_symbol_or_evaluate(r, session, node->rhs);
             auto referene = make_module_reference(current_scope(), expr);
-            std::string path ;
-            if (expr->as_string(path)) {
+            std::string path;
+            if (expr->is_constant() && expr->as_string(path)) {
                auto source_file =  session.add_source_file(path);
                auto module = compile_module(r, session, source_file);
-                    referene->module(nullptr);
+               referene->module(module);
+            } else {
+                error(r, session, "C021", "expected string literal or constant string variable.",
+                    node->rhs->location);
+                return nullptr;
             }
             return referene;
         }
 		case ast_node_types_t::basic_block: {
 			auto active_scope = push_new_block(default_block_type);
 			for (auto &it : node->children) {
-                auto expr = evaluate(r, session, it, default_block_type);
-                if (expr != nullptr) {
-                    add_expression_to_scope(active_scope, expr);
-                    expr->parent_element(active_scope);
+                auto current_node = it;
+                auto expr = evaluate(r, session, current_node, default_block_type);
+                if (expr == nullptr) {
+                    error(r, session, "C024", "invalid statement", current_node->location);
+                    return nullptr;
                 }
+                add_expression_to_scope(active_scope, expr);
+                expr->parent_element(active_scope);
 			}
 			return pop_scope();
 		}
@@ -206,6 +218,10 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 				}
 			}
             auto expr = evaluate(r, session, node->rhs);
+            if (expr == nullptr) {
+                return nullptr;
+            }
+
             if (expr->element_type() == element_type_t::symbol) {
                 type_find_result_t find_type_result {};
                 find_identifier_type(r, find_type_result, node->rhs->rhs);
@@ -235,7 +251,10 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
                     type_find_result_t find_type_result {};
                     find_identifier_type(r, find_type_result, symbol_node->rhs);
 					auto new_identifier = add_identifier_to_scope(r, session, symbol, find_type_result, node);
-					list.push_back(new_identifier);
+					if (new_identifier ==nullptr) {
+                        return nullptr;
+                    }
+                    list.push_back(new_identifier);
 				}
 			}
 			// TODO: handle proper multi-assignment
@@ -278,12 +297,21 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 			return evaluate(r, session, node->children[0]);
 		}
 		case ast_node_types_t::import_expression: {
-            compiler::element* from_expr = nullptr;
-            if (node->rhs !=nullptr) {
-                from_expr = resolve_symbol_or_evaluate(r, session, node->rhs);
+            qualified_symbol_t qualified_symbol {};
+            make_qualified_symbol(qualified_symbol, node->lhs);
+
+            compiler::identifier_reference* from_reference = nullptr;
+            if (node->rhs != nullptr) {
+                from_reference = dynamic_cast<compiler::identifier_reference*>(resolve_symbol_or_evaluate(
+                    r, session, node->rhs));
+                qualified_symbol.namespaces.insert(qualified_symbol.namespaces.begin(), from_reference->symbol().name);
             }
-			return make_import(current_scope(), resolve_symbol_or_evaluate(r, session, node->lhs),
-                from_expr);
+            auto identifier_reference = make_identifier_reference(current_scope(),
+                qualified_symbol, find_identifier(qualified_symbol));
+            auto import = make_import(current_scope(), identifier_reference, from_reference,
+                dynamic_cast<compiler::module*>(current_top_level()->parent_element()));
+            add_expression_to_scope(current_scope(), import);
+            return import;
 		}
 		case ast_node_types_t::if_expression:
 		case ast_node_types_t::elseif_expression: {
@@ -400,8 +428,9 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
             auto type_name = node->lhs->lhs->children[0]->token.value;
 			auto type = find_type(qualified_symbol_t{.name = type_name});
 			if (type == nullptr) {
-				r.add_message("P002", fmt::format("unknown type '{}'.", type_name), true);
-			}
+				error(r, session, "P002", fmt::format("unknown type '{}'.", type_name), node->lhs->lhs->location);
+                return nullptr;
+            }
 			return make_cast(current_scope(), type, resolve_symbol_or_evaluate(r, session, node->rhs));
 		}
 		case ast_node_types_t::alias_expression: {
@@ -438,6 +467,7 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 			}
 			return return_element;
 		}
+
 		case ast_node_types_t::namespace_expression: {
 			return make_namespace(current_scope(), evaluate(r, session, node->rhs, default_block_type));
 		}
@@ -455,6 +485,7 @@ block *program::push_new_block(element_type_t type)
 	auto scope_block = make_block(parent_scope, type);
 
 	if (parent_scope != nullptr) {
+        scope_block->parent_element(parent_scope);
 		parent_scope->blocks().push_back(scope_block);
 	}
 
@@ -706,6 +737,9 @@ cast* program::make_cast(compiler::block* parent_scope, compiler::type* type, el
 {
     auto cast = new compiler::cast(parent_scope, type, expr);
     elements_.add(cast);
+    if (expr != nullptr) {
+        expr->parent_element(cast);
+    }
     return cast;
 }
 
@@ -804,35 +838,34 @@ string_literal *program::make_string(compiler::block* parent_scope, const std::s
     return string_literal;
 }
 
-compiler::identifier *program::find_identifier(const qualified_symbol_t& symbol)
+compiler::identifier *program::find_identifier(const qualified_symbol_t& symbol, compiler::block* scope) const
 {
     if (symbol.is_qualified()) {
-		auto block_scope = top_level_stack_.top();
-		for (const auto& namespace_name : symbol.namespaces) {
-		    auto var = block_scope->identifiers().find(namespace_name);
-			if (var == nullptr || var->initializer() == nullptr) {
-                return nullptr;
-            }
-
-			auto expr = var->initializer()->expression();
-			if (expr->element_type() == element_type_t::namespace_e) {
-				auto ns = dynamic_cast<namespace_element*>(expr);
-				block_scope = dynamic_cast<compiler::block*>(ns->expression());
-			} else {
-                return nullptr;
-			}
-		}
-        return block_scope->identifiers().find(symbol.name);
+        return dynamic_cast<compiler::identifier*>(walk_qualified_symbol(symbol, scope,
+            [&symbol](compiler::block* scope) {
+              return scope->identifiers().find(symbol.name);
+            }));
 	} else {
-		auto block_scope = current_scope();
-		while (block_scope != nullptr) {
-			auto var = block_scope->identifiers().find(symbol.name);
-			if (var != nullptr) {
-                return var;
-            }
-			block_scope = block_scope->parent_scope();
-		}
-		return nullptr;
+        return dynamic_cast<compiler::identifier*>(walk_parent_scopes(
+            scope != nullptr ? scope : current_scope(),
+            [&](compiler::block* scope) -> compiler::element* {
+              auto var = scope->identifiers().find(symbol.name);
+              if (var != nullptr) {
+                  return var;
+              }
+              for (auto import : scope->imports()) {
+                  auto identifier_reference = dynamic_cast<compiler::identifier_reference*>(import->expression());
+                  auto qualified_symbol = identifier_reference->symbol();
+                  qualified_symbol.namespaces.push_back(qualified_symbol.name);
+                  qualified_symbol.name = symbol.name;
+                  qualified_symbol.fully_qualified_name = make_fully_qualified_name(qualified_symbol);
+                  var = find_identifier(qualified_symbol, import->module()->scope());
+                  if (var != nullptr) {
+                      return var;
+                  }
+              }
+              return nullptr;
+            }));
 	}
 }
 
@@ -858,7 +891,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
 	const ast_node_shared_ptr &node, compiler::block* parent_scope)
 {
 	auto namespace_type = find_type(qualified_symbol_t{.name = "namespace"});
-	auto scope = symbol->is_qualified() ? top_level_stack_.top()
+	auto scope = symbol->is_qualified() ? current_top_level()
 		: (parent_scope != nullptr ? parent_scope : current_scope());
 
     auto namespaces = symbol->namespaces();
@@ -887,7 +920,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
 				auto ns = dynamic_cast<namespace_element*>(expr);
 				scope = dynamic_cast<compiler::block*>(ns->expression());
 			} else {
-                r.add_message("P018", "only a namespace is valid within a qualified name.", true);
+                error(r, session, "P018", "only a namespace is valid within a qualified name.", node->lhs->location);
                 return nullptr;
 			}
 		}
@@ -898,6 +931,12 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
 	if (node != nullptr && node->rhs != nullptr) {
         init_expr = evaluate_in_scope(r, session, node->rhs, scope);
         if (init_expr != nullptr) {
+            // XXX: need to revisit this!!!
+            if (init_expr->element_type() == element_type_t::symbol) {
+                auto init_symbol = dynamic_cast<compiler::symbol_element*>(init_expr);
+                init_expr = make_identifier_reference(scope,
+                    init_symbol->qualified_symbol(), nullptr);
+            }
             if (init_expr->is_constant()) {
                 init = make_initializer(scope, init_expr);
             }
@@ -933,20 +972,15 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
     }
 
 	scope->identifiers().add(new_identifier);
-	if (init != nullptr
-		&& init->expression()->element_type() == element_type_t::proc_type) {
+	if (init != nullptr && init->expression()->element_type() == element_type_t::proc_type) {
 		add_procedure_instance(r, session, dynamic_cast<procedure_type*>(init->expression()), node->rhs);
 	}
+
     if (init == nullptr && init_expr != nullptr) {
-        if (new_identifier->type()->element_type() == element_type_t::unknown_type) {
-            r.add_message("P019", fmt::format("unable to infer type: {}", new_identifier->symbol()->name()), true);
-            return nullptr;
-        } else {
-            auto assign_bin_op = make_binary_operator(scope, operator_type_t::assignment, new_identifier, init_expr);
-            auto statement = make_statement(scope, label_list_t {}, assign_bin_op);
-            add_expression_to_scope(scope, statement);
-            statement->parent_element(scope);
-        }
+        auto assign_bin_op = make_binary_operator(scope, operator_type_t::assignment, new_identifier, init_expr);
+        auto statement = make_statement(scope, label_list_t {}, assign_bin_op);
+        add_expression_to_scope(scope, statement);
+        statement->parent_element(scope);
     }
 
     return new_identifier;
@@ -1078,46 +1112,52 @@ bool program::resolve_unknown_types(result& r)
 {
 	auto it = identifiers_with_unknown_types_.begin();
 	while (it != identifiers_with_unknown_types_.end()) {
-		auto var = *it;
-		if (var->type() != nullptr &&  var->type()->element_type() != element_type_t::unknown_type) {
-			it = identifiers_with_unknown_types_.erase(it);
-			continue;
-		}
+        auto var = *it;
+        if (var->type()!=nullptr && var->type()->element_type()!=element_type_t::unknown_type) {
+            it = identifiers_with_unknown_types_.erase(it);
+            continue;
+        }
 
-		compiler::type* identifier_type = nullptr;
-		if (var->initializer() == nullptr) {
-			auto unknown_type = dynamic_cast<compiler::unknown_type*>(var->type());
-            auto type_name = unknown_type->symbol()->name();
-			identifier_type = find_type(qualified_symbol_t{.name = type_name});
-			if (unknown_type->is_array()) {
-				auto array_type = find_array_type(identifier_type, unknown_type->array_size());
-				if (array_type == nullptr) {
-					array_type = make_array_type(r, var->parent_scope(),
-						identifier_type, unknown_type->array_size(),
-                        make_block(var->parent_scope(), element_type_t::block));
-				}
-				identifier_type = array_type;
-			}
+        compiler::type *identifier_type = nullptr;
+        if (var->is_parent_element(element_type_t::binary_operator)) {
+            auto binary_operator = dynamic_cast<compiler::binary_operator *>(var->parent_element());
+            if (binary_operator->operator_type()==operator_type_t::assignment) {
+                identifier_type = binary_operator->rhs()->infer_type(this);
+                var->type(identifier_type);
+            }
+        } else {
+            if (var->initializer()==nullptr) {
+                auto unknown_type = dynamic_cast<compiler::unknown_type *>(var->type());
+                auto type_name = unknown_type->symbol()->name();
+                identifier_type = find_type(qualified_symbol_t{.name = type_name});
+                if (unknown_type->is_array()) {
+                    auto array_type = find_array_type(identifier_type, unknown_type->array_size());
+                    if (array_type==nullptr) {
+                        array_type =
+                            make_array_type(r, var->parent_scope(), identifier_type, unknown_type->array_size(),
+                                            make_block(var->parent_scope(), element_type_t::block));
+                    }
+                    identifier_type = array_type;
+                }
 
-			if (identifier_type != nullptr) {
-				var->type(identifier_type);
-                elements_.remove(unknown_type->id());
-			}
-		} else {
-			identifier_type = var->initializer()->expression()->infer_type(this);
-			var->type(identifier_type);
-		}
-
-		if (identifier_type != nullptr) {
-			var->inferred_type(true);
-			it = identifiers_with_unknown_types_.erase(it);
-		} else {
-			++it;
+                if (identifier_type!=nullptr) {
+                    var->type(identifier_type);
+                    elements_.remove(unknown_type->id());
+                }
+            } else {
+                identifier_type = var->initializer()->expression()->infer_type(this);
+                var->type(identifier_type);
+            }
+        }
+        if (identifier_type!=nullptr) {
+            var->inferred_type(true);
+            it = identifiers_with_unknown_types_.erase(it);
+        } else {
+            ++it;
             error(r, var, "P004", fmt::format("unable to resolve type for identifier: {}", var->symbol()->name()),
                   var->symbol()->location());
-		}
-	}
-
+        }
+    }
 	return identifiers_with_unknown_types_.empty();
 }
 
@@ -1131,7 +1171,12 @@ void program::add_expression_to_scope(compiler::block *scope, compiler::element 
 	switch (expr->element_type()) {
 		case element_type_t::comment: {
             auto comm = dynamic_cast<compiler::comment*>(expr);
-            scope->comments().push_back(comm);
+            scope->comments().emplace_back(comm);
+            break;
+        }
+        case element_type_t::import_e: {
+            auto import = dynamic_cast<compiler::import*>(expr);
+            scope->imports().emplace_back(import);
             break;
         }
 		case element_type_t::attribute: {
@@ -1141,7 +1186,7 @@ void program::add_expression_to_scope(compiler::block *scope, compiler::element 
         }
 		case element_type_t::statement: {
             auto state = dynamic_cast<statement*>(expr);
-			scope->statements().push_back(state);
+			scope->statements().emplace_back(state);
 			break;
 		}
 		default:
@@ -1165,9 +1210,10 @@ void program::apply_attributes(result& r, compiler::session& session, compiler::
 	}
 }
 
-import* program::make_import(compiler::block* parent_scope, element* expr, element* from_expr)
+import* program::make_import(compiler::block* parent_scope, element* expr,
+                             element* from_expr, compiler::module* module)
 {
-	auto import_element = new compiler::import(parent_scope, expr, from_expr);
+	auto import_element = new compiler::import(parent_scope, expr, from_expr, module);
     elements_.add(import_element);
     if (expr !=nullptr) {
         expr->parent_element(import_element);
@@ -1224,6 +1270,7 @@ void program::make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_s
     }
     symbol.name = node->children.back()->token.value;
     symbol.location = node->location;
+    symbol.fully_qualified_name = make_fully_qualified_name(symbol);
 }
 
 type_info *program::make_type_info_type(result &r, compiler::block *parent_scope, compiler::block* scope)
@@ -1502,6 +1549,7 @@ compiler::symbol_element* program::make_symbol(compiler::block* parent_scope, co
 {
     auto symbol = new compiler::symbol_element(parent_scope, name, namespaces);
     elements_.add(symbol);
+    symbol->cache_fully_qualified_name();
     return symbol;
 }
 
@@ -1515,46 +1563,37 @@ compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_no
 
     return symbol;
 }
+
 compiler::type *program::find_type(const qualified_symbol_t &symbol) const
 {
     if (symbol.is_qualified()) {
-        auto block_scope = top_level_stack_.top();
-        for (const auto& namespace_name : symbol.namespaces) {
-            auto var = block_scope->identifiers().find(namespace_name);
-            if (var == nullptr || var->initializer() == nullptr) {
-                return nullptr;
-            }
-            auto expr = var->initializer()->expression();
-            if (expr->element_type() == element_type_t::namespace_e) {
-                auto ns = dynamic_cast<namespace_element *>(expr);
-                block_scope = dynamic_cast<compiler::block *>(ns->expression());
-            } else {
-                return nullptr;
-            }
-        }
-        auto matching_type = block_scope->types().find(symbol.name);
-        if (matching_type != nullptr) {
-            return matching_type;
-        }
-        auto type_identifer = block_scope->identifiers().find(symbol.name);
-        if (type_identifer != nullptr) {
-            return type_identifer->type();
-        }
+        return dynamic_cast<compiler::type*>(walk_qualified_symbol(symbol,
+            const_cast<compiler::program*>(this)->current_top_level(),
+            [&](compiler::block* scope) -> compiler::element* {
+              auto matching_type = scope->types().find(symbol.name);
+              if (matching_type != nullptr) {
+                  return matching_type;
+              }
+              auto type_identifier = find_identifier(symbol, scope);
+              if (type_identifier != nullptr) {
+                  return type_identifier->type();
+              }
+              return nullptr;
+            }));
     } else {
-        auto scope = current_scope();
-        while (scope != nullptr) {
-            auto type = scope->types().find(symbol.name);
-            if (type != nullptr) {
-                return type;
-            }
-            auto type_identifier = scope->identifiers().find(symbol.name);
-            if (type_identifier != nullptr) {
-                return type_identifier->type();
-            }
-            scope = scope->parent_scope();
-        }
+        return dynamic_cast<compiler::type*>(walk_parent_scopes(current_scope(),
+            [&](compiler::block* scope) -> compiler::element* {
+              auto type = scope->types().find(symbol.name);
+              if (type != nullptr) {
+                  return type;
+              }
+              auto type_identifier = find_identifier(symbol, scope);
+              if (type_identifier != nullptr) {
+                  return type_identifier->type();
+              }
+              return nullptr;
+            }));
     }
-    return nullptr;
 }
 
 bool program::resolve_unknown_identifiers(result &r)
@@ -1567,24 +1606,15 @@ bool program::resolve_unknown_identifiers(result &r)
             continue;
         }
 
-        identifier_list_t candidates {};
-        auto all_identifiers = elements_.find_by_type(element_type_t::identifier);
-        for (auto element : all_identifiers) {
-            auto identifier = dynamic_cast<compiler::identifier*>(element);
-            if (identifier->symbol()->name() == unresolved_reference->symbol().name) {
-                candidates.emplace_back(identifier);
-            }
-        }
-
-        if (candidates.empty()) {
+        auto identifier = find_identifier(unresolved_reference->symbol(),
+            unresolved_reference->parent_scope());
+        if (identifier == nullptr) {
             ++it;
             error(r, unresolved_reference, "P004",  fmt::format("unable to resolve identifier: {}", unresolved_reference->symbol().name),
                   unresolved_reference->symbol().location);
             continue;
         }
-
-        auto winner = candidates.front();
-        unresolved_reference->identifier(winner);
+        unresolved_reference->identifier(identifier);
         it = unresolved_identifier_references_.erase(it);
     }
 
@@ -1635,16 +1665,14 @@ compiler::block *program::current_top_level()
     return top_level_stack_.top();
 }
 
-compiler::module *program::find_module(compiler::element *element)
+compiler::module *program::find_module(compiler::element *element) const
 {
-    auto current = element;
-    while (current != nullptr) {
-        if (current->element_type() == element_type_t::module) {
-            return dynamic_cast<compiler::module*>(current);
-        }
-        current = current->parent_element();
-    }
-    return nullptr;
+    return dynamic_cast<compiler::module*>(walk_parent_elements(element,
+        [](compiler::element* each) -> compiler::element* {
+          if (each->element_type() == element_type_t::module)
+              return each;
+          return nullptr;
+        }));
 }
 
 void program::error(result &r, compiler::session &session, const std::string &code,
@@ -1663,6 +1691,55 @@ void program::error(result &r, compiler::element *element, const std::string &co
     if (module != nullptr) {
         module->source_file()->error(r, code, message, location);
     }
+}
+
+element *program::walk_parent_scopes(compiler::block *scope, const program::scope_visitor_callable &callable) const
+{
+    while (scope != nullptr) {
+        auto* result = callable(scope);
+        if (result != nullptr) {
+            return result;
+        }
+        scope = scope->parent_scope();
+    }
+    return nullptr;
+}
+
+element *program::walk_parent_elements(compiler::element *element,
+                                       const program::element_visitor_callable &callable) const
+{
+    auto current = element;
+    while (current != nullptr) {
+        auto* result = callable(current);
+        if (result != nullptr) {
+            return result;
+        }
+        current = current->parent_element();
+    }
+    return nullptr;
+}
+
+element *program::walk_qualified_symbol(const qualified_symbol_t &symbol, compiler::block *scope,
+                                        const program::namespace_visitor_callable &callable) const
+{
+    auto non_const_this = const_cast<compiler::program*>(this);
+    auto block_scope = scope != nullptr ? scope : non_const_this->current_top_level();
+    for (const auto& namespace_name : symbol.namespaces) {
+        auto var = block_scope->identifiers().find(namespace_name);
+        if (var == nullptr || var->initializer() == nullptr)
+            return nullptr;
+        auto expr = var->initializer()->expression();
+        if (expr->element_type() == element_type_t::namespace_e) {
+            auto ns = dynamic_cast<namespace_element*>(expr);
+            block_scope = dynamic_cast<compiler::block*>(ns->expression());
+        } else if (expr->element_type() == element_type_t::module_reference) {
+            auto module_reference = dynamic_cast<compiler::module_reference*>(expr);
+            block_scope = module_reference->module()->scope();
+        } else {
+            return nullptr;
+        }
+    }
+    return callable(block_scope);
 }
 
 }

@@ -21,7 +21,9 @@ public:
 
 	block_list_t& blocks();
 
-	comment_list_t& comments();
+    import_list_t& imports();
+
+    comment_list_t& comments();
 
 	statement_list_t& statements();
 
@@ -35,6 +37,7 @@ private:
 private:
 	type_map_t types_ {};
 	comment_list_t comments_{};
+    import_list_t imports_ {};
 	block_list_t blocks_ {};
 	statement_list_t statements_{};
 	identifier_map_t identifiers_ {};

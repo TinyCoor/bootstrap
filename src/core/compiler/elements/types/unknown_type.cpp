@@ -3,28 +3,46 @@
 //
 
 #include "unknown_type.h"
-gfx::compiler::unknown_type::unknown_type(block* parent_scope, compiler::symbol_element* symbol)
-	: type(parent_scope, element_type_t::unknown_type, symbol)
+namespace gfx::compiler {
+unknown_type::unknown_type(block *parent_scope, compiler::symbol_element *symbol)
+    : type(parent_scope, element_type_t::unknown_type, symbol)
 {
 
 }
-bool gfx::compiler::unknown_type::is_array() const
+bool unknown_type::is_array() const
 {
-	return false;
+    return is_array_;
 }
-void gfx::compiler::unknown_type::is_array(bool value)
-{
 
-}
-size_t gfx::compiler::unknown_type::array_size() const
+void unknown_type::is_array(bool value)
 {
-	return 0;
+    is_array_ = value;
 }
-void gfx::compiler::unknown_type::array_size(size_t value)
-{
 
-}
-bool gfx::compiler::unknown_type::on_initialize(result &r, compiler::program* program)
+size_t unknown_type::array_size() const
 {
-	return true;
+    return array_size_;
+}
+
+void unknown_type::array_size(size_t value)
+{
+    array_size_ = value;
+}
+
+bool unknown_type::is_pointer() const
+{
+    return is_pointer_;
+}
+
+void unknown_type::is_pointer(bool value)
+{
+    is_pointer_ = value;
+}
+
+bool unknown_type::on_initialize(result &r, compiler::program *program)
+{
+    return true;
+}
+
+
 }

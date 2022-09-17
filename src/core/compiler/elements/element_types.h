@@ -65,6 +65,7 @@ using type_list_t = std::vector<type*>;
 using label_list_t = std::vector<label*>;
 using block_list_t = std::vector<block*>;
 using field_list_t = std::vector<field*>;
+using import_list_t = std::vector<import*>;
 using element_list_t = std::vector<element*>;
 using comment_list_t = std::vector<comment*>;
 using statement_list_t = std::vector<statement*>;
@@ -393,7 +394,13 @@ struct qualified_symbol_t {
     std::string name {};
     source_location location {};
     string_list_t namespaces {};
+    std::string fully_qualified_name {};
 };
+
+std::string make_fully_qualified_name(const symbol_element* symbol);
+
+std::string make_fully_qualified_name(const qualified_symbol_t& symbol);
+
 
 }
 #endif // COMPILER_ELEMENTS_ELEMENT_TYPES_H_

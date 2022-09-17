@@ -11,6 +11,10 @@ class unknown_type : public type {
 public:
     unknown_type(block* parent_scope, compiler::symbol_element* symbol);
 
+    bool is_pointer() const;
+
+    void is_pointer(bool value);
+
 	bool is_array() const;
 
 	void is_array(bool value);
@@ -25,6 +29,7 @@ protected:
 private:
 	size_t array_size_ = 0;
 	bool is_array_ = false;
+    bool is_pointer_ = false;
 };
 }
 

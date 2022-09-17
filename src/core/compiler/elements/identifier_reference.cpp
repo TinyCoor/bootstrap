@@ -47,4 +47,44 @@ bool identifier_reference::on_is_constant() const
     return identifier_->is_constant();
 }
 
+bool identifier_reference::on_as_bool(bool &value) const
+{
+    if (identifier_ ==nullptr) {
+        return false;
+    }
+    return identifier_->as_bool(value);
+}
+
+bool identifier_reference::on_as_float(double &value) const
+{
+    if (identifier_ ==nullptr) {
+        return false;
+    }
+    return identifier_->as_float(value);
+}
+
+bool identifier_reference::on_as_integer(uint64_t &value) const
+{
+    if (identifier_ ==nullptr) {
+        return false;
+    }
+    return identifier_->as_integer(value);
+}
+
+bool identifier_reference::on_as_string(std::string &value) const
+{
+    if (identifier_ == nullptr) {
+        return false;
+    }
+    return identifier_->as_string(value);
+}
+
+compiler::type *identifier_reference::on_infer_type(const compiler::program *program)
+{
+    if (identifier_ == nullptr) {
+        return nullptr;
+    }
+    return identifier_->infer_type(program);
+}
+
 }

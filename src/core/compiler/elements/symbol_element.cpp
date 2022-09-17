@@ -36,22 +36,37 @@ bool symbol_element::is_qualified() const
     return !namespaces_.empty();
 }
 
-std::string symbol_element::fully_qualified_name() const
+std::string symbol_element::fully_qualified_name()
 {
-    std::stringstream stream {};
-    auto count = 0;
-    for (const auto& name : namespaces_) {
-        if (count > 0) {
-            stream << "::";
-        }
-        stream << name;
-        count++;
+    if (fully_qualified_name_.empty()) {
+        cache_fully_qualified_name();
     }
-    if (count > 0) {
-        stream << "::";
-    }
-    stream << name_;
-    return stream.str();
+    return fully_qualified_name_;
+}
+
+void symbol_element::cache_fully_qualified_name()
+{
+    fully_qualified_name_ = make_fully_qualified_name(this);
+}
+
+bool symbol_element::operator==(const symbol_element &other) const
+{
+    return fully_qualified_name_ == other.fully_qualified_name_;
+}
+
+bool symbol_element::operator==(const qualified_symbol_t &other) const
+{
+    return fully_qualified_name_ == other.fully_qualified_name;
+}
+
+qualified_symbol_t symbol_element::qualified_symbol() const
+{
+    qualified_symbol_t symbol {};
+    symbol.name = name_;
+    symbol.location = location();
+    symbol.namespaces = namespaces_;
+    symbol.fully_qualified_name = fully_qualified_name_;
+    return symbol;
 }
 
 }

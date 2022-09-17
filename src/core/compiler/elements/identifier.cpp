@@ -164,4 +164,9 @@ void identifier::on_owned_elements(element_list_t &list)
         list.emplace_back(symbol_);
     }
 }
+
+compiler::type *identifier::on_infer_type(const compiler::program *program)
+{
+    return type_;
+}
 }

@@ -58,6 +58,7 @@ compiler::type *element::infer_type(const compiler::program *program)
 		case element_type_t::bool_type:
 		case element_type_t::alias_type:
 		case element_type_t::array_type:
+        case element_type_t::module_type:
 		case element_type_t::string_type:
 		case element_type_t::numeric_type:
 		case element_type_t::composite_type:

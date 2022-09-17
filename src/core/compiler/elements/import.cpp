@@ -4,8 +4,9 @@
 
 #include "import.h"
 namespace gfx::compiler {
-import::import(block* parent, element* expr, element* from_expr)
-	: element(parent, element_type_t::import_e), expression_(expr), from_expression_(from_expr)
+import::import(block* parent, element* expr, element* from_expr, compiler::module* module)
+	: element(parent, element_type_t::import_e), module_(module),
+        expression_(expr), from_expression_(from_expr)
 {
 }
 
@@ -26,5 +27,10 @@ void import::on_owned_elements(element_list_t &list)
 element *import::from_expression()
 {
     return from_expression_ == nullptr ? nullptr : from_expression_;
+}
+
+compiler::module *import::module()
+{
+    return module_;
 }
 }

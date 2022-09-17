@@ -244,8 +244,12 @@ ast_node_shared_ptr binary_operator_infix_parser::parse(result& r, parser* parse
 {
 	auto associative_precedence = static_cast<uint8_t>(
 		static_cast<uint8_t>(precedence_) - (is_right_associative_ ? 1 : 0));
-	return parser->ast_builder()->binary_operator_node(lhs, token,
-		parser->parse_expression(r, associative_precedence));
+    auto rhs = parser->parse_expression(r, associative_precedence);
+    if (rhs == nullptr) {
+        parser->error(r, "P019", "binary operator expects right-hand-side expression",token.location);
+        return nullptr;
+    }
+	return parser->ast_builder()->binary_operator_node(lhs, token, rhs);
 }
 
 precedence_t binary_operator_infix_parser::precedence() const
@@ -260,7 +264,12 @@ ast_node_shared_ptr assignment_infix_parser::parse(result& r, parser* parser, co
 {
 	auto assignment_node = parser->ast_builder()->assignment_node();
 	pairs_to_list(assignment_node->lhs, lhs);
-	assignment_node->rhs = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::assignment) - 1);
+	auto rhs = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::assignment) - 1);
+    if (rhs == nullptr) {
+        parser->error(r, "P019", "assignment expects right-hand-side expression", token.location);
+        return nullptr;
+    }
+    assignment_node->rhs = rhs;
     assignment_node->location.start(lhs->location.start());
     assignment_node->location.end(assignment_node->rhs->location.end());
 	return assignment_node;

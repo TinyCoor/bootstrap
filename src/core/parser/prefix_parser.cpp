@@ -196,7 +196,12 @@ unary_operator_prefix_parser::unary_operator_prefix_parser(precedence_t preceden
 ast_node_shared_ptr unary_operator_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
 	auto unary_operator_node = parser->ast_builder()->unary_operator_node(token);
-	unary_operator_node->rhs = parser->parse_expression(r,static_cast<uint8_t>(precedence_));
+	auto rhs = parser->parse_expression(r,static_cast<uint8_t>(precedence_));
+	if (rhs == nullptr) {
+		parser->error(r, "P019", "unary operator expects right-hand-side expression", token.location);
+		return nullptr;
+	}
+	unary_operator_node->rhs = rhs;
 	unary_operator_node->location.start(token.location.start());
 	unary_operator_node->location.end(unary_operator_node->rhs->location.end());
 	return unary_operator_node;
@@ -214,9 +219,19 @@ ast_node_shared_ptr keyword_literal_prefix_parser::parse(result& r, parser* pars
 		case token_types_t::import_literal: {
 			auto import_node = parser->ast_builder()->import_node(token);
 			import_node->lhs = parser->parse_expression(r, 0);
+			if (import_node->lhs == nullptr) {
+				parser->error(r, "P019", "import expects namespace", token.location);
+				return nullptr;
+			}
             if (parser->peek(token_types_t::from_literal)) {
+				token_t from_token;
+				parser->current(from_token);
                 parser->consume();
                 import_node->rhs = parser->parse_expression(r, 0);
+				if (import_node->rhs == nullptr) {
+					parser->error(r, "P019", "from expects identifier of type module", from_token.location);
+					return nullptr;
+				}
             }
 			return import_node;
 		}

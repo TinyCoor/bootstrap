@@ -24,6 +24,7 @@
 #include "types/numeric_type.h"
 #include "types/procedure_type.h"
 #include "types/unknown_type.h"
+#include "types/pointer_type.h"
 #include "types/module_type.h"
 #include "argument_list.h"
 #include "boolean_literal.h"
@@ -372,7 +373,9 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
                         return_identifier->usage(identifier_usage_t::stack);
                         auto type_name = type_node->children[0]->token.value;
                         return_identifier->type(find_type(qualified_symbol_t{.name = type_name}));
-						proc_type->returns().add(make_field(block_scope, return_identifier));
+                        auto new_field = make_field(block_scope, return_identifier);
+                        proc_type->returns().add(new_field);
+                        new_field->parent_element(proc_type);
 						break;
 					}
 					default: {
@@ -394,6 +397,7 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
                         param_identifier->usage(identifier_usage_t::stack);
                         auto field = make_field(current_scope(), param_identifier);
 						proc_type->parameters().add(field);
+                        field->parent_element(proc_type);
 						break;
 					}
 					case ast_node_types_t ::symbol: {
@@ -401,9 +405,15 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
                         type_find_result_t find_type_result {};
                         find_identifier_type(r, find_type_result, param_node->rhs, block_scope);
 						auto param_identifier = add_identifier_to_scope(r, session, symbol, find_type_result, nullptr, block_scope);
-                        param_identifier->usage(identifier_usage_t::stack);
-                        auto field = make_field(block_scope, param_identifier);
-						proc_type->parameters().add(field);
+                        if (param_identifier !=nullptr) {
+                            param_identifier->usage(identifier_usage_t::stack);
+                            auto field = make_field(block_scope, param_identifier);
+                            proc_type->parameters().add(field);
+                            field->parent_element(proc_type);
+                        } else {
+                            error(r, session, "P014", fmt::format("invalid parameter declaration: {}", symbol->name()),
+                                symbol->location());
+                        }
 						break;
 					}
 					default: {
@@ -976,32 +986,30 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
 		add_procedure_instance(r, session, dynamic_cast<procedure_type*>(init->expression()), node->rhs);
 	}
 
-    if (init == nullptr && init_expr != nullptr) {
-        auto assign_bin_op = make_binary_operator(scope, operator_type_t::assignment, new_identifier, init_expr);
-        auto statement = make_statement(scope, label_list_t {}, assign_bin_op);
-        add_expression_to_scope(scope, statement);
-        statement->parent_element(scope);
+    if (init == nullptr && init_expr == nullptr && new_identifier->type() == nullptr) {
+        error(r, session, "P019", fmt::format("unable to infer type: {}", new_identifier->symbol()->name()),
+            new_identifier->symbol()->location());
+        return nullptr;
+    } else {
+        if (init == nullptr && init_expr != nullptr) {
+            auto assign_bin_op = make_binary_operator(scope, operator_type_t::assignment, new_identifier, init_expr);
+            auto statement = make_statement(scope, label_list_t{}, assign_bin_op);
+            add_expression_to_scope(scope, statement);
+            statement->parent_element(scope);
+        }
     }
 
     return new_identifier;
 }
 
-array_type *program::make_array_type(result &r, compiler::block* parent_scope, compiler::type *entry_type,
-    size_t size, compiler::block* scope)
+array_type *program::make_array_type(result &r, compiler::block* parent_scope, compiler::block* scope,
+                                     compiler::type *entry_type, size_t size)
 {
-    std::string name = fmt::format("__array_{}_{}__", entry_type->symbol()->name(), size);
-    auto symbol =  make_symbol(parent_scope, name);
-    auto type = make_type<array_type>(r, parent_scope, symbol, scope, entry_type, size);
-    symbol->parent_element(type);
+    auto type = make_type<array_type>(r, parent_scope, scope, entry_type, size);
     scope->parent_element(type);
     return type;
 }
 
-compiler::type *program::find_array_type(compiler::type *entry_type, size_t size) const
-{
-    auto type_name = fmt::format("__array_{}_{}__", entry_type->symbol()->name(), size);
-	return find_type(qualified_symbol_t{.name = type_name});
-}
 
 namespace_type *program::make_namespace_type(result &r, compiler::block* parent_scope)
 {
@@ -1020,19 +1028,21 @@ void program::add_composite_type_fields(result &r, compiler::session& session, c
 		auto expr_node = child->rhs;
 		switch (expr_node->type) {
 			case ast_node_types_t::assignment: {
-                auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate_in_scope(r, session,  expr_node->lhs, type->scope()));
-                type_find_result_t type_find_result {};
-                find_identifier_type(r, type_find_result, expr_node->rhs, type->scope());
-                auto init = make_initializer(type->scope(), evaluate_in_scope(r, session, expr_node->rhs, type->scope()));
-                auto field_identifier = make_identifier(type->scope(), symbol, init);
-                if (type_find_result.type == nullptr) {
-                    type_find_result.type = init->expression()->infer_type(this);
-                    field_identifier->inferred_type(type_find_result.type != nullptr);
+                for (const auto &symbol_node : expr_node->lhs->children) {
+                    auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate_in_scope(r, session, symbol_node, type->scope()));
+                    type_find_result_t type_find_result {};
+                    find_identifier_type(r, type_find_result, expr_node->rhs, type->scope());
+                    auto init = make_initializer(type->scope(), evaluate_in_scope(r, session, expr_node->rhs, type->scope()));
+                    auto field_identifier = make_identifier(type->scope(), symbol, init);
+                    if (type_find_result.type == nullptr) {
+                        type_find_result.type = init->expression()->infer_type(this);
+                        field_identifier->inferred_type(type_find_result.type != nullptr);
+                    }
+                    field_identifier->type(type_find_result.type);
+                    auto new_field = make_field(type->scope(), field_identifier);
+                    new_field->parent_element(type);
+                    type->fields().add(new_field);
                 }
-                field_identifier->type(type_find_result.type);
-                auto new_field = make_field(type->scope(), field_identifier);
-                new_field->parent_element(type);
-				type->fields().add(new_field);
 				break;
 			}
 			case ast_node_types_t::symbol: {
@@ -1094,7 +1104,7 @@ void program::add_procedure_instance(result &r, compiler::session& session,
 }
 
 unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scope, symbol_element* symbol,
-	bool is_array, size_t array_size)
+                                         bool is_pointer, bool is_array, size_t array_size)
 {
     auto type = new compiler::unknown_type(parent_scope, symbol);
     if (!type->initialize(r, this)) {
@@ -1103,6 +1113,7 @@ unknown_type *program::make_unknown_type(result &r, compiler::block *parent_scop
 
     type->is_array(is_array);
     type->array_size(array_size);
+    type->is_pointer(is_pointer);
     symbol->parent_element(type);
     elements_.add(type);
     return type;
@@ -1128,19 +1139,15 @@ bool program::resolve_unknown_types(result& r)
         } else {
             if (var->initializer()==nullptr) {
                 auto unknown_type = dynamic_cast<compiler::unknown_type *>(var->type());
+                type_find_result_t find_result {};
+                find_result.type_name = unknown_type->symbol()->qualified_symbol();
+                find_result.is_array = unknown_type->is_array();
+                find_result.is_pointer = unknown_type->is_pointer();
+                find_result.array_size = unknown_type->array_size();
+                identifier_type = make_complete_type(r, find_result, var->parent_scope());
                 auto type_name = unknown_type->symbol()->name();
                 identifier_type = find_type(qualified_symbol_t{.name = type_name});
-                if (unknown_type->is_array()) {
-                    auto array_type = find_array_type(identifier_type, unknown_type->array_size());
-                    if (array_type==nullptr) {
-                        array_type =
-                            make_array_type(r, var->parent_scope(), identifier_type, unknown_type->array_size(),
-                                            make_block(var->parent_scope(), element_type_t::block));
-                    }
-                    identifier_type = array_type;
-                }
-
-                if (identifier_type!=nullptr) {
+                if (identifier_type != nullptr) {
                     var->type(identifier_type);
                     elements_.remove(unknown_type->id());
                 }
@@ -1235,20 +1242,11 @@ bool program::find_identifier_type(result& r, type_find_result_t &result, const 
     if (type_node == nullptr) {
         return false;
     }
-    parent_scope = parent_scope == nullptr ? current_scope() : parent_scope;
     make_qualified_symbol(result.type_name, type_node->lhs);
+    result.array_size = 0;
     result.is_array = type_node->is_array();
-    result.array_size = 0; // XXX: this needs to be fixed!
-    result.type = find_type(result.type_name);
-    if (result.is_array) {
-        auto array_type = find_array_type(result.type, result.array_size);
-        if (array_type == nullptr) {
-            array_type = make_array_type(r, parent_scope, result.type, result.array_size,
-                make_block(parent_scope, element_type_t::block));
-        }
-        result.type = array_type;
-    }
-
+    result.is_pointer = type_node->is_pointer();
+    make_complete_type(r, result, parent_scope);
     return result.type !=nullptr;
 }
 
@@ -1256,7 +1254,7 @@ unknown_type *program::unknown_type_from_result(result &r,compiler::block *scope
     compiler::identifier *identifier, type_find_result_t &result)
 {
     auto symbol = make_symbol(scope, result.type_name.name, result.type_name.namespaces);
-    auto type = make_unknown_type(r, scope, symbol, result.is_array, result.array_size);
+    auto type = make_unknown_type(r, scope, symbol, result.is_pointer, result.is_array, result.array_size);
     identifiers_with_unknown_types_.push_back(identifier);
     return type;
 }
@@ -1519,7 +1517,8 @@ bool program::on_emit(result &r, emit_context_t &context)
     block_list_t implicit_blocks {};
     for (auto block : all_blocks) {
         if (block->is_parent_element(element_type_t::namespace_e)
-            ||  block->is_parent_element(element_type_t::program)) {
+            ||  block->is_parent_element(element_type_t::program)
+            ||  block->is_parent_element(element_type_t::block)) {
             implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
         }
     }
@@ -1564,7 +1563,7 @@ compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_no
     return symbol;
 }
 
-compiler::type *program::find_type(const qualified_symbol_t &symbol) const
+compiler::type *program::find_type(const qualified_symbol_t &symbol, compiler::block* scope) const
 {
     if (symbol.is_qualified()) {
         return dynamic_cast<compiler::type*>(walk_qualified_symbol(symbol,
@@ -1581,7 +1580,7 @@ compiler::type *program::find_type(const qualified_symbol_t &symbol) const
               return nullptr;
             }));
     } else {
-        return dynamic_cast<compiler::type*>(walk_parent_scopes(current_scope(),
+        return dynamic_cast<compiler::type*>(walk_parent_scopes(scope != nullptr ? scope : current_scope(),
             [&](compiler::block* scope) -> compiler::element* {
               auto type = scope->types().find(symbol.name);
               if (type != nullptr) {
@@ -1740,6 +1739,57 @@ element *program::walk_qualified_symbol(const qualified_symbol_t &symbol, compil
         }
     }
     return callable(block_scope);
+}
+
+pointer_type *program::make_pointer_type(result &r, compiler::block *parent_scope, compiler::type *base_type)
+{
+    auto type = new compiler::pointer_type(parent_scope, base_type);
+    if (!type->initialize(r, this)) {
+        return nullptr;
+    }
+    elements_.add(type);
+    return type;
+}
+
+compiler::type *program::find_pointer_type(compiler::type *base_type, compiler::block* scope)
+{
+    return find_type(qualified_symbol_t {
+        .name = compiler::pointer_type::name_for_pointer(base_type)
+    }, scope);
+}
+
+compiler::type *program::find_array_type(compiler::type *entry_type, size_t size, compiler::block* scope) const
+{
+    return find_type(qualified_symbol_t {
+        .name = compiler::array_type::name_for_array(entry_type, size)
+    }, scope);
+}
+
+compiler::type *program::make_complete_type(result &r, type_find_result_t &result, compiler::block *parent_scope)
+{
+    result.type = find_type(result.type_name, parent_scope);
+    if (result.type != nullptr) {
+        if (result.is_array) {
+            auto array_type = find_array_type(
+                result.type,
+                result.array_size,
+                parent_scope);
+            if (array_type == nullptr) {
+                array_type = make_array_type(r,parent_scope, make_block(parent_scope, element_type_t::block),
+                    result.type, result.array_size);
+            }
+            result.type = array_type;
+        }
+
+        if (result.is_pointer) {
+            auto pointer_type = find_pointer_type(result.type, parent_scope);
+            if (pointer_type == nullptr) {
+                pointer_type = make_pointer_type(r, parent_scope, result.type);
+            }
+            result.type = pointer_type;
+        }
+    }
+    return result.type;
 }
 
 }

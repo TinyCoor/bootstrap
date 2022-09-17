@@ -16,6 +16,7 @@ namespace gfx::compiler {
 struct type_find_result_t {
     qualified_symbol_t type_name{};
     bool is_array{false};
+    bool is_pointer = false;
     size_t array_size{0};
     compiler::type* type = nullptr;
 };
@@ -42,7 +43,7 @@ public:
 
 	bool compile(result& r, compiler::session& session);
 
-    compiler::type* find_type(const qualified_symbol_t& symbol) const;
+    compiler::type* find_type(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
 
 	module* compile_module(result& r, compiler::session& session, source_file *source);
 
@@ -99,6 +100,7 @@ private:
     friend class module_type;
     friend class string_type;
     friend class numeric_type;
+    friend class pointer_type;
     friend class unary_operator;
     friend class namespace_type;
     friend class procedure_type;
@@ -166,13 +168,16 @@ private:
 	class block* push_new_block(element_type_t type = element_type_t::block);
 
 	unknown_type* make_unknown_type(result &r, compiler::block* parent_scope, compiler::symbol_element* symbol,
-        bool is_array, size_t array_size);
+      bool is_pointer, bool is_array, size_t array_size);
 
 	numeric_type* make_numeric_type(result &r, compiler::block* parent_scope, const std::string& name,
 		int64_t min, uint64_t max);
 
-	array_type* make_array_type(result &r, compiler::block* parent_scope,
-        compiler::type* entry_type, size_t size, compiler::block* scope);
+	array_type* make_array_type(result &r, compiler::block* parent_scope, compiler::block* scope,
+        compiler::type* entry_type, size_t size);
+
+    pointer_type* make_pointer_type(result& r, compiler::block* parent_scope,
+        compiler::type* base_type);
 
 	composite_type* make_enum_type(result &r, compiler::block* parent_scope, compiler::block* scope);
 
@@ -212,7 +217,9 @@ private:
 
 	return_element* make_return(compiler::block* parent_scope);
 
-	compiler::type* find_array_type(compiler::type* entry_type, size_t size) const;
+	compiler::type* find_array_type(compiler::type* entry_type, size_t size, compiler::block* scope = nullptr) const;
+
+    compiler::type* find_pointer_type(compiler::type* base_type, compiler::block* scope = nullptr);
 
     unknown_type* unknown_type_from_result(result& r, compiler::block* scope, compiler::identifier* identifier,
        type_find_result_t& result);
@@ -244,7 +251,7 @@ private:
                               compiler::block* parent_scope = nullptr);
 
 	compiler::identifier* find_identifier(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
-
+    compiler::type* make_complete_type(result& r, type_find_result_t& result, compiler::block* parent_scope = nullptr);
 private:
 	assembler* assembler_ = nullptr;
 	class terp* terp_ = nullptr;

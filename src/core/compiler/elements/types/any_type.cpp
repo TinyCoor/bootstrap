@@ -3,6 +3,7 @@
 //
 
 #include "any_type.h"
+#include "pointer_type.h"
 #include "core/compiler/elements/program.h"
 namespace gfx::compiler {
 any_type::any_type(block * parent, block* scope)
@@ -27,7 +28,7 @@ bool any_type::on_initialize(result &r, compiler::program* program)
     auto block_scope = scope();
 
     auto type_info_type = program->find_type(qualified_symbol_t{.name = "type"});
-    auto address_type = program->find_type(qualified_symbol_t{.name = "address"});
+    auto u8_type = program->find_type(qualified_symbol_t{.name = "u8"});
 
     auto type_info_identifier = program->make_identifier(block_scope,
         program->make_symbol(parent_scope(), "type_info"), nullptr);
@@ -38,7 +39,7 @@ bool any_type::on_initialize(result &r, compiler::program* program)
     auto data_identifier = program->make_identifier(block_scope,
        program->make_symbol(parent_scope(), "data"), nullptr);
 
-    data_identifier->type(address_type);
+    data_identifier->type(program->make_pointer_type(r, block_scope, u8_type));
     auto data_field = program->make_field(block_scope, data_identifier);
 
     fields().add(type_info_field);

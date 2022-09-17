@@ -27,9 +27,15 @@ ast_node_shared_ptr create_module_expression_node(result& r, parser* parser,
 ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token_t& token)
 {
 	auto is_spread = false;
+    auto is_pointer = false;
 	ast_node_shared_ptr array_node = nullptr;
 
-	if (parser->peek(token_types_t::left_square_bracket)) {
+    if (parser->peek(token_types_t::caret)) {
+        parser->consume();
+        is_pointer = true;
+    }
+
+    if (parser->peek(token_types_t::left_square_bracket)) {
 		array_node = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::variable));
 	}
 
@@ -59,7 +65,12 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
 		type_node->flags |= ast_node_t::flags_t::spread;
 	}
 
-	return type_node;
+    if (is_pointer) {
+        type_node->flags |= ast_node_t::flags_t::pointer;
+    }
+
+
+    return type_node;
 }
 
 void pairs_to_list(const ast_node_shared_ptr& target, const ast_node_shared_ptr& root)

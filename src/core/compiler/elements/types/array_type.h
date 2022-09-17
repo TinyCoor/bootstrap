@@ -8,8 +8,8 @@
 namespace gfx::compiler {
 class array_type : public composite_type {
 public:
-	array_type(block* parent_scope, compiler::symbol_element* symbol,
-        compiler::block* scope, compiler::type* entry_type, size_t size);
+	array_type(block* parent_scope, compiler::block* scope,
+               compiler::type* entry_type, size_t size);
 
 	uint64_t size() const;
 
@@ -17,6 +17,7 @@ public:
 
 	compiler::type* entry_type();
 
+    static std::string name_for_array(compiler::type* entry_type, size_t size);
 protected:
 	bool on_initialize(result& r, compiler::program* program) override;
 

@@ -40,7 +40,6 @@ protected:
 		{"s64",     {INT64_MIN, INT64_MAX,   8}},
 		{"f32",     {0,         UINT32_MAX,  4}},
 		{"f64",     {0,         UINT64_MAX,  8}},
-		{"address", {0,         UINTPTR_MAX, 8}},
 	};
 
 	bool on_initialize(result& r, compiler::program* program) override;

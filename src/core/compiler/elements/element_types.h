@@ -52,6 +52,7 @@ class integer_literal;
 class boolean_literal;
 class namespace_type;
 class composite_type;
+class pointer_type;
 class string_literal;
 class binary_operator;
 class namespace_element;
@@ -123,6 +124,7 @@ enum class element_type_t {
 	alias_type,
     tuple_type,
 	array_type,
+    pointer_type,
 	identifier,
 	expression,
     module_block,
@@ -183,6 +185,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
     {element_type_t::struct_type, 			"struct_type"},
 	{element_type_t::initializer, 			"initializer"},
 	{element_type_t::unknown_type, 			"unknown_type"},
+    {element_type_t::pointer_type, 			"pointer_type"},
 	{element_type_t::numeric_type, 			"numeric_type"},
 	{element_type_t::argument_list, 		"argument_list"},
 	{element_type_t::proc_instance, 		"proc_instance"},

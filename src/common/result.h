@@ -6,6 +6,15 @@
 #define COMMON__RESULT_H_
 #include "result_message.h"
 #include <string>
+
+#if _MSC_VER
+#if !defined(API_EXPORT)
+		#define API_EXPORT __declspec(dllexport)
+	#endif
+#else
+#define API_EXPORT
+#endif
+
 namespace gfx {
 class result{
 public:

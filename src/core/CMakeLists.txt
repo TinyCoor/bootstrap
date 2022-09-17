@@ -104,6 +104,7 @@ set(ELEMENT_SRC
         compiler/elements/types/struct_type.h       compiler/elements/types/struct_type.cpp
         compiler/elements/types/string_type.h       compiler/elements/types/string_type.cpp
         compiler/elements/types/numeric_type.h      compiler/elements/types/numeric_type.cpp
+        compiler/elements/types/pointer_type.h      compiler/elements/types/pointer_type.cpp
         compiler/elements/types/unknown_type.h      compiler/elements/types/unknown_type.cpp
         compiler/elements/types/composite_type.h    compiler/elements/types/composite_type.cpp
         compiler/elements/types/procedure_type.h    compiler/elements/types/procedure_type.cpp

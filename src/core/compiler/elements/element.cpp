@@ -61,6 +61,7 @@ compiler::type *element::infer_type(const compiler::program *program)
         case element_type_t::module_type:
 		case element_type_t::string_type:
 		case element_type_t::numeric_type:
+        case element_type_t::pointer_type:
 		case element_type_t::composite_type:
 		case element_type_t::namespace_type:
 			return dynamic_cast<compiler::type*>(this);

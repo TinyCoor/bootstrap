@@ -4,10 +4,19 @@
 
 #include "array_type.h"
 #include "core/compiler/elements/program.h"
+#include "fmt/format.h"
+#include "pointer_type.h"
+#include "../symbol_element.h"
 namespace gfx::compiler {
-array_type::array_type(block* parent,  compiler::symbol_element* symbol,
-                      compiler::block* scope, compiler::type* entry_type,size_t size)
-	:   composite_type(parent, composite_types_t::struct_type, scope, symbol,  element_type_t::array_type),
+
+std::string array_type::name_for_array(compiler::type* entry_type, size_t size)
+{
+    return fmt::format("__array_{}_{}__", entry_type->symbol()->name(), size);
+}
+
+array_type::array_type(block* parent, compiler::block* scope,
+                       compiler::type* entry_type,size_t size)
+	:   composite_type(parent, composite_types_t::struct_type, scope, nullptr,  element_type_t::array_type),
         size_(size), entry_type_(entry_type)
 {
 }
@@ -29,12 +38,16 @@ compiler::type* array_type::entry_type()
 
 bool array_type::on_initialize(result &r, compiler::program* program)
 {
+    auto type_symbol = program->make_symbol(parent_scope(), name_for_array(entry_type_, size_));
+    symbol(type_symbol);
+    type_symbol->parent_element(this);
+
     auto block_scope = scope();
 
     auto u8_type = program->find_type(qualified_symbol_t{.name =  "u8"});
     auto u32_type = program->find_type(qualified_symbol_t{.name = "u32"});
     auto type_info_type = program->find_type(qualified_symbol_t{.name = "type"});
-    auto address_type = program->find_type(qualified_symbol_t{.name = "address"});
+
     auto flags_identifier = program->make_identifier(block_scope,
         program->make_symbol(block_scope,"flags"), nullptr);
     flags_identifier->type(u8_type);
@@ -58,8 +71,7 @@ bool array_type::on_initialize(result &r, compiler::program* program)
 
     auto data_identifier = program->make_identifier(block_scope,
         program->make_symbol(block_scope, "data"), nullptr);
-
-    data_identifier->type(address_type);
+    data_identifier->type(program->make_pointer_type(r, block_scope, u8_type));
     auto data_field = program->make_field(block_scope, data_identifier);
 
     auto& field_map = fields();

@@ -29,15 +29,19 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
 	auto is_spread = false;
     auto is_pointer = false;
 	ast_node_shared_ptr array_node = nullptr;
+    auto array_subscripts = parser->ast_builder()->array_subscript_list_node();
+    while (true) {
+        if (!parser->peek(token_types_t::left_square_bracket)) {
+            break;
+        }
+        array_subscripts->children.push_back(parser->parse_expression(r,
+            static_cast<uint8_t>(precedence_t::variable)));
+    }
 
     if (parser->peek(token_types_t::caret)) {
         parser->consume();
         is_pointer = true;
     }
-
-    if (parser->peek(token_types_t::left_square_bracket)) {
-		array_node = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::variable));
-	}
 
 	if (parser->peek(token_types_t::spread_operator)) {
 		parser->consume();
@@ -55,12 +59,10 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
     auto symbol_node = create_symbol_node(r, parser, nullptr, type_identifier);
     auto type_node = parser->ast_builder()->type_identifier_node();
     type_node->lhs = symbol_node;
-
-	if (array_node != nullptr) {
-		type_node->rhs = array_node;
-		type_node->flags |= ast_node_t::flags_t::array;
-	}
-
+    type_node->rhs = array_subscripts;
+    if (!array_subscripts->children.empty()) {
+        type_node->flags |= ast_node_t::flags_t::array;
+    }
 	if (is_spread) {
 		type_node->flags |= ast_node_t::flags_t::spread;
 	}
@@ -68,8 +70,6 @@ ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token
     if (is_pointer) {
         type_node->flags |= ast_node_t::flags_t::pointer;
     }
-
-
     return type_node;
 }
 

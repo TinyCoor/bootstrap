@@ -447,4 +447,12 @@ ast_node_shared_ptr ast_builder::module_expression_node(const token_t &token)
     return node;
 }
 
+ast_node_shared_ptr ast_builder::array_subscript_list_node()
+{
+    auto node = std::make_shared<ast_node_t>();
+    node->id = ++id_;
+    node->type = ast_node_types_t::array_subscript_list;
+    return node;
+}
+
 }

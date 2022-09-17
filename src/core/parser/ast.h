@@ -71,6 +71,7 @@ enum class ast_node_types_t : uint32_t {
 	namespace_expression,
 	subscript_expression,
 	return_argument_list,
+    array_subscript_list,
 	assignment_target_list,
 };
 
@@ -129,6 +130,7 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
 	{ast_node_types_t::subscript_expression, 		"subscript_expression"},
     {ast_node_types_t::module_expression, 		    "module_expression"},
 	{ast_node_types_t::return_argument_list, 		"return_argument_list"},
+    {ast_node_types_t::array_subscript_list, 		"array_subscript_list"},
 	{ast_node_types_t::assignment_target_list, 		"assignment_target_list"},
 };
 
@@ -250,6 +252,8 @@ public:
 	ast_node_shared_ptr symbol_node();
 
 	ast_node_shared_ptr return_argument_list_node();
+
+    ast_node_shared_ptr array_subscript_list_node();
 
     ast_node_shared_ptr if_node(token_t &token);
 

@@ -10,7 +10,6 @@
 #include <unordered_map>
 #include <common/source_location.h>
 namespace gfx {
-
 enum class token_types_t {
 	invalid,
 	plus,						/// '+'
@@ -135,7 +134,6 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::identifier,             "identifier"},
 	{token_types_t::attribute,              "attribute"},
 	{token_types_t::string_literal,         "string_literal"},
-
 	{token_types_t::alias_literal, 			"alias_literal"},
 	{token_types_t::character_literal,      "character_literal"},
 	{token_types_t::true_literal,           "true_literal"},
@@ -181,7 +179,7 @@ struct token_t {
 
 	[[nodiscard]] bool is_label() const;
 
-	[[nodiscard, maybe_unused]] bool is_boolean() const;
+    [[maybe_unused]] [[nodiscard, maybe_unused]] bool is_boolean() const;
 
 	[[nodiscard]] bool is_numeric() const;
 
@@ -198,7 +196,7 @@ struct token_t {
 	conversion_result_t parse(uint64_t& out) const;
 
 	token_types_t type = token_types_t::invalid;
-	std::string value;
+	std::string value {};
 	uint8_t radix = 10;
 	source_location location;
 	number_types_t number_type = number_types_t::none;

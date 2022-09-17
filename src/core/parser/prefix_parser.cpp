@@ -70,7 +70,7 @@ ast_node_shared_ptr enum_prefix_parser::parse(result& r, parser* parser, token_t
 
 ast_node_shared_ptr for_in_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	auto for_node = parser->ast_builder()->for_in_node();
+	auto for_node = parser->ast_builder()->for_in_node(token);
 	for_node->lhs = parser->parse_expression(r, 0);
 
 	token_t in_token;
@@ -89,7 +89,7 @@ ast_node_shared_ptr for_in_prefix_parser::parse(result& r, parser* parser, token
 
 ast_node_shared_ptr return_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	auto return_node = parser->ast_builder()->return_node();
+	auto return_node = parser->ast_builder()->return_node(token);
     if (parser->peek(token_types_t::semi_colon)) {
         return return_node;
     }
@@ -101,7 +101,7 @@ ast_node_shared_ptr return_prefix_parser::parse(result& r, parser* parser, token
 
 ast_node_shared_ptr if_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	auto if_node = parser->ast_builder()->if_node();
+	auto if_node = parser->ast_builder()->if_node(token);
 	if_node->lhs = parser->parse_expression(r, 0);
 	if_node->children.push_back(parser->parse_expression(r, 0));
 
@@ -110,16 +110,20 @@ ast_node_shared_ptr if_prefix_parser::parse(result& r, parser* parser, token_t& 
 		if (!parser->peek(token_types_t::else_if_literal)) {
 			break;
 		}
+        token_t else_if_token;
+        parser->current(else_if_token);
 		parser->consume();
-		current_branch->rhs = parser->ast_builder()->else_if_node();
+		current_branch->rhs = parser->ast_builder()->else_if_node(else_if_token);
 		current_branch->rhs->lhs = parser->parse_expression(r, 0);
 		current_branch->rhs->children.push_back(parser->parse_expression(r, 0));
 		current_branch = current_branch->rhs;
 	}
 
 	if (parser->peek(token_types_t::else_literal)) {
+        token_t else_token;
+        parser->current(else_token);
 		parser->consume();
-		current_branch->rhs = parser->ast_builder()->else_node();
+		current_branch->rhs = parser->ast_builder()->else_node(else_token);
 		current_branch->rhs->children.push_back(parser->parse_expression(r, 0));
 	}
 
@@ -137,14 +141,14 @@ ast_node_shared_ptr type_identifier_prefix_parser::parse(result& r, parser* pars
 
 ast_node_shared_ptr basic_block_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	return parser->parse_scope(r);
+	return parser->parse_scope(r, token);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
 ast_node_shared_ptr proc_expression_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
-	auto proc_node = parser->ast_builder()->proc_expression_node();
+	auto proc_node = parser->ast_builder()->proc_expression_node(token);
 
 	token_t left_paren_token;
 	left_paren_token.type = token_types_t::left_paren;
@@ -193,6 +197,8 @@ ast_node_shared_ptr unary_operator_prefix_parser::parse(result& r, parser* parse
 {
 	auto unary_operator_node = parser->ast_builder()->unary_operator_node(token);
 	unary_operator_node->rhs = parser->parse_expression(r,static_cast<uint8_t>(precedence_));
+	unary_operator_node->location.start(token.location.start());
+	unary_operator_node->location.end(unary_operator_node->rhs->location.end());
 	return unary_operator_node;
 }
 

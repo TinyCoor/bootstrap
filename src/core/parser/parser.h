@@ -25,13 +25,15 @@ public:
 
 	bool consume(token_t& token);
 
+    bool current(token_t& token);
+
 	bool look_ahead(size_t count);
 
 	ast_node_shared_ptr parse(result& r);
 
 	bool expect(result& r, token_t& token);
 
-    ast_node_shared_ptr parse_scope(result& r);
+    ast_node_shared_ptr parse_scope(result& r, token_t& token);
 
 	ast_node_shared_ptr parse_expression(result& r, uint8_t precedence);
 

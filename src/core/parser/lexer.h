@@ -168,7 +168,8 @@ private:
 
 private:
     void set_token_location(token_t &token);
-	rune_t peek();
+
+    rune_t peek();
 
 	void rewind_one_char();
 
@@ -182,7 +183,6 @@ private:
 private:
 	bool has_next_ = true;
 	source_file* source_;
-	std::set<std::istream::pos_type> line_breaks_ {};
     static std::multimap<char, lexer_case_callable> s_cases;
 };
 

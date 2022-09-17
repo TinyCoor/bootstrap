@@ -604,12 +604,6 @@ bool lexer::next(token_t& token)
             auto end_line = source_->line_by_index(source_->pos());
             token.location.start(start_line->line, start_column);
             token.location.end(end_line->line, end_column);
-//            fmt::print("token.type = {}, start = {}@{}, end = {}@{}\n",
-//                token.name(),
-//                token.location.start().line,
-//                token.location.start().column,
-//                token.location.end().line,
-//                token.location.end().column);
             return true;
 		}
         source_->restore_top_mark();

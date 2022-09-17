@@ -212,7 +212,7 @@ public:
 
 	virtual ~ast_builder();
 
-	ast_node_shared_ptr if_node();
+
 
 	ast_node_shared_ptr pair_node();
 
@@ -222,7 +222,6 @@ public:
 
 	ast_node_shared_ptr assignment_target_list_node();
 
-	ast_node_shared_ptr else_node();
 
 	ast_node_shared_ptr end_scope();
 
@@ -238,8 +237,6 @@ public:
 
     ast_node_shared_ptr type_identifier_node();
 
-	ast_node_shared_ptr else_if_node();
-
 	ast_node_shared_ptr statement_node();
 
 	ast_node_shared_ptr assignment_node();
@@ -248,17 +245,23 @@ public:
 
 	ast_node_shared_ptr subscript_node();
 
-	ast_node_shared_ptr return_node();
-
-	ast_node_shared_ptr for_in_node();
-
 	ast_node_shared_ptr basic_block_node();
 
 	ast_node_shared_ptr symbol_node();
 
 	ast_node_shared_ptr return_argument_list_node();
 
-	ast_node_shared_ptr proc_expression_node();
+    ast_node_shared_ptr if_node(token_t &token);
+
+    ast_node_shared_ptr else_node(token_t &token);
+
+    ast_node_shared_ptr else_if_node(token_t& token);
+
+    ast_node_shared_ptr return_node(token_t &token);
+
+    ast_node_shared_ptr for_in_node(token_t &token);
+
+	ast_node_shared_ptr proc_expression_node(token_t &token);
 
 	void push_scope(const ast_node_shared_ptr& node);
 

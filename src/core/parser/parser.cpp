@@ -93,16 +93,30 @@ ast_builder* parser::ast_builder()
 
 ast_node_shared_ptr parser::parse(result& r)
 {
-	return parse_scope(r);
+    token_t empty_token {};
+	return parse_scope(r, empty_token);
 }
 
-ast_node_shared_ptr parser::parse_scope(result& r)
+bool parser::current(token_t& token)
+{
+    if (!look_ahead(0)) {
+        return false;
+    }
+
+    token = tokens_.front();
+    return token.type != token_types_t::end_of_file;
+}
+
+ast_node_shared_ptr parser::parse_scope(result& r, token_t &token)
 {
 	auto scope = ast_builder_.begin_scope();
-
+    scope->location.start(token.location.start());
 	while (true) {
 		if (peek(token_types_t::right_curly_brace)) {
+            token_t right_curly_brace;
+            current(right_curly_brace);
 			consume();
+            scope->location.end(right_curly_brace.location.end());
 			break;
 		}
 		auto node = parse_statement(r);
@@ -177,6 +191,7 @@ ast_node_shared_ptr parser::parse_statement(result& r)
 	}
 
 	statement_node->rhs = expression;
+    statement_node->location = expression->location;
 	return statement_node;
 }
 

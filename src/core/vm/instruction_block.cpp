@@ -710,9 +710,9 @@ void instruction_block::push_target_register(f_registers_t reg)
     target_registers_.push(target);
 }
 
-void instruction_block::cmp_u64(i_registers_t lhs_reg, i_registers_t rhs_reg)
+void instruction_block::cmp(op_sizes sizes, i_registers_t lhs_reg, i_registers_t rhs_reg)
 {
-    make_cmp_instruction(op_sizes::qword, lhs_reg, rhs_reg);
+    make_cmp_instruction(sizes, lhs_reg, rhs_reg);
 }
 
 void instruction_block::bne(const std::string &label_name)
@@ -1069,6 +1069,11 @@ void instruction_block::make_block_entry(const section_t &section)
     entries_.emplace_back(block_entry_t(section));
 }
 
+void instruction_block::make_block_entry(const align_t &align)
+{
+    entries_.emplace_back(align);
+}
+
 void instruction_block::make_block_entry(const data_definition_t &data)
 {
     entries_.emplace_back(block_entry_t(data));
@@ -1097,10 +1102,6 @@ void instruction_block::align(uint8_t size)
     make_block_entry(align_t {
         .size = size
     });
-}
-void instruction_block::make_block_entry(const align_t &align)
-{
-    entries_.push_back(block_entry_t(align));
 }
 
 listing_source_file_t *instruction_block::source_file()
@@ -1159,8 +1160,7 @@ bool instruction_block::walk_blocks(const instruction_block::block_predicate_vis
     return true;
 }
 void instruction_block::move_label_to_ireg_with_offset(i_registers_t dest_reg,
-                                                       const std::string &label_name,
-                                                       uint64_t offset)
+    const std::string &label_name, uint64_t offset)
 {
     auto label_ref = make_unresolved_label_ref(label_name);
 
@@ -1168,18 +1168,14 @@ void instruction_block::move_label_to_ireg_with_offset(i_registers_t dest_reg,
     move_op.op = op_codes::move;
     move_op.size = op_sizes::qword;
     move_op.operands_count = 3;
-    move_op.operands[0].type =
-        operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::reg;
+    move_op.operands[0].type = operand_encoding_t::flags::integer
+        | operand_encoding_t::flags::reg;
     move_op.operands[0].value.r8 = dest_reg;
-    move_op.operands[1].type =
-        operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::constant
-            | operand_encoding_t::flags::unresolved;
+    move_op.operands[1].type = operand_encoding_t::flags::integer
+        | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
     move_op.operands[1].value.u64 = label_ref->id;
-    move_op.operands[2].type =
-        operand_encoding_t::flags::integer
-            | operand_encoding_t::flags::constant;
+    move_op.operands[2].type = operand_encoding_t::flags::integer
+        | operand_encoding_t::flags::constant;
     move_op.operands[2].value.u64 = offset;
     make_block_entry(move_op);
 }

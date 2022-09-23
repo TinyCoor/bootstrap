@@ -163,6 +163,9 @@ void assembler::add_new_block(instruction_block *block)
 }
 instruction_block *assembler::root_block()
 {
+    if (blocks_.empty()) {
+        return nullptr;
+    }
     return blocks_.front();
 }
 
@@ -231,13 +234,10 @@ bool assembler::apply_addresses(result &r)
                   auto section = entry.data<section_t>();
                   switch (*section) {
                       case section_t::bss:
-                          break;
                       case section_t::text:
-                          break;
                       case section_t::data:
-                          break;
                       case section_t::ro_data:
-                          break;
+                      default: break;
                   }
                   break;
               }

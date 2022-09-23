@@ -50,6 +50,4 @@ void assembly_listing::select_source_file(const std::filesystem::path &path)
     }
     current_source_file_ = &it->second;
 }
-
-
 }

@@ -38,7 +38,7 @@ void id_pool::release(id_t id)
 	if (it == pool_.end()) {
 		return;
 	} else {
-		id_interval _interval = *(it);
+		const id_interval& _interval = *(it);
 		if (id + 1 != _interval.left()) {
 			pool_.insert(id_interval(id, id));
 		} else {
@@ -46,7 +46,7 @@ void id_pool::release(id_t id)
 				auto it_2 = it;
 				--it_2;
 				if (it_2->right() + 1 == id) {
-					id_interval _interval2 = *(it_2);
+					const id_interval& _interval2 = *(it_2);
 					pool_.erase(it);
 					pool_.erase(it_2);
 					pool_.insert(
@@ -70,7 +70,7 @@ bool id_pool::mark_used(id_t id)
 	if (it == pool_.end()) {
 		return false;
 	} else {
-		id_interval free_interval = *(it);
+		const id_interval& free_interval = *(it);
 		pool_.erase(it);
 		if (free_interval.left() < id) {
 			pool_.insert(id_interval(free_interval.left(), id - 1));
@@ -84,7 +84,7 @@ bool id_pool::mark_used(id_t id)
 
 [[maybe_unused]] bool id_pool::mark_range(id_t start_id, id_t end_id)
 {
-	for (size_t id = static_cast<size_t>(start_id);
+	for (auto id = static_cast<size_t>(start_id);
 		 id < static_cast<size_t>(end_id);
 		 ++id) {
 		auto success = mark_used(static_cast<id_t>(id));

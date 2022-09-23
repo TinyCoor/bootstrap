@@ -64,7 +64,7 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
                 instruction_block->push_target_register(target_reg);
                 arg->emit(r, context);
                 instruction_block->pop_target_register();
-                instruction_block->push<uint64_t>(target_reg);
+                instruction_block->push(op_sizes::qword, target_reg);
                 instruction_block->free_reg(target_reg);
                 break;
             }

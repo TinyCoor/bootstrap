@@ -3,7 +3,6 @@
 //
 
 #include "if_element.h"
-#include "fmt/format.h"
 namespace gfx::compiler {
 if_element::if_element(block *parent, element *predicate, element *true_branch, element *false_branch)
 	: element(parent, element_type_t::if_e), predicate_(predicate), true_branch_(true_branch),
@@ -30,7 +29,12 @@ element *if_element::false_branch()
 bool if_element::on_emit(result &r, emit_context_t &context)
 {
     context.push_if(true_branch_->label_name(), false_branch_ != nullptr ? false_branch_->label_name(): "");
-    return predicate_->emit(r, context);
+    predicate_->emit(r, context);
+    if (false_branch_!= nullptr) {
+        false_branch_->emit(r, context);
+    }
+    context.pop();
+    return true;
 }
 
 void if_element::on_owned_elements(element_list_t &list)

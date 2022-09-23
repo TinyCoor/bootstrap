@@ -1249,6 +1249,7 @@ bool program::find_identifier_type(result& r, type_find_result_t &result, const 
     make_qualified_symbol(result.type_name, type_node->lhs);
     result.array_size = 0;
     result.is_array = type_node->is_array();
+    result.is_spread = type_node->is_spread();
     result.is_pointer = type_node->is_pointer();
     make_complete_type(r, result, parent_scope);
     return result.type !=nullptr;
@@ -1525,10 +1526,10 @@ bool program::on_emit(result &r, emit_context_t &context)
     }
     auto all_blocks = elements().find_by_type(element_type_t::block);
     for (auto block : all_blocks) {
-        if (block->is_parent_element(element_type_t::namespace_e)
-            ||  block->is_parent_element(element_type_t::block)) {
-            implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
+        if (block->is_parent_element(element_type_t::namespace_e)) {
+            continue;
         }
+        implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
     }
 
     context.assembler->push_block(top_level_block);

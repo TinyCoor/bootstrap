@@ -101,7 +101,8 @@ bool identifier::on_emit(result &r, emit_context_t &context)
 
                     }
                     instruction_block->move_label_to_ireg(ptr_reg, symbol_->name());
-                    instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i, ptr_reg);
+                    instruction_block->load_to_ireg(op_size_for_byte_size(type_->size_in_bytes()),
+                         target_reg->reg.i, ptr_reg);
                     instruction_block->free_reg(ptr_reg);
                 }
                 break;
@@ -134,7 +135,7 @@ void identifier::emit_stack_based_load(instruction_block* instruction_block)
         // XXX: error
         return;
     }
-    instruction_block->load_to_ireg<uint64_t>(target_reg->reg.i, i_registers_t::fp, entry->offset);
+    instruction_block->load_to_ireg(op_sizes::qword, target_reg->reg.i, i_registers_t::fp, entry->offset);
     instruction_block->current_entry()->comment(fmt::format("{} identifier: {}",
         stack_frame_entry_type_name(entry->type), symbol_->name()));
 }

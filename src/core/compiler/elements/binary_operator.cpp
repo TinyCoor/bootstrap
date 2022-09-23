@@ -126,8 +126,9 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
                 lhs_reg = i_registers_t::fp;
                 offset = entry->offset;
             }
-
-            instruction_block->store_from_ireg<uint64_t>(lhs_reg, rhs_reg, offset);
+            auto lhs_identifier = dynamic_cast<compiler::identifier*>(lhs_);
+            auto lhs_size = op_size_for_byte_size(lhs_identifier->type()->size_in_bytes());
+            instruction_block->store_from_ireg(lhs_size, lhs_reg, rhs_reg, offset);
             instruction_block->pop_target_register();
 
             instruction_block->free_reg(rhs_reg);
@@ -160,7 +161,7 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
     auto if_data = context.top<if_data_t>();
     switch (operator_type()) {
         case operator_type_t::equals: {
-            instruction_block->cmp_u64(lhs_reg, rhs_reg);
+            instruction_block->cmp(op_sizes::qword, lhs_reg, rhs_reg);
             if (if_data != nullptr) {
                 auto parent_op = parent_element_as<compiler::binary_operator>();
                 if (parent_op !=nullptr && parent_op->operator_type() == operator_type_t::logical_and) {

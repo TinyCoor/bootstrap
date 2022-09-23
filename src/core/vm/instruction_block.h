@@ -92,7 +92,6 @@ public:
         return nullptr;
     }
 
-
 /// register alloctor
 public:
     bool allocate_reg(i_registers_t& reg);
@@ -162,24 +161,21 @@ public:
     void jump_indirect(i_registers_t reg);
 
     /// load variations
-    template<class T>
-    void load_to_ireg(i_registers_t dest_reg, i_registers_t address_reg, int64_t offset = 0)
+    void load_to_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t address_reg, int64_t offset = 0)
     {
-        make_load_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, address_reg, offset);
+        make_load_instruction(size, dest_reg, address_reg, offset);
     }
 
     /// store
-    template<class T>
-    void store_from_ireg(i_registers_t address_reg, i_registers_t src_reg, int64_t offset = 0)
+    void store_from_ireg(op_sizes size, i_registers_t address_reg, i_registers_t src_reg, int64_t offset = 0)
     {
-        make_store_instruction(TypeToOpSize::ToOpSize<T>(), address_reg, src_reg, offset);
+        make_store_instruction(size, address_reg, src_reg, offset);
     }
 
     // neg variations
-    template<typename T>
-    void neg(i_registers_t dest_reg, i_registers_t src_reg)
+    void neg(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg)
     {
-        make_neg_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, src_reg);
+        make_neg_instruction(size, dest_reg, src_reg);
     }
 
     // or variations
@@ -201,7 +197,7 @@ public:
     }
 
     // shl variations
-    void shl_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    void shl_ireg_by_ireg( i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
     {
          make_shl_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
     }
@@ -213,7 +209,7 @@ public:
     }
 
     // rol variations
-    void rol_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    void rol_ireg_by_ireg( i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
     {
         make_rol_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
     }
@@ -225,36 +221,37 @@ public:
     }
 
     /// move
-    template<class T>
-    void move_to_ireg(i_registers_t dest_reg, T immediate)
+    void move_constant_to_ireg(op_sizes size, i_registers_t dest_reg, uint64_t immediate)
     {
-        make_move_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, immediate);
+        make_move_instruction(size, dest_reg, immediate);
+    }
+
+    void move_constant_to_freg(op_sizes size, f_registers_t dest_reg, double immediate)
+    {
+        make_move_instruction(size, dest_reg, immediate);
     }
 
     void move_ireg_to_ireg(i_registers_t dest_reg, i_registers_t src_reg);
 
     // cmp variations
-    void cmp_u64(i_registers_t lhs_reg, i_registers_t rhs_reg);
+    void cmp(op_sizes size, i_registers_t lhs_reg, i_registers_t rhs_reg);
 
     // inc variations
-    template<typename T>
-    void inc(i_registers_t reg)
+    void inc(op_sizes size, i_registers_t reg)
     {
-        make_inc_instruction(TypeToOpSize::ToOpSize<T>(), reg);
+        make_inc_instruction(size, reg);
     }
 
     // not variations
-    template<class T>
-    void not_reg(i_registers_t dest_reg, i_registers_t src_reg)
+    void not_op(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg)
     {
-        make_not_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, src_reg);
+        make_not_instruction(size, dest_reg, src_reg);
     }
 
     // dec variations
-    template<typename T>
-    void dec(i_registers_t reg)
+    void dec(op_sizes size, i_registers_t reg)
     {
-        make_dec_instruction(TypeToOpSize::ToOpSize<T>(), reg);
+        make_dec_instruction(size, reg);
     }
 
     // mul variations
@@ -326,28 +323,24 @@ public:
         make_integer_constant_push_instruction(TypeToOpSize::ToOpSize<T>(), value);
     }
 
-    template<typename T>
-    void push(i_registers_t reg)
+    void push(op_sizes sizes, i_registers_t reg)
     {
-        make_push_instruction(TypeToOpSize::ToOpSize<T>() , reg);
+        make_push_instruction(sizes, reg);
     }
 
-    template<typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-    void push(f_registers_t reg)
+    void push(op_sizes size, f_registers_t reg)
     {
-        make_push_instruction(TypeToOpSize::ToOpSize<T>() , reg);
+        make_push_instruction(size, reg);
     }
 
-    template<class T>
-    void pop(i_registers_t reg)
+    void pop(op_sizes size, i_registers_t reg)
     {
-        make_pop_instruction(TypeToOpSize::ToOpSize<T>(), reg);
+        make_pop_instruction(size, reg);
     }
 
-    template<class T, typename = std::enable_if<std::is_floating_point_v<T>>>
-    void pop(f_registers_t reg)
+    void pop(op_sizes size, f_registers_t reg)
     {
-        make_pop_instruction(TypeToOpSize::ToOpSize<T>(), reg);
+        make_pop_instruction(size, reg);
     }
 
     void call(const std::string& proc_name);

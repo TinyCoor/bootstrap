@@ -44,7 +44,7 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
         arguments_->emit(r, context);
     }
     if (procedure_type->is_foreign()) {
-        instruction_block->push_constant<uint64_t>(arguments_->elements().size());
+        instruction_block->push_constant<uint16_t>(arguments_->elements().size());
         instruction_block->call_foreign(procedure_type->foreign_address());
         instruction_block->current_entry()->comment(fmt::format(
             "foreign call: {}", identifier->symbol()->name()));
@@ -54,7 +54,7 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
     auto target_reg = instruction_block->current_target_register();
     if (target_reg != nullptr) {
         if (!procedure_type->returns().as_list().empty()) {
-            instruction_block->pop<uint64_t>(target_reg->reg.i);
+            instruction_block->pop(op_sizes::qword, target_reg->reg.i);
         }
     }
     return true;

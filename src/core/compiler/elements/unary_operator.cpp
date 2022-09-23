@@ -48,13 +48,14 @@ bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
     rhs_->emit(r, context);
     instruction_block->pop_target_register();
 
+    auto rhs_size = op_size_for_byte_size(rhs_->infer_type(context.program)->size_in_bytes());
     switch (operator_type()) {
         case operator_type_t::negate: {
-            instruction_block->neg<uint64_t>(target_reg->reg.i, rhs_reg);
+            instruction_block->neg(rhs_size, target_reg->reg.i, rhs_reg);
             break;
         }
         case operator_type_t::binary_not: {
-            instruction_block->not_reg<uint64_t>(target_reg->reg.i, rhs_reg);
+            instruction_block->not_op(rhs_size, target_reg->reg.i, rhs_reg);
             break;
         }
         case operator_type_t::logical_not: {

@@ -339,7 +339,7 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::negative, false);
 		}break;
 		case op_codes::move: {
-			uint64_t source_value =0 ;
+			uint64_t source_value = 0 ;
             uint64_t offset = 0;
             if (inst.operands_count > 2) {
                 if (!get_operand_value(r, inst, 2, offset)) {
@@ -949,7 +949,7 @@ bool terp::step(result &r)
 				return false;
 			}
 
-			auto it =foreign_functions_.find(reinterpret_cast<void*>(address));
+			auto it = foreign_functions_.find(reinterpret_cast<void*>(address));
 			if (it == foreign_functions_.end()) {
 				execute_trap(trap_invalid_ffi_call);
 				break;
@@ -960,11 +960,11 @@ bool terp::step(result &r)
 			dcReset(call_vm_);
 
             auto param_index = 0;
-            auto arg_count = pop();
+            int arg_count = pop();
             while (arg_count > 0) {
                 auto &argument = func_signature->arguments[param_index];
                 auto value = pop();
-                if (argument.type==ffi_types_t::pointer_type) {
+                if (argument.type == ffi_types_t::pointer_type) {
                     value += reinterpret_cast<uint64_t>(heap_);
                 }
 

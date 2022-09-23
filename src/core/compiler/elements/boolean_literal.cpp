@@ -30,8 +30,8 @@ bool boolean_literal::on_emit(result &r, emit_context_t &context)
 {
     auto instruction_block = context.assembler->current_block();
     auto target_reg = instruction_block->current_target_register();
-    instruction_block->move_to_ireg(target_reg->reg.i,
-        static_cast<uint8_t>(value_ ? 1 : 0));
+    instruction_block->move_constant_to_ireg(op_sizes::byte, target_reg->reg.i,
+        value_ ? 1 : 0);
     return true;
 }
 

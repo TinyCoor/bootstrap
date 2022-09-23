@@ -265,7 +265,7 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
     if (!op_name.empty()) {
         std::stringstream mnemonic;
         std::string format_spec;
-
+        std::string offset_spec = "{}";
         mnemonic << op_name;
         switch (size) {
             case op_sizes::byte:
@@ -301,19 +301,24 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
             std::string prefix, postfix;
 
             if (operand.is_negative()) {
-                if (operand.is_prefix())
+                if (operand.is_prefix()) {
                     prefix = "--";
-                else
+                } else {
                     prefix = "-";
+                }
 
-                if (operand.is_postfix())
+                if (operand.is_postfix()) {
                     postfix = "--";
-            } else {
-                if (operand.is_prefix())
-                    prefix = "++";
+                }
 
-                if (operand.is_postfix())
+            } else {
+                if (operand.is_prefix()) {
+                    prefix = "++";
+                }
+
+                if (operand.is_postfix()) {
                     postfix = "++";
+                }
             }
 
             if (operand.is_reg()) {
@@ -358,8 +363,8 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
                         else
                             operands_stream << id_resolver(operand.value.u64);
                     } else {
-                        if (prefix == "-") {
-                            operands_stream << fmt::format("{}", static_cast<int64_t>(operand.value.u64));
+                        if (i == 2) {
+                            operands_stream << fmt::format(fmt::runtime(offset_spec), static_cast<int64_t>(operand.value.u64));
                         } else {
                             operands_stream << prefix
                                             << fmt::format(fmt::runtime(format_spec), operand.value.u64)

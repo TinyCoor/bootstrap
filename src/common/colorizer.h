@@ -26,10 +26,11 @@ public:
 
     static constexpr term_colors_t make_bg_color(term_colors_t color);
 
-    static std::string colorize_range(const std::string &text,
-        size_t begin, size_t end, term_colors_t fg_color, term_colors_t bg_color =term_colors_t::black) noexcept;
+    static std::string colorize_range(const std::string &text, size_t begin, size_t end,
+        term_colors_t fg_color, term_colors_t bg_color =term_colors_t::black) noexcept;
 
-    static std::string colorize(const std::string &text, term_colors_t fg_color, term_colors_t bg_color =term_colors_t::black);
+    static std::string colorize(const std::string &text, term_colors_t fg_color,
+        term_colors_t bg_color =term_colors_t::black);
 
 private:
 

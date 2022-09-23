@@ -10,9 +10,9 @@ class any_type : public composite_type {
 public:
 	explicit any_type(block * parent_scope, block* scope);
 
-	compiler::type* underlying_type();
+    [[maybe_unused]] compiler::type* underlying_type();
 
-	void underlying_type(compiler::type* value);
+    [[maybe_unused]] void underlying_type(compiler::type* value);
 protected:
 	bool on_initialize(result& r, compiler::program* program) override;
 

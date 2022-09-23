@@ -214,8 +214,6 @@ public:
 
 	virtual ~ast_builder();
 
-
-
 	ast_node_shared_ptr pair_node();
 
 	ast_node_shared_ptr type_list_node();
@@ -223,7 +221,6 @@ public:
 	ast_node_shared_ptr parameter_list_node();
 
 	ast_node_shared_ptr assignment_target_list_node();
-
 
 	ast_node_shared_ptr end_scope();
 

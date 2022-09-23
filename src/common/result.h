@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/3/26.
 //
 
-#ifndef COMMON__RESULT_H_
-#define COMMON__RESULT_H_
+#ifndef COMMON_RESULT_H_
+#define COMMON_RESULT_H_
 #include "result_message.h"
 #include <string>
 
@@ -75,4 +75,4 @@ private:
 	result_message_list messages_ {};
 };
 }
-#endif // COMMON__RESULT_H_
+#endif // COMMON_RESULT_H_

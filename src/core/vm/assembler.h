@@ -24,7 +24,7 @@ public:
 
     assembly_listing& listing();
 
-    bool assemble(result& r, instruction_block* block);
+    bool assemble(result& r, instruction_block* block = nullptr);
 
     bool assemble_from_source(result& r, std::istream& source);
 
@@ -39,6 +39,10 @@ public:
     instruction_block* current_block();
 
     bool in_procedure_scope() const;
+
+    bool resolve_labels(result& r);
+
+    bool apply_addresses(result& r);
 
     gfx::segment* segment(const std::string& name);
 

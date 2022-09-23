@@ -12,6 +12,8 @@ public:
 
 	std::string value() const;
 
+    std::string escaped_value() const;
+
 protected:
     bool on_as_string(std::string &value) const override;
 

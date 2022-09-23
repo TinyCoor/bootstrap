@@ -54,24 +54,24 @@ bool procedure_type::on_initialize(result &r, compiler::program* program)
 
 bool procedure_type::on_emit(result &r, emit_context_t &context)
 {
-    if (is_foreign())  {
-        return true;
-    }
-
-    auto assembler = context.assembler;
-    auto instruction_block = assembler->make_procedure_block();
-    instruction_block->align(instruction_t::alignment);
-    instruction_block->current_entry()->blank_lines(1);
-    instruction_block->memo();
-
     auto procedure_label = symbol()->name();
     auto parent_init = parent_element_as<compiler::initializer>();
-    if (parent_init !=nullptr) {
+    if (parent_init != nullptr) {
         auto parent_var = parent_init->parent_element_as<compiler::identifier>();
         if (parent_var != nullptr) {
             procedure_label = parent_var->symbol()->name();
         }
     }
+
+    if (is_foreign()) {
+        return true;
+    }
+
+    auto instruction_block = context.assembler->make_procedure_block();
+    instruction_block->align(instruction_t::alignment);
+    instruction_block->current_entry()->blank_lines(1);
+    instruction_block->memo();
+
     auto proc_label = instruction_block->make_label(procedure_label);
     instruction_block->current_entry()->label(proc_label);
 
@@ -117,7 +117,7 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
 
     context.assembler->push_block(instruction_block);
     scope_->emit(r, context);
-    assembler->pop_block();
+    context.assembler->pop_block();
 
     return true;
 }
@@ -139,6 +139,15 @@ void procedure_type::on_owned_elements(element_list_t &list)
         list.emplace_back(element);
     }
 
+}
+uint64_t procedure_type::foreign_address() const
+{
+    return foreign_address_;
+}
+
+void procedure_type::foreign_address(uint64_t value)
+{
+    foreign_address_ = value;
 }
 
 }

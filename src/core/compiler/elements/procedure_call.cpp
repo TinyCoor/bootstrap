@@ -7,6 +7,7 @@
 #include "symbol_element.h"
 #include "types/procedure_type.h"
 #include "procedure_call.h"
+#include "fmt/format.h"
 namespace gfx::compiler {
 
 procedure_call::procedure_call(block* parent, compiler::identifier_reference* reference,
@@ -37,13 +38,16 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
     if (init == nullptr) {
         return false;
     }
+    auto procedure_type = init->procedure_type();
 
     if (arguments_ != nullptr) {
         arguments_->emit(r, context);
     }
-    auto procedure_type = init->procedure_type();
     if (procedure_type->is_foreign()) {
-        instruction_block->call_foreign(identifier->symbol()->name());
+        instruction_block->push_constant<uint64_t>(arguments_->elements().size());
+        instruction_block->call_foreign(procedure_type->foreign_address());
+        instruction_block->current_entry()->comment(fmt::format(
+            "foreign call: {}", identifier->symbol()->name()));
     } else {
         instruction_block->call(identifier->symbol()->name());
     }

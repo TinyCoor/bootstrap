@@ -181,16 +181,15 @@ void instruction_block::free_reg(f_registers_t reg)
     f_register_allocator_.free(reg);
 }
 
-void instruction_block::call_foreign(const std::string &proc_name)
+void instruction_block::call_foreign(uint64_t proc_address)
 {
-    auto label_ref = make_unresolved_label_ref(proc_name);
     instruction_t ffi_op;
     ffi_op.op = op_codes::ffi;
     ffi_op.size = op_sizes::qword;
     ffi_op.operands_count = 1;
     ffi_op.operands[0].type = operand_encoding_t::flags::integer
-        | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
-    ffi_op.operands[0].value.u64 = label_ref->id;
+        | operand_encoding_t::flags::constant;
+    ffi_op.operands[0].value.u64 = proc_address;
     make_block_entry(ffi_op);
 }
 
@@ -355,12 +354,12 @@ void instruction_block::disassemble(instruction_block *block)
 
     size_t index = 0;
     for (auto& entry : block->entries_) {
-        source_file->add_blank_lines(entry.blank_lines());
+        source_file->add_blank_lines(entry.address(), entry.blank_lines());
         for (const auto& comment : entry.comments()) {
-            source_file->add_source_line(0, fmt::format("; {}", comment));
+            source_file->add_source_line(entry.address(), fmt::format("; {}", comment));
         }
         for (auto label : entry.labels()) {
-            source_file->add_source_line(0, fmt::format("{}:", label->name()));
+            source_file->add_source_line(entry.address(), fmt::format("{}:", label->name()));
         }
         switch (entry.type()) {
             case block_entry_type_t::memo: {
@@ -368,21 +367,28 @@ void instruction_block::disassemble(instruction_block *block)
             }
             case block_entry_type_t::align: {
                 auto align = entry.data<align_t>();
-                source_file->add_source_line(0, fmt::format(".align {}", align->size));
+                source_file->add_source_line(entry.address(), fmt::format(".align {}", align->size));
                 break;
             }
             case block_entry_type_t::section: {
                 auto section = entry.data<section_t>();
-                source_file->add_source_line(0, fmt::format(".section '{}'", section_name(*section)));
+                source_file->add_source_line(entry.address(), fmt::format(".section '{}'", section_name(*section)));
                 break;
             }
             case block_entry_type_t::instruction: {
                 auto inst = entry.data<instruction_t>();
                 auto stream = inst->disassemble([&](uint64_t id) -> std::string {
                   auto label_ref = block->find_unresolved_label_up(static_cast<id_t>(id));
-                  return label_ref != nullptr ? label_ref->name : fmt::format("unresolved_ref_id({})", id);
+                  if (label_ref !=nullptr) {
+                      if (label_ref->resolved !=nullptr) {
+                          return fmt::format("{} (${:08x})", label_ref->name, label_ref->resolved->address());
+                      } else {
+                          return label_ref->name;
+                      }
+                  }
+                  return fmt::format("unresolved_ref_id({})", id);
                 });
-                source_file->add_source_line(0, fmt::format("\t{}", stream));
+                source_file->add_source_line(entry.address(), fmt::format("\t{}", stream));
                 break;
             }
             case block_entry_type_t::data_definition: {
@@ -436,7 +442,7 @@ void instruction_block::disassemble(instruction_block *block)
                         break;
                     }
                 }
-                source_file->add_source_line(0, fmt::format("\t{:<10} {}", directive.str(),
+                source_file->add_source_line(entry.address(), fmt::format("\t{:<10} {}", directive.str(),
                     fmt::format(fmt::runtime(format_spec), definition->value)));
                 break;
             }
@@ -473,7 +479,7 @@ void instruction_block::make_integer_constant_push_instruction(op_sizes size, ui
     make_block_entry(push_op);
 }
 
-instruction_block::label_ref_t *instruction_block::find_unresolved_label_up(id_t id)
+label_ref_t *instruction_block::find_unresolved_label_up(id_t id)
 {
     auto current_block = this;
     while (current_block != nullptr) {
@@ -522,7 +528,7 @@ void instruction_block::make_push_instruction(op_sizes size, f_registers_t reg)
     make_block_entry(push_op);
 }
 
-instruction_block::label_ref_t *instruction_block::make_unresolved_label_ref(const std::string &label_name)
+label_ref_t *instruction_block::make_unresolved_label_ref(const std::string &label_name)
 {
     auto it = label_to_unresolved_ids_.find(label_name);
     if (it != label_to_unresolved_ids_.end()) {
@@ -1105,6 +1111,77 @@ listing_source_file_t *instruction_block::source_file()
 void instruction_block::source_file(listing_source_file_t *value)
 {
     source_file_ = value;
+}
+
+std::vector<label_ref_t *> instruction_block::label_references()
+{
+    std::vector<label_ref_t*> refs {};
+    for (auto& kvp : unresolved_labels_) {
+        refs.push_back(&kvp.second);
+    }
+    return refs;
+}
+std::vector<block_entry_t> &instruction_block::entries()
+{
+    return entries_;
+}
+
+label *instruction_block::find_label(const std::string &name)
+{
+    return find_in_blocks<label>([&](instruction_block* block) -> label* {
+      const auto it = block->labels_.find(name);
+      if (it == block->labels_.end()) {
+          return nullptr;
+      }
+      return it->second;
+    });
+}
+
+const std::vector<instruction_block *> &instruction_block::blocks() const
+{
+    return blocks_;
+}
+
+bool instruction_block::walk_blocks(const instruction_block::block_predicate_visitor_callable &callable)
+{
+    std::stack<instruction_block*> block_stack {};
+    block_stack.push(this);
+    while (!block_stack.empty()) {
+        auto block = block_stack.top();
+        if (!callable(block)) {
+            return false;
+        }
+        block_stack.pop();
+        for (auto child_block : block->blocks()) {
+            block_stack.push(child_block);
+        }
+    }
+    return true;
+}
+void instruction_block::move_label_to_ireg_with_offset(i_registers_t dest_reg,
+                                                       const std::string &label_name,
+                                                       uint64_t offset)
+{
+    auto label_ref = make_unresolved_label_ref(label_name);
+
+    instruction_t move_op;
+    move_op.op = op_codes::move;
+    move_op.size = op_sizes::qword;
+    move_op.operands_count = 3;
+    move_op.operands[0].type =
+        operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::reg;
+    move_op.operands[0].value.r8 = dest_reg;
+    move_op.operands[1].type =
+        operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::constant
+            | operand_encoding_t::flags::unresolved;
+    move_op.operands[1].value.u64 = label_ref->id;
+    move_op.operands[2].type =
+        operand_encoding_t::flags::integer
+            | operand_encoding_t::flags::constant;
+    move_op.operands[2].value.u64 = offset;
+    make_block_entry(move_op);
 }
 
 }

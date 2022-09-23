@@ -64,9 +64,6 @@ struct function_value_t {
 			case ffi_types_t::short_type:
 				dcArgShort(vm, static_cast<DCshort>(value));
 				break;
-			case ffi_types_t::int_type:
-				dcArgInt(vm, static_cast<DCint>(value));
-				break;
 			case ffi_types_t::long_type:
 				dcArgLong(vm, static_cast<DClong>(value));
 				break;
@@ -87,6 +84,10 @@ struct function_value_t {
 				dcArgStruct(vm, dc_struct, reinterpret_cast<DCpointer>(value));
 				break;
 			}
+            default:
+            case ffi_types_t::int_type:
+                dcArgInt(vm, static_cast<DCint>(value));
+                break;
 		}
 	}
 

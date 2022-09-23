@@ -21,10 +21,10 @@ struct listing_source_file_t {
             .source = source
         });
     }
-    void add_blank_lines(uint16_t count = 1) {
+    void add_blank_lines(uint64_t address, uint16_t count = 1) {
         for (uint16_t i = 0; i < count; i++) {
             lines.push_back(listing_source_line_t {
-                .address = 0,
+                .address = address,
                 .source = ""
             });
         }

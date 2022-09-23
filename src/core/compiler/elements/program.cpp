@@ -92,7 +92,11 @@ bool program::compile(result& r, compiler::session& session)
 
         emit_context_t context(terp_, assembler_, this);
         emit(r, context);
-
+        context.assembler->apply_addresses(r);
+        context.assembler->resolve_labels(r);
+        if (context.assembler->assemble(r)) {
+            context.terp->run(r);
+        }
     }
     top_level_stack_.pop();
     return !r.is_failed();
@@ -1408,8 +1412,9 @@ bool program::on_emit(result &r, emit_context_t &context)
                         }
                         current_entry->blank_lines(1);
                     }
-                    instruction_block->current_entry()->comment(fmt::format("\"{}\"", string_literal->value()));
-                    instruction_block->string(string_literal->value());
+                    instruction_block->current_entry()->comment(fmt::format("\"{}\"",
+                        string_literal->value()));
+                    instruction_block->string(string_literal->escaped_value());
                     break;
                 }
                 case element_type_t::identifier: {
@@ -1513,11 +1518,14 @@ bool program::on_emit(result &r, emit_context_t &context)
     top_level_block->memo();
     top_level_block->current_entry()->label(top_level_block->make_label("_initializer"));
 
-    auto all_blocks = elements().find_by_type(element_type_t::block);
     block_list_t implicit_blocks {};
+    auto module_blocks = elements().find_by_type(element_type_t::module_block);
+    for (auto block : module_blocks) {
+        implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
+    }
+    auto all_blocks = elements().find_by_type(element_type_t::block);
     for (auto block : all_blocks) {
         if (block->is_parent_element(element_type_t::namespace_e)
-            ||  block->is_parent_element(element_type_t::program)
             ||  block->is_parent_element(element_type_t::block)) {
             implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
         }

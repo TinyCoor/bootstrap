@@ -9,6 +9,6 @@ void print(const char* fmt, ...)
 {
     va_list arg;
     va_start(arg, fmt);
-    printf(fmt, arg);
+    vprintf(fmt, arg);
     va_end(arg);
 }

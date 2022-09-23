@@ -79,13 +79,11 @@ enum class op_sizes : uint8_t {
 static inline uint8_t op_size_in_bytes(op_sizes size)
 {
 	switch (size) {
-		case op_sizes::none:  return 0u;
 		case op_sizes::byte:  return 1u;
 		case op_sizes::dword: return 2u;
 		case op_sizes::word:  return 4u;
 		case op_sizes::qword: return 8u;
-		default:
-			return 0u;
+		default: return 0u;
 	}
 }
 
@@ -102,6 +100,9 @@ struct operand_encoding_t {
 		postfix  = 0b00010000,
         unresolved  = 0b00100000,
 	};
+
+    void clear_unresolved();
+
     bool is_reg() const;
 
 	bool is_prefix() const ;

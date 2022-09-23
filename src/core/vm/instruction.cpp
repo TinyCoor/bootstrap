@@ -7,6 +7,10 @@
 #include "instruction_block.h"
 #include <iomanip>
 namespace gfx {
+void operand_encoding_t::clear_unresolved()
+{
+    type &= ~flags::unresolved;
+}
 bool operand_encoding_t::is_reg() const
 {
     return (type & flags::reg) != 0;

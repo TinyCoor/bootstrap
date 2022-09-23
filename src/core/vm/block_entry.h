@@ -7,6 +7,7 @@
 #include <any>
 #include <vector>
 #include <string>
+#include "label.h"
 #include "instruction.h"
 
 namespace gfx {
@@ -74,6 +75,17 @@ struct block_entry_t {
             return nullptr;
         }
     }
+    uint64_t address() const {
+        return address_;
+    }
+
+    void address(uint64_t value) {
+        address_ = value;
+        for (auto label : labels_) {
+            label->address(value);
+        }
+    }
+
 
     inline void blank_lines(uint16_t count)
     {
@@ -98,6 +110,7 @@ struct block_entry_t {
 private:
     std::any data_;
     block_entry_type_t type_;
+    uint64_t address_ = 0;
     uint16_t blank_lines_ = 0;
     std::vector<class label *> labels_{};
     std::vector<std::string> comments_{};

@@ -20,14 +20,16 @@ enum class instruction_block_type_t {
     basic,
     procedure
 };
+struct label_ref_t {
+    id_t id;
+    std::string name;
+    label* resolved = nullptr;
+};
 
 class instruction_block {
-    struct label_ref_t {
-        id_t id;
-        std::string name;
-        label* resolved = nullptr;
-    };
 public:
+    using block_predicate_visitor_callable = std::function<bool (instruction_block*)>;
+
     explicit instruction_block(instruction_block* parent, instruction_block_type_t type);
 
     virtual ~instruction_block();
@@ -59,6 +61,37 @@ public:
     listing_source_file_t* source_file();
 
     void source_file(listing_source_file_t* value);
+
+    std::vector<label_ref_t*> label_references();
+
+    std::vector<block_entry_t>& entries();
+
+    label* find_label(const std::string& name);
+
+    const std::vector<instruction_block*>& blocks() const;
+
+    bool walk_blocks(const block_predicate_visitor_callable& callable);
+
+    label_ref_t* find_unresolved_label_up(id_t id);
+
+    template <typename T>
+    T* find_in_blocks(const std::function<T* (instruction_block*)>& callable) {
+        std::stack<instruction_block*> block_stack {};
+        block_stack.push(this);
+        while (!block_stack.empty()) {
+            auto block = block_stack.top();
+            auto found = callable(block);
+            if (found != nullptr)  {
+                return found;
+            }
+            block_stack.pop();
+            for (auto child_block : block->blocks()) {
+                block_stack.push(child_block);
+            }
+        }
+        return nullptr;
+    }
+
 
 /// register alloctor
 public:
@@ -281,7 +314,7 @@ public:
     }
 
     ///
-    template<class T, typename = std::enable_if<std::is_floating_point_v<T>>>
+    template<class T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
     void push_constant(T value)
     {
         make_float_constant_push_instruction(TypeToOpSize::ToOpSize<T>(), value);
@@ -319,11 +352,14 @@ public:
 
     void call(const std::string& proc_name);
 
-    void call_foreign(const std::string& proc_name);
+    void call_foreign(uint64_t proc_address);
 
     void jump_direct(const std::string& label_name);
 
     void move_label_to_ireg(i_registers_t dest_reg, const std::string& label_name);
+
+    void move_label_to_ireg_with_offset(i_registers_t dest_reg, const std::string& label_name,
+        uint64_t offset);
 
 private:
     void make_shl_instruction(op_sizes size, i_registers_t dest_reg, i_registers_t value_reg, i_registers_t amount_reg);
@@ -388,8 +424,6 @@ private:
     void make_float_constant_push_instruction(op_sizes size, double value);
 
     void make_integer_constant_push_instruction(op_sizes size, uint64_t value);
-
-    label_ref_t* find_unresolved_label_up(id_t id);
 
     label* find_label_up(const std::string& label_name);
 

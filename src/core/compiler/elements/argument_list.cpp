@@ -45,7 +45,8 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
 {
     auto assembler = context.assembler;
     auto instruction_block = assembler->current_block();
-    for (auto &arg : elements_) {
+    for (auto it = elements_.rbegin(); it != elements_.rend(); ++it) {
+        element* arg = *it;
         switch (arg->element_type()) {
             case element_type_t::proc_call:
             case element_type_t::expression:

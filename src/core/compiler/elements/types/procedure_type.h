@@ -25,6 +25,10 @@ public:
 
 	procedure_instance_list_t& instances();
 
+    uint64_t foreign_address() const;
+
+    void foreign_address(uint64_t value);
+
 protected:
     bool on_is_constant() const override;
 
@@ -39,6 +43,7 @@ private:
 	field_map_t parameters_{};
 	type_map_t type_parameters_{};
 	bool is_foreign_ = false;
+    uint64_t foreign_address_ = 0;
 	compiler::block* scope_ = nullptr;
 	procedure_instance_list_t instances_ {};
 };

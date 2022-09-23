@@ -102,10 +102,39 @@ bool directive::on_execute_foreign(result &r, compiler::session& session, compil
 		.library = library,
 	};
 
-	auto result = terp->register_foreign_function(r, signature);
+    auto proc_identifier = dynamic_cast<compiler::identifier*>(expression_);
+    auto proc_type = proc_identifier->initializer()->procedure_type();
+    if (proc_type != nullptr) {
+        for (auto param : proc_type->parameters().as_list()) {
+            // XXX: need to figure out how to best handle this
+            if (param->identifier()->type()->element_type() == element_type_t::any_type) {
+                continue;
+            }
+            function_value_t value;
+            value.name = param->identifier()->symbol()->name();
+            value.type = ffi_types_t::pointer_type;
+            signature.arguments.push_back(value);
+        }
+
+        if (proc_type->returns().size() == 0) {
+            signature.return_value.type = ffi_types_t::void_type;
+        }
+
+        // XXX: this is a hack
+        if (proc_type->is_foreign()) {
+            signature.calling_mode = ffi_calling_mode_t::c_ellipsis;
+        }
+    }
+
+
+    auto result = terp->register_foreign_function(r, signature);
 	if (!result) {
 		r.add_message("P004", fmt::format("unable to find foreign function symbol: {}", symbol_name), false);
-	}
+	} else {
+        if (proc_type != nullptr) {
+            proc_type->foreign_address(reinterpret_cast<uint64_t>(signature.func_ptr));
+        }
+    }
 
 	return !r.is_failed();
 }

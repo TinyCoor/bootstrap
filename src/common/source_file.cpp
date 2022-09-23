@@ -20,9 +20,7 @@ rune_t source_file::next()
     if (index_ >= buffer_.size()) {
         return rune_eof;
     }
-    rune_t c = buffer_[index_];
-    index_++;
-    return c;
+    return buffer_[index_++];
 }
 
 [[maybe_unused]] bool source_file::eof() const

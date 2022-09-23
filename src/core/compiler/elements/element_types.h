@@ -355,7 +355,7 @@ struct field_map_t {
 	compiler::field* find(id_t id);
 
 private:
-	std::unordered_map<id_t , field*> fields_ {};
+	std::map<id_t , field*> fields_ {};
 };
 
 struct identifier_map_t {

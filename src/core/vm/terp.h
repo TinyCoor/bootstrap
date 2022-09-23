@@ -57,6 +57,8 @@ namespace gfx {
 
 		void reset();
 
+        bool run(result& r);
+
 		void swi(uint8_t index, uint64_t address);
 
 		bool initialize(result& r);
@@ -81,7 +83,27 @@ namespace gfx {
 			return meta_information_;
 		}
 
-		uint64_t alloc(uint64_t size);
+        inline uint8_t* byte_ptr(uint64_t address) const
+        {
+            return heap_ + address;
+        }
+
+        inline uint16_t* word_ptr(uint64_t address) const
+        {
+            return reinterpret_cast<uint16_t*>(heap_ + address);
+        }
+
+        inline uint64_t* qword_ptr(uint64_t address) const
+        {
+            return reinterpret_cast<uint64_t*>(heap_ + address);
+        }
+
+        inline uint32_t* dword_ptr(uint64_t address) const
+        {
+            return reinterpret_cast<uint32_t*>(heap_ + address);
+        }
+
+        uint64_t alloc(uint64_t size);
 
 		uint64_t free(uint64_t address);
 
@@ -142,11 +164,6 @@ namespace gfx {
 			uint64_t inst_size, uint64_t& address);
 
 	private:
-		inline uint64_t* qword_ptr(uint64_t address) const
-		{
-			return reinterpret_cast<uint64_t*>(heap_ + address);
-		}
-
 		uint64_t set_zoned_value(uint64_t source, uint64_t value, op_sizes size);
 
 		bool has_overflow(uint64_t lhs, uint64_t rhs, uint64_t result, op_sizes size);

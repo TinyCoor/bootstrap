@@ -9,6 +9,7 @@
 #include "initializer.h"
 #include "types/procedure_type.h"
 #include "statement.h"
+#include "module.h"
 #include "namespace_element.h"
 #include <fmt/format.h>
 
@@ -65,6 +66,24 @@ bool block::on_emit(result &r, emit_context_t& context)
             instruction_block->current_entry()->blank_lines(1);
             auto block_label = instruction_block->make_label(label_name());
             instruction_block->current_entry()->label(block_label);
+            context.assembler->push_block(instruction_block);
+            break;
+        }
+        case element_type_t::module_block: {
+            instruction_block = context.assembler->make_basic_block();
+            instruction_block->memo();
+
+            auto parent_module = parent_element_as<compiler::module>();
+            if (parent_module != nullptr) {
+                instruction_block->current_entry()->comment(fmt::format(
+                    "module: {}",
+                    parent_module->source_file()->path().string()));
+            }
+            instruction_block->current_entry()->blank_lines(1);
+
+            auto block_label = instruction_block->make_label(label_name());
+            instruction_block->current_entry()->label(block_label);
+
             context.assembler->push_block(instruction_block);
             break;
         }

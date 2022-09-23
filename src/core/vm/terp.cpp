@@ -58,6 +58,16 @@ void terp::reset()
 	exited_ = false;
 }
 
+bool terp::run(result &r)
+{
+    while (!has_exited()) {
+        if (!step(r)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void terp::dump_state(uint8_t count)
 {
 	fmt::print("-------------------------------------------------------------\n");
@@ -329,11 +339,17 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::negative, false);
 		}break;
 		case op_codes::move: {
-			uint64_t source_value;
-			if (!get_operand_value(r, inst, 0, source_value)) {
+			uint64_t source_value =0 ;
+            uint64_t offset = 0;
+            if (inst.operands_count > 2) {
+                if (!get_operand_value(r, inst, 2, offset)) {
+                    return false;
+                }
+            }
+			if (!get_operand_value(r, inst, 1, source_value)) {
 				return false;
 			}
-			if (!set_target_operand_value(r, inst, 1, source_value)) {
+			if (!set_target_operand_value(r, inst, 0, source_value + offset)) {
 				return false;
 			}
 
@@ -943,15 +959,26 @@ bool terp::step(result &r)
 
 			dcReset(call_vm_);
 
-			std::vector<DCstruct* > structs_to_free{};
-			for (auto& arg : func_signature->arguments) {
-				arg.push(call_vm_, pop());
-			}
+            auto param_index = 0;
+            auto arg_count = pop();
+            while (arg_count > 0) {
+                auto &argument = func_signature->arguments[param_index];
+                auto value = pop();
+                if (argument.type==ffi_types_t::pointer_type) {
+                    value += reinterpret_cast<uint64_t>(heap_);
+                }
 
-			uint64_t result_value = func_signature->call(call_vm_, address);
-			if (func_signature->return_value.type != ffi_types_t::void_type) {
-				push(result_value);
-			}
+                argument.push(call_vm_, value);
+                --arg_count;
+
+                if (param_index < func_signature->arguments.size()) {
+                    ++param_index;
+                }
+            }
+            uint64_t result_value = func_signature->call(call_vm_, address);
+            if (func_signature->return_value.type != ffi_types_t::void_type) {
+                push(result_value);
+            }
 		}break;
 		case op_codes::meta: {
 			uint64_t meta_data_size;
@@ -1594,5 +1621,6 @@ void terp::dump_shared_libraries()
 	}
 	fmt::print("\n");
 }
+
 
 }

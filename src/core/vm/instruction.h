@@ -80,13 +80,21 @@ static inline uint8_t op_size_in_bytes(op_sizes size)
 {
 	switch (size) {
 		case op_sizes::byte:  return 1u;
-		case op_sizes::dword: return 2u;
-		case op_sizes::word:  return 4u;
+        case op_sizes::word:  return 2u;
+		case op_sizes::dword: return 4u;
 		case op_sizes::qword: return 8u;
 		default: return 0u;
 	}
 }
-
+static inline op_sizes op_size_for_byte_size(size_t size) {
+    switch (size) {
+        case 1:     return op_sizes::byte;
+        case 2:     return op_sizes::word;
+        case 4:     return op_sizes::dword;
+        case 8:     return op_sizes::qword;
+        default:    return op_sizes::none;
+    }
+}
 struct operand_encoding_t {
 	using flags_t = uint8_t;
 

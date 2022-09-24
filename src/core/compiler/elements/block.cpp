@@ -54,7 +54,7 @@ block_list_t &block::blocks()
 bool block::on_emit(result &r, emit_context_t& context)
 {
     instruction_block* instruction_block = nullptr;
-
+    auto cleanup = false;
     switch (element_type()) {
         case element_type_t::block:{
             instruction_block = context.assembler->make_basic_block();
@@ -67,6 +67,7 @@ bool block::on_emit(result &r, emit_context_t& context)
             auto block_label = instruction_block->make_label(label_name());
             instruction_block->current_entry()->label(block_label);
             context.assembler->push_block(instruction_block);
+            cleanup = true;
             break;
         }
         case element_type_t::module_block: {
@@ -87,13 +88,8 @@ bool block::on_emit(result &r, emit_context_t& context)
             context.assembler->push_block(instruction_block);
             break;
         }
-        case element_type_t::proc_type_block: {
-            instruction_block = context.assembler->current_block();
-            break;
-        }
+        case element_type_t::proc_type_block:
         case element_type_t::proc_instance_block:
-            instruction_block = context.assembler->current_block();
-            break;
         default:
             return false;
     }
@@ -101,20 +97,12 @@ bool block::on_emit(result &r, emit_context_t& context)
     for (auto stmt : statements_) {
         stmt->emit(r, context);
     }
-
-    auto block_data = context.top<block_data_t>();
-    if (block_data == nullptr || block_data->recurse) {
-        for (auto blk : blocks_) {
-            blk->emit(r, context);
-        }
+    if (cleanup) {
+        context.assembler->pop_block();
     }
-
-    if (element_type() == element_type_t::block) {
-       context.assembler->pop_block();
-    }
-
     return !r.is_failed();
 }
+
 void block::on_owned_elements(element_list_t &list)
 {
     for (auto element : types_.as_list()) {

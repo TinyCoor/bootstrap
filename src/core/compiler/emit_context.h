@@ -14,9 +14,6 @@
 #include "compiler_types.h"
 
 namespace gfx::compiler {
-struct block_data_t {
-    bool recurse = true;
-};
 
 struct if_data_t {
     std::string true_branch_label;
@@ -40,8 +37,6 @@ struct emit_context_t {
     }
 
     void push_if(const std::string& true_label_name, const std::string& false_label_name);
-
-    void push_block(bool recurse);
 
     void free_variable(const std::string& name);
 

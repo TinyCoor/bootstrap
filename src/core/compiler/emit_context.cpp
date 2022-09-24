@@ -59,12 +59,6 @@ void emit_context_t::pop()
     data_stack.pop();
 }
 
-void emit_context_t::push_block(bool recurse)
-{
-    data_stack.push(std::any(block_data_t {
-        .recurse = recurse
-    }));
-}
 void emit_context_t::free_variable(const std::string &name)
 {
     auto var = variable(name);

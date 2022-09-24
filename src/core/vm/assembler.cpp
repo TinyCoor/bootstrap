@@ -232,10 +232,11 @@ bool assembler::apply_addresses(result &r)
                   offset += inst->encoding_size();
                   break;
               }
-              case block_entry_type_t::data_definition:
+              case block_entry_type_t::data_definition: {
                   auto data_def = entry.data<data_definition_t>();
                   offset += op_size_in_bytes(data_def->size);
                   break;
+              }
           }
       }
       return true;

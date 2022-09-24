@@ -12,6 +12,7 @@
 #include "import.h"
 #include "comment.h"
 #include "types/any_type.h"
+#include "types/bool_type.h"
 #include "types/tuple_type.h"
 #include "types/array_type.h"
 #include "if_element.h"
@@ -111,7 +112,9 @@ module *program::compile_module(result& r, compiler::session& session, source_fi
     compiler::module* module = nullptr;
     if (module_node != nullptr) {
         module = dynamic_cast<compiler::module*>(evaluate(r, session, module_node));
-        module->parent_element(this);
+        if (module != nullptr) {
+            module->parent_element(this);
+        }
     }
     if (!r.is_failed()) {
         session.raise_phase(session_compile_phase_t::success, source->path());
@@ -134,6 +137,9 @@ bool program::run(result &r)
 void program::disassemble(FILE * file)
 {
     auto root_block = assembler_->root_block();
+    if (root_block == nullptr) {
+        return;
+    }
     root_block->disassemble();
     if (file != nullptr) {
         assembler_->listing().write(file);
@@ -180,6 +186,9 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 
 			for (auto &it : node->children) {
                 auto expr = evaluate(r, session, it, default_block_type);
+                if (expr ==nullptr) {
+                    return nullptr;
+                }
 				add_expression_to_scope(module_block, expr);
                 expr->parent_element(module);
 			}
@@ -231,7 +240,7 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
                 type_find_result_t find_type_result {};
                 find_identifier_type(r, find_type_result, node->rhs->rhs);
                 expr = add_identifier_to_scope(r, session, dynamic_cast<compiler::symbol_element*>(expr),
-                    find_type_result, nullptr);
+                    find_type_result, nullptr, 0);
             }
 			return make_statement(current_scope(), labels, expr);
 		}
@@ -239,30 +248,37 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 			return make_expression(current_scope(), evaluate(r, session, node->lhs));
 		}
 		case ast_node_types_t::assignment: {
-			const auto &assignment_target_list = node->lhs;
-
+			const auto &target_list = node->lhs;
+            const auto& source_list = node->rhs;
+            if (target_list->children.size() != source_list->children.size()) {
+                error(r,session,"P027","the number of left-hand-side targets must match"
+                    " the number of right-hand-side expressions.",
+                    source_list->location);
+                return nullptr;
+            }
 			identifier_list_t list {};
-			for (const auto& symbol_node : assignment_target_list->children) {
+            for (size_t i = 0; i < target_list->children.size(); i++) {
+                const auto& symbol_node = target_list->children[i];
                 qualified_symbol_t qualified_symbol {};
                 make_qualified_symbol(qualified_symbol, symbol_node);
 				auto existing_identifier = find_identifier(qualified_symbol);
 				if (existing_identifier != nullptr) {
                     auto binary_op = make_binary_operator(current_scope(), operator_type_t::assignment, existing_identifier,
-                         evaluate(r, session, node->rhs));
+                         evaluate(r, session, source_list->children[i]));
                     apply_attributes(r, session, binary_op, node);
 					return binary_op;
 				} else {
                     auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate(r, session, symbol_node));
                     type_find_result_t find_type_result {};
                     find_identifier_type(r, find_type_result, symbol_node->rhs);
-					auto new_identifier = add_identifier_to_scope(r, session, symbol, find_type_result, node);
+					auto new_identifier = add_identifier_to_scope(r, session, symbol, find_type_result, node, i);
 					if (new_identifier ==nullptr) {
                         return nullptr;
                     }
                     list.push_back(new_identifier);
 				}
 			}
-			// TODO: handle proper multi-assignment
+
             auto result = list.front();
 			return result;
 		}
@@ -397,7 +413,7 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
                         type_find_result_t find_type_result {};
                         find_identifier_type(r, find_type_result, first_target->rhs, block_scope);
 						auto param_identifier = add_identifier_to_scope(r, session, symbol,
-                            find_type_result, param_node, block_scope);
+                            find_type_result, param_node, 0, block_scope);
                         param_identifier->usage(identifier_usage_t::stack);
                         auto field = make_field(current_scope(), param_identifier);
 						proc_type->parameters().add(field);
@@ -408,7 +424,7 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
                         auto symbol = dynamic_cast<symbol_element*>(evaluate_in_scope(r, session, param_node, block_scope));
                         type_find_result_t find_type_result {};
                         find_identifier_type(r, find_type_result, param_node->rhs, block_scope);
-						auto param_identifier = add_identifier_to_scope(r, session, symbol, find_type_result, nullptr, block_scope);
+						auto param_identifier = add_identifier_to_scope(r, session, symbol, find_type_result, nullptr, 0, block_scope);
                         if (param_identifier !=nullptr) {
                             param_identifier->usage(identifier_usage_t::stack);
                             auto field = make_field(block_scope, param_identifier);
@@ -521,9 +537,10 @@ string_type *program::make_string_type(result &r, compiler::block* parent_scope,
     return type;
 }
 
-numeric_type *program::make_numeric_type(result &r, compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max)
+numeric_type *program::make_numeric_type(result &r, compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max,
+                                         bool is_signed)
 {
-    return make_type<numeric_type>(r, parent_scope, make_symbol(parent_scope, name), min, max);
+    return make_type<numeric_type>(r, parent_scope, make_symbol(parent_scope, name), min, max, is_signed);
 }
 
 block *program::pop_scope()
@@ -542,27 +559,21 @@ void program::initialize_core_types(result &r)
     auto numeric_types = numeric_type::make_types(r, parent_scope, this);
 
     auto string_type = make_string_type(r, parent_scope, make_block(parent_scope, element_type_t::block));
-    string_type->initialize(r, this);
 	add_type_to_scope(string_type);
-
+    add_type_to_scope(make_bool_type(r, parent_scope));
     auto module_type = make_module_type(r, parent_scope, make_block(parent_scope, element_type_t::block));
-    string_type->initialize(r, this);
     add_type_to_scope(module_type);
 
     auto namespace_type = make_namespace_type(r, parent_scope);
-    namespace_type->initialize(r, this);
     add_type_to_scope(namespace_type);
 
     auto type_info_type = make_type_info_type(r, parent_scope, make_block(parent_scope, element_type_t::block));
-    type_info_type->initialize(r, this);
     add_type_to_scope(type_info_type);
 
     auto tuple_type = make_tuple_type(r, parent_scope, make_block(parent_scope, element_type_t::block));
-    tuple_type->initialize(r, this);
     add_type_to_scope(tuple_type);
 
     auto any_type = make_any_type(r, parent_scope, make_block(parent_scope, element_type_t::block));
-    any_type->initialize(r, this);
     add_type_to_scope(any_type);
 }
 
@@ -902,7 +913,7 @@ compiler::element* program::resolve_symbol_or_evaluate(result& r, compiler::sess
 }
 
 compiler::identifier *program::add_identifier_to_scope(result &r, compiler::session& session, symbol_element *symbol, type_find_result_t& type_find_result,
-	const ast_node_shared_ptr &node, compiler::block* parent_scope)
+	const ast_node_shared_ptr &node, size_t source_index, compiler::block* parent_scope)
 {
 	auto namespace_type = find_type(qualified_symbol_t{.name = "namespace"});
 	auto scope = symbol->is_qualified() ? current_top_level()
@@ -940,10 +951,15 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
 		}
 	}
 
+    ast_node_shared_ptr source_node = nullptr;
+    if (node != nullptr) {
+        source_node = node->rhs->children[source_index];
+    }
+
     compiler::element* init_expr = nullptr;
 	compiler::initializer * init = nullptr;
-	if (node != nullptr && node->rhs != nullptr) {
-        init_expr = evaluate_in_scope(r, session, node->rhs, scope);
+	if (node != nullptr) {
+        init_expr = evaluate_in_scope(r, session, source_node, scope);
         if (init_expr != nullptr) {
             // XXX: need to revisit this!!!
             if (init_expr->element_type() == element_type_t::symbol) {
@@ -987,7 +1003,7 @@ compiler::identifier *program::add_identifier_to_scope(result &r, compiler::sess
 
 	scope->identifiers().add(new_identifier);
 	if (init != nullptr && init->expression()->element_type() == element_type_t::proc_type) {
-		add_procedure_instance(r, session, dynamic_cast<procedure_type*>(init->expression()), node->rhs);
+		add_procedure_instance(r, session, dynamic_cast<procedure_type*>(init->expression()), source_node);
 	}
 
     if (init == nullptr && init_expr == nullptr && new_identifier->type() == nullptr) {
@@ -1526,7 +1542,9 @@ bool program::on_emit(result &r, emit_context_t &context)
     }
     auto all_blocks = elements().find_by_type(element_type_t::block);
     for (auto block : all_blocks) {
-        if (block->is_parent_element(element_type_t::namespace_e)) {
+        if (block->is_parent_element(element_type_t::namespace_e)
+            ||  block->is_parent_element(element_type_t::program)
+            ||  (block->parent_element() != nullptr && block->parent_element()->is_type())) {
             continue;
         }
         implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
@@ -1799,6 +1817,16 @@ compiler::type *program::make_complete_type(result &r, type_find_result_t &resul
         }
     }
     return result.type;
+}
+
+bool_type *program::make_bool_type(result &r, compiler::block *parent_scope)
+{
+    auto type = new compiler::bool_type(parent_scope);
+    if (!type->initialize(r, this)) {
+        return nullptr;
+    }
+    elements_.add(type);
+    return type;
 }
 
 }

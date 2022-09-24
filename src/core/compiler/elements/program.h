@@ -75,7 +75,7 @@ private:
     void apply_attributes(result& r, compiler::session& session, compiler::element* element, const ast_node_shared_ptr& node);
 
 	compiler::identifier* add_identifier_to_scope(result& r, compiler::session& session, symbol_element* symbol, type_find_result_t& find_type_result,
-		const ast_node_shared_ptr& node, compiler::block* parent_scope = nullptr);
+        const ast_node_shared_ptr& node, size_t source_index, compiler::block* parent_scope = nullptr);
 
     compiler::symbol_element* make_symbol_from_node(result& r, const ast_node_shared_ptr& node);
 
@@ -93,6 +93,7 @@ private:
     compiler::module* find_module(compiler::element* module) const;
 private:
     friend class any_type;
+    friend class bool_type;
     friend class directive;
     friend class tuple_type;
     friend class type_info;
@@ -167,11 +168,13 @@ private:
 
 	class block* push_new_block(element_type_t type = element_type_t::block);
 
+    bool_type* make_bool_type(result& r, compiler::block* parent_scope);
+
 	unknown_type* make_unknown_type(result &r, compiler::block* parent_scope, compiler::symbol_element* symbol,
       bool is_pointer, bool is_array, size_t array_size);
 
 	numeric_type* make_numeric_type(result &r, compiler::block* parent_scope, const std::string& name,
-		int64_t min, uint64_t max);
+		int64_t min, uint64_t max, bool is_signed);
 
 	array_type* make_array_type(result &r, compiler::block* parent_scope, compiler::block* scope,
         compiler::type* entry_type, size_t size);

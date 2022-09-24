@@ -13,17 +13,21 @@ struct numeric_type_properties_t {
 	int64_t min;
 	uint64_t max;
 	size_t size_in_bytes;
+    bool is_signed = false;
 };
 
 using numeric_type_map_t = std::unordered_map<std::string, numeric_type_properties_t*>;
 
 class numeric_type : public type {
 public:
-	explicit numeric_type(block* parent_scope, symbol_element* symbol, int64_t min, uint64_t max);
+	explicit numeric_type(block* parent_scope, symbol_element* symbol, int64_t min, uint64_t max,
+                          bool is_signed);
 
 	int64_t min() const;
 
 	uint64_t max() const;
+
+    bool is_signed() const;
 
 	symbol_type_t symbol_type() const;
 
@@ -32,21 +36,19 @@ public:
 	static type_list_t make_types(result& r, compiler::block* parent, compiler::program* program);
 protected:
     static inline std::vector<numeric_type_properties_t> s_type_properties = {
-        {"bool", 0,         1,           1},
         {"u8",   0,         UINT8_MAX,   1},
         {"u16",  0,         UINT16_MAX,  2},
         {"u32",  0,         UINT32_MAX,  4},
         {"u64",  0,         UINT64_MAX,  8},
-        {"s8",   INT8_MIN,  INT8_MAX,    1},
-        {"s16",  INT16_MIN, INT16_MAX,   2},
-        {"s32",  INT32_MIN, INT32_MAX,   4},
-        {"s64",  INT64_MIN, INT64_MAX,   8},
-        {"f32",  0,         UINT32_MAX,  4},
-        {"f64",  0,         UINT64_MAX,  8},
+        {"s8",   INT8_MIN,  INT8_MAX,    1, true},
+        {"s16",  INT16_MIN, INT16_MAX,   2, true},
+        {"s32",  INT32_MIN, INT32_MAX,   4, true},
+        {"s64",  INT64_MIN, INT64_MAX,   8, true},
+        {"f32",  0,         UINT32_MAX,  4, true},
+        {"f64",  0,         UINT64_MAX,  8, true},
     };
 
     static inline numeric_type_map_t s_types_map = {
-		{"bool",     &s_type_properties[0]},
 		{"u8",       &s_type_properties[1]},
 		{"u16",      &s_type_properties[2]},
 		{"u32",      &s_type_properties[3]},
@@ -64,6 +66,7 @@ protected:
 private:
 	int64_t min_;
 	uint64_t max_;
+    bool is_signed_;
 };
 }
 #endif // COMPILER_ELEMENTS_NUMERIC_TYPE_H_

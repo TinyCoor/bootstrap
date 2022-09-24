@@ -30,6 +30,7 @@
 #include "elements/binary_operator.h"
 #include "elements/namespace_element.h"
 #include "elements/procedure_instance.h"
+#include "elements/types/bool_type.h"
 #include "elements/types/any_type.h"
 #include "elements/types/tuple_type.h"
 #include "elements/types/type_info.h"
@@ -336,7 +337,14 @@ std::string code_dom_formatter::format_node(element* node)
 			add_primary_edge(initializer_element, initializer_element->expression());
 			return fmt::format("{}[shape=record,label=\"initializer\"{}];", node_vertex_name, style);
 		}
-		case element_type_t::bool_type:
+        case element_type_t::bool_type: {
+            auto element = dynamic_cast<bool_type*>(node);
+            auto style = ", fillcolor=gainsboro, style=\"filled\"";
+            add_primary_edge(element, element->symbol());
+            return fmt::format("{}[shape=record,label=\"bool_type|{}\"{}];",
+                node_vertex_name, element->symbol()->name(), style);
+            break;
+        }
 		case element_type_t::numeric_type: {
 			auto element = dynamic_cast<numeric_type*>(node);
 			auto style = ", fillcolor=gainsboro, style=\"filled\"";

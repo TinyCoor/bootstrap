@@ -33,6 +33,7 @@ class expression;
 class initializer;
 class statement;
 class type_info;
+class bool_type;
 class if_element;
 class tuple_type;
 class array_type;
@@ -160,6 +161,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::field, 				"field"},
 	{element_type_t::return_e, 				"return"},
 	{element_type_t::import_e, 				"import"},
+    {element_type_t::bool_type,             "bool_type"},
     {element_type_t::module, 				"module"},
     {element_type_t::symbol,                "symbol"},
 	{element_type_t::element, 				"element"},

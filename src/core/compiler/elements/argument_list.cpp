@@ -3,6 +3,7 @@
 //
 
 #include "argument_list.h"
+#include "types/type.h"
 #include "vm/instruction_block.h"
 #include "fmt/format.h"
 namespace gfx::compiler {
@@ -58,6 +59,7 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
             case element_type_t::binary_operator:
             case element_type_t::identifier_reference:{
                 i_registers_t target_reg;
+                auto push_size = op_sizes::qword;
                 auto cleanup = false;
                 auto var = context.variable_for_element(arg);
                 if (var != nullptr) {
@@ -66,6 +68,7 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
                         target_reg = var->address_reg;
                     } else {
                         target_reg = var->value_reg.i;
+                        push_size = op_size_for_byte_size(var->type->size_in_bytes());
                     }
                 }
                 else {
@@ -76,7 +79,7 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
                 assembler->push_target_register(target_reg);
                 arg->emit(r, context);
                 assembler->pop_target_register();
-                instruction_block->push(op_sizes::qword, target_reg);
+                instruction_block->push(push_size, target_reg);
                 if (cleanup) {
                     assembler->free_reg(target_reg);
                 }

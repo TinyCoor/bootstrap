@@ -32,7 +32,7 @@ bool compiler::integer_literal::on_emit(gfx::result &r, emit_context_t& context)
 {
     auto assembler = context.assembler;
     auto instruction_block = assembler->current_block();
-    auto target_reg = instruction_block->current_target_register();
+    auto target_reg = assembler->current_target_register();
     auto inferred_type = infer_type(context.program);
     instruction_block->move_constant_to_ireg(op_size_for_byte_size(inferred_type->size_in_bytes()),
         target_reg->reg.i, value_);

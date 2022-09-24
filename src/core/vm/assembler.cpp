@@ -256,4 +256,66 @@ bool assembler::apply_addresses(result &r)
     });
     return !r.is_failed();
 }
+
+bool assembler::allocate_reg(i_registers_t& reg)
+{
+    return i_register_allocator_.allocate(reg);
+}
+
+bool assembler::allocate_reg(f_registers_t& reg)
+{
+    return f_register_allocator_.allocate(reg);
+}
+
+void assembler::free_reg(i_registers_t reg)
+{
+    i_register_allocator_.free(reg);
+}
+
+void assembler::free_reg(f_registers_t reg)
+{
+    f_register_allocator_.free(reg);
+}
+
+target_register_t assembler::pop_target_register()
+{
+    if (target_registers_.empty()) {
+        return target_register_t {};
+    }
+    auto reg = target_registers_.top();
+    target_registers_.pop();
+    return reg;
+}
+
+target_register_t *assembler::current_target_register()
+{
+    if (target_registers_.empty()) {
+        return nullptr;
+    }
+    return &target_registers_.top();
+}
+
+void assembler::push_target_register(i_registers_t reg)
+{
+    target_register_t target {
+        .type = target_register_type_t::integer,
+        .reg = {
+            .i = reg
+        }
+    };
+    target_registers_.push(target);
+}
+
+void assembler::push_target_register(f_registers_t reg)
+{
+    target_register_t target {
+        .type = target_register_type_t::floating_point,
+        .reg = {
+            .f = reg
+        }
+    };
+    target_registers_.push(target);
+}
+
+
 }

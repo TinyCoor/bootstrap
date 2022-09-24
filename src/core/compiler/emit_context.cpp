@@ -70,13 +70,13 @@ void emit_context_t::free_variable(const std::string &name)
     auto var = variable(name);
     if (var != nullptr) {
         if (var->usage == identifier_usage_t::heap) {
-            assembler->current_block()->free_reg(var->address_reg);
+            assembler->free_reg(var->address_reg);
         }
 
         if (var->type->number_class() == type_number_class_t::integer) {
-            assembler->current_block()->free_reg(var->value_reg.i);
+            assembler->free_reg(var->value_reg.i);
         } else {
-            assembler->current_block()->free_reg(var->value_reg.f);
+            assembler->free_reg(var->value_reg.f);
         }
         variables.erase(name);
     }
@@ -118,16 +118,16 @@ variable_t *emit_context_t::allocate_variable(result &r,  const std::string &nam
     };
 
     if (usage == identifier_usage_t::heap) {
-        if (!block->allocate_reg(new_var.address_reg)) {
+        if (!assembler->allocate_reg(new_var.address_reg)) {
         }
     }
 
     if (new_var.type->number_class() == type_number_class_t::integer) {
-        if (!block->allocate_reg(new_var.value_reg.i)) {
+        if (!assembler->allocate_reg(new_var.value_reg.i)) {
         }
         new_var.requires_read = true;
     } else if (new_var.type->number_class() == type_number_class_t::floating_point) {
-        if (!block->allocate_reg(new_var.value_reg.f)) {
+        if (!assembler->allocate_reg(new_var.value_reg.f)) {
         }
         new_var.requires_read = true;
     } else {

@@ -69,16 +69,16 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
                     }
                 }
                 else {
-                    if (!instruction_block->allocate_reg(target_reg)) {
+                    if (!assembler->allocate_reg(target_reg)) {
                     }
                     cleanup = true;
                 }
-                instruction_block->push_target_register(target_reg);
+                assembler->push_target_register(target_reg);
                 arg->emit(r, context);
-                instruction_block->pop_target_register();
+                assembler->pop_target_register();
                 instruction_block->push(op_sizes::qword, target_reg);
                 if (cleanup) {
-                    instruction_block->free_reg(target_reg);
+                    assembler->free_reg(target_reg);
                 }
 
                 break;

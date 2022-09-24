@@ -39,14 +39,14 @@ bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
 {
     auto assembler =context.assembler;
     auto instruction_block = assembler->current_block();
-    auto target_reg = instruction_block->current_target_register();
+    auto target_reg = assembler->current_target_register();
     i_registers_t rhs_reg;
-    if (!instruction_block->allocate_reg(rhs_reg)) {
+    if (!assembler->allocate_reg(rhs_reg)) {
 
     }
-    instruction_block->push_target_register(rhs_reg);
+    assembler->push_target_register(rhs_reg);
     rhs_->emit(r, context);
-    instruction_block->pop_target_register();
+    assembler->pop_target_register();
 
     auto rhs_size = op_size_for_byte_size(rhs_->infer_type(context.program)->size_in_bytes());
     switch (operator_type()) {
@@ -65,7 +65,7 @@ bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
             break;
     }
 
-    instruction_block->free_reg(rhs_reg);
+    assembler->free_reg(rhs_reg);
 
     return true;
 }

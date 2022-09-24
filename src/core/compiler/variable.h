@@ -13,9 +13,9 @@
 namespace gfx::compiler {
 struct variable_t {
 
-    bool read(instruction_block* block);
+    bool read(assembler* assembler, instruction_block* block);
 
-    bool write(instruction_block* block);
+    bool write(assembler* assembler, instruction_block* block);
 
     std::string name;
     bool written = false;

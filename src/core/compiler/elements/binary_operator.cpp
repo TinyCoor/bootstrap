@@ -99,15 +99,15 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
             auto var = context.variable_for_element(lhs_);
 
             i_registers_t rhs_reg;
-            if (!instruction_block->allocate_reg(rhs_reg)) {
+            if (!assembler->allocate_reg(rhs_reg)) {
 
             }
             lhs_->emit(r, context);
-            instruction_block->push_target_register(rhs_reg);
+            assembler->push_target_register(rhs_reg);
             rhs_->emit(r, context);
-            var->write(instruction_block);
-            instruction_block->pop_target_register();
-            instruction_block->free_reg(rhs_reg);
+            var->write(assembler, instruction_block);
+            assembler->pop_target_register();
+            assembler->free_reg(rhs_reg);
             break;
         }
         default:
@@ -119,13 +119,14 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
 void binary_operator::emit_relational_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
     i_registers_t lhs_reg, rhs_reg;
+    auto &assembler = context.assembler;
     auto cleanup_left = false;
     auto cleanup_right = false;
     auto lhs_var = context.variable_for_element(lhs_);
     if (lhs_var != nullptr) {
         lhs_reg = lhs_var->value_reg.i;
     } else {
-        if (!instruction_block->allocate_reg(lhs_reg)) {
+        if (!assembler->allocate_reg(lhs_reg)) {
         }
         cleanup_left = true;
     }
@@ -134,17 +135,17 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
     if (rhs_var != nullptr) {
         rhs_reg = rhs_var->value_reg.i;
     } else {
-        if (!instruction_block->allocate_reg(rhs_reg)) {
+        if (!assembler->allocate_reg(rhs_reg)) {
         }
         cleanup_right = true;
     }
-    instruction_block->push_target_register(lhs_reg);
+    assembler->push_target_register(lhs_reg);
     lhs_->emit(r, context);
-    instruction_block->pop_target_register();
+    assembler->pop_target_register();
 
-    instruction_block->push_target_register(rhs_reg);
+    assembler->push_target_register(rhs_reg);
     rhs_->emit(r, context);
-    instruction_block->pop_target_register();
+    assembler->pop_target_register();
 
     auto if_data = context.top<if_data_t>();
     switch (operator_type()) {
@@ -158,7 +159,7 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
                     instruction_block->beq(if_data->true_branch_label);
                 }
             } else {
-                auto target_reg = instruction_block->current_target_register();
+                auto target_reg = assembler->current_target_register();
                 instruction_block->setz(target_reg->reg.i);
                 context.push_scratch_register(target_reg->reg.i);
             }
@@ -176,7 +177,7 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
             } else {
                 auto lhs_target_reg = context.pop_scratch_register();
                 auto rhs_target_reg =  context.pop_scratch_register();
-                auto target_reg = instruction_block->current_target_register();
+                auto target_reg = assembler->current_target_register();
                 instruction_block->or_ireg_by_ireg(target_reg->reg.i, lhs_target_reg,
                     rhs_target_reg);
             }
@@ -188,7 +189,7 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
             } else {
                 auto rhs_target_reg = context.pop_scratch_register();
                 auto lhs_target_reg = context.pop_scratch_register();
-                auto target_reg = instruction_block->current_target_register();
+                auto target_reg = assembler->current_target_register();
                 instruction_block->and_ireg_by_ireg(target_reg->reg.i, lhs_target_reg,
                     rhs_target_reg);
             }
@@ -208,16 +209,17 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
         }
     }
     if (cleanup_right) {
-        instruction_block->free_reg(rhs_reg);
+        assembler->free_reg(rhs_reg);
     }
     if (cleanup_left) {
-        instruction_block->free_reg(lhs_reg);
+        assembler->free_reg(lhs_reg);
     }
 }
 
 void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
-    auto result_reg = instruction_block->current_target_register();
+    auto assembler = context.assembler;
+    auto result_reg = assembler->current_target_register();
     i_registers_t lhs_reg, rhs_reg;
     auto cleanup_left = false;
     auto cleanup_right = false;
@@ -225,7 +227,7 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
     if (lhs_var != nullptr) {
         lhs_reg = lhs_var->value_reg.i;
     } else {
-        if (!instruction_block->allocate_reg(lhs_reg)) {
+        if (!assembler->allocate_reg(lhs_reg)) {
         }
         cleanup_left = true;
     }
@@ -234,17 +236,17 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
     if (rhs_var != nullptr) {
         rhs_reg = rhs_var->value_reg.i;
     } else {
-        if (!instruction_block->allocate_reg(rhs_reg)) {
+        if (!assembler->allocate_reg(rhs_reg)) {
         }
         cleanup_right = true;
     }
-    instruction_block->push_target_register(lhs_reg);
+    assembler->push_target_register(lhs_reg);
     lhs_->emit(r, context);
-    instruction_block->pop_target_register();
+    assembler->pop_target_register();
 
-    instruction_block->push_target_register(rhs_reg);
+    assembler->push_target_register(rhs_reg);
     rhs_->emit(r, context);
-    instruction_block->pop_target_register();
+    assembler->pop_target_register();
 
     switch (operator_type()) {
         case operator_type_t::add: {
@@ -303,10 +305,10 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
             break;
     }
     if (cleanup_right) {
-        instruction_block->free_reg(rhs_reg);
+        assembler->free_reg(rhs_reg);
     }
     if (cleanup_left) {
-        instruction_block->free_reg(lhs_reg);
+        assembler->free_reg(lhs_reg);
     }
 
 }

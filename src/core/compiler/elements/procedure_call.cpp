@@ -51,7 +51,7 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
     } else {
         instruction_block->call(identifier->symbol()->name());
     }
-    auto target_reg = instruction_block->current_target_register();
+    auto target_reg = assembler->current_target_register();
     if (target_reg != nullptr) {
         if (!procedure_type->returns().as_list().empty()) {
             instruction_block->pop(op_sizes::qword, target_reg->reg.i);

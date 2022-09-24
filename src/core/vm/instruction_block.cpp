@@ -130,16 +130,6 @@ void instruction_block::trap(uint8_t index)
     make_block_entry(trap_op);
 }
 
-bool instruction_block::allocate_reg(i_registers_t& reg)
-{
-    return i_register_allocator_.allocate(reg);
-}
-
-bool instruction_block::allocate_reg(f_registers_t& reg)
-{
-    return f_register_allocator_.allocate(reg);
-}
-
 void instruction_block::jump_indirect(i_registers_t reg)
 {
     instruction_t jmp_op;
@@ -171,15 +161,7 @@ void instruction_block::disassemble()
     disassemble(this);
 }
 
-void instruction_block::free_reg(i_registers_t reg)
-{
-    i_register_allocator_.free(reg);
-}
 
-void instruction_block::free_reg(f_registers_t reg)
-{
-    f_register_allocator_.free(reg);
-}
 
 void instruction_block::call_foreign(uint64_t proc_address)
 {
@@ -658,15 +640,6 @@ void instruction_block::make_not_instruction(op_sizes size, i_registers_t dest_r
     make_block_entry(not_op);
 }
 
-target_register_t instruction_block::pop_target_register()
-{
-    if (target_registers_.empty()) {
-        return target_register_t {};
-    }
-    auto reg = target_registers_.top();
-    target_registers_.pop();
-    return reg;
-}
 
 void instruction_block::beq(const std::string &label_name)
 {
@@ -679,36 +652,6 @@ void instruction_block::beq(const std::string &label_name)
         | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
     branch_op.operands[0].value.u64 = label_ref->id;
     make_block_entry(branch_op);
-}
-
-target_register_t *instruction_block::current_target_register()
-{
-    if (target_registers_.empty()) {
-        return nullptr;
-    }
-    return &target_registers_.top();
-}
-
-void instruction_block::push_target_register(i_registers_t reg)
-{
-    target_register_t target {
-        .type = target_register_type_t::integer,
-        .reg = {
-            .i = reg
-        }
-    };
-    target_registers_.push(target);
-}
-
-void instruction_block::push_target_register(f_registers_t reg)
-{
-    target_register_t target {
-        .type = target_register_type_t::floating_point,
-        .reg = {
-            .f = reg
-        }
-    };
-    target_registers_.push(target);
 }
 
 void instruction_block::cmp(op_sizes sizes, i_registers_t lhs_reg, i_registers_t rhs_reg)

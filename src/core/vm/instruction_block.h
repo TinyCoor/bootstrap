@@ -91,25 +91,6 @@ public:
         }
         return nullptr;
     }
-
-/// register alloctor
-public:
-    bool allocate_reg(i_registers_t& reg);
-
-    void free_reg(i_registers_t reg);
-
-    bool allocate_reg(f_registers_t& reg);
-
-    void free_reg(f_registers_t reg);
-
-    target_register_t pop_target_register();
-
-    target_register_t* current_target_register();
-
-    void push_target_register(i_registers_t reg);
-
-    void push_target_register(f_registers_t reg);
-
 // data definitions
 public:
     void byte(uint8_t value);
@@ -439,9 +420,7 @@ private:
     std::vector<instruction_block*> blocks_ {};
     listing_source_file_t* source_file_ = nullptr;
     std::unordered_map<std::string, label*> labels_ {};
-    std::stack<target_register_t> target_registers_ {};
-    register_allocator_t<i_registers_t> i_register_allocator_ {};
-    register_allocator_t<f_registers_t> f_register_allocator_ {};
+
     std::unordered_map<id_t, label_ref_t> unresolved_labels_ {};
     std::unordered_map<std::string, id_t> label_to_unresolved_ids_ {};
 };

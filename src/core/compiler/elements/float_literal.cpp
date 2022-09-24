@@ -29,10 +29,10 @@ bool float_literal::on_as_float(double &value) const
 bool compiler::float_literal::on_emit(gfx::result &r, emit_context_t &context)
 {
     auto instruction_block = context.assembler->current_block();
-    auto target_reg = instruction_block->current_target_register();
+    auto target_reg = context.assembler->current_target_register();
     auto inferred_type = infer_type(context.program);
     instruction_block->move_constant_to_freg(op_size_for_byte_size(inferred_type->size_in_bytes()),
-         target_reg->reg.f, static_cast<uint64_t>(value_));
+         target_reg->reg.f, value_);
     return true;
 }
 

@@ -24,11 +24,23 @@ public:
 
     assembly_listing& listing();
 
-    bool assemble(result& r, instruction_block* block = nullptr);
-
-    bool assemble_from_source(result& r, std::istream& source);
-
     void push_block(instruction_block* block);
+
+    bool allocate_reg(i_registers_t& reg);
+
+    void free_reg(i_registers_t reg);
+
+    bool allocate_reg(f_registers_t& reg);
+
+    void free_reg(f_registers_t reg);
+
+    target_register_t pop_target_register();
+
+    target_register_t* current_target_register();
+
+    void push_target_register(i_registers_t reg);
+
+    void push_target_register(f_registers_t reg);
 
     instruction_block* pop_block();
 
@@ -46,6 +58,10 @@ public:
 
     gfx::segment* segment(const std::string& name);
 
+    bool assemble(result& r, instruction_block* block = nullptr);
+
+    bool assemble_from_source(result& r, std::istream& source);
+
 	gfx::segment* segment(const std::string &name, segment_type_t type);
 
     instruction_block* make_basic_block(instruction_block* parent = nullptr);
@@ -62,6 +78,9 @@ private:
     uint32_t procedure_block_count_ = 0;
     std::vector<instruction_block*> blocks_ {};
     std::stack<instruction_block*> block_stack_{};
+    std::stack<target_register_t> target_registers_ {};
+    register_allocator_t<i_registers_t> i_register_allocator_ {};
+    register_allocator_t<f_registers_t> f_register_allocator_ {};
 	std::unordered_map<std::string, gfx::segment> segments_{};
 };
 }

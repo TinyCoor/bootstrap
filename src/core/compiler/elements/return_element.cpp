@@ -18,16 +18,17 @@ element_list_t &return_element::expressions()
 
 bool compiler::return_element::on_emit(gfx::result &r, emit_context_t &context )
 {
-    auto instruction_block = context.assembler->current_block();
+    auto assembler = context.assembler;
+    auto instruction_block = assembler->current_block();
     if (!expressions_.empty()) {
         i_registers_t target_reg;
-        if (!instruction_block->allocate_reg(target_reg)) {
+        if (!assembler->allocate_reg(target_reg)) {
         }
-        instruction_block->push_target_register(target_reg);
+        assembler->push_target_register(target_reg);
         expressions_.front()->emit(r, context);
         instruction_block->store_from_ireg(op_sizes::qword, i_registers_t::fp, target_reg, 8);
-        instruction_block->pop_target_register();
-        instruction_block->free_reg(target_reg);
+        assembler->pop_target_register();
+        assembler->free_reg(target_reg);
     }
     instruction_block->rts();
     return true;

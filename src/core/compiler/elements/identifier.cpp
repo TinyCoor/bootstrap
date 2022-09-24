@@ -73,6 +73,7 @@ bool identifier::on_as_float(double &value) const
 
 bool identifier::on_emit(result &r, emit_context_t &context)
 {
+    auto assembler = context.assembler;
     if (type_->element_type() == element_type_t::namespace_type) {
         return true;
     }
@@ -83,7 +84,7 @@ bool identifier::on_emit(result &r, emit_context_t &context)
         frame_entry = stack_frame->find_up(symbol_->name());
     }
     auto var = context.allocate_variable(r, symbol_->name(), type_, usage_, frame_entry);
-    var->read(instruction_block);
+    var->read(assembler, instruction_block);
     return true;
 }
 identifier_usage_t identifier::usage() const

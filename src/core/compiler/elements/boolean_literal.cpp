@@ -29,7 +29,7 @@ bool boolean_literal::on_as_bool(bool &value) const
 bool boolean_literal::on_emit(result &r, emit_context_t &context)
 {
     auto instruction_block = context.assembler->current_block();
-    auto target_reg = instruction_block->current_target_register();
+    auto target_reg = context.assembler->current_target_register();
     instruction_block->move_constant_to_ireg(op_sizes::byte, target_reg->reg.i,
         value_ ? 1 : 0);
     return true;

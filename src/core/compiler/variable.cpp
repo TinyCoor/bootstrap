@@ -7,7 +7,7 @@
 #include "compiler/elements/identifier.h"
 #include <fmt/format.h>
 namespace gfx::compiler {
-bool variable_t::read(instruction_block* block) {
+bool variable_t::read(assembler* assembler, instruction_block* block) {
     if (!address_loaded) {
         if (usage == identifier_usage_t::heap) {
             if (address_offset != 0) {
@@ -32,7 +32,7 @@ bool variable_t::read(instruction_block* block) {
         requires_read = false;
     }
 
-    auto target_reg = block->current_target_register();
+    auto target_reg = assembler->current_target_register();
     if (target_reg != nullptr && target_reg->reg.i != value_reg.i) {
         block->move_ireg_to_ireg(target_reg->reg.i, value_reg.i);
         block->current_entry()->comment("assign target register to value register");
@@ -41,13 +41,12 @@ bool variable_t::read(instruction_block* block) {
     return true;
 }
 
-bool variable_t::write(instruction_block* block)
+bool variable_t::write(assembler* assembler, instruction_block* block)
 {
-    auto target_reg = block->current_target_register();
+    auto target_reg = assembler->current_target_register();
     if (target_reg == nullptr) {
         return false;
     }
-
     block->store_from_ireg(op_size_for_byte_size(type->size_in_bytes()),
         address_reg, target_reg->reg.i, frame_entry != nullptr ? frame_entry->offset : 0);
     written = true;

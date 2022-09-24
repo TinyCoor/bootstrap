@@ -83,25 +83,9 @@ namespace gfx {
 			return meta_information_;
 		}
 
-        inline uint8_t* byte_ptr(uint64_t address) const
-        {
-            return heap_ + address;
-        }
+        uint64_t read(op_sizes size, uint64_t address) const;
 
-        inline uint16_t* word_ptr(uint64_t address) const
-        {
-            return reinterpret_cast<uint16_t*>(heap_ + address);
-        }
-
-        inline uint64_t* qword_ptr(uint64_t address) const
-        {
-            return reinterpret_cast<uint64_t*>(heap_ + address);
-        }
-
-        inline uint32_t* dword_ptr(uint64_t address) const
-        {
-            return reinterpret_cast<uint32_t*>(heap_ + address);
-        }
+        void write(op_sizes size, uint64_t address, uint64_t value);
 
         uint64_t alloc(uint64_t size);
 

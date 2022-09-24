@@ -169,8 +169,8 @@ bool terp::step(result &r)
 				}
 				address += offset;
 			}
-            // Why this address not align by 4
-			uint64_t value = *word_ptr(address);
+
+			uint64_t value = read(inst.size, address);
 			if (!set_target_operand_value(r, inst, 0, value)) {
 				return false;
 			}
@@ -239,8 +239,7 @@ bool terp::step(result &r)
 				}
 				address += offset;
 			}
-			*qword_ptr(address) = value;
-
+            write(inst.size, address, value);
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
@@ -929,7 +928,7 @@ bool terp::step(result &r)
 			}
 
 			size_t swi_offset = sizeof(uint64_t) * index;
-			uint64_t swi_address = *qword_ptr(swi_offset);
+			uint64_t swi_address = read(inst.size, swi_offset);
 			if (swi_address != 0) {
 				/// TODO 恢复现场
 				push(registers_.pc);
@@ -1017,7 +1016,7 @@ bool terp::step(result &r)
 
 uint64_t terp::pop()
 {
-	uint64_t value = *qword_ptr(registers_.sp);
+	uint64_t value = read(op_sizes::qword, registers_.sp);
 	registers_.sp += sizeof(uint64_t);
 	return value;
 }
@@ -1025,7 +1024,7 @@ uint64_t terp::pop()
 void terp::push(uint64_t value)
 {
 	registers_.sp -= sizeof(uint64_t);
-	*qword_ptr(registers_.sp) = value;
+    write(op_sizes::qword, registers_.sp, value);
 }
 
 void terp::dump_heap(uint64_t offset, size_t size)
@@ -1224,14 +1223,14 @@ void terp::remove_trap(uint8_t index)
 
 uint64_t terp::peek() const
 {
-	uint64_t value = *qword_ptr(registers_.sp);
+	uint64_t value = read(op_sizes::qword, registers_.sp);
 	return value;
 }
 
 void terp::swi(uint8_t index, uint64_t address)
 {
 	size_t swi_address = interrupt_vector_table_start + (sizeof(uint64_t) * index);
-	*qword_ptr(swi_address) = address;
+    write(op_sizes::qword, swi_address, address);
 }
 
 std::vector<uint64_t> terp::jump_to_subroutine(result &r, uint64_t address)
@@ -1258,16 +1257,16 @@ std::vector<uint64_t> terp::jump_to_subroutine(result &r, uint64_t address)
 }
 uint64_t terp::heap_vector(heap_vectors_t vector) const
 {
-	size_t heap_vector_address = heap_vector_table_start
+	uint64_t heap_vector_address = heap_vector_table_start
 		+ (sizeof(uint64_t) * static_cast<uint8_t>(vector));
-	return *qword_ptr(heap_vector_address);
+	return read(op_sizes::qword, heap_vector_address);
 }
 
 void terp::heap_vector(heap_vectors_t vector, uint64_t address)
 {
-	size_t heap_vector_address = heap_vector_table_start
+	uint64_t heap_vector_address = heap_vector_table_start
 		+ (sizeof(uint64_t) * static_cast<uint8_t>(vector));
-	*qword_ptr(heap_vector_address) = address;
+    write(op_sizes::qword, heap_vector_address, address);
 }
 
 uint64_t terp::set_zoned_value(uint64_t source, uint64_t value, op_sizes size)
@@ -1623,6 +1622,81 @@ void terp::dump_shared_libraries()
 	}
 	fmt::print("\n");
 }
-
+uint64_t terp::read(op_sizes size, uint64_t address) const
+{
+    uint8_t* relative_heap_ptr = heap_ + address;
+    uint64_t result = 0;
+    auto result_ptr = reinterpret_cast<uint8_t*>(&result);
+    switch (size) {
+        case op_sizes::none: {
+            break;
+        }
+        case op_sizes::byte: {
+            result = *relative_heap_ptr;
+            break;
+        }
+        case op_sizes::word: {
+            *(result_ptr + 0) = relative_heap_ptr[0];
+            *(result_ptr + 1) = relative_heap_ptr[1];
+            break;
+        }
+        case op_sizes::dword: {
+            *(result_ptr + 0) = relative_heap_ptr[0];
+            *(result_ptr + 1) = relative_heap_ptr[1];
+            *(result_ptr + 2) = relative_heap_ptr[2];
+            *(result_ptr + 3) = relative_heap_ptr[3];
+            break;
+        }
+        case op_sizes::qword: {
+            *(result_ptr + 0) = relative_heap_ptr[0];
+            *(result_ptr + 1) = relative_heap_ptr[1];
+            *(result_ptr + 2) = relative_heap_ptr[2];
+            *(result_ptr + 3) = relative_heap_ptr[3];
+            *(result_ptr + 4) = relative_heap_ptr[4];
+            *(result_ptr + 5) = relative_heap_ptr[5];
+            *(result_ptr + 6) = relative_heap_ptr[6];
+            *(result_ptr + 7) = relative_heap_ptr[7];
+            break;
+        }
+    }
+    return result;
+}
+void terp::write(op_sizes size, uint64_t address, uint64_t value)
+{
+    uint8_t* relative_heap_ptr = heap_ + address;
+    auto value_ptr = reinterpret_cast<uint8_t*>(&value);
+    switch (size) {
+        case op_sizes::none: {
+            break;
+        }
+        case op_sizes::byte: {
+            *relative_heap_ptr = static_cast<uint8_t>(value);
+            break;
+        }
+        case op_sizes::word: {
+            *(relative_heap_ptr + 0) = value_ptr[0];
+            *(relative_heap_ptr + 1) = value_ptr[1];
+            break;
+        }
+        case op_sizes::dword: {
+            *(relative_heap_ptr + 0) = value_ptr[0];
+            *(relative_heap_ptr + 1) = value_ptr[1];
+            *(relative_heap_ptr + 2) = value_ptr[2];
+            *(relative_heap_ptr + 3) = value_ptr[3];
+            break;
+        }
+        case op_sizes::qword: {
+            *(relative_heap_ptr + 0) = value_ptr[0];
+            *(relative_heap_ptr + 1) = value_ptr[1];
+            *(relative_heap_ptr + 2) = value_ptr[2];
+            *(relative_heap_ptr + 3) = value_ptr[3];
+            *(relative_heap_ptr + 4) = value_ptr[4];
+            *(relative_heap_ptr + 5) = value_ptr[5];
+            *(relative_heap_ptr + 6) = value_ptr[6];
+            *(relative_heap_ptr + 7) = value_ptr[7];
+            break;
+        }
+    }
+}
 
 }

@@ -45,23 +45,9 @@ bool assembler::assemble(result &r, instruction_block *block)
               }
               case block_entry_type_t::data_definition: {
                   auto data_def = entry.data<data_definition_t>();
-                  switch (data_def->size) {
-                      case op_sizes::byte:
-                          *(terp_->byte_ptr(entry.address())) = static_cast<uint8_t>(data_def->value);
-                          break;
-                      case op_sizes::word:
-                          *(terp_->word_ptr(entry.address())) = static_cast<uint16_t>(data_def->value);
-                          break;
-                      case op_sizes::dword:
-                          *(terp_->dword_ptr(entry.address())) = static_cast<uint32_t>(data_def->value);
-                          break;
-                      case op_sizes::qword:
-                          *(terp_->qword_ptr(entry.address())) = data_def->value;
-                          break;
-                      default:
-                          break;
+                  if (data_def->type == data_definition_type_t::initialized) {
+                      terp_->write(data_def->size, entry.address(), data_def->value);
                   }
-                  break;
               }
               default: {
                   break;

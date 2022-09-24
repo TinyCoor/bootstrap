@@ -18,7 +18,7 @@ double float_literal::value() const
 
 compiler::type *float_literal::on_infer_type(const compiler::program *program)
 {
-    return program->find_type({.name = numeric_type::narrow_to_value(_value)
+    return program->find_type({.name = numeric_type::narrow_to_value(value_)
                               });
 }
 

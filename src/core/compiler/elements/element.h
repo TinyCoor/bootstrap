@@ -24,6 +24,8 @@ public:
 
 	block* parent_scope();
 
+    bool is_type() const;
+
     template <typename T>
     T* parent_element_as()
     {

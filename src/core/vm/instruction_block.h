@@ -209,7 +209,7 @@ public:
     }
 
     // rol variations
-    void rol_ireg_by_ireg( i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
+    void rol_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
     {
         make_rol_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
     }

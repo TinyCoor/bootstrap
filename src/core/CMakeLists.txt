@@ -98,6 +98,7 @@ set(ELEMENT_SRC
         compiler/elements/types/type.h              compiler/elements/types/type.cpp
         compiler/elements/types/any_type.h          compiler/elements/types/any_type.cpp
         compiler/elements/types/type_info.h         compiler/elements/types/type_info.cpp
+        compiler/elements/types/bool_type.h         compiler/elements/types/bool_type.cpp
         compiler/elements/types/array_type.h        compiler/elements/types/array_type.cpp
         compiler/elements/types/tuple_type.h        compiler/elements/types/tuple_type.cpp
         compiler/elements/types/module_type.h       compiler/elements/types/module_type.cpp

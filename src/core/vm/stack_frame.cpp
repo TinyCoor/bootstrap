@@ -38,6 +38,9 @@ stack_frame_entry_t *stack_frame_t::find_up(const std::string &name)
         if (entry != nullptr) {
             return entry;
         }
+        if (current_frame->parent_block_ == nullptr) {
+            break;
+        }
         current_frame = current_frame->parent_block_->stack_frame();
     }
     return nullptr;

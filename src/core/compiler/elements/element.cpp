@@ -8,9 +8,9 @@
 #include "fmt/format.h"
 
 namespace gfx::compiler {
-element::element(block* parent_scope, element_type_t type, element* parent_element)
-	:  id_(id_pool::instance()->allocate()), parent_scope_(parent_scope),
-        parent_element_(parent_element), element_type_(type)
+element::element(block *parent_scope, element_type_t type, element *parent_element)
+    : id_(id_pool::instance()->allocate()), parent_scope_(parent_scope),
+      parent_element_(parent_element), element_type_(type)
 {
 }
 
@@ -18,21 +18,21 @@ element::~element() = default;
 
 id_t element::id() const
 {
-	return id_;
+    return id_;
 }
 
-element *element::fold(result& result, compiler::program* program)
+element *element::fold(result &result, compiler::program *program)
 {
     auto no_fold_attribute = find_attribute("no_fold");
-    if (no_fold_attribute != nullptr) {
+    if (no_fold_attribute!=nullptr) {
         return nullptr;
     }
     return on_fold(result, program);
 }
 
-element *element::on_fold(result& result, compiler::program* program)
+element *element::on_fold(result &result, compiler::program *program)
 {
-	return nullptr;
+    return nullptr;
 }
 
 block *element::parent_scope()
@@ -42,37 +42,35 @@ block *element::parent_scope()
 
 attribute_map_t &element::attributes()
 {
-	return attributes_;
+    return attributes_;
 }
 
 element_type_t element::element_type() const
 {
-	return element_type_;
+    return element_type_;
 }
 
 compiler::type *element::infer_type(const compiler::program *program)
 {
-	switch (element_type_) {
-		case element_type_t::any_type:
-		case element_type_t::proc_type:
-		case element_type_t::bool_type:
-		case element_type_t::alias_type:
-		case element_type_t::array_type:
+    switch (element_type_) {
+        case element_type_t::any_type:
+        case element_type_t::proc_type:
+        case element_type_t::bool_type:
+        case element_type_t::alias_type:
+        case element_type_t::array_type:
         case element_type_t::module_type:
-		case element_type_t::string_type:
-		case element_type_t::numeric_type:
+        case element_type_t::string_type:
+        case element_type_t::numeric_type:
         case element_type_t::pointer_type:
-		case element_type_t::composite_type:
-		case element_type_t::namespace_type:
-			return dynamic_cast<compiler::type*>(this);
-		default:
-			return on_infer_type(program);
-	}
+        case element_type_t::composite_type:
+        case element_type_t::namespace_type: return dynamic_cast<compiler::type *>(this);
+        default: return on_infer_type(program);
+    }
 }
 
 compiler::type *element::on_infer_type(const compiler::program *program)
 {
-	return nullptr;
+    return nullptr;
 }
 
 bool element::as_bool(bool &value)
@@ -125,12 +123,12 @@ bool element::on_is_constant() const
     return false;
 }
 
-bool element::emit(result &r,  emit_context_t& context)
+bool element::emit(result &r, emit_context_t &context)
 {
     return on_emit(r, context);
 }
 
-bool compiler::element::on_emit(gfx::result &r, emit_context_t& context)
+bool compiler::element::on_emit(gfx::result &r, emit_context_t &context)
 {
     return true;
 }
@@ -152,18 +150,18 @@ void element::parent_element(element *parent)
 
 bool element::is_parent_element(element_type_t type)
 {
-    if (parent_element_ == nullptr) {
+    if (parent_element_==nullptr) {
         return false;
     }
-    return parent_element_->element_type() == type;
+    return parent_element_->element_type()==type;
 }
 
 attribute *element::find_attribute(const std::string &name)
 {
     auto current_element = this;
-    while (current_element != nullptr) {
+    while (current_element!=nullptr) {
         auto attr = current_element->attributes_.find(name);
-        if (attr != nullptr) {
+        if (attr!=nullptr) {
             return attr;
         }
         current_element = current_element->parent_element();
@@ -189,5 +187,24 @@ void element::location(const source_location &location)
 {
     location_ = location;
 }
-}
 
+bool element::is_type() const
+{
+    switch (element_type_) {
+        case element_type_t::any_type:
+        case element_type_t::proc_type:
+        case element_type_t::bool_type:
+        case element_type_t::type_info:
+        case element_type_t::alias_type:
+        case element_type_t::array_type:
+        case element_type_t::tuple_type:
+        case element_type_t::string_type:
+        case element_type_t::module_type:
+        case element_type_t::numeric_type:
+        case element_type_t::pointer_type:
+        case element_type_t::composite_type:
+        case element_type_t::namespace_type:return true;
+        default:return false;
+    }
+}
+}

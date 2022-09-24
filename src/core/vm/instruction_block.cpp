@@ -87,7 +87,7 @@ void instruction_block::rts()
     make_block_entry(rts_op);
 }
 
-void instruction_block::dup()
+[[maybe_unused]] void instruction_block::dup()
 {
     instruction_t dup_op;
     dup_op.op = op_codes::dup;
@@ -308,7 +308,7 @@ void instruction_block::make_move_instruction(op_sizes size, i_registers_t dest_
     move_op.op = op_codes::move;
     move_op.size = size;
     move_op.operands_count = 2;
-    move_op.operands[0].type =  operand_encoding_t::flags::integer
+    move_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
     move_op.operands[0].value.r8 = dest_reg;
     move_op.operands[1].type = operand_encoding_t::flags::integer |
@@ -358,22 +358,23 @@ void instruction_block::disassemble(instruction_block *block)
         for (const auto& comment : entry.comments()) {
             source_file->add_source_line(entry.address(), fmt::format("; {}", comment));
         }
+
+        if (entry.type() == block_entry_type_t::align) {
+            auto align = entry.data<align_t>();
+            source_file->add_source_line(entry.address(), fmt::format(".align {}", align->size));
+        } else if (entry.type() == block_entry_type_t::section) {
+            auto section = entry.data<section_t>();
+            source_file->add_source_line(entry.address(), fmt::format(".section '{}'", section_name(*section)));
+        }
+
         for (auto label : entry.labels()) {
             source_file->add_source_line(entry.address(), fmt::format("{}:", label->name()));
         }
         switch (entry.type()) {
-            case block_entry_type_t::memo: {
-                break;
-            }
-            case block_entry_type_t::align: {
-                auto align = entry.data<align_t>();
-                source_file->add_source_line(entry.address(), fmt::format(".align {}", align->size));
-                break;
-            }
+            case block_entry_type_t::memo:
+            case block_entry_type_t::align:
             case block_entry_type_t::section: {
-                auto section = entry.data<section_t>();
-                source_file->add_source_line(entry.address(), fmt::format(".section '{}'", section_name(*section)));
-                break;
+               break;
             }
             case block_entry_type_t::instruction: {
                 auto inst = entry.data<instruction_t>();

@@ -141,6 +141,7 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
     }
     return true;
 }
+
 void binary_operator::emit_relational_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
     i_registers_t lhs_reg, rhs_reg;
@@ -306,8 +307,68 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
 element *binary_operator::on_fold(result &r, compiler::program *program)
 {
     switch (operator_type()) {
+        case operator_type_t::add: {
+            break;
+        }
+        case operator_type_t::divide: {
+            break;
+        }
+        case operator_type_t::modulo: {
+            break;
+        }
+        case operator_type_t::equals: {
+            break;
+        }
+        case operator_type_t::subtract: {
+            break;
+        }
+        case operator_type_t::exponent: {
+            break;
+        }
         case operator_type_t::multiply: {
-            return program->make_integer(parent_scope(), 4000);
+            break;
+        }
+        case operator_type_t::binary_or: {
+            break;
+        }
+        case operator_type_t::less_than: {
+            break;
+        }
+        case operator_type_t::not_equals: {
+            break;
+        }
+        case operator_type_t::logical_or: {
+            break;
+        }
+        case operator_type_t::binary_and: {
+            break;
+        }
+        case operator_type_t::binary_xor: {
+            break;
+        }
+        case operator_type_t::shift_left: {
+            break;
+        }
+        case operator_type_t::logical_and: {
+            break;
+        }
+        case operator_type_t::shift_right: {
+            break;
+        }
+        case operator_type_t::rotate_left: {
+            break;
+        }
+        case operator_type_t::rotate_right: {
+            break;
+        }
+        case operator_type_t::greater_than: {
+            break;
+        }
+        case operator_type_t::less_than_or_equal: {
+            break;
+        }
+        case operator_type_t::greater_than_or_equal: {
+            break;
         }
         default:
             break;

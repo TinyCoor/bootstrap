@@ -292,20 +292,24 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 			return make_string(current_scope(), node->token.value);
 		}
 		case ast_node_types_t::number_literal: {
+            // TODO: need to handle conversion failures
 			switch (node->token.number_type) {
 				case number_types_t::integer: {
 					uint64_t value;
 					if (node->token.parse(value) == conversion_result_t::success) {
-						return make_integer(current_scope(), value);
+                        if (node->token.is_signed()) {
+                            return make_integer(current_scope(), ~value + 1);
+                        } else {
+                            return make_integer(current_scope(), value);
+                        }
 					}
-					// TODO: need to handle conversion failures
 				}
 				case number_types_t::floating_point: {
+                    // TODO: need to handle conversion failures
 					double value;
 					if (node->token.parse(value) == conversion_result_t::success) {
 						return make_float(current_scope(), value);
 					}
-					// TODO: need to handle conversion failures
 				}
 				default:
 					break;
@@ -1419,6 +1423,7 @@ bool program::on_emit(result &r, emit_context_t &context)
                 case element_type_t::string_literal: {
                     auto string_literal = dynamic_cast<compiler::string_literal*>(e);
                     instruction_block->memo();
+                    instruction_block->align(4);
                     auto it = interned_string_literals_.find(string_literal->value());
                     if (it != interned_string_literals_.end()) {
                         auto current_entry = instruction_block->current_entry();
@@ -1438,10 +1443,14 @@ bool program::on_emit(result &r, emit_context_t &context)
                     auto var = dynamic_cast<compiler::identifier*>(e);
                     auto init = var->initializer();
                     instruction_block->memo();
+                    instruction_block->current_entry()->blank_lines(1);
+                    auto type_alignment = static_cast<uint8_t>(var->type()->alignment());
+                    if (type_alignment > 1) {
+                        instruction_block->align(type_alignment);
+                    }
+
                     auto var_label = instruction_block->make_label(var->symbol()->name());
-                    auto current_entry = instruction_block->current_entry();
-                    current_entry->label(var_label);
-                    current_entry->blank_lines(1);
+                    instruction_block->current_entry()->label(var_label);
 
                     switch (var->type()->element_type()) {
                         case element_type_t::numeric_type: {

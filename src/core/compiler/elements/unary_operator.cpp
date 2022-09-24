@@ -75,4 +75,23 @@ void unary_operator::on_owned_elements(element_list_t &list)
         list.emplace_back(rhs_);
     }
 }
+
+element *unary_operator::on_fold(result &r, compiler::program *program)
+{
+    switch (operator_type()) {
+        case operator_type_t::negate: {
+            break;
+        }
+        case operator_type_t::binary_not: {
+            break;
+        }
+        case operator_type_t::logical_not: {
+            break;
+        }
+        default:
+            break;
+    }
+
+    return nullptr;
+}
 }

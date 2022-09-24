@@ -13,6 +13,8 @@ bool_type::bool_type(block *parent_scope)
 
 bool bool_type::on_initialize(result &r, compiler::program *program)
 {
-    return type::on_initialize(r, program);
+    symbol(program->make_symbol(parent_scope(), "bool"));
+    size_in_bytes(1);
+    return true;
 }
 }

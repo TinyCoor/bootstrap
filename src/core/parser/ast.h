@@ -72,6 +72,7 @@ enum class ast_node_types_t : uint32_t {
 	subscript_expression,
 	return_argument_list,
     array_subscript_list,
+    assignment_source_list,
 	assignment_target_list,
 };
 
@@ -131,6 +132,7 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
     {ast_node_types_t::module_expression, 		    "module_expression"},
 	{ast_node_types_t::return_argument_list, 		"return_argument_list"},
     {ast_node_types_t::array_subscript_list, 		"array_subscript_list"},
+    {ast_node_types_t::assignment_source_list, 		"assignment_source_list"},
 	{ast_node_types_t::assignment_target_list, 		"assignment_target_list"},
 };
 
@@ -264,7 +266,9 @@ public:
 
 	ast_node_shared_ptr proc_expression_node(token_t &token);
 
-	void push_scope(const ast_node_shared_ptr& node);
+    ast_node_shared_ptr assignment_source_list_node();
+
+    void push_scope(const ast_node_shared_ptr& node);
 
 	ast_node_shared_ptr argument_list_node();
 

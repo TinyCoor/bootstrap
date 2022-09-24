@@ -189,6 +189,8 @@ struct token_t {
 
 	[[nodiscard]] bool is_block_comment() const;
 
+    bool is_signed() const;
+
 	conversion_result_t parse(double& out) const;
 
 	conversion_result_t parse(int64_t& out) const;

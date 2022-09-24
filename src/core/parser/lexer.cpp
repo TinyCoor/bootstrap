@@ -358,7 +358,10 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	// caret
 	{'^', std::bind(&lexer::caret, std::placeholders::_1, std::placeholders::_2)},
 
-	// bang
+    // minus, negate
+    {'-', std::bind(&lexer::minus, std::placeholders::_1, std::placeholders::_2)},
+
+    // bang
 	{'!', std::bind(&lexer::not_equals_operator, std::placeholders::_1, std::placeholders::_2)},
 	{'!', std::bind(&lexer::bang, std::placeholders::_1, std::placeholders::_2)},
 
@@ -528,7 +531,8 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{'z', std::bind(&lexer::identifier, std::placeholders::_1, std::placeholders::_2)},
 
 	// number literal
-	{'_', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
+    {'-', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
+    {'_', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'$', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'%', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'@', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -549,6 +553,10 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 	{'e', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'f', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 
+    // minus, negate
+    {'-', std::bind(&lexer::minus, std::placeholders::_1, std::placeholders::_2)},
+
+
 };
 
 lexer::lexer(source_file* source)
@@ -556,7 +564,7 @@ lexer::lexer(source_file* source)
 {
 }
 
-rune_t lexer::peek()
+[[maybe_unused]] rune_t lexer::peek()
 {
 	while (!source_->eof()) {
 		auto ch = static_cast<char>(source_->next());
@@ -582,7 +590,8 @@ void lexer::rewind_one_char()
 }
 
 bool lexer::next(token_t& token)
-{	if (source_->eof()) {
+{
+    if (source_->eof()) {
         has_next_ = false;
         token = s_end_of_file;
         set_token_location(token);
@@ -739,7 +748,7 @@ std::string lexer::read_until(char target_ch)
 	std::stringstream stream;
 	while (true) {
 		auto ch = read(false);
-		if (ch == target_ch) {
+		if (ch == target_ch || ch == -1) {
 			break;
 		}
 		stream << static_cast<char>(ch);
@@ -1155,12 +1164,24 @@ bool lexer::number_literal(token_t& token)
 		}
 	} else {
 		const std::string valid = "0123456789_.";
+        if (ch == '-') {
+            stream << '-';
+            ch = read(false);
+        }
+
 		while (valid.find_first_of(static_cast<char>(ch)) != std::string::npos) {
 			if (ch!='_') {
-				if (ch=='.') {
-					token.number_type = number_types_t::floating_point;
-				}
-                stream << static_cast<char> (ch);
+                if (ch == '.') {
+                    if (token.number_type != number_types_t::floating_point) {
+                        token.number_type = number_types_t::floating_point;
+                    } else {
+                        token.type = token_types_t::invalid;
+                        token.number_type = number_types_t::none;
+                        return false;
+                    }
+                }
+                // XXX: requires utf8 fix
+                stream << static_cast<char>(ch);
 			}
 			ch = read();
 		}

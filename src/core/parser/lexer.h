@@ -169,7 +169,7 @@ private:
 private:
     void set_token_location(token_t &token);
 
-    rune_t peek();
+    [[maybe_unused]] rune_t peek();
 
 	void rewind_one_char();
 

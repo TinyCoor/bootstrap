@@ -29,6 +29,11 @@ bool token_t::is_line_comment() const
 	return type == token_types_t::line_comment;
 }
 
+bool token_t::is_signed() const
+{
+    return !value.empty() && value[0] == '-';
+}
+
 bool token_t::is_block_comment() const
 {
 	return type == token_types_t::block_comment;

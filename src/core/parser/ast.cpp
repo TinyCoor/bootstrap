@@ -92,6 +92,7 @@ ast_node_shared_ptr ast_builder::assignment_node()
 	node->id= ++id_;
 	node->type = ast_node_types_t::assignment;
 	node->lhs = assignment_target_list_node();
+    node->rhs = assignment_source_list_node();
 	return node;
 }
 
@@ -452,6 +453,14 @@ ast_node_shared_ptr ast_builder::array_subscript_list_node()
     auto node = std::make_shared<ast_node_t>();
     node->id = ++id_;
     node->type = ast_node_types_t::array_subscript_list;
+    return node;
+}
+
+ast_node_shared_ptr ast_builder::assignment_source_list_node()
+{
+    auto node = std::make_shared<ast_node_t>();
+    node->id = ++id_;
+    node->type = ast_node_types_t::assignment_source_list;
     return node;
 }
 

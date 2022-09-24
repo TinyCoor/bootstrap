@@ -280,7 +280,7 @@ ast_node_shared_ptr assignment_infix_parser::parse(result& r, parser* parser, co
         parser->error(r, "P019", "assignment expects right-hand-side expression", token.location);
         return nullptr;
     }
-    assignment_node->rhs = rhs;
+    pairs_to_list(assignment_node->rhs, rhs);
     assignment_node->location.start(lhs->location.start());
     assignment_node->location.end(assignment_node->rhs->location.end());
 	return assignment_node;

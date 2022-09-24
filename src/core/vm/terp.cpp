@@ -157,7 +157,7 @@ bool terp::step(result &r)
 
 		} break;
 		case op_codes::load: {
-			uint64_t address;
+			uint64_t address = 0;
 			if (!get_operand_value(r, inst, 1, address)) {
 				return false;
 			}
@@ -169,7 +169,8 @@ bool terp::step(result &r)
 				}
 				address += offset;
 			}
-			uint64_t value = *qword_ptr(address);
+            // Why this address not align by 4
+			uint64_t value = *word_ptr(address);
 			if (!set_target_operand_value(r, inst, 0, value)) {
 				return false;
 			}
@@ -220,13 +221,14 @@ bool terp::step(result &r)
 
 		}break;
 		case op_codes::store: {
-			uint64_t value;
-			if (!get_operand_value(r, inst, 0, value)) {
+
+            uint64_t address = 0;
+			if (!get_operand_value(r, inst, 0, address)) {
 				return false;
 			}
 
-			uint64_t address;
-			if (!get_operand_value(r, inst, 1, address)) {
+            uint64_t value;
+			if (!get_operand_value(r, inst, 1, value)) {
 				return false;
 			}
 

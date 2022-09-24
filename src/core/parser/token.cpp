@@ -87,11 +87,20 @@ conversion_result_t token_t::parse(int64_t& out) const
 
 conversion_result_t token_t::parse(uint64_t& out) const
 {
-	const char* s = value.data();
+    if (value.empty()) {
+        return conversion_result_t::inconvertible;
+    }
+
+    const char* s = nullptr;
+    if (value[0] == '-') {
+        s = value.substr(1).c_str();
+    } else {
+        s = value.c_str();
+    }
 	char* end;
 	errno = 0;
-	out = strtoul(s, &end, radix);
-	if ((errno == ERANGE && out == LONG_MAX) || out > UINT_MAX) {
+	out = strtoull(s, &end, radix);
+	if (errno == ERANGE) {
 		return conversion_result_t::overflow;
 	}
 	if (*s == '\0' || *end != '\0') {

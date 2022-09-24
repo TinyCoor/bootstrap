@@ -153,6 +153,22 @@ struct ast_node_t {
 		spread  = 0b00000100,
 	};
 
+    bool is_label() const
+    {
+        return type == ast_node_types_t::label;
+    }
+
+    bool is_attribute() const
+    {
+        return type == ast_node_types_t::attribute;
+    }
+
+    bool is_comment() const
+    {
+        return type == ast_node_types_t::line_comment
+            || type == ast_node_types_t::block_comment;
+    }
+
 	[[nodiscard]] bool is_array() const
 	{
 		return ((flags & flags_t::array) != 0);

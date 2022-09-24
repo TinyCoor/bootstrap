@@ -158,8 +158,12 @@ ast_node_shared_ptr parser::parse_statement(result& r)
 		expression = parse_expression(r, 0);
 		if (expression == nullptr) {
 			return nullptr;
-		}
-		if (expression->type == ast_node_types_t::attribute) {
+        }
+        if (expression->is_comment()) {
+            return expression;
+        }
+
+		if (expression->is_attribute()) {
 			ast_builder_.current_scope()->pending_attributes.push_back(expression);
 			token_t line_terminator_token;
 			line_terminator_token.type = token_types_t::semi_colon;
@@ -168,17 +172,11 @@ ast_node_shared_ptr parser::parse_statement(result& r)
 			}
 			continue;
 		}
-		if (expression->type == ast_node_types_t::label) {
+		if (expression->is_label()) {
 			pending_labels.push_back(expression);
 			continue;
 		}
-
-		if (expression->type == ast_node_types_t::line_comment
-			||  expression->type == ast_node_types_t::block_comment
-			||  expression->type == ast_node_types_t::basic_block) {
-			return expression;
-		}
-		break;
+        break;
 	}
 
 	auto statement_node = ast_builder_.statement_node();

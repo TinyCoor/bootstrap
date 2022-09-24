@@ -57,4 +57,9 @@ void composite_type::on_owned_elements(element_list_t &list)
         list.emplace_back(scope_);
     }
 }
+
+type_access_model_t composite_type::on_access_model() const
+{
+    return type_access_model_t::pointer;
+}
 }

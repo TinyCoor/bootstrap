@@ -58,14 +58,29 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
             case element_type_t::binary_operator:
             case element_type_t::identifier_reference:{
                 i_registers_t target_reg;
-                if (!instruction_block->allocate_reg(target_reg)) {
-
+                auto cleanup = false;
+                auto var = context.variable_for_element(arg);
+                if (var != nullptr) {
+                    // XXX: this is a hack!
+                    if (var->address_offset != 0) {
+                        target_reg = var->address_reg;
+                    } else {
+                        target_reg = var->value_reg.i;
+                    }
+                }
+                else {
+                    if (!instruction_block->allocate_reg(target_reg)) {
+                    }
+                    cleanup = true;
                 }
                 instruction_block->push_target_register(target_reg);
                 arg->emit(r, context);
                 instruction_block->pop_target_register();
                 instruction_block->push(op_sizes::qword, target_reg);
-                instruction_block->free_reg(target_reg);
+                if (cleanup) {
+                    instruction_block->free_reg(target_reg);
+                }
+
                 break;
             }
             default:

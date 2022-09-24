@@ -10,6 +10,10 @@ class bool_type : public compiler::type {
 public:
     explicit bool_type(block* parent_scope);
 protected:
+    type_number_class_t on_number_class() const override;
+
+    type_access_model_t on_access_model() const override;
+
     bool on_initialize(result& r, compiler::program* program) override;
 private:
 

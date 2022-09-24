@@ -74,8 +74,8 @@ private:
 
     void apply_attributes(result& r, compiler::session& session, compiler::element* element, const ast_node_shared_ptr& node);
 
-	compiler::identifier* add_identifier_to_scope(result& r, compiler::session& session, symbol_element* symbol, type_find_result_t& find_type_result,
-        const ast_node_shared_ptr& node, size_t source_index, compiler::block* parent_scope = nullptr);
+	identifier * add_identifier_to_scope(result& r, compiler::session& session, symbol_element* symbol, type_find_result_t& find_type_result,
+                                      const ast_node_shared_ptr& node, size_t source_index, compiler::block* parent_scope = nullptr);
 
     compiler::symbol_element* make_symbol_from_node(result& r, const ast_node_shared_ptr& node);
 
@@ -112,46 +112,46 @@ private:
 
     static void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node);
 
-    cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
+    compiler::cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
 
-	alias* make_alias(compiler::block* parent_scope, element* expr);
+	compiler::alias* make_alias(compiler::block* parent_scope, element* expr);
 
-	import* make_import(compiler::block* parent_scope, element* expr,
+	compiler::import* make_import(compiler::block* parent_scope, element* expr,
                         element* from_expr, compiler::module* module);
 
-	label* make_label(compiler::block* parent_scope, const std::string& name);
+    compiler::label* make_label(compiler::block* parent_scope, const std::string& name);
 
-	field* make_field(compiler::block* parent_scope, compiler::identifier* identifier);
+	compiler::field* make_field(compiler::block* parent_scope, compiler::identifier* identifier);
 
-    module* make_module(compiler::block* parent_scope, compiler::block* scope);
+    compiler::module* make_module(compiler::block* parent_scope, compiler::block* scope);
 
-    module_reference* make_module_reference(compiler::block* parent_scope, compiler::element* expr);
+    compiler::module_reference* make_module_reference(compiler::block* parent_scope, compiler::element* expr);
 
-	if_element* make_if(compiler::block* parent_scope, element* predicate, element* true_branch,
+	compiler::if_element* make_if(compiler::block* parent_scope, element* predicate, element* true_branch,
 		element* false_branch);
 
-	comment* make_comment(compiler::block* parent_scope, comment_type_t type, const std::string& value);
+	compiler::comment* make_comment(compiler::block* parent_scope, comment_type_t type, const std::string& value);
 
-	directive* make_directive(compiler::block* parent_scope, const std::string& name, element* expr);
+	compiler::directive* make_directive(compiler::block* parent_scope, const std::string& name, element* expr);
 
-	statement* make_statement(compiler::block* parent_scope, const label_list_t &labels, element* expr);
+	compiler::statement* make_statement(compiler::block* parent_scope, const label_list_t &labels, element* expr);
 
-	boolean_literal* make_bool(compiler::block* parent_scope, bool value);
+	compiler::boolean_literal* make_bool(compiler::block* parent_scope, bool value);
 
-	float_literal* make_float(compiler::block* parent_scope, double value);
+	compiler::float_literal* make_float(compiler::block* parent_scope, double value);
 
-	integer_literal* make_integer(compiler::block* parent_scope, uint64_t value);
+	compiler::integer_literal* make_integer(compiler::block* parent_scope, uint64_t value);
 
-	string_literal* make_string(compiler::block* parent_scope, const std::string& value);
+	compiler::string_literal* make_string(compiler::block* parent_scope, const std::string& value);
 
-	initializer* make_initializer(compiler::block* parent_scope, element* expr);
+	compiler::initializer* make_initializer(compiler::block* parent_scope, element* expr);
 
-	expression* make_expression(compiler::block* parent_scope, element* expr);
+	compiler::expression* make_expression(compiler::block* parent_scope, element* expr);
 
-	identifier* make_identifier(compiler::block* parent_scope,
-        symbol_element* symbol, initializer* expr);
+	compiler::identifier* make_identifier(compiler::block* parent_scope,
+        compiler::symbol_element* symbol, initializer* expr);
 
-	namespace_element* make_namespace(compiler::block* parent_scope, element* expr);
+	compiler::namespace_element* make_namespace(compiler::block* parent_scope, compiler::element* expr);
 
     template<typename T, typename Result, typename ... Args>
     auto make_type(Result r, Args&& ...args) -> decltype(new T(std::forward<Args>(args)...))
@@ -164,25 +164,25 @@ private:
         return type;
     }
 
-	class block* make_block(compiler::block* parent_scope, element_type_t type);
+	class compiler::block* make_block(compiler::block* parent_scope, element_type_t type);
 
-	class block* push_new_block(element_type_t type = element_type_t::block);
+	class compiler::block* push_new_block(compiler::element_type_t type = element_type_t::block);
 
-    bool_type* make_bool_type(result& r, compiler::block* parent_scope);
+    compiler::bool_type* make_bool_type(result& r, compiler::block* parent_scope);
 
-	unknown_type* make_unknown_type(result &r, compiler::block* parent_scope, compiler::symbol_element* symbol,
+    compiler::unknown_type* make_unknown_type(result &r, compiler::block* parent_scope, compiler::symbol_element* symbol,
       bool is_pointer, bool is_array, size_t array_size);
 
-	numeric_type* make_numeric_type(result &r, compiler::block* parent_scope, const std::string& name,
-		int64_t min, uint64_t max, bool is_signed);
+	compiler::numeric_type* make_numeric_type(result &r, compiler::block* parent_scope, const std::string& name,
+		int64_t min, uint64_t max, bool is_signed, type_number_class_t number_class);
 
-	array_type* make_array_type(result &r, compiler::block* parent_scope, compiler::block* scope,
+	compiler::array_type* make_array_type(result &r, compiler::block* parent_scope, compiler::block* scope,
         compiler::type* entry_type, size_t size);
 
-    pointer_type* make_pointer_type(result& r, compiler::block* parent_scope,
+    compiler::pointer_type* make_pointer_type(result& r, compiler::block* parent_scope,
         compiler::type* base_type);
 
-	composite_type* make_enum_type(result &r, compiler::block* parent_scope, compiler::block* scope);
+    compiler::composite_type* make_enum_type(result &r, compiler::block* parent_scope, compiler::block* scope);
 
 	composite_type* make_struct_type(result &r, compiler::block* parent_scope, compiler::block* scope);
 

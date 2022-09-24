@@ -7,16 +7,13 @@
 #include <any>
 #include <stack>
 #include <string>
+#include "variable.h"
 #include "vm/terp.h"
 #include "vm/assembler.h"
 #include "vm/instruction.h"
+#include "compiler_types.h"
 
 namespace gfx::compiler {
-
-enum class emit_access_type_t {
-    read,
-    write
-};
 struct block_data_t {
     bool recurse = true;
 };
@@ -46,11 +43,14 @@ struct emit_context_t {
 
     void push_block(bool recurse);
 
-    void push_access(emit_access_type_t type);
+    void free_variable(const std::string& name);
 
-    [[nodiscard]] emit_access_type_t current_access() const;
+    variable_t* variable(const std::string& name);
 
-    void pop_access();
+    variable_t* variable_for_element(compiler::element* element);
+
+    variable_t* allocate_variable(result& r, const std::string& name, compiler::type* type,
+        identifier_usage_t usage, stack_frame_entry_t* frame_entry = nullptr, instruction_block* block = nullptr);
 
     void pop();
 
@@ -67,7 +67,7 @@ struct emit_context_t {
     program* program = nullptr;
     std::stack<std::any> data_stack {};
     std::stack<i_registers_t> scratch_registers {};
-    std::stack<emit_access_type_t> access_stack {};
+    std::unordered_map<std::string, variable_t> variables {};
 };
 }
 

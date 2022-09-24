@@ -29,4 +29,9 @@ compiler::type* pointer_type::base_type() const
 {
     return base_type_;
 }
+
+type_access_model_t pointer_type::on_access_model() const
+{
+    return type_access_model_t::pointer;
+}
 }

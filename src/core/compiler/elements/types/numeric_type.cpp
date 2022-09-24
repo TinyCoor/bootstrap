@@ -7,8 +7,9 @@
 #include "core/compiler/elements/program.h"
 namespace gfx::compiler {
 numeric_type::numeric_type(block* parent, symbol_element* symbol,  int64_t min, uint64_t max,
-                           bool is_signed)
-	: type(parent, element_type_t::numeric_type, symbol), min_(min), max_(max), is_signed_(is_signed)
+                           bool is_signed, type_number_class_t number_class)
+	: type(parent, element_type_t::numeric_type, symbol), min_(min), max_(max),
+        is_signed_(is_signed) , number_class_(number_class)
 {
 
 }
@@ -32,7 +33,8 @@ type_list_t numeric_type::make_types(result& r, compiler::block* parent, compile
 {
 	type_list_t list {};
 	for (const auto& props : s_type_properties) {
-		auto type = program->make_numeric_type(r, parent, props.name, props.min, props.max, props.is_signed);
+		auto type = program->make_numeric_type(r, parent, props.name, props.min, props.max, props.is_signed,
+                                               props.number_class);
 		type->initialize(r, program);
 		program->add_type_to_scope(type);
 	}
@@ -64,6 +66,13 @@ bool numeric_type::is_signed() const
 {
     return is_signed_;
 }
-
+type_number_class_t numeric_type::on_number_class() const
+{
+    return number_class_;
+}
+type_access_model_t numeric_type::on_access_model() const
+{
+    return type_access_model_t::value;
+}
 
 }

@@ -11,6 +11,8 @@ public:
     type_info(block* parent_scope, block* scope);
 
 protected:
+    type_access_model_t on_access_model() const override;
+
     bool on_initialize(result& r, compiler::program* program) override;
 };
 }

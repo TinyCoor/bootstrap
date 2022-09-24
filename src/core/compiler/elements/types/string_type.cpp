@@ -40,4 +40,9 @@ bool string_type::on_initialize(result &r, compiler::program *program)
     fields().add(data_field);
 	return composite_type::on_initialize(r, program);
 }
+
+type_access_model_t string_type::on_access_model() const
+{
+    return type_access_model_t::pointer;
+}
 }

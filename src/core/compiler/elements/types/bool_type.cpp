@@ -17,4 +17,14 @@ bool bool_type::on_initialize(result &r, compiler::program *program)
     size_in_bytes(1);
     return true;
 }
+
+type_number_class_t bool_type::on_number_class() const
+{
+    return type_number_class_t::integer;
+}
+
+type_access_model_t bool_type::on_access_model() const
+{
+    return type_access_model_t::value;
+}
 }

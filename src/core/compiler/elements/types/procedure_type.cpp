@@ -150,4 +150,9 @@ void procedure_type::foreign_address(uint64_t value)
     foreign_address_ = value;
 }
 
+type_access_model_t procedure_type::on_access_model() const
+{
+    return type_access_model_t::pointer;
+}
+
 }

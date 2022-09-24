@@ -19,6 +19,8 @@ public:
 
     static std::string name_for_array(compiler::type* entry_type, size_t size);
 protected:
+    type_access_model_t on_access_model() const override;
+
 	bool on_initialize(result& r, compiler::program* program) override;
 
 private:

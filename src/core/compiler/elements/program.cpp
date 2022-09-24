@@ -4,6 +4,7 @@
 //
 
 #include "program.h"
+#include "element_types.h"
 #include "cast.h"
 #include "label.h"
 #include "module.h"
@@ -18,6 +19,7 @@
 #include "if_element.h"
 #include "expression.h"
 #include "attribute.h"
+#include "identifier.h"
 #include "directive.h"
 #include "statement.h"
 #include "types/type_info.h"
@@ -542,9 +544,9 @@ string_type *program::make_string_type(result &r, compiler::block* parent_scope,
 }
 
 numeric_type *program::make_numeric_type(result &r, compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max,
-                                         bool is_signed)
+                                         bool is_signed, type_number_class_t number_class)
 {
-    return make_type<numeric_type>(r, parent_scope, make_symbol(parent_scope, name), min, max, is_signed);
+    return make_type<numeric_type>(r, parent_scope, make_symbol(parent_scope, name), min, max, is_signed, number_class);
 }
 
 block *program::pop_scope()
@@ -916,8 +918,8 @@ compiler::element* program::resolve_symbol_or_evaluate(result& r, compiler::sess
     return element;
 }
 
-compiler::identifier *program::add_identifier_to_scope(result &r, compiler::session& session, symbol_element *symbol, type_find_result_t& type_find_result,
-	const ast_node_shared_ptr &node, size_t source_index, compiler::block* parent_scope)
+ identifier* program::add_identifier_to_scope(result &r, compiler::session& session, symbol_element *symbol, type_find_result_t& type_find_result,
+                                           const ast_node_shared_ptr &node, size_t source_index, compiler::block* parent_scope)
 {
 	auto namespace_type = find_type(qualified_symbol_t{.name = "namespace"});
 	auto scope = symbol->is_qualified() ? current_top_level()
@@ -1407,6 +1409,7 @@ bool program::on_emit(result &r, emit_context_t &context)
     }
 
     auto& ro_list = ro.first->second;
+
     for (const auto& it : interned_string_literals_) {
         compiler::string_literal* str = it.second.front();
         if (!str->is_parent_element(element_type_t::argument_list)) {
@@ -1414,7 +1417,7 @@ bool program::on_emit(result &r, emit_context_t &context)
         }
         ro_list.emplace_back(str);
     }
-
+    std::vector<variable_t*> literals {};
     for (const auto& section : vars_by_section) {
         instruction_block->section(section.first);
         instruction_block->current_entry()->blank_lines(1);
@@ -1431,6 +1434,13 @@ bool program::on_emit(result &r, emit_context_t &context)
                         for (auto str : str_list) {
                             auto var_label = instruction_block->make_label(str->label_name());
                             current_entry->label(var_label);
+                            auto var = context.allocate_variable(r,var_label->name(),
+                                context.program->find_type({.name = "string"}), identifier_usage_t::heap,
+                                nullptr, instruction_block);
+                            if (var != nullptr) {
+                                var->address_offset = 4;
+                                literals.emplace_back(var);
+                            }
                         }
                         current_entry->blank_lines(1);
                     }

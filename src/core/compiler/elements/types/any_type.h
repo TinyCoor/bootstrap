@@ -14,6 +14,10 @@ public:
 
     [[maybe_unused]] void underlying_type(compiler::type* value);
 protected:
+    type_number_class_t on_number_class() const override;
+
+    type_access_model_t on_access_model() const override;
+
 	bool on_initialize(result& r, compiler::program* program) override;
 
 private:

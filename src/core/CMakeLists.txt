@@ -84,6 +84,7 @@ set(ELEMENT_SRC
         compiler/session.h              compiler/session.cpp
         compiler/element_map.h          compiler/element_map.cpp
         compiler/emit_context.h         compiler/emit_context.cpp
+        compiler/variable.h             compiler/variable.cpp
         # operator
         compiler/elements/operator_base.h           compiler/elements/operator_base.cpp
         compiler/elements/unary_operator.h          compiler/elements/unary_operator.cpp

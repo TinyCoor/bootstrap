@@ -5,6 +5,7 @@
 #ifndef COMPILER_ELEMENTS_TYPE_H_
 #define COMPILER_ELEMENTS_TYPE_H_
 #include <string>
+#include "../../compiler_types.h"
 #include "../element.h"
 #include "../element_types.h"
 namespace gfx::compiler {
@@ -24,17 +25,26 @@ public:
 
     size_t size_in_bytes() const;
 
-    bool initialize(result &r, compiler::program* program);
-
     compiler::symbol_element* symbol() const;
 
+    type_access_model_t access_model() const;
+
+    type_number_class_t number_class() const;
+
     void symbol(compiler::symbol_element* value);
+
+    bool initialize(result &r, compiler::program* program);
 protected:
 	void size_in_bytes(size_t value);
+
+    virtual type_access_model_t on_access_model() const;
+
+    virtual type_number_class_t on_number_class() const;
 
     void on_owned_elements(element_list_t& list) override;
 
 	virtual bool on_initialize(result& r, compiler::program* program);
+
 private:
     bool packed_ = false;
     size_t alignment_ = 0;

@@ -5,6 +5,7 @@
 #ifndef COMPILER_ELEMENTS_COMPOSITE_TYPE_H_
 #define COMPILER_ELEMENTS_COMPOSITE_TYPE_H_
 #include "type.h"
+#include "../../compiler_types.h"
 #include "core/compiler/elements/field.h"
 namespace gfx::compiler {
 class composite_type : public type {
@@ -25,6 +26,8 @@ protected:
     bool on_is_constant() const override;
 
     void on_owned_elements(element_list_t& list) override;
+
+    type_access_model_t on_access_model() const override;
 
 	bool on_initialize(result& r, compiler::program* program) override;
 

@@ -18,4 +18,9 @@ bool tuple_type::on_initialize(result &r, compiler::program *program)
     return true;
 }
 
+type_access_model_t tuple_type::on_access_model() const
+{
+    return type_access_model_t::pointer;
+}
+
 }

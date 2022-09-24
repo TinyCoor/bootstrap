@@ -4,15 +4,11 @@
 
 #ifndef COMPILER_ELEMENTS_IDENTIFIER_H_
 #define COMPILER_ELEMENTS_IDENTIFIER_H_
-
+#include "../compiler_types.h"
 #include "element.h"
 
-namespace gfx::compiler {
 
-enum class identifier_usage_t : uint8_t {
-    heap = 1,
-    stack,
-};
+namespace gfx::compiler {
 
 class identifier : public element {
 public:
@@ -49,8 +45,6 @@ protected:
     void on_owned_elements(element_list_t& list) override;
 
     bool on_emit(result& r, emit_context_t& context) override;
-
-    void emit_stack_based_load(instruction_block* instruction_block);
 
     compiler::type* on_infer_type(const compiler::program* program) override;
 

@@ -96,44 +96,18 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
             break;
         }
         case operator_type_t::assignment: {
-            i_registers_t lhs_reg, rhs_reg;
-            if (!instruction_block->allocate_reg(lhs_reg)) {
+            auto var = context.variable_for_element(lhs_);
 
-            }
+            i_registers_t rhs_reg;
             if (!instruction_block->allocate_reg(rhs_reg)) {
 
             }
-            instruction_block->push_target_register(lhs_reg);
-            context.push_access(emit_access_type_t::write);
             lhs_->emit(r, context);
-            context.pop_access();
-            instruction_block->pop_target_register();
-
             instruction_block->push_target_register(rhs_reg);
-            context.push_access(emit_access_type_t::read);
             rhs_->emit(r, context);
-            context.pop_access();
+            var->write(instruction_block);
             instruction_block->pop_target_register();
-
-            int64_t offset = 0;
-            auto identifier = dynamic_cast<compiler::identifier*>(lhs_);
-            if (identifier->usage() == identifier_usage_t::stack) {
-                auto entry = instruction_block->stack_frame()->find_up(identifier->symbol()->name());
-                if (entry == nullptr) {
-                    // XXX: this is bad
-                    return false;
-                }
-                lhs_reg = i_registers_t::fp;
-                offset = entry->offset;
-            }
-            auto lhs_identifier = dynamic_cast<compiler::identifier*>(lhs_);
-            auto lhs_size = op_size_for_byte_size(lhs_identifier->type()->size_in_bytes());
-            instruction_block->store_from_ireg(lhs_size, lhs_reg, rhs_reg, offset);
-            instruction_block->pop_target_register();
-
             instruction_block->free_reg(rhs_reg);
-            instruction_block->free_reg(lhs_reg);
-
             break;
         }
         default:
@@ -145,11 +119,24 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
 void binary_operator::emit_relational_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
     i_registers_t lhs_reg, rhs_reg;
-    if (!instruction_block->allocate_reg(lhs_reg)) {
-
+    auto cleanup_left = false;
+    auto cleanup_right = false;
+    auto lhs_var = context.variable_for_element(lhs_);
+    if (lhs_var != nullptr) {
+        lhs_reg = lhs_var->value_reg.i;
+    } else {
+        if (!instruction_block->allocate_reg(lhs_reg)) {
+        }
+        cleanup_left = true;
     }
-    if (!instruction_block->allocate_reg(rhs_reg)) {
 
+    auto rhs_var = context.variable_for_element(rhs_);
+    if (rhs_var != nullptr) {
+        rhs_reg = rhs_var->value_reg.i;
+    } else {
+        if (!instruction_block->allocate_reg(rhs_reg)) {
+        }
+        cleanup_right = true;
     }
     instruction_block->push_target_register(lhs_reg);
     lhs_->emit(r, context);
@@ -220,21 +207,36 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
             break;
         }
     }
-
-    instruction_block->free_reg(rhs_reg);
-    instruction_block->free_reg(lhs_reg);
-
+    if (cleanup_right) {
+        instruction_block->free_reg(rhs_reg);
+    }
+    if (cleanup_left) {
+        instruction_block->free_reg(lhs_reg);
+    }
 }
 
 void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
     auto result_reg = instruction_block->current_target_register();
     i_registers_t lhs_reg, rhs_reg;
-    if (!instruction_block->allocate_reg(lhs_reg)) {
-
+    auto cleanup_left = false;
+    auto cleanup_right = false;
+    auto lhs_var = context.variable_for_element(lhs_);
+    if (lhs_var != nullptr) {
+        lhs_reg = lhs_var->value_reg.i;
+    } else {
+        if (!instruction_block->allocate_reg(lhs_reg)) {
+        }
+        cleanup_left = true;
     }
-    if (!instruction_block->allocate_reg(rhs_reg)) {
 
+    auto rhs_var = context.variable_for_element(rhs_);
+    if (rhs_var != nullptr) {
+        rhs_reg = rhs_var->value_reg.i;
+    } else {
+        if (!instruction_block->allocate_reg(rhs_reg)) {
+        }
+        cleanup_right = true;
     }
     instruction_block->push_target_register(lhs_reg);
     lhs_->emit(r, context);
@@ -300,8 +302,13 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
         default:
             break;
     }
-    instruction_block->free_reg(lhs_reg);
-    instruction_block->free_reg(rhs_reg);
+    if (cleanup_right) {
+        instruction_block->free_reg(rhs_reg);
+    }
+    if (cleanup_left) {
+        instruction_block->free_reg(lhs_reg);
+    }
+
 }
 
 element *binary_operator::on_fold(result &r, compiler::program *program)

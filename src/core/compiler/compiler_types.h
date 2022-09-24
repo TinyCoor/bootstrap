@@ -12,6 +12,23 @@ namespace fs = std::filesystem;
 using path_list_t = std::vector<fs::path>;
 class session;
 
+enum class type_access_model_t {
+    none,
+    value,
+    pointer
+};
+
+enum class type_number_class_t {
+    none,
+    integer,
+    floating_point,
+};
+
+enum class identifier_usage_t : uint8_t {
+    heap = 1,
+    stack
+};
+
 enum class session_compile_phase_t : uint8_t {
     start,
     success,

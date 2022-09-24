@@ -47,4 +47,13 @@ bool any_type::on_initialize(result &r, compiler::program* program)
     return composite_type::on_initialize(r, program);
 }
 
+type_number_class_t any_type::on_number_class() const
+{
+    return type_number_class_t::integer;
+}
+type_access_model_t any_type::on_access_model() const
+{
+    return type_access_model_t::value;
+}
+
 }

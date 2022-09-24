@@ -3,6 +3,7 @@
 //
 
 #include "integer_literal.h"
+#include "common/bytes.h"
 #include "types/numeric_type.h"
 #include "program.h"
 namespace gfx::compiler {
@@ -42,6 +43,11 @@ bool compiler::integer_literal::on_emit(gfx::result &r, emit_context_t& context)
 bool integer_literal::on_is_constant() const
 {
     return true;
+}
+
+bool integer_literal::is_signed() const
+{
+    return is_sign_bit_set(value_);
 }
 
 }

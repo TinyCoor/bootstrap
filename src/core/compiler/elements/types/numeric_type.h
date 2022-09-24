@@ -30,9 +30,9 @@ public:
 
     bool is_signed() const;
 
-	symbol_type_t symbol_type() const;
-
     static std::string narrow_to_value(uint64_t value);
+
+    static std::string narrow_to_value(double value);
 
 	static type_list_t make_types(result& r, compiler::block* parent, compiler::program* program);
 protected:

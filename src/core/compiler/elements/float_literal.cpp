@@ -3,6 +3,7 @@
 //
 
 #include "float_literal.h"
+#include "types/numeric_type.h"
 #include "program.h"
 namespace gfx::compiler {
 float_literal::float_literal(block* parent,double value)
@@ -17,7 +18,8 @@ double float_literal::value() const
 
 compiler::type *float_literal::on_infer_type(const compiler::program *program)
 {
-	return program->find_type(qualified_symbol_t{.name = "f64"});
+    return program->find_type({.name = numeric_type::narrow_to_value(_value)
+                              });
 }
 
 bool float_literal::on_as_float(double &value) const
@@ -39,6 +41,11 @@ bool compiler::float_literal::on_emit(gfx::result &r, emit_context_t &context)
 bool compiler::float_literal::on_is_constant() const
 {
     return true;
+}
+
+bool float_literal::is_signed() const
+{
+    return value_ < 0;
 }
 
 }

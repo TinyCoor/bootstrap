@@ -4,6 +4,7 @@
 //
 
 #include "program.h"
+#include "common/bytes.h"
 #include "element_types.h"
 #include "cast.h"
 #include "label.h"
@@ -300,7 +301,7 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 					uint64_t value;
 					if (node->token.parse(value) == conversion_result_t::success) {
                         if (node->token.is_signed()) {
-                            return make_integer(current_scope(), ~value + 1);
+                            return make_integer(current_scope(), twos_complement(value));
                         } else {
                             return make_integer(current_scope(), value);
                         }

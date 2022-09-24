@@ -12,6 +12,8 @@ public:
 
 	double value() const;
 
+    bool is_signed() const;
+
 protected:
     bool on_is_constant() const override;
 

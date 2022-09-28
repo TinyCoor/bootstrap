@@ -93,15 +93,7 @@ public:
     }
 // data definitions
 public:
-    void byte(uint8_t value);
-
     void align(uint8_t size);
-
-    void word(uint16_t value);
-
-    void dword(uint32_t value);
-
-    void qword(uint64_t value);
 
     void section(section_t type);
 
@@ -114,6 +106,14 @@ public:
     void reserve_qword(size_t count);
 
     void string(const std::string& value);
+
+    void bytes(const std::vector<uint8_t> &value);
+
+    void words(const std::vector<uint16_t> &value);
+
+    void dwords(const std::vector<uint32_t> &value);
+
+    void qwords(const std::vector<uint64_t> &value);
 
 /// instruction
 public:
@@ -142,75 +142,39 @@ public:
     void jump_indirect(i_registers_t reg);
 
     /// load variations
-    void load_to_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t address_reg, int64_t offset = 0)
-    {
-        make_load_instruction(size, dest_reg, address_reg, offset);
-    }
+    void load_to_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t address_reg, int64_t offset = 0);
 
     /// store
-    void store_from_ireg(op_sizes size, i_registers_t address_reg, i_registers_t src_reg, int64_t offset = 0)
-    {
-        make_store_instruction(size, address_reg, src_reg, offset);
-    }
+    void store_from_ireg(op_sizes size, i_registers_t address_reg, i_registers_t src_reg, int64_t offset = 0);
 
     // neg variations
-    void neg(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg)
-    {
-        make_neg_instruction(size, dest_reg, src_reg);
-    }
+    void neg(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg);
 
     // or variations
-    void or_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
-    {
-        make_or_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
-    }
+    void or_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg);
 
     // xor variations
-    void xor_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
-    {
-        make_xor_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
-    }
+    void xor_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg);
 
     // and variations
-    void and_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
-    {
-        make_and_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
-    }
+    void and_ireg_by_ireg(op_sizes sizes, i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg);
 
     // shl variations
-    void shl_ireg_by_ireg( i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
-    {
-         make_shl_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
-    }
+    void shl_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg);
 
     // shr variations
-    void shr_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
-    {
-         make_shr_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
-    }
+    void shr_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg);
 
     // rol variations
-    void rol_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
-    {
-        make_rol_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
-    }
+    void rol_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg);
 
     // ror variations
-    void ror_ireg_by_ireg(i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg)
-    {
-        make_ror_instruction(op_sizes::qword, dest_reg, lhs_reg, rhs_reg);
-    }
+    void ror_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t lhs_reg, i_registers_t rhs_reg);
 
     /// move
-    void move_constant_to_ireg(op_sizes size, i_registers_t dest_reg, uint64_t immediate)
-    {
-        make_move_instruction(size, dest_reg, immediate);
-    }
+    void move_constant_to_ireg(op_sizes size, i_registers_t dest_reg, uint64_t immediate);
 
-    void move_constant_to_freg(op_sizes size, f_registers_t dest_reg, double immediate)
-    {
-        make_move_instruction(size, dest_reg, immediate);
-    }
+    void move_constant_to_freg(op_sizes size, f_registers_t dest_reg, double immediate);
 
     void move_ireg_to_ireg(i_registers_t dest_reg, i_registers_t src_reg);
 
@@ -218,78 +182,38 @@ public:
     void cmp(op_sizes size, i_registers_t lhs_reg, i_registers_t rhs_reg);
 
     // inc variations
-    void inc(op_sizes size, i_registers_t reg)
-    {
-        make_inc_instruction(size, reg);
-    }
+    void inc(op_sizes size, i_registers_t reg);
 
     // not variations
-    void not_op(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg)
-    {
-        make_not_instruction(size, dest_reg, src_reg);
-    }
+    void not_op(op_sizes size, i_registers_t dest_reg, i_registers_t src_reg);
 
     // dec variations
-    void dec(op_sizes size, i_registers_t reg)
-    {
-        make_dec_instruction(size, reg);
-    }
+    void dec(op_sizes size, i_registers_t reg);
 
-    // mul variations
-    template<typename T>
-    void mul_ireg_by_ireg(i_registers_t dest_reg, i_registers_t multiplicand_reg, i_registers_t multiplier_reg)
-    {
-        make_mul_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, multiplicand_reg, multiplier_reg);
-    }
+
+    void mul_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t multiplicand_reg, i_registers_t multiplier_reg);
 
     // add variations
-    template<typename T>
-    void add_ireg_by_ireg(i_registers_t dest_reg, i_registers_t augend_reg, i_registers_t addened_reg)
-    {
-        make_add_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, augend_reg, addened_reg);
-    }
+    void add_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t augend_reg, i_registers_t addened_reg);
 
     // sub variations
-    template<typename T>
-    void sub_ireg_by_ireg(i_registers_t dest_reg, i_registers_t augend_reg, i_registers_t addened_reg)
-    {
-        make_sub_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, augend_reg, addened_reg);
-    }
+    void sub_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t augend_reg, i_registers_t addened_reg);
 
-    void sub_ireg_by_immediate(i_registers_t dest_reg, i_registers_t minuend_reg, uint64_t subtrahend_immediate);
+    void sub_ireg_by_immediate(op_sizes size, i_registers_t dest_reg, i_registers_t minuend_reg, uint64_t subtrahend_immediate);
     // div variations
-    template<typename T>
-    void div_ireg_by_ireg(i_registers_t dest_reg, i_registers_t dividend_reg, i_registers_t divisor_reg)
-    {
-        make_div_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, dividend_reg, divisor_reg);
-    }
+    void div_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t dividend_reg, i_registers_t divisor_reg);
 
     // mod variations
-    template<typename T>
-    void mod_ireg_by_ireg(i_registers_t dest_reg, i_registers_t dividend_reg, i_registers_t divisor_reg)
-    {
-        make_mod_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, dividend_reg, divisor_reg);
-    }
+    void mod_ireg_by_ireg(op_sizes size, i_registers_t dest_reg, i_registers_t dividend_reg, i_registers_t divisor_reg);
 
     // swap variations
-    template<typename T>
-    void swap_ireg_with_ireg(i_registers_t dest_reg, i_registers_t src_reg)
-    {
-        make_swap_instruction(TypeToOpSize::ToOpSize<T>(), dest_reg, src_reg);
-    }
+    void swap_ireg_with_ireg(op_sizes size,i_registers_t dest_reg, i_registers_t src_reg);
 
     // test mask for zero and branch
-    template<typename T>
-    void test_mask_branch_if_zero(i_registers_t value_reg, i_registers_t mask_reg, i_registers_t address_reg)
-    {
-
-    }
+    void test_mask_branch_if_zero(op_sizes size, i_registers_t value_reg, i_registers_t mask_reg, i_registers_t address_reg);
 
     // test mask for non-zero and branch
-    void test_mask_branch_if_not_zero(i_registers_t value_reg, i_registers_t mask_reg, i_registers_t address_reg)
-    {
-
-    }
+    void test_mask_branch_if_not_zero(op_sizes size, i_registers_t value_reg, i_registers_t mask_reg, i_registers_t address_reg);
 
     ///
     template<class T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
@@ -304,25 +228,13 @@ public:
         make_integer_constant_push_instruction(TypeToOpSize::ToOpSize<T>(), value);
     }
 
-    void push(op_sizes sizes, i_registers_t reg)
-    {
-        make_push_instruction(sizes, reg);
-    }
+    void push(op_sizes sizes, i_registers_t reg);
 
-    void push(op_sizes size, f_registers_t reg)
-    {
-        make_push_instruction(size, reg);
-    }
+    void push(op_sizes size, f_registers_t reg);
 
-    void pop(op_sizes size, i_registers_t reg)
-    {
-        make_pop_instruction(size, reg);
-    }
+    void pop(op_sizes size, i_registers_t reg);
 
-    void pop(op_sizes size, f_registers_t reg)
-    {
-        make_pop_instruction(size, reg);
-    }
+    void pop(op_sizes size, f_registers_t reg);
 
     void call(const std::string& proc_name);
 

@@ -28,9 +28,9 @@ bool string_literal::on_as_string(std::string &value) const
 
 bool compiler::string_literal::on_emit(result &r, emit_context_t &context)
 {
-    auto instruction_block = context.assembler->current_block();
-    auto target_reg = context.assembler->current_target_register();
-    instruction_block->move_label_to_ireg_with_offset(target_reg->reg.i, label_name(), 4);
+//    auto instruction_block = context.assembler->current_block();
+//    auto target_reg = context.assembler->current_target_register();
+//    instruction_block->move_label_to_ireg_with_offset(target_reg->reg.i, label_name(), 4);
     return true;
 }
 

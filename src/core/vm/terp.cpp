@@ -972,7 +972,7 @@ bool terp::step(result &r)
                 argument.push(call_vm_, value);
                 --arg_count;
 
-                if (param_index < func_signature->arguments.size()) {
+                if (param_index < (int32_t)func_signature->arguments.size()) {
                     ++param_index;
                 }
             }
@@ -1661,6 +1661,7 @@ uint64_t terp::read(op_sizes size, uint64_t address) const
     }
     return result;
 }
+
 void terp::write(op_sizes size, uint64_t address, uint64_t value)
 {
     uint8_t* relative_heap_ptr = heap_ + address;

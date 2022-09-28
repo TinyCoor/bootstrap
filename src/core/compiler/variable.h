@@ -11,6 +11,19 @@
 #include "vm/instruction.h"
 #include "compiler_types.h"
 namespace gfx::compiler {
+struct variable_register_t {
+    bool reserve(assembler* assembler);
+
+    void release(assembler* assembler);
+
+    bool integer = true;
+    bool allocated = false;
+    union {
+        i_registers_t i;
+        f_registers_t f;
+    } value;
+};
+
 struct variable_t {
     bool init(gfx::assembler* assembler, instruction_block* block);
 
@@ -18,18 +31,20 @@ struct variable_t {
 
     bool write(assembler* assembler, instruction_block* block);
 
+    void make_live(assembler* assembler);
+
+    void make_dormat(assembler* assembler);
+
     std::string name;
+    bool live = false;
     bool written = false;
-    identifier_usage_t usage;
-    int64_t address_offset = 0;
-    i_registers_t address_reg;
-    union {
-        i_registers_t i;
-        f_registers_t f;
-    } value_reg;
     bool requires_read = false;
     bool address_loaded = false;
+    identifier_usage_t usage;
+    int64_t address_offset = 0;
+    variable_register_t value_reg;
     compiler::type *type = nullptr;
+    variable_register_t address_reg;
     stack_frame_entry_t *frame_entry = nullptr;
 };
 }

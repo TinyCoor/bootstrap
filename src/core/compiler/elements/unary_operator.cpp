@@ -40,32 +40,32 @@ bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
     auto assembler =context.assembler;
     auto instruction_block = assembler->current_block();
     auto target_reg = assembler->current_target_register();
-    i_registers_t rhs_reg;
-    if (!assembler->allocate_reg(rhs_reg)) {
-
+    auto rhs_reg = register_for(r, context, rhs_);
+    if (!rhs_reg.valid) {
+        return false;
     }
-    assembler->push_target_register(rhs_reg);
+    assembler->push_target_register(rhs_reg.reg.i);
     rhs_->emit(r, context);
     assembler->pop_target_register();
 
     auto rhs_size = op_size_for_byte_size(rhs_->infer_type(context.program)->size_in_bytes());
     switch (operator_type()) {
         case operator_type_t::negate: {
-            instruction_block->neg(rhs_size, target_reg->reg.i, rhs_reg);
+            instruction_block->neg(rhs_size, target_reg->reg.i, rhs_reg.reg.i);
             break;
         }
         case operator_type_t::binary_not: {
-            instruction_block->not_op(rhs_size, target_reg->reg.i, rhs_reg);
+            instruction_block->not_op(rhs_size, target_reg->reg.i, rhs_reg.reg.i);
             break;
         }
         case operator_type_t::logical_not: {
+            instruction_block->xor_ireg_by_ireg(rhs_size, target_reg->reg.i, rhs_reg.reg.i,
+                rhs_reg.reg.i);
             break;
         }
         default:
             break;
     }
-
-    assembler->free_reg(rhs_reg);
 
     return true;
 }

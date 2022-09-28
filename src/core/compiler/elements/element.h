@@ -88,7 +88,7 @@ protected:
 
 	virtual compiler::type* on_infer_type(const compiler::program* program);
 
-    element_register_t register_for(result& r, emit_context_t& context, element* e);
+    static element_register_t register_for(result& r, emit_context_t& context, element* e);
 
 private:
 	id_t id_;

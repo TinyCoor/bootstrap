@@ -63,16 +63,7 @@ void emit_context_t::free_variable(const std::string &name)
 {
     auto var = variable(name);
     if (var != nullptr) {
-        if (var->usage == identifier_usage_t::heap) {
-            assembler->free_reg(var->address_reg);
-        }
-
-        if (var->type->number_class() == type_number_class_t::integer) {
-            assembler->free_reg(var->value_reg.i);
-        } else {
-            assembler->free_reg(var->value_reg.f);
-        }
-        variables.erase(name);
+        var->make_dormat(assembler);
     }
 }
 variable_t *emit_context_t::variable(const std::string &name)
@@ -91,33 +82,17 @@ variable_t *emit_context_t::allocate_variable(result &r,  const std::string &nam
     if (var != nullptr) {
         return var;
     }
-    variable_t new_var {
-        .name = name,
-        .written = false,
-        .usage = usage,
-        .requires_read = false,
-        .address_loaded = false,
-        .type = type,
-        .frame_entry = frame_entry,
-    };
-
-    if (usage == identifier_usage_t::heap) {
-        if (!assembler->allocate_reg(new_var.address_reg)) {
-        }
-    }
-
-    if (new_var.type->number_class() == type_number_class_t::integer) {
-        if (!assembler->allocate_reg(new_var.value_reg.i)) {
-        }
-        new_var.requires_read = true;
-    } else if (new_var.type->number_class() == type_number_class_t::floating_point) {
-        if (!assembler->allocate_reg(new_var.value_reg.f)) {
-        }
-        new_var.requires_read = true;
-    } else {
-        // XXX: what happened here?  add error
-    }
-    auto it = variables.insert(std::make_pair(name, new_var));
+    auto it = variables.insert(std::make_pair(
+        name,
+        variable_t {
+            .name = name,
+            .written = false,
+            .requires_read = false,
+            .address_loaded = false,
+            .usage = usage,
+            .type = type,
+            .frame_entry = frame_entry,
+        }));
     return it.second ? &it.first->second : nullptr;
 }
 

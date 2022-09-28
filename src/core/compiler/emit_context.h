@@ -24,8 +24,6 @@ class program;
 struct emit_context_t {
     emit_context_t(gfx::terp* terp, gfx::assembler* assembler, compiler::program* program);
 
-
-
     template <typename T>
     T* top() {
         if (data_stack.empty()) {

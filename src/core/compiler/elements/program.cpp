@@ -1450,9 +1450,8 @@ bool program::on_emit(result &r, emit_context_t &context)
                         for (auto str : str_list) {
                             auto var_label = instruction_block->make_label(str->label_name());
                             current_entry->label(var_label);
-                            auto var = context.allocate_variable(r,var_label->name(),
-                                context.program->find_type({.name = "string"}), identifier_usage_t::heap,
-                                nullptr);
+                            auto var = context.allocate_variable(r, var_label->name(),
+                                context.program->find_type({.name = "string"}), identifier_usage_t::heap);
                             if (var != nullptr) {
                                 var->address_offset = 4;
                                 literals.emplace_back(var);
@@ -1486,7 +1485,7 @@ bool program::on_emit(result &r, emit_context_t &context)
                             if (init == nullptr) {
                                 instruction_block->reserve_byte(1);
                             } else {
-                                instruction_block->byte(static_cast<uint8_t>(value ? 1 : 0));
+                                instruction_block->bytes({static_cast<uint8_t>(value ? 1 : 0)});
                             }
                             break;
                         }
@@ -1500,14 +1499,14 @@ bool program::on_emit(result &r, emit_context_t &context)
                                     if (init == nullptr) {
                                         instruction_block->reserve_byte(1);
                                     } else {
-                                        instruction_block->byte(static_cast<uint8_t>(value));
+                                        instruction_block->bytes({static_cast<uint8_t>(value)});
                                     }
                                     break;
                                 case symbol_type_t::u16:
                                     if (init == nullptr) {
                                         instruction_block->reserve_word(1);
                                     } else {
-                                        instruction_block->word(static_cast<uint16_t>(value));
+                                        instruction_block->words({static_cast<uint16_t>(value)});
                                     }
                                     break;
                                 case symbol_type_t::f32:
@@ -1515,7 +1514,7 @@ bool program::on_emit(result &r, emit_context_t &context)
                                     if (init == nullptr) {
                                         instruction_block->reserve_dword(1);
                                     } else {
-                                        instruction_block->dword(static_cast<uint32_t>(value));
+                                        instruction_block->dwords({static_cast<uint32_t>(value)});
                                     }
                                     break;
                                 case symbol_type_t::f64:
@@ -1523,7 +1522,7 @@ bool program::on_emit(result &r, emit_context_t &context)
                                     if (init == nullptr) {
                                         instruction_block->reserve_qword(1);
                                     } else {
-                                        instruction_block->qword(value);
+                                        instruction_block->qwords({value});
                                     }
                                     break;
                                 case symbol_type_t::bytes:
@@ -1580,9 +1579,9 @@ bool program::on_emit(result &r, emit_context_t &context)
     top_level_block->current_entry()->blank_lines(1);
     top_level_block->memo();
     top_level_block->current_entry()->label(top_level_block->make_label("_initializer"));
-    for (auto var : literals) {
-        var->init(context.assembler, top_level_block);
-    }
+//    for (auto var : literals) {
+//        var->init(context.assembler, top_level_block);
+//    }
 
     block_list_t implicit_blocks {};
     auto module_blocks = elements().find_by_type(element_type_t::module_block);

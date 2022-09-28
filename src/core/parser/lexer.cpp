@@ -595,13 +595,14 @@ void lexer::rewind_one_char()
 
 bool lexer::next(token_t& token)
 {
-    const auto ch = tolower(read());
+    const auto ch = static_cast<char>(tolower(read()));
     if (source_->eof()) {
         has_next_ = false;
         token = s_end_of_file;
         set_token_location(token);
         return true;
     }
+
     rewind_one_char();
     source_->push_mark();
 

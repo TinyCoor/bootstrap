@@ -185,4 +185,22 @@ std::string make_fully_qualified_name(const qualified_symbol_t& symbol)
     return stream.str();
 }
 
+element_register_t::~element_register_t()
+{
+    if (assembler == nullptr) {
+        return;
+    }
+
+    if (clean_up) {
+        if (var != nullptr) {
+            var->make_dormat(assembler);
+        } else {
+            if (integer) {
+                assembler->free_reg(reg.i);
+            }else {
+                assembler->free_reg(reg.f);
+            }
+        }
+    }
+}
 }

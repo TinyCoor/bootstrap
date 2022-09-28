@@ -40,7 +40,7 @@ enum data_definition_type_t : uint8_t {
 
 struct data_definition_t {
     op_sizes size = op_sizes::byte;
-    uint64_t value = 0;
+    std::vector<uint64_t> values;
     data_definition_type_t type = data_definition_type_t::uninitialized;
 };
 
@@ -85,7 +85,6 @@ struct block_entry_t {
             label->address(value);
         }
     }
-
 
     inline void blank_lines(uint16_t count)
     {

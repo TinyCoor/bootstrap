@@ -57,6 +57,7 @@ add_custom_command(TARGET all-unit-tests
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(COMMON_SRC
+        ../common/rune.h ../common/rune.cpp
         ../common/id_pool.h ../common/id_pool.cpp
         ../common/colorizer.h ../common/colorizer.cpp
         ../common/source_file.h ../common/source_file.cpp
@@ -166,6 +167,7 @@ target_link_libraries(compiler-rt PUBLIC
         dyncallback_s
         dyncall_s
         dynload_s
+        utf8proc
         )
 
 

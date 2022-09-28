@@ -407,18 +407,17 @@ struct qualified_symbol_t {
 std::string make_fully_qualified_name(const symbol_element* symbol);
 
 std::string make_fully_qualified_name(const qualified_symbol_t& symbol);
-
+struct variable_t;
 struct element_register_t {
-    ~element_register_t()
-    {
-        if (clean_up && assembler != nullptr) {
-            assembler->free_reg(reg);
-        }
-    }
-
+    ~element_register_t();
     bool valid = false;
     bool clean_up = false;
-    i_registers_t reg;
+    bool integer = true;
+    union {
+        i_registers_t i;
+        f_registers_t f;
+    }reg;
+    variable_t* var = nullptr;
     assembler* assembler = nullptr;
 };
 

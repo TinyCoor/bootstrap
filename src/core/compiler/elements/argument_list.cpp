@@ -59,32 +59,16 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
             case element_type_t::unary_operator:
             case element_type_t::binary_operator:
             case element_type_t::identifier_reference:{
-                i_registers_t target_reg;
                 auto push_size = op_sizes::qword;
-                auto cleanup = false;
-                auto var = context.variable_for_element(arg);
-                if (var != nullptr) {
-                    // XXX: this is a hack!
-                    if (var->address_offset != 0) {
-                        target_reg = var->address_reg;
-                    } else {
-                        target_reg = var->value_reg.i;
-                        push_size = op_size_for_byte_size(var->type->size_in_bytes());
-                    }
-                } else {
-                    if (!assembler->allocate_reg(target_reg)) {
-                        context.program->error(r, this, "P052", "assembler registers exhausted.", location());
-                    }
-                    cleanup = true;
+                auto arg_reg = register_for(r, context, arg);
+                if (arg_reg.var != nullptr) {
+                    push_size = op_size_for_byte_size(arg_reg.var->type->size_in_bytes());
+                    arg_reg.clean_up = true;
                 }
-                assembler->push_target_register(target_reg);
+                assembler->push_target_register(arg_reg.reg.i);
                 arg->emit(r, context);
                 assembler->pop_target_register();
-                instruction_block->push(push_size, target_reg);
-                if (cleanup) {
-                    assembler->free_reg(target_reg);
-                }
-
+                instruction_block->push(push_size, arg_reg.reg.i);
                 break;
             }
             default:

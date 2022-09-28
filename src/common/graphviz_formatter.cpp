@@ -16,6 +16,12 @@ std::string graphviz_formatter::escape_chars(const std::string& value)
             buffer += "\\}";
         } else if (c == '.') {
             buffer += "\\.";
+        } else if (c == '|') {
+            buffer += "\\|";
+        } else if (c == '<') {
+            buffer += "\\<";
+        } else if (c == '>') {
+            buffer += "\\>";
         } else {
             buffer += c;
         }

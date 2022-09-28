@@ -582,6 +582,10 @@ bool lexer::has_next() const
 
 void lexer::rewind_one_char()
 {
+    if (source_->eof()) {
+        return;
+    }
+
     auto pos = source_->pos();
     if (pos == 0) {
         return;
@@ -591,14 +595,13 @@ void lexer::rewind_one_char()
 
 bool lexer::next(token_t& token)
 {
+    const auto ch = tolower(read());
     if (source_->eof()) {
         has_next_ = false;
         token = s_end_of_file;
         set_token_location(token);
         return true;
     }
-
-    const auto ch = tolower(read());
     rewind_one_char();
     source_->push_mark();
 
@@ -1006,7 +1009,7 @@ bool lexer::line_comment(token_t& token)
 {
 	auto ch = read();
 	if (ch == '/') {
-		ch = read();
+		ch = read(false);
 		if (ch == '/') {
 			token.type = token_types_t::line_comment;
 			token.value = read_until('\n');
@@ -1125,7 +1128,7 @@ bool lexer::number_literal(token_t& token)
 	if (ch == '$') {
 		token.radix = 16;
 		while (true) {
-			ch = read();
+			ch = read(false);
 			if (ch == '_') {
 				continue;
 			}
@@ -1140,7 +1143,7 @@ bool lexer::number_literal(token_t& token)
 		const std::string valid = "012345678";
 		token.radix = 8;
 		while (true) {
-			ch = read();
+			ch = read(false);
 			if (ch == '_') {
 				continue;
 			}
@@ -1153,7 +1156,7 @@ bool lexer::number_literal(token_t& token)
 	} else if (ch == '%') {
 		token.radix = 2;
 		while (true) {
-			ch = read();
+			ch = read(false);
 			if (ch == '_') {
 				continue;
 			}
@@ -1170,7 +1173,7 @@ bool lexer::number_literal(token_t& token)
         }
 
 		while (valid.find_first_of(static_cast<char>(ch)) != std::string::npos) {
-			if (ch!='_') {
+			if (ch != '_') {
                 if (ch == '.') {
                     if (token.number_type != number_types_t::floating_point) {
                         token.number_type = number_types_t::floating_point;
@@ -1183,7 +1186,7 @@ bool lexer::number_literal(token_t& token)
                 // XXX: requires utf8 fix
                 stream << static_cast<char>(ch);
 			}
-			ch = read();
+			ch = read(false);
 		}
 	}
 

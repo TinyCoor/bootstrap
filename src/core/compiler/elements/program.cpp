@@ -302,20 +302,28 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
             // TODO: need to handle conversion failures
 			switch (node->token.number_type) {
 				case number_types_t::integer: {
+
 					uint64_t value;
 					if (node->token.parse(value) == conversion_result_t::success) {
+                        compiler::element* element = nullptr;
                         if (node->token.is_signed()) {
-                            return make_integer(current_scope(), twos_complement(value));
+                            element =  make_integer(current_scope(), twos_complement(value));
                         } else {
-                            return make_integer(current_scope(), value);
+                            element =  make_integer(current_scope(), value);
                         }
-					}
+                        element->location(node->location);
+                        return element;
+					} else {
+                        error(r, session, "P041", "invalid integer literal", node->location);
+                    }
 				}
 				case number_types_t::floating_point: {
                     // TODO: need to handle conversion failures
 					double value;
 					if (node->token.parse(value) == conversion_result_t::success) {
-						return make_float(current_scope(), value);
+                        auto element = make_float(current_scope(), value);
+                        element->location(node->location);
+                        return element;
 					}
 				}
 				default:
@@ -323,7 +331,9 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 			}
 		}
 		case ast_node_types_t::boolean_literal: {
-			return make_bool(current_scope(), node->token.as_bool());
+            auto element = make_bool(current_scope(), node->token.as_bool());
+            element->location(node->location);
+            return element;
 		}
 		case ast_node_types_t::else_expression: {
 			return evaluate(r, session, node->children[0]);
@@ -697,6 +707,7 @@ identifier* program::make_identifier(compiler::block* parent_scope, compiler::sy
         expr->parent_element(identifier);
     }
     symbol->parent_element(identifier);
+    identifier->location(symbol->location());
     elements_.add(identifier);
     return identifier;
 }
@@ -1375,12 +1386,12 @@ bool program::on_emit(result &r, emit_context_t &context)
             continue;
         }
 
-        if (within_procedure_scope(var->parent_scope())
-            || var->is_parent_element(element_type_t::field)) {
+        if (within_procedure_scope(var->parent_scope()) || var->is_parent_element(element_type_t::field)) {
             continue;
         }
 
         switch (var->type()->element_type()) {
+            case element_type_t::bool_type:
             case element_type_t::numeric_type: {
                 if (var->is_constant()) {
                     auto& list = ro.first->second;
@@ -1441,7 +1452,7 @@ bool program::on_emit(result &r, emit_context_t &context)
                             current_entry->label(var_label);
                             auto var = context.allocate_variable(r,var_label->name(),
                                 context.program->find_type({.name = "string"}), identifier_usage_t::heap,
-                                nullptr, instruction_block);
+                                nullptr);
                             if (var != nullptr) {
                                 var->address_offset = 4;
                                 literals.emplace_back(var);
@@ -1466,8 +1477,19 @@ bool program::on_emit(result &r, emit_context_t &context)
 
                     auto var_label = instruction_block->make_label(var->symbol()->name());
                     instruction_block->current_entry()->label(var_label);
-
+                    context.allocate_variable(r, var_label->name(), var->type(),
+                        identifier_usage_t::heap, nullptr);
                     switch (var->type()->element_type()) {
+                        case element_type_t::bool_type: {
+                            bool value = false;
+                            var->as_bool(value);
+                            if (init == nullptr) {
+                                instruction_block->reserve_byte(1);
+                            } else {
+                                instruction_block->byte(static_cast<uint8_t>(value ? 1 : 0));
+                            }
+                            break;
+                        }
                         case element_type_t::numeric_type: {
                             uint64_t value = 0;
                             var->as_integer(value);
@@ -1559,7 +1581,7 @@ bool program::on_emit(result &r, emit_context_t &context)
     top_level_block->memo();
     top_level_block->current_entry()->label(top_level_block->make_label("_initializer"));
     for (auto var : literals) {
-        var->read(context.assembler, top_level_block);
+        var->init(context.assembler, top_level_block);
     }
 
     block_list_t implicit_blocks {};
@@ -1793,7 +1815,7 @@ pointer_type *program::make_pointer_type(result &r, compiler::block *parent_scop
     return type;
 }
 
-compiler::type *program::find_pointer_type(compiler::type *base_type, compiler::block* scope)
+compiler::type *program::find_pointer_type(compiler::type *base_type, compiler::block* scope) const
 {
     return find_type(qualified_symbol_t {
         .name = compiler::pointer_type::name_for_pointer(base_type)

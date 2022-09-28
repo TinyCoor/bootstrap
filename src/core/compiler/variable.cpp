@@ -7,18 +7,29 @@
 #include "compiler/elements/identifier.h"
 #include <fmt/format.h>
 namespace gfx::compiler {
-bool variable_t::read(assembler* assembler, instruction_block* block) {
-    if (!address_loaded) {
-        if (usage == identifier_usage_t::heap) {
-            if (address_offset != 0) {
-                block->move_label_to_ireg_with_offset(address_reg, name, address_offset);
-            } else {
-                block->move_label_to_ireg(address_reg, name);
-            }
-            block->current_entry()->comment(fmt::format("identifier '{}' address (global)", name));
-        }
-        address_loaded = true;
+bool variable_t::init(gfx::assembler *assembler, instruction_block *block)
+{
+    if (address_loaded) {
+        return true;
     }
+
+    if (usage == identifier_usage_t::heap) {
+        if (address_offset != 0) {
+            block->move_label_to_ireg_with_offset(address_reg, name, address_offset);
+        } else {
+            block->move_label_to_ireg(address_reg, name);
+        }
+        block->current_entry()->comment(fmt::format("identifier '{}' address (global)", name));
+    }
+
+    address_loaded = true;
+
+    return true;
+}
+
+bool variable_t::read(assembler* assembler, instruction_block* block)
+{
+    init(assembler, block);
 
     std::string type_name = "global";
     if (requires_read) {

@@ -11,6 +11,8 @@
 #include <memory>
 #include <unordered_map>
 #include "parser/token.h"
+#include "vm/instruction.h"
+#include "vm/assembler.h"
 
 namespace gfx::compiler {
 using id_t = uint32_t;
@@ -406,6 +408,19 @@ std::string make_fully_qualified_name(const symbol_element* symbol);
 
 std::string make_fully_qualified_name(const qualified_symbol_t& symbol);
 
+struct element_register_t {
+    ~element_register_t()
+    {
+        if (clean_up && assembler != nullptr) {
+            assembler->free_reg(reg);
+        }
+    }
+
+    bool valid = false;
+    bool clean_up = false;
+    i_registers_t reg;
+    assembler* assembler = nullptr;
+};
 
 }
 #endif // COMPILER_ELEMENTS_ELEMENT_TYPES_H_

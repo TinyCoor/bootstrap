@@ -85,22 +85,12 @@ variable_t *emit_context_t::variable(const std::string &name)
 }
 
 variable_t *emit_context_t::allocate_variable(result &r,  const std::string &name, compiler::type *type,
-    identifier_usage_t usage, stack_frame_entry_t *frame_entry, instruction_block *block)
+    identifier_usage_t usage, stack_frame_entry_t *frame_entry)
 {
     auto var = variable(name);
     if (var != nullptr) {
         return var;
     }
-
-    if (block == nullptr) {
-        block = assembler->current_block();
-    }
-
-
-    if (block == nullptr) {
-        return nullptr;
-    }
-
     variable_t new_var {
         .name = name,
         .written = false,
@@ -152,4 +142,5 @@ compiler::variable_t *compiler::emit_context_t::variable_for_element(gfx::compil
             return nullptr;
     }
 }
+
 }

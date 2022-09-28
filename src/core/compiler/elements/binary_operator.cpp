@@ -6,6 +6,7 @@
 #include "symbol_element.h"
 #include "integer_literal.h"
 #include "program.h"
+#include "fmt/format.h"
 namespace gfx::compiler {
 binary_operator::binary_operator(block* parent, operator_type_t type, element* lhs, element* rhs)
 	: operator_base(parent, element_type_t::binary_operator,type), lhs_(lhs), rhs_(rhs)
@@ -97,12 +98,18 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
         }
         case operator_type_t::assignment: {
             auto var = context.variable_for_element(lhs_);
+            if (var == nullptr) {
+                context.program->error(r, lhs_, "P051", fmt::format("missing assembler variable for {}.", lhs_->label_name()),
+                    lhs_->location());
+                return false;
+            }
+            lhs_->emit(r, context);
 
             i_registers_t rhs_reg;
             if (!assembler->allocate_reg(rhs_reg)) {
-
+                context.program->error(r, this, "P052", "assembler registers exhausted.", location());
             }
-            lhs_->emit(r, context);
+
             assembler->push_target_register(rhs_reg);
             rhs_->emit(r, context);
             var->write(assembler, instruction_block);
@@ -118,39 +125,25 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
 
 void binary_operator::emit_relational_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
-    i_registers_t lhs_reg, rhs_reg;
     auto &assembler = context.assembler;
-    auto cleanup_left = false;
-    auto cleanup_right = false;
-    auto lhs_var = context.variable_for_element(lhs_);
-    if (lhs_var != nullptr) {
-        lhs_reg = lhs_var->value_reg.i;
-    } else {
-        if (!assembler->allocate_reg(lhs_reg)) {
-        }
-        cleanup_left = true;
+    auto lhs_reg = register_for(r, context, lhs_);
+    auto rhs_reg = register_for(r, context, rhs_);
+    if (!lhs_reg.valid || !rhs_reg.valid) {
+        return;
     }
 
-    auto rhs_var = context.variable_for_element(rhs_);
-    if (rhs_var != nullptr) {
-        rhs_reg = rhs_var->value_reg.i;
-    } else {
-        if (!assembler->allocate_reg(rhs_reg)) {
-        }
-        cleanup_right = true;
-    }
-    assembler->push_target_register(lhs_reg);
+    assembler->push_target_register(lhs_reg.reg);
     lhs_->emit(r, context);
     assembler->pop_target_register();
 
-    assembler->push_target_register(rhs_reg);
+    assembler->push_target_register(rhs_reg.reg);
     rhs_->emit(r, context);
     assembler->pop_target_register();
 
     auto if_data = context.top<if_data_t>();
     switch (operator_type()) {
         case operator_type_t::equals: {
-            instruction_block->cmp(op_sizes::qword, lhs_reg, rhs_reg);
+            instruction_block->cmp(op_sizes::qword, lhs_reg.reg, rhs_reg.reg);
             if (if_data != nullptr) {
                 auto parent_op = parent_element_as<compiler::binary_operator>();
                 if (parent_op !=nullptr && parent_op->operator_type() == operator_type_t::logical_and) {
@@ -208,61 +201,39 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
             break;
         }
     }
-    if (cleanup_right) {
-        assembler->free_reg(rhs_reg);
-    }
-    if (cleanup_left) {
-        assembler->free_reg(lhs_reg);
-    }
 }
 
 void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &context, instruction_block *instruction_block)
 {
     auto assembler = context.assembler;
     auto result_reg = assembler->current_target_register();
-    i_registers_t lhs_reg, rhs_reg;
-    auto cleanup_left = false;
-    auto cleanup_right = false;
-    auto lhs_var = context.variable_for_element(lhs_);
-    if (lhs_var != nullptr) {
-        lhs_reg = lhs_var->value_reg.i;
-    } else {
-        if (!assembler->allocate_reg(lhs_reg)) {
-        }
-        cleanup_left = true;
+    auto lhs_reg = register_for(r, context, lhs_);
+    auto rhs_reg = register_for(r, context, rhs_);
+    if (!lhs_reg.valid || !rhs_reg.valid) {
+        return;
     }
-
-    auto rhs_var = context.variable_for_element(rhs_);
-    if (rhs_var != nullptr) {
-        rhs_reg = rhs_var->value_reg.i;
-    } else {
-        if (!assembler->allocate_reg(rhs_reg)) {
-        }
-        cleanup_right = true;
-    }
-    assembler->push_target_register(lhs_reg);
+    assembler->push_target_register(lhs_reg.reg);
     lhs_->emit(r, context);
     assembler->pop_target_register();
-
-    assembler->push_target_register(rhs_reg);
+    assembler->push_target_register(rhs_reg.reg);
     rhs_->emit(r, context);
     assembler->pop_target_register();
 
     switch (operator_type()) {
         case operator_type_t::add: {
-            instruction_block->add_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->add_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::divide: {
-            instruction_block->div_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->div_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::modulo: {
-            instruction_block->mod_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->mod_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::multiply: {
-            instruction_block->mul_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->mul_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::exponent: {
@@ -270,47 +241,40 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
             break;
         }
         case operator_type_t::subtract: {
-            instruction_block->sub_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->sub_ireg_by_ireg<uint64_t>(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::binary_or: {
-            instruction_block->or_ireg_by_ireg(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->or_ireg_by_ireg(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::shift_left: {
-            instruction_block->shl_ireg_by_ireg(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->shl_ireg_by_ireg(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::binary_and: {
-            instruction_block->and_ireg_by_ireg(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->and_ireg_by_ireg(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::binary_xor: {
-            instruction_block->xor_ireg_by_ireg(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->xor_ireg_by_ireg(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::rotate_left: {
-            instruction_block->rol_ireg_by_ireg(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->rol_ireg_by_ireg(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::shift_right: {
-            instruction_block->shr_ireg_by_ireg(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->shr_ireg_by_ireg(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::rotate_right: {
-            instruction_block->ror_ireg_by_ireg(result_reg->reg.i, lhs_reg, rhs_reg);
+            instruction_block->ror_ireg_by_ireg(result_reg->reg.i, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         default:
             break;
     }
-    if (cleanup_right) {
-        assembler->free_reg(rhs_reg);
-    }
-    if (cleanup_left) {
-        assembler->free_reg(lhs_reg);
-    }
-
 }
 
 element *binary_operator::on_fold(result &r, compiler::program *program)
@@ -396,5 +360,6 @@ void binary_operator::on_owned_elements(element_list_t &list)
         list.emplace_back(rhs_);
     }
 }
+
 
 }

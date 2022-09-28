@@ -47,6 +47,8 @@ public:
 
 	module* compile_module(result& r, compiler::session& session, source_file *source);
 
+    void error(result& r, compiler::element *element, const std::string &code,
+               const std::string &message, const source_location& location);
 protected:
 	terp* terp();
 
@@ -55,8 +57,6 @@ protected:
     void error(result& r, compiler::session& session, const std::string &code,
                const std::string &message, const source_location& location);
 
-    void error(result& r, compiler::element *element, const std::string &code,
-               const std::string &message, const source_location& location);
 private:
     bool on_emit(result& r, emit_context_t& context) override;
 
@@ -222,7 +222,7 @@ private:
 
 	compiler::type* find_array_type(compiler::type* entry_type, size_t size, compiler::block* scope = nullptr) const;
 
-    compiler::type* find_pointer_type(compiler::type* base_type, compiler::block* scope = nullptr);
+    compiler::type* find_pointer_type(compiler::type* base_type, compiler::block* scope = nullptr) const;
 
     unknown_type* unknown_type_from_result(result& r, compiler::block* scope, compiler::identifier* identifier,
        type_find_result_t& result);

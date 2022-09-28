@@ -4,6 +4,7 @@
 
 #include "argument_list.h"
 #include "types/type.h"
+#include "program.h"
 #include "vm/instruction_block.h"
 #include "fmt/format.h"
 namespace gfx::compiler {
@@ -70,9 +71,9 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
                         target_reg = var->value_reg.i;
                         push_size = op_size_for_byte_size(var->type->size_in_bytes());
                     }
-                }
-                else {
+                } else {
                     if (!assembler->allocate_reg(target_reg)) {
+                        context.program->error(r, this, "P052", "assembler registers exhausted.", location());
                     }
                     cleanup = true;
                 }

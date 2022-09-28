@@ -6,9 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 add_subdirectory(extern/fmt)
 add_subdirectory(extern/gtest)
+add_subdirectory(extern/utf8proc-2.7.0)
 include_directories(extern/fmt/include)
 include_directories(extern/dyncall)
 include_directories(extern/boost-1.79)
+include_directories(extern/utf8proc-2.7.0)
+
 # conan configuration
 #set(CONAN_DISABLE_CHECK_COMPILER true)
 #include(conanbuildinfo.cmake)

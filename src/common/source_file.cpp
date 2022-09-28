@@ -109,7 +109,10 @@ void source_file::build_lines()
 
     for (size_t i = 0; i < buffer_.size(); i++) {
         auto end_of_buffer = i == buffer_.size() - 1;
-        if (buffer_[i] == '\n' || end_of_buffer) {
+        const auto unix_new_line = buffer_[i] == '\n';
+        const auto windblows_new_line = buffer_[i] == '\r'
+            && (i + 1 < buffer_.size() && buffer_[i + 1] == '\n');
+        if (unix_new_line || windblows_new_line || end_of_buffer) {
             auto end = end_of_buffer ? buffer_.size() : i;
             auto it = lines_by_index_range_.insert(std::make_pair(std::make_pair(line_start, end),
                 source_file_line_t {
@@ -124,6 +127,9 @@ void source_file::build_lines()
             columns = 0;
         } else {
             columns++;
+        }
+        if (windblows_new_line) {
+            i++;
         }
     }
 }

@@ -12,6 +12,7 @@
 #include "compiler_types.h"
 namespace gfx::compiler {
 struct variable_t {
+    bool init(gfx::assembler* assembler, instruction_block* block);
 
     bool read(assembler* assembler, instruction_block* block);
 

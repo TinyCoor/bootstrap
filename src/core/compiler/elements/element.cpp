@@ -6,7 +6,7 @@
 #include "types/type.h"
 #include "vm/assembler.h"
 #include "fmt/format.h"
-
+#include "program.h"
 namespace gfx::compiler {
 element::element(block *parent_scope, element_type_t type, element *parent_element)
     : id_(id_pool::instance()->allocate()), parent_scope_(parent_scope),
@@ -206,5 +206,27 @@ bool element::is_type() const
         case element_type_t::namespace_type:return true;
         default:return false;
     }
+}
+
+element_register_t element::register_for(result &r, emit_context_t &context, element *e)
+{
+    element_register_t result {.assembler = context.assembler};
+
+    auto var = context.variable_for_element(e);
+    if (var != nullptr) {
+        result.valid = true;
+        result.reg = var->value_reg.i;
+    } else {
+        i_registers_t reg;
+        if (!context.assembler->allocate_reg(reg)) {
+            context.program->error(r, e, "P052", "assembler registers exhausted.", e->location());
+        } else {
+            result.reg = reg;
+            result.valid = true;
+            result.clean_up = true;
+        }
+    }
+
+    return result;
 }
 }

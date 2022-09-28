@@ -56,7 +56,7 @@ std::string numeric_type::narrow_to_value(uint64_t value)
         end_index = 8;
         start_index = 4;
     }
-    int64_t signed_value = static_cast<int64_t>(value);
+    auto signed_value = static_cast<int64_t>(value);
     for (size_t i = start_index; i < end_index; i++) {
         auto& props = s_type_properties[i];
         if (props.is_signed) {
@@ -76,10 +76,12 @@ bool numeric_type::is_signed() const
 {
     return is_signed_;
 }
+
 type_number_class_t numeric_type::on_number_class() const
 {
     return number_class_;
 }
+
 type_access_model_t numeric_type::on_access_model() const
 {
     return type_access_model_t::value;

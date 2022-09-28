@@ -13,6 +13,11 @@ struct location_t {
 
 class source_location {
 public:
+    source_location() = default;
+
+    source_location(const location_t &start,  const location_t &end)
+        : start_(start), end_(end) {}
+
     [[nodiscard]] const location_t &end() const;
 
     [[nodiscard]] const location_t &start() const;

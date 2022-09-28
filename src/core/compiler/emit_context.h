@@ -24,6 +24,8 @@ class program;
 struct emit_context_t {
     emit_context_t(gfx::terp* terp, gfx::assembler* assembler, compiler::program* program);
 
+
+
     template <typename T>
     T* top() {
         if (data_stack.empty()) {
@@ -45,7 +47,7 @@ struct emit_context_t {
     variable_t* variable_for_element(compiler::element* element);
 
     variable_t* allocate_variable(result& r, const std::string& name, compiler::type* type,
-        identifier_usage_t usage, stack_frame_entry_t* frame_entry = nullptr, instruction_block* block = nullptr);
+        identifier_usage_t usage, stack_frame_entry_t* frame_entry = nullptr);
 
     void pop();
 

@@ -85,6 +85,7 @@ bool identifier::on_emit(result &r, emit_context_t &context)
     context.allocate_variable(r, symbol_->name(), type_, usage_, frame_entry);
     return true;
 }
+
 identifier_usage_t identifier::usage() const
 {
     return usage_;

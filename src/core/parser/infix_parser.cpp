@@ -197,8 +197,9 @@ ast_node_shared_ptr proc_call_infix_parser::parse(result& r, parser* parser, con
 	if (lhs->type == ast_node_types_t::symbol) {
 		auto proc_call_node = parser->ast_builder()->proc_call_node();
 		proc_call_node->lhs = lhs;
+        proc_call_node->location.start(lhs->location.start());
 
-		if (!parser->peek(token_types_t::right_paren)) {
+        if (!parser->peek(token_types_t::right_paren)) {
             pairs_to_list(proc_call_node->rhs, parser->parse_expression(r, 0));
 		}
 		token_t right_paren_token;
@@ -206,7 +207,8 @@ ast_node_shared_ptr proc_call_infix_parser::parse(result& r, parser* parser, con
 		if (!parser->expect(r, right_paren_token)) {
 			return nullptr;
 		}
-		return proc_call_node;
+        proc_call_node->location.end(right_paren_token.location.end());
+        return proc_call_node;
 	} else {
 		return create_expression_node(r, parser, lhs, token);
 	}
@@ -275,7 +277,7 @@ ast_node_shared_ptr assignment_infix_parser::parse(result& r, parser* parser, co
 {
 	auto assignment_node = parser->ast_builder()->assignment_node();
 	pairs_to_list(assignment_node->lhs, lhs);
-	auto rhs = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::assignment) - 1);
+	auto rhs = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::assignment));
     if (rhs == nullptr) {
         parser->error(r, "P019", "assignment expects right-hand-side expression", token.location);
         return nullptr;

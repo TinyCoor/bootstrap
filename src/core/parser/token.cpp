@@ -91,19 +91,20 @@ conversion_result_t token_t::parse(uint64_t& out) const
         return conversion_result_t::inconvertible;
     }
 
-    const char* s = nullptr;
+    // const char* s = nullptr;
+    std::string s;
     if (value[0] == '-') {
-        s = value.substr(1).c_str();
+        s = value.substr(1);
     } else {
-        s = value.c_str();
+        s = value;
     }
 	char* end;
 	errno = 0;
-	out = strtoull(s, &end, radix);
+	out = strtoull(s.c_str(), &end, radix);
 	if (errno == ERANGE) {
 		return conversion_result_t::overflow;
 	}
-	if (*s == '\0' || *end != '\0') {
+	if (s[0] == '\0' || *end != '\0') {
 		return conversion_result_t::inconvertible;
 	}
 	return conversion_result_t::success;

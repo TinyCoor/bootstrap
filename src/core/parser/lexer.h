@@ -23,6 +23,8 @@ public:
 
 	bool next(token_t& token);
 
+    const result& result() const;
+
 private:
 	bool plus(token_t& token);
 
@@ -182,8 +184,9 @@ private:
 	bool match_literal(const std::string& literal);
 private:
 	bool has_next_ = true;
+    gfx::result result_ {};
 	source_file* source_;
-    static std::multimap<char, lexer_case_callable> s_cases;
+    static std::multimap<rune_t, lexer_case_callable> s_cases;
 };
 
 }

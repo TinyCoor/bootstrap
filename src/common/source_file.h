@@ -37,7 +37,7 @@ public:
 
     ~source_file();
 
-    rune_t next();
+    rune_t next(result &r);
 
     [[nodiscard]] size_t pos() const;
 
@@ -76,7 +76,7 @@ public:
     void error(result& r, const std::string& code, const std::string& message, const source_location& location);
 
 private:
-    void build_lines();
+    void build_lines(result& r);
 
 private:
     size_t index_ = 0;

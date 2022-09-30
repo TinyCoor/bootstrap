@@ -64,7 +64,7 @@ std::string numeric_type::narrow_to_value(uint64_t value)
                 return props.name;
             }
         } else {
-            if (value >= props.min && value <= props.max) {
+            if (value >= static_cast<uint64_t>(props.min) && value <= props.max) {
                 return props.name;
             }
         }
@@ -89,7 +89,11 @@ type_access_model_t numeric_type::on_access_model() const
 
 std::string numeric_type::narrow_to_value(double value)
 {
-    return "f32";
+    if (value < -3.4e+38 || value > 3.4e+38) {
+        return "f64";
+    } else {
+        return "f32";
+    }
 }
 
 }

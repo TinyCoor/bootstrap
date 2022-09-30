@@ -118,18 +118,18 @@ int main(int argc, char** argv) {
         return 1;
     }
 	result r;
-
     compiler::session_options_t session_options {
         .verbose = verbose_flag,
         .heap_size =heap_size,
         .stack_size = stack_size,
+        .full_path = std::filesystem::absolute(argv[0]).remove_filename(),
         .ast_graph_file = ast_graph_file_name,
         .dom_graph_file = code_dom_graph_file_name,
         .compile_callback = [&](gfx::compiler::session_compile_phase_t phase,
             const std::filesystem::path &source_file) {
             switch (phase) {
               case gfx::compiler::session_compile_phase_t::start:
-                  fmt::print("{}\n",source_file.filename().string());
+                  fmt::print("{}\n", source_file.filename().string());
                   break;
               case gfx::compiler::session_compile_phase_t::success:
                   break;

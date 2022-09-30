@@ -112,7 +112,7 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
                 context.program->error(r, this, "P052", "assembler registers exhausted.", location());
             }
 
-            assembler->push_target_register(rhs_reg);
+            assembler->push_target_register(op_size_for_byte_size(var->type->size_in_bytes()), rhs_reg);
             rhs_->emit(r, context);
             var->write(assembler, instruction_block);
             assembler->pop_target_register();
@@ -135,11 +135,11 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
         return;
     }
 
-    assembler->push_target_register(lhs_reg.reg.i);
+    assembler->push_target_register(lhs_reg.size(), lhs_reg.reg.i);
     lhs_->emit(r, context);
     assembler->pop_target_register();
 
-    assembler->push_target_register(rhs_reg.reg.i);
+    assembler->push_target_register(rhs_reg.size(), rhs_reg.reg.i);
     rhs_->emit(r, context);
     assembler->pop_target_register();
 
@@ -215,10 +215,10 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
     if (!lhs_reg.valid || !rhs_reg.valid) {
         return;
     }
-    assembler->push_target_register(lhs_reg.reg.i);
+    assembler->push_target_register(lhs_reg.size(), lhs_reg.reg.i);
     lhs_->emit(r, context);
     assembler->pop_target_register();
-    assembler->push_target_register(rhs_reg.reg.i);
+    assembler->push_target_register(rhs_reg.size(), rhs_reg.reg.i);
     rhs_->emit(r, context);
     assembler->pop_target_register();
 

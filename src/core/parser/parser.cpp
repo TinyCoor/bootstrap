@@ -129,7 +129,7 @@ ast_node_shared_ptr parser::parse_scope(result& r, token_t &token)
 			token_t line_terminator_token;
 			line_terminator_token.type = token_types_t::semi_colon;
 			if (!expect(r, line_terminator_token)) {
-				break;
+                return nullptr;
 			}
 		}
 

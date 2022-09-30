@@ -16,6 +16,7 @@ enum class target_register_type_t {
 };
 
 struct target_register_t {
+    op_sizes size;
     target_register_type_t type;
     union {
         i_registers_t i;

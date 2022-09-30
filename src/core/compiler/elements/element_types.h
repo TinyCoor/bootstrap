@@ -410,6 +410,7 @@ std::string make_fully_qualified_name(const qualified_symbol_t& symbol);
 struct variable_t;
 struct element_register_t {
     ~element_register_t();
+    op_sizes size() const;
     bool valid = false;
     bool clean_up = false;
     bool integer = true;

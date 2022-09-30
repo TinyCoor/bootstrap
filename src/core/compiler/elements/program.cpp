@@ -203,7 +203,12 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
             auto referene = make_module_reference(current_scope(), expr);
             std::string path;
             if (expr->is_constant() && expr->as_string(path)) {
-               auto source_file =  session.add_source_file(path);
+                std::filesystem::path source_path(path);
+                auto cur_source_file = session.current_source_file();
+                if (cur_source_file != nullptr && source_path.is_relative()) {
+                    source_path = cur_source_file->path().parent_path() / source_path;
+                }
+               auto source_file = session.add_source_file(source_path);
                auto module = compile_module(r, session, source_file);
                referene->module(module);
             } else {
@@ -302,19 +307,19 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
             // TODO: need to handle conversion failures
 			switch (node->token.number_type) {
 				case number_types_t::integer: {
-
 					uint64_t value;
 					if (node->token.parse(value) == conversion_result_t::success) {
                         compiler::element* element = nullptr;
                         if (node->token.is_signed()) {
-                            element =  make_integer(current_scope(), twos_complement(value));
+                            element = make_integer(current_scope(), twos_complement(value));
                         } else {
-                            element =  make_integer(current_scope(), value);
+                            element = make_integer(current_scope(), value);
                         }
                         element->location(node->location);
                         return element;
 					} else {
                         error(r, session, "P041", "invalid integer literal", node->location);
+                        return nullptr;
                     }
 				}
 				case number_types_t::floating_point: {
@@ -396,8 +401,10 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
             if (expr != nullptr) {
                 args = dynamic_cast<argument_list*>(expr);
             }
-            return make_procedure_call(current_scope(), make_identifier_reference(
+            auto element = make_procedure_call(current_scope(), make_identifier_reference(
                 current_scope(), qualified_symbol, proc_identifier), args);
+            element->location(node->location);
+            return element;
 		}
 		case ast_node_types_t::proc_expression: {
 			auto active_scope = current_scope();
@@ -1690,6 +1697,7 @@ identifier_reference *program::make_identifier_reference(compiler::block *parent
     if (!reference->resolved()) {
         unresolved_identifier_references_.emplace_back(reference);
     }
+    reference->location(symbol.location);
     return reference;
 }
 

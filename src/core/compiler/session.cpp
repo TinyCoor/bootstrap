@@ -11,12 +11,16 @@
 #include "code_dom_formatter.h"
 namespace gfx::compiler {
 session::session(const session_options_t& options, const path_list_t& source_files)
-        : terp_(options.heap_size, options.stack_size),
+    : terp_(options.heap_size, options.stack_size),
           assembler_(&terp_), program_(&terp_, &assembler_),
           options_(options)
 {
     for (const auto &path : source_files) {
-        add_source_file(path);
+        if (path.is_relative()) {
+            add_source_file(std::filesystem::absolute(path));
+        } else {
+            add_source_file(path);
+        }
     }
 }
 

@@ -41,6 +41,7 @@ struct session_options_t {
     bool verbose = false;
     size_t heap_size = 0;
     size_t stack_size = 0;
+    fs::path full_path;
     fs::path ast_graph_file;
     fs::path dom_graph_file;
     session_compile_callback compile_callback;

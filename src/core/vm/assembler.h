@@ -4,6 +4,7 @@
 
 #ifndef ASSEMBLER_H_
 #define ASSEMBLER_H_
+#include <stack>
 #include "terp.h"
 #include "symbol.h"
 #include "segment.h"
@@ -11,7 +12,6 @@
 #include "common/id_pool.h"
 #include "instruction_block.h"
 #include "assembly_listing.h"
-#include <stack>
 
 namespace gfx {
 class assembler {
@@ -24,23 +24,13 @@ public:
 
     assembly_listing& listing();
 
-    void push_block(instruction_block* block);
-
-    bool allocate_reg(i_registers_t& reg);
-
     void free_reg(i_registers_t reg);
-
-    bool allocate_reg(f_registers_t& reg);
 
     void free_reg(f_registers_t reg);
 
-    target_register_t pop_target_register();
+    bool allocate_reg(i_registers_t& reg);
 
-    target_register_t* current_target_register();
-
-    void push_target_register(i_registers_t reg);
-
-    void push_target_register(f_registers_t reg);
+    bool allocate_reg(f_registers_t& reg);
 
     instruction_block* pop_block();
 
@@ -55,6 +45,16 @@ public:
     bool resolve_labels(result& r);
 
     bool apply_addresses(result& r);
+
+    target_register_t pop_target_register();
+
+    void push_block(instruction_block* block);
+
+    target_register_t* current_target_register();
+
+    void push_target_register(op_sizes size, i_registers_t reg);
+
+    void push_target_register(op_sizes size, f_registers_t reg);
 
     gfx::segment* segment(const std::string& name);
 

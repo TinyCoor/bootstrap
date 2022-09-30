@@ -44,11 +44,11 @@ bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
     if (!rhs_reg.valid) {
         return false;
     }
-    assembler->push_target_register(rhs_reg.reg.i);
+    auto rhs_size= rhs_reg.size();
+    assembler->push_target_register(rhs_size, rhs_reg.reg.i);
     rhs_->emit(r, context);
     assembler->pop_target_register();
 
-    auto rhs_size = op_size_for_byte_size(rhs_->infer_type(context.program)->size_in_bytes());
     switch (operator_type()) {
         case operator_type_t::negate: {
             instruction_block->neg(rhs_size, target_reg->reg.i, rhs_reg.reg.i);

@@ -203,4 +203,11 @@ element_register_t::~element_register_t()
         }
     }
 }
+op_sizes element_register_t::size() const
+{
+    if (var != nullptr) {
+        return op_size_for_byte_size(var->type->size_in_bytes());
+    }
+    return op_sizes::qword;
+}
 }

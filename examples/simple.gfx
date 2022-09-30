@@ -19,6 +19,8 @@ bool_true_init := !bool_true_init;
 print("bool_true_init := %hhu (after not)\n", bool_true_init);
 
 ///////////////////////////////////////////////////////////////////////////////
+
+
 // u8
 
 // uninitialized

@@ -334,7 +334,7 @@ static inline token_t s_ror_literal = {
 };
 
 /// todo use lambda and unorder_map
-std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
+std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	// attribute
 	{'@', std::bind(&lexer::attribute, std::placeholders::_1, std::placeholders::_2)},
 
@@ -343,9 +343,6 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 	// directive
 	{'#', std::bind(&lexer::directive, std::placeholders::_1, std::placeholders::_2)},
-
-	// minus, negate
-	{'-', std::bind(&lexer::minus, std::placeholders::_1, std::placeholders::_2)},
 
 	// block comment line comment, slash
 	{'/', std::bind(&lexer::block_comment, std::placeholders::_1, std::placeholders::_2)},
@@ -357,9 +354,6 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
 	// caret
 	{'^', std::bind(&lexer::caret, std::placeholders::_1, std::placeholders::_2)},
-
-    // minus, negate
-    {'-', std::bind(&lexer::minus, std::placeholders::_1, std::placeholders::_2)},
 
     // bang
 	{'!', std::bind(&lexer::not_equals_operator, std::placeholders::_1, std::placeholders::_2)},
@@ -555,8 +549,6 @@ std::multimap<char, lexer::lexer_case_callable> lexer::s_cases = {
 
     // minus, negate
     {'-', std::bind(&lexer::minus, std::placeholders::_1, std::placeholders::_2)},
-
-
 };
 
 lexer::lexer(source_file* source)
@@ -567,7 +559,10 @@ lexer::lexer(source_file* source)
 [[maybe_unused]] rune_t lexer::peek()
 {
 	while (!source_->eof()) {
-		auto ch = static_cast<char>(source_->next());
+		auto ch = source_->next(result_);
+        if (result_.is_failed()) {
+            return rune_invalid;
+        }
 		if (!isspace(ch)) {
 			return ch;
 		}
@@ -595,7 +590,13 @@ void lexer::rewind_one_char()
 
 bool lexer::next(token_t& token)
 {
-    const auto ch = static_cast<char>(tolower(read()));
+    auto rune = read();
+    if (rune == rune_invalid) {
+        token = s_invalid;
+        set_token_location(token);
+        return false;
+    }
+    rune = rune > 0x80 ? rune : tolower(rune);
     if (source_->eof()) {
         has_next_ = false;
         token = s_end_of_file;
@@ -606,7 +607,7 @@ bool lexer::next(token_t& token)
     rewind_one_char();
     source_->push_mark();
 
-	auto case_range = s_cases.equal_range(ch);
+	auto case_range = s_cases.equal_range(rune);
 	for (auto it = case_range.first; it != case_range.second; ++it) {
 		token.radix = 10;
 		token.number_type = number_types_t::none;
@@ -623,7 +624,7 @@ bool lexer::next(token_t& token)
 	}
     source_->pop_mark();
 	token = s_invalid;
-    token.value = ch;
+    token.value = static_cast<char>(rune);
     set_token_location(token);
 	has_next_ = false;
 
@@ -633,7 +634,7 @@ bool lexer::next(token_t& token)
 rune_t lexer::read(bool skip_whitespace)
 {
 	while (true) {
-		auto ch = source_->next();
+		auto ch = source_->next(result_);
 		if (skip_whitespace && isspace(ch)) {
             continue;
         }
@@ -1133,11 +1134,9 @@ bool lexer::number_literal(token_t& token)
 			if (ch == '_') {
 				continue;
 			}
-
 			if (!std::isxdigit(ch)) {
 				break;
 			}
-
 			stream << static_cast<char> (ch);
 		}
 	} else if (ch == '@') {
@@ -1164,7 +1163,7 @@ bool lexer::number_literal(token_t& token)
 			if (ch != '0' && ch != '1') {
 				break;
 			}
-            stream << static_cast<char> (ch);
+            stream << static_cast<char>(ch);
 		}
 	} else {
 		const std::string valid = "0123456789_.";
@@ -1172,7 +1171,7 @@ bool lexer::number_literal(token_t& token)
             stream << '-';
             ch = read(false);
         }
-
+        auto has_digits = false;
 		while (valid.find_first_of(static_cast<char>(ch)) != std::string::npos) {
 			if (ch != '_') {
                 if (ch == '.') {
@@ -1186,18 +1185,20 @@ bool lexer::number_literal(token_t& token)
                 }
                 // XXX: requires utf8 fix
                 stream << static_cast<char>(ch);
+                has_digits = true;
 			}
 			ch = read(false);
 		}
+        if (!has_digits) {
+            return false;
+        }
 	}
 
 	token.value = stream.str();
 	if (token.value.empty()) {
 		return false;
 	}
-
 	rewind_one_char();
-
 	return true;
 }
 
@@ -1658,6 +1659,9 @@ bool lexer::module_literal(token_t& token) {
     }
     return false;
 }
-
+const result &lexer::result() const
+{
+    return result_;
+}
 
 }

@@ -15,12 +15,31 @@ source_file::source_file(const fs::path &path)
 }
 source_file::~source_file() = default;
 
-rune_t source_file::next()
+rune_t source_file::next(result &r)
 {
     if (index_ >= buffer_.size()) {
         return rune_eof;
     }
-    return buffer_[index_++];
+    size_t width = 1;
+    auto ch = buffer_[index_];
+    rune_t rune = ch;
+    if (ch == 0) {
+        r.add_message("S003", "illegal character NUL", true);
+        return rune_invalid;
+    } else if (ch >= 0x80) {
+        auto cp = utf8_decode((char*)(buffer_.data() + index_), buffer_.size() - index_);
+        width = cp.width;
+        rune = cp.value;
+        if (rune == rune_invalid && width == 1) {
+            r.add_message("S001", "illegal utf-8 encoding", true);
+            return rune_invalid;
+        } else if (rune == rune_bom && index_ > 0) {
+            r.add_message("S002", "illegal byte order mark", true);
+            return rune_invalid;
+        }
+    }
+    index_ += width;
+    return rune;
 }
 
 [[maybe_unused]] bool source_file::eof() const
@@ -52,11 +71,11 @@ size_t source_file::length() const
         file.seekg(0, std::ios::beg);
         buffer_.reserve(static_cast<size_t>(file_size));
         buffer_.insert(buffer_.begin(), std::istream_iterator<uint8_t>(file), std::istream_iterator<uint8_t>());
-        build_lines();
+        build_lines(r);
     } else {
         r.add_message("S001", fmt::format("unable to open source file: {}", path_.string()), true);
     }
-    return true;
+    return !r.is_failed();
 }
 
 size_t source_file::number_of_lines() const
@@ -101,37 +120,43 @@ const source_file_line_t *source_file::line_by_index(size_t index) const
     return &it->second;
 }
 
-void source_file::build_lines()
+void source_file::build_lines(result &r)
 {
     uint32_t line = 0;
     uint32_t columns = 0;
     size_t line_start = 0;
 
-    for (size_t i = 0; i < buffer_.size(); i++) {
-        auto end_of_buffer = i == buffer_.size() - 1;
-        const auto unix_new_line = buffer_[i] == '\n';
-        const auto windblows_new_line = buffer_[i] == '\r'
-            && (i + 1 < buffer_.size() && buffer_[i + 1] == '\n');
-        if (unix_new_line || windblows_new_line || end_of_buffer) {
-            auto end = end_of_buffer ? buffer_.size() : i;
+    while (true) {
+        auto rune = next(r);
+        if (rune == rune_invalid) {
+            break;
+        } else if (rune == rune_bom) {
+            rune = next(r);
+        }
+
+        const auto end_of_buffer = rune == rune_eof;
+        const auto unix_new_line = rune == '\n';
+        if (unix_new_line || end_of_buffer) {
+            auto end = end_of_buffer ? buffer_.size() : index_ - 1;
             auto it = lines_by_index_range_.insert(std::make_pair(std::make_pair(line_start, end),
-                source_file_line_t {
-                    .end = end,
-                    .begin = line_start,
-                    .line = line,
-                    .columns = columns
-                }));
+                                                                  source_file_line_t {
+                                                                      .end = end,
+                                                                      .begin = line_start,
+                                                                      .line = line,
+                                                                      .columns = columns
+                                                                  }));
             lines_by_number_.insert(std::make_pair(line, &it.first->second));
-            line_start = i + 1;
+            line_start = index_;
             line++;
             columns = 0;
         } else {
             columns++;
         }
-        if (windblows_new_line) {
-            i++;
+        if (rune == rune_eof) {
+            break;
         }
     }
+    seek(0);
 }
 
 void source_file::seek(size_t index)

@@ -253,11 +253,6 @@ size_t instruction_t::encoding_size() const
 	return encoding_size;
 }
 
-void instruction_t::patch_branch_address(uint64_t address, uint8_t index)
-{
-	operands[index].value.u64 = align(address, alignment);
-}
-
 std::string instruction_t::disassemble(const std::function<std::string(uint64_t)> &id_resolver) const
 {
     std::stringstream stream;
@@ -297,7 +292,7 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
                 operands_stream << ", ";
             }
 
-            const auto& operand = operands[i];
+            const auto &operand = operands[i];
             std::string prefix, postfix;
 
             if (operand.is_negative()) {
@@ -324,30 +319,28 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
             if (operand.is_reg()) {
                 if (operand.is_integer()) {
                     switch (operand.value.r8) {
-                        case i_registers_t::sp: {
+                        case registers_t::sp: {
                             operands_stream << prefix << "SP" << postfix;
                             break;
                         }
-                        case i_registers_t::fp: {
+                        case registers_t::fp: {
                             operands_stream << prefix << "FP" << postfix;
                             break;
                         }
-                        case i_registers_t::pc: {
+                        case registers_t::pc: {
                             operands_stream << prefix << "PC" << postfix;
                             break;
                         }
-                        case i_registers_t::fr: {
+                        case registers_t::fr: {
                             operands_stream << "FR";
                             break;
                         }
-                        case i_registers_t::sr: {
+                        case registers_t::sr: {
                             operands_stream << "SR";
                             break;
                         }
                         default: {
-                            operands_stream << prefix
-                                            << "I"
-                                            << std::to_string(operand.value.r8)
+                            operands_stream << prefix << "I" << std::to_string(operand.value.r8)
                                             << postfix;
                             break;
                         }
@@ -356,29 +349,24 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
                     operands_stream << "F" << std::to_string(operand.value.r8);
                 }
             } else {
-                if (operand.is_integer()) {
-                    if (operand.is_unresolved()) {
-                        if (id_resolver == nullptr)
-                            operands_stream << fmt::format("id({})", operand.value.u64);
-                        else
-                            operands_stream << id_resolver(operand.value.u64);
-                    } else {
-                        if (i == 2) {
-                            operands_stream << fmt::format(fmt::runtime(offset_spec), static_cast<int64_t>(operand.value.u64));
-                        } else {
-                            operands_stream << prefix
-                                            << fmt::format(fmt::runtime(format_spec), operand.value.u64)
-                                            << postfix;
-                        }
+                if (operand.is_unresolved()) {
+                    if (id_resolver==nullptr) {
+                        operands_stream << fmt::format("id({})", operand.value.u64);
+                    }else {
+                        operands_stream << id_resolver(operand.value.u64);
                     }
                 } else {
-                    operands_stream << prefix
-                                    << fmt::format(fmt::runtime(format_spec), operand.value.d64)
-                                    << postfix;
+                    if (i==2) {
+                        operands_stream << fmt::format(fmt::runtime(offset_spec),
+                            static_cast<int64_t>(operand.value.u64));
+                    } else {
+                        operands_stream << prefix
+                                        << fmt::format(fmt::runtime(format_spec), operand.value.u64)
+                                        << postfix;
+                    }
                 }
             }
         }
-
         stream << std::left << std::setw(24) << operands_stream.str();
     } else {
         stream << "UNKNOWN";

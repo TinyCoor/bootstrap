@@ -11,32 +11,69 @@
 
 constexpr uint8_t REGISTER_COUNT  = 64;
 namespace gfx {
-enum i_registers_t : uint8_t {
-	i0,  i1,  i2,  i3,  i4,  i5,  i6,  i7,
-	i8,  i9,  i10, i11, i12, i13, i14, i15,
-	i16, i17, i18, i19, i20, i21, i22, i23,
-	i24, i25, i26, i27, i28, i29, i30, i31,
+enum class register_type_t : uint8_t {
+    none,
+    pc,
+    sp,
+    fp,
+    fr,
+    sr,
+    integer,
+    floating_point,
+};
 
-	i32, i33, i34, i35, i36, i37, i38, i39,
-	i40, i41, i42, i43, i44, i45, i46, i47,
-	i48, i49, i50, i51, i52, i53, i54, i55,
-	i56, i57, i58, i59, i60, i61, i62, i63,
+enum registers_t : uint8_t {
+	r0,  r1,  r2,  r3,  r4,  r5,  r6,  r7,
+	r8,  r9,  r10, r11, r12, r13, r14, r15,
+	r16, r17, r18, r19, r20, r21, r22, r23,
+	r24, r25, r26, r27, r28, r29, r30, r31,
+	r32, r33, r34, r35, r36, r37, r38, r39,
+	r40, r41, r42, r43, r44, r45, r46, r47,
+	r48, r49, r50, r51, r52, r53, r54, r55,
+	r56, r57, r58, r59, r60, r61, r62, r63,
 
 	pc, sp, fr, sr, fp,
 };
 
-enum f_registers_t : uint8_t {
-	f0,  f1,  f2,  f3,  f4,  f5,  f6,  f7,
-	f8,  f9,  f10, f11, f12, f13, f14, f15,
-	f16, f17, f18, f19, f20, f21, f22, f23,
-	f24, f25, f26, f27, f28, f29, f30, f31,
-
-	f32, f33, f34, f35, f36, f37, f38, f39,
-	f40, f41, f42, f43, f44, f45, f46, f47,
-	f48, f49, f50, f51, f52, f53, f54, f55,
-	f56, f57, f58, f59, f60, f61, f62, f63,
+union register_value_alias_t {
+    double   d;
+    uint64_t u;
 };
 
+static constexpr const uint32_t register_integer_start   = 0;
+static constexpr const uint32_t number_integer_registers = 64;
+static constexpr const uint32_t register_float_start     = number_integer_registers;
+static constexpr const uint32_t number_float_registers   = 64;
+static constexpr const uint32_t number_special_registers = 5;
+static constexpr const uint32_t number_general_purpose_registers = number_integer_registers + number_float_registers;
+static constexpr const uint32_t number_total_registers   = number_integer_registers
+    + number_float_registers
+    + number_special_registers;
+static constexpr const uint32_t register_special_start   = number_integer_registers
+    + number_float_registers;
+static constexpr const uint32_t register_pc = register_special_start;
+static constexpr const uint32_t register_sp = register_special_start + 1;
+static constexpr const uint32_t register_fr = register_special_start + 2;
+static constexpr const uint32_t register_sr = register_special_start + 3;
+static constexpr const uint32_t register_fp = register_special_start + 4;
+
+static inline size_t register_index(registers_t r, register_type_t type)
+{
+    switch (r) {
+        case pc: return register_pc;
+        case sp: return register_sp;
+        case fr: return register_fr;
+        case sr: return register_sr;
+        case fp: return register_fp;
+        default:
+            if (type == register_type_t::floating_point) {
+                return register_float_start + static_cast<uint8_t>(r);
+            } else {
+                return static_cast<uint8_t>(r);
+            }
+    }
+    return 0;
+}
 
 struct register_file_t {
 	enum flags_t : uint64_t {
@@ -48,24 +85,19 @@ struct register_file_t {
 		subtract = 0b0000000000000000000000000000000000000000000000000000000000100000,
 	};
 
-	[[nodiscard]] bool flags(flags_t flag) const {
-		return (fr & flag) != 0;
+	[[nodiscard]] bool flags(flags_t flag) const
+    {
+		return (r[register_fr].u & flag) != 0;
 	}
 
 	void flags(flags_t flag, bool value) {
 		if (value) {
-			fr |= flag;
+            r[register_fr].u |= flag;
 		} else {
-			fr &= ~flag;
+            r[register_fr].u &= ~flag;
 		}
 	}
-	uint64_t i[REGISTER_COUNT];
-	double f[REGISTER_COUNT];
-	uint64_t pc;
-	uint64_t sp;
-    uint64_t fp;
-	uint64_t fr;
-	uint64_t sr;
+    register_value_alias_t r[number_total_registers];
 };
 
 enum class op_sizes : uint8_t {
@@ -95,6 +127,17 @@ static inline op_sizes op_size_for_byte_size(size_t size) {
         default:    return op_sizes::none;
     }
 }
+
+union operand_value_alias_t {
+    uint8_t r8;
+    uint64_t u64;
+    double d64;
+};
+
+struct operand_value_t {
+    register_type_t type;
+    operand_value_alias_t value;
+};
 struct operand_encoding_t {
 	using flags_t = uint8_t;
 
@@ -124,11 +167,7 @@ struct operand_encoding_t {
     bool is_unresolved() const;
 
     flags_t type = flags::reg | flags::integer;
-	union {
-		uint8_t r8 = 0;
-		uint64_t u64;
-		double  d64;
-	}value;
+    operand_value_alias_t value;
 };
 
 struct meta_information_t {
@@ -153,8 +192,6 @@ struct instruction_t {
 	[[nodiscard]] size_t encoding_size() const;
 
     [[nodiscard]] std::string disassemble(const id_resolve_callable& id_resolver = nullptr) const;
-
-    void patch_branch_address(uint64_t address, uint8_t index = 0u);
 
 	op_codes op = op_codes::nop;
 	op_sizes size = op_sizes::none;

@@ -49,19 +49,19 @@ struct emit_context_t {
 
     void pop();
 
-    void push_scratch_register(i_registers_t reg);
+    void push_scratch_register(registers_t reg);
 
     [[nodiscard]] bool has_scratch_register() const;
 
     void clear_scratch_registers();
 
-    i_registers_t pop_scratch_register();
+    registers_t pop_scratch_register();
 
     terp* terp = nullptr;
     assembler* assembler = nullptr;
     program* program = nullptr;
     std::stack<std::any> data_stack {};
-    std::stack<i_registers_t> scratch_registers {};
+    std::stack<registers_t> scratch_registers {};
     std::unordered_map<std::string, variable_t> variables {};
 };
 }

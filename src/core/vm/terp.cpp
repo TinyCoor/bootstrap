@@ -44,13 +44,13 @@ bool terp::initialize(result& r)
 
 void terp::reset()
 {
-	registers_.pc = heap_vector(heap_vectors_t::program_start);
-	registers_.sp = heap_vector(heap_vectors_t::top_of_stack);
-	registers_.fr = 0;
-	registers_.sr = 0;
+	registers_.r[register_pc].u = heap_vector(heap_vectors_t::program_start);
+	registers_.r[register_sp].u = heap_vector(heap_vectors_t::top_of_stack);
+	registers_.r[register_fr].u = 0;
+	registers_.r[register_sr].u = 0;
 	for (size_t i = 0; i < 64 ; ++i) {
-		registers_.i[i] = 0;
-		registers_.f[i] = 0.0;
+		registers_.r[i].u = 0;
+		registers_.r[i].d = 0.0;
 	}
 	inst_cache_.reset();
 	dcReset(call_vm_);
@@ -72,23 +72,26 @@ void terp::dump_state(uint8_t count)
 {
 	fmt::print("-------------------------------------------------------------\n");
 	fmt::print("PC =${:08x} | SP =${:08x} | FR =${:08x} | SR =${:08x}\n",
-			   registers_.pc, registers_.sp, registers_.fr, registers_.sr);
+			   registers_.r[register_pc].u, registers_.r[register_sp].u, registers_.r[register_fr].u,
+               registers_.r[register_sr].u);
 	fmt::print("-------------------------------------------------------------\n");
-	for (int index = 0; index < count; ++index) {
+    uint8_t index = register_integer_start;
+	for (int x = 0; x < count; ++x) {
 		fmt::print("I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x}\n",
-			index, registers_.i[index],
-			index + 1, registers_.i[index + 1],
-			index + 2, registers_.i[index + 2],
-			index + 3, registers_.i[index + 3]);
+			index, registers_.r[index].u,
+			index + 1, registers_.r[index + 1].u,
+			index + 2, registers_.r[index + 2].u,
+			index + 3, registers_.r[index + 3].u);
 		index += 4;
 	}
 	fmt::print("-------------------------------------------------------------\n");
-	for (int index = 0; index < count; ++index) {
+    index = register_float_start;
+	for (int x = 0; x < count; ++x) {
 		fmt::print("F{:02}=${:08x} | F{:02}=${:08x} | F{:02}=${:08x} | F{:02}=${:08x}\n",
-		   index, static_cast<uint64_t >(registers_.f[index]),
-		   index + 1, static_cast<uint64_t >(registers_.f[index + 1]),
-		   index + 2, static_cast<uint64_t >(registers_.f[index + 2]),
-		   index + 3, static_cast<uint64_t >(registers_.f[index + 3]));
+		   index, static_cast<uint64_t >(registers_.r[index].d),
+		   index + 1, static_cast<uint64_t >(registers_.r[index + 1].d),
+		   index + 2, static_cast<uint64_t >(registers_.r[index + 2].d),
+		   index + 3, static_cast<uint64_t >(registers_.r[index + 3].d));
 		index += 4;
 	}
 }
@@ -101,7 +104,7 @@ bool terp::step(result &r)
 		return false;
 	}
 
-	registers_.pc += inst_size;
+	registers_.r[register_pc].u += inst_size;
 
 	switch (inst.op) {
 		case op_codes::nop:{
@@ -221,7 +224,6 @@ bool terp::step(result &r)
 
 		}break;
 		case op_codes::store: {
-
             uint64_t address = 0;
 			if (!get_operand_value(r, inst, 0, address)) {
 				return false;
@@ -247,8 +249,8 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
 		}break;
 		case op_codes::inc: {
-			uint8_t reg =  inst.operands[0].value.r8;
-			uint64_t lhs_value = registers_.i[reg] ;
+			uint8_t reg = inst.operands[0].value.r8;
+			uint64_t lhs_value = registers_.r[reg].u;
 			uint64_t rhs_value = 1;
 			uint64_t value = rhs_value + lhs_value;
 			if (set_target_operand_value(r, inst, reg, value)) {
@@ -262,7 +264,7 @@ bool terp::step(result &r)
 		}break;
 		case op_codes::dec: {
 			uint8_t reg = inst.operands[0].value.r8;
-			uint64_t lhs_value = registers_.i[reg] ;
+			uint64_t lhs_value = registers_.r[reg].u;
 			uint64_t rhs_value = 1;
 			uint64_t value = lhs_value - rhs_value;
 			if (set_target_operand_value(r, inst, reg, value)) {
@@ -750,7 +752,7 @@ bool terp::step(result &r)
 			}
 
 			if (value == 0) {
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 			registers_.flags(register_file_t::flags_t::zero, value == 0);
 			registers_.flags(register_file_t::flags_t::subtract, false);
@@ -769,7 +771,7 @@ bool terp::step(result &r)
 			}
 
 			if (value != 0) {
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 			registers_.flags(register_file_t::flags_t::zero, value == 0);
 			registers_.flags(register_file_t::flags_t::subtract, false);
@@ -792,7 +794,7 @@ bool terp::step(result &r)
 
 			uint64_t result = value & mask;
 			if (result == 0) {
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 
 			registers_.flags(register_file_t::flags_t::carry, false);
@@ -817,7 +819,7 @@ bool terp::step(result &r)
 			}
 			uint64_t result = value & mask;
 			if (result != 0) {
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 
 			registers_.flags(register_file_t::flags_t::carry, false);
@@ -834,7 +836,7 @@ bool terp::step(result &r)
 			}
 
 			if (registers_.flags(register_file_t::flags_t::zero) == 0){
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 		}break;
 		case op_codes::beq: {
@@ -845,7 +847,7 @@ bool terp::step(result &r)
 			}
 
 			if (registers_.flags(register_file_t::flags_t::zero)){
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 		} break;
 		case op_codes::bg: {
@@ -858,7 +860,7 @@ bool terp::step(result &r)
 
 			if (!registers_.flags(register_file_t::flags_t::carry)
 				&& !registers_.flags(register_file_t::flags_t::zero)) {
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 		}break;
 		case op_codes::bge: {
@@ -870,7 +872,7 @@ bool terp::step(result &r)
 			}
 
 			if (!registers_.flags(register_file_t::flags_t::carry)) {
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 		}break;
 		case op_codes::bl: {
@@ -883,7 +885,7 @@ bool terp::step(result &r)
 
 			if (registers_.flags(register_file_t::flags_t::carry)
 				|| registers_.flags(register_file_t::flags_t::zero)) {
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 		}break;
 		case op_codes::ble:{
@@ -895,22 +897,22 @@ bool terp::step(result &r)
 			}
 
 			if (registers_.flags(register_file_t::flags_t::carry)) {
-				registers_.pc = address;
+				registers_.r[register_pc].u = address;
 			}
 		}break;
 		case op_codes::jsr: {
-			push(registers_.pc);
+			push(registers_.r[register_pc].u);
 			uint64_t address;
 			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
 
-			registers_.pc = address;
+			registers_.r[register_pc].u  = address;
 		}break;
 		case op_codes::rts: {
 			uint64_t address = pop();
-			registers_.pc = address;
+            registers_.r[register_pc].u  = address;
 		}break;
 		case op_codes::jmp: {
 			uint64_t address;
@@ -919,7 +921,7 @@ bool terp::step(result &r)
 			if (!result) {
 				return false;
 			}
-			registers_.pc = address;
+            registers_.r[register_pc].u  = address;
 		}break;
 		case op_codes::swi:{
 			uint64_t index;
@@ -931,8 +933,8 @@ bool terp::step(result &r)
 			uint64_t swi_address = read(inst.size, swi_offset);
 			if (swi_address != 0) {
 				/// TODO 恢复现场
-				push(registers_.pc);
-				registers_.pc = swi_address;
+				push(registers_.r[register_pc].u);
+				registers_.r[register_pc].u = swi_address;
 			}
 		}break;
 		case op_codes::trap:{
@@ -1016,15 +1018,15 @@ bool terp::step(result &r)
 
 uint64_t terp::pop()
 {
-	uint64_t value = read(op_sizes::qword, registers_.sp);
-	registers_.sp += sizeof(uint64_t);
+	uint64_t value = read(op_sizes::qword, registers_.r[register_sp].u);
+	registers_.r[register_sp].u += sizeof(uint64_t);
 	return value;
 }
 
 void terp::push(uint64_t value)
 {
-	registers_.sp -= sizeof(uint64_t);
-    write(op_sizes::qword, registers_.sp, value);
+	registers_.r[register_sp].u -= sizeof(uint64_t);
+    write(op_sizes::qword, registers_.r[register_sp].u, value);
 }
 
 void terp::dump_heap(uint64_t offset, size_t size)
@@ -1036,66 +1038,13 @@ void terp::dump_heap(uint64_t offset, size_t size)
 bool terp::get_operand_value(result& r, const instruction_t& instruction, uint8_t operand_index, uint64_t& value) const
 {
 	auto& operand = instruction.operands[operand_index];
-
-	if (operand.is_reg()) {
-		if (operand.is_integer()) {
-			auto reg = static_cast<i_registers_t>(operand.value.r8);
-			switch (reg) {
-				case i_registers_t::pc: {
-					value = registers_.pc;
-					break;
-				}
-				case i_registers_t::sp: {
-					value = registers_.sp;
-					break;
-				}
-                case i_registers_t::fp: {
-                    value = registers_.fp;
-                    break;
-                }
-				case i_registers_t::fr: {
-					value = registers_.fr;
-					break;
-				}
-				case i_registers_t::sr: {
-					value = registers_.sr;
-					break;
-				}
-				default: {
-					value = registers_.i[reg];
-					break;
-				}
-			}
-		} else {
-			value = static_cast<uint64_t>(registers_.f[operand.value.r8]);
-		}
-	} else {
-		if (operand.is_integer()) {
-			value = operand.value.u64;
-		} else {
-			value = static_cast<uint64_t>(operand.value.d64);
-		}
-	}
-
-	return true;
-}
-
-bool terp::get_operand_value(result& r, const instruction_t& instruction, uint8_t operand_index, double& value) const
-{
-	auto& operand = instruction.operands[operand_index];
-	if (operand.is_reg()) {
-		if (operand.is_integer()) {
-			value = registers_.i[operand.value.r8];
-		} else {
-			value = registers_.f[operand.value.r8];
-		}
-	} else {
-		if (operand.is_integer()) {
-			value = operand.value.u64;
-		} else {
-			value = operand.value.d64;
-		}
-	}
+    if (operand.is_reg()) {
+        auto reg_index = register_index(static_cast<registers_t>(operand.value.r8),
+            operand.is_integer() ? register_type_t::integer : register_type_t::floating_point);
+        value = registers_.r[reg_index].u;
+    } else {
+        value = operand.value.u64;
+    }
 	return true;
 }
 
@@ -1103,88 +1052,14 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
 {
 	auto& operand = inst.operands[operand_index];
 
-	if (operand.is_reg()) {
-		if (operand.is_integer()) {
-			auto reg = static_cast<i_registers_t>(operand.value.r8);
-			switch (reg) {
-				case i_registers_t::pc: {
-					registers_.pc = set_zoned_value(registers_.pc, value, inst.size);
-					break;
-				}
-				case i_registers_t::sp: {
-					registers_.sp = set_zoned_value(registers_.sp, value, inst.size);
-					break;
-				}
-                case i_registers_t::fp: {
-                    registers_.fp = set_zoned_value(registers_.fp, value, inst.size);
-                    break;
-                }
-				case i_registers_t::fr: {
-					registers_.fr =  set_zoned_value(registers_.fr, value, inst.size);
-					break;
-				}
-				case i_registers_t::sr: {
-					registers_.sr =  set_zoned_value(registers_.sr, value, inst.size);
-					break;
-				}
-				default: {
-					registers_.i[reg] = value;
-					registers_.flags(register_file_t::flags_t::zero, value == 0);
-					break;
-				}
-			}
-		} else {
-			registers_.f[operand.value.r8] = value;
-		}
-	} else {
-		r.add_message("B006", "constant cannot be a target operand type.", true);
-		return false;
-	}
-
-	return true;
-}
-
-bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index, double value)
-{
-	auto& operand = inst.operands[operand_index];
-
-	if (operand.is_reg()) {
-		if (operand.is_integer()) {
-			auto integer_value = static_cast<uint64_t>(value);
-			auto reg = static_cast<i_registers_t>(operand.value.r8);
-			switch (reg) {
-				case i_registers_t::pc: {
-					registers_.pc = set_zoned_value(registers_.pc,integer_value, inst.size);
-					break;
-				}
-				case i_registers_t::sp: {
-					registers_.sp =set_zoned_value(registers_.sp,integer_value, inst.size);
-					break;
-				}
-                case i_registers_t::fp: {
-                    registers_.fp = set_zoned_value(registers_.fp, integer_value, inst.size);
-                    break;
-                }
-				case i_registers_t::fr: {
-					registers_.fr = set_zoned_value(registers_.fr, integer_value, inst.size);
-					break;
-				}
-				case i_registers_t::sr: {
-					registers_.sr = set_zoned_value(registers_.sr, integer_value, inst.size);
-					break;
-				}
-				default: {
-					registers_.i[reg] = set_zoned_value(registers_.i[reg], integer_value,inst.size);
-					break;
-				}
-			}
-		} else {
-			registers_.f[operand.value.r8] = value;
-		}
-	} else {
-		r.add_message("B006", "constant cannot be a target operand type.", true);
-		return false;
-	}
+    if (operand.is_reg()) {
+        auto reg_index = register_index(static_cast<registers_t>(operand.value.r8),
+            operand.is_integer() ? register_type_t::integer : register_type_t::floating_point);
+        registers_.r[reg_index].u = set_zoned_value(registers_.r[reg_index].u, value, inst.size);
+    } else {
+        r.add_message("B006", "constant cannot be a target operand type.", true);
+        return false;
+    }
 
 	return true;
 }
@@ -1223,7 +1098,7 @@ void terp::remove_trap(uint8_t index)
 
 uint64_t terp::peek() const
 {
-	uint64_t value = read(op_sizes::qword, registers_.sp);
+	uint64_t value = read(op_sizes::qword, registers_.r[register_sp].u);
 	return value;
 }
 
@@ -1237,9 +1112,9 @@ std::vector<uint64_t> terp::jump_to_subroutine(result &r, uint64_t address)
 {
 	std::vector<uint64_t> return_values;
 
-	auto return_address = registers_.pc;
+	auto return_address = registers_.r[register_pc].u;
 	push(return_address);
-	registers_.pc = address;
+	registers_.r[register_pc].u = address;
 
 	while (!has_exited()) {
 		// XXX: need to introduce a terp_step_result_t
@@ -1511,9 +1386,7 @@ uint64_t terp::free(uint64_t address)
 			new_block->prev->next = new_block;
 		}
 
-
 		new_block->address = first_free_block->address;
-
 		for (auto block : delete_list) {
 			address_blocks_.erase(block->address);
 			delete block;
@@ -1698,6 +1571,11 @@ void terp::write(op_sizes size, uint64_t address, uint64_t value)
             break;
         }
     }
+}
+
+void terp::set_pc(uint64_t address)
+{
+    registers_.r[register_pc].u = address;
 }
 
 }

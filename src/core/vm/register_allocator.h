@@ -7,24 +7,16 @@
 #include <set>
 #include <stack>
 #include <cstdint>
+#include "instruction.h"
 
 namespace gfx {
-enum class target_register_type_t {
-    none,
-    integer,
-    floating_point,
-};
 
 struct target_register_t {
     op_sizes size;
-    target_register_type_t type;
-    union {
-        i_registers_t i;
-        f_registers_t f;
-    } reg;
+    register_type_t type;
+    registers_t i;
 };
 
-template<typename T>
 struct register_allocator_t {
     register_allocator_t()
     {
@@ -38,18 +30,18 @@ struct register_allocator_t {
             available.pop();
         }
         for (int8_t r = 63; r >= 0; r--) {
-            available.push(static_cast<T>(r));
+            available.push(static_cast<registers_t>(r));
         }
     }
 
-    void free(T reg)
+    void free(registers_t reg)
     {
         if (used.erase(reg) > 0) {
             available.push(reg);
         }
     }
 
-    bool allocate(T &reg)
+    bool allocate(registers_t &reg)
     {
         if (available.empty()) {
             return false;
@@ -60,8 +52,8 @@ struct register_allocator_t {
         return true;
     }
 
-    std::set<T> used{};
-    std::stack<T> available{};
+    std::set<registers_t> used{};
+    std::stack<registers_t> available{};
 };
 }
 

@@ -34,12 +34,12 @@ struct heap_block_t {
 		flags &= ~flags_t::allocated;
 	}
 
-	inline bool is_free() const
+	[[nodiscard]] inline bool is_free() const
     {
 		return (flags & flags_t::allocated) == 0;
 	}
 
-	inline bool is_allocated() const
+    inline bool is_allocated() const
     {
 		return (flags & flags_t::allocated) != 0;
 	}

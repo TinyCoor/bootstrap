@@ -21,12 +21,12 @@ bool compiler::return_element::on_emit(gfx::result &r, emit_context_t &context )
     auto assembler = context.assembler;
     auto instruction_block = assembler->current_block();
     if (!expressions_.empty()) {
-        i_registers_t target_reg;
+        registers_t target_reg;
         if (!assembler->allocate_reg(target_reg)) {
         }
         assembler->push_target_register(op_sizes::qword, target_reg);
         expressions_.front()->emit(r, context);
-        instruction_block->store_from_ireg(op_sizes::qword, i_registers_t::fp, target_reg, 8);
+        instruction_block->store_from_ireg(op_sizes::qword, registers_t::fp, target_reg, 8);
         assembler->pop_target_register();
         assembler->free_reg(target_reg);
     }

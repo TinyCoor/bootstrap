@@ -18,10 +18,7 @@ struct variable_register_t {
 
     bool integer = true;
     bool allocated = false;
-    union {
-        i_registers_t i;
-        f_registers_t f;
-    } value;
+    registers_t i;
 };
 
 struct variable_t {

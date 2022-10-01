@@ -9,6 +9,7 @@
 #include "types/procedure_type.h"
 #include "symbol_element.h"
 #include "fmt/format.h"
+#include <configure.h>
 
 namespace gfx::compiler {
 directive::directive(block* parent, const std::string& name, element* expression)
@@ -73,17 +74,32 @@ bool directive::on_evaluate_foreign(result &r, compiler::session& session, compi
 bool directive::on_execute_foreign(result &r, compiler::session& session, compiler::program *program)
 {
 	auto terp = program->terp();
-	std::string library_name = "compiler-rt.dll";
+	std::string library_name;
 	auto library_attribute = attributes().find("library");
 	if (library_attribute != nullptr) {
         if (!library_attribute->as_string(library_name)) {
-            r.add_message("P005", "unable to convert library attribute's name.", true);
+            program->error(r, this, "P004", "unable to convert library name.", location());
             return false;
         }
 	}
-    std::filesystem::path library_path(library_name);
+
+    if (library_name.empty()) {
+        program->error(r, this, "P005","library attribute required for foreign directive.",
+            location());
+        return false;
+    }
+//    std::stringstream platform_name;
+//    platform_name << SHARED_LIBRARY_PREFIX << library_name << SHARED_LIBRARY_SUFFIX;
+    auto platform_name = fmt::format("{}{}{}", SHARED_LIBRARY_PREFIX,library_name, SHARED_LIBRARY_SUFFIX);
+    std::filesystem::path library_path(platform_name);
 	auto library = terp->load_shared_library(r, library_path);
 	if (library == nullptr) {
+        // XXX: revisit this at some point
+        auto msg = r.find_code("B062");
+        if (msg != nullptr) {
+            program->error(r, this, "P006", msg->message(), location());
+            r.remove_code("B062");
+        }
 		return false;
 	}
 
@@ -92,7 +108,8 @@ bool directive::on_execute_foreign(result &r, compiler::session& session, compil
 	auto alias_attribute = attributes().find("alias");
 	if (alias_attribute != nullptr) {
         if (!alias_attribute->as_string(symbol_name)) {
-            r.add_message("P006", "unable to convert alias attribute's name.", true);
+            program->error(r, this, "P004", "unable to convert alias attribute's name.",
+                location());
             return false;
         }
 	}
@@ -126,11 +143,11 @@ bool directive::on_execute_foreign(result &r, compiler::session& session, compil
         }
     }
 
-
     auto result = terp->register_foreign_function(r, signature);
 	if (!result) {
-		r.add_message("P004", fmt::format("unable to find foreign function symbol: {}", symbol_name), false);
-	} else {
+		program->error(r, this, "P004", fmt::format("unable to find foreign function symbol: {}", symbol_name), location());
+        return false;
+    } else {
         if (proc_type != nullptr) {
             proc_type->foreign_address(reinterpret_cast<uint64_t>(signature.func_ptr));
         }

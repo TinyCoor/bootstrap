@@ -140,14 +140,16 @@ namespace gfx {
 
 		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t& value) const;
 
-		bool set_target_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, double value);
-
-		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, double& value) const;
-
 		bool get_constant_address_or_pc_with_offset(result& r, const instruction_t& inst, uint8_t operand_index,
 			uint64_t inst_size, uint64_t& address);
 
 	private:
+        struct register_t {
+            registers_t number;
+            register_type_t type;
+            register_value_alias_t value;
+        };
+        void set_pc(uint64_t address);
 		uint64_t set_zoned_value(uint64_t source, uint64_t value, op_sizes size);
 
 		bool has_overflow(uint64_t lhs, uint64_t rhs, uint64_t result, op_sizes size);

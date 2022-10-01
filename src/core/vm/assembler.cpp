@@ -249,25 +249,16 @@ bool assembler::apply_addresses(result &r)
     return !r.is_failed();
 }
 
-bool assembler::allocate_reg(i_registers_t& reg)
+bool assembler::allocate_reg(registers_t& reg)
 {
-    return i_register_allocator_.allocate(reg);
+    return register_allocator_.allocate(reg);
 }
 
-bool assembler::allocate_reg(f_registers_t& reg)
+void assembler::free_reg(registers_t reg)
 {
-    return f_register_allocator_.allocate(reg);
+    register_allocator_.free(reg);
 }
 
-void assembler::free_reg(i_registers_t reg)
-{
-    i_register_allocator_.free(reg);
-}
-
-void assembler::free_reg(f_registers_t reg)
-{
-    f_register_allocator_.free(reg);
-}
 
 target_register_t assembler::pop_target_register()
 {
@@ -287,29 +278,14 @@ target_register_t *assembler::current_target_register()
     return &target_registers_.top();
 }
 
-void assembler::push_target_register(op_sizes size, i_registers_t reg)
+void assembler::push_target_register(op_sizes size, registers_t reg)
 {
     target_register_t target {
         .size = size,
-        .type = target_register_type_t::integer,
-        .reg = {
-            .i = reg
-        }
+        .type = register_type_t::integer,
+        .i = reg,
     };
     target_registers_.push(target);
 }
-
-void assembler::push_target_register(op_sizes size, f_registers_t reg)
-{
-    target_register_t target {
-        .size = size,
-        .type = target_register_type_t::floating_point,
-        .reg = {
-            .f = reg
-        }
-    };
-    target_registers_.push(target);
-}
-
 
 }

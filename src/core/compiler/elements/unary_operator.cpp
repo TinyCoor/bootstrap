@@ -37,7 +37,7 @@ bool unary_operator::on_is_constant() const
 
 bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
 {
-    auto assembler =context.assembler;
+    auto assembler = context.assembler;
     auto instruction_block = assembler->current_block();
     auto target_reg = assembler->current_target_register();
     auto rhs_reg = register_for(r, context, rhs_);
@@ -45,22 +45,21 @@ bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
         return false;
     }
     auto rhs_size= rhs_reg.size();
-    assembler->push_target_register(rhs_size, rhs_reg.reg.i);
+    assembler->push_target_register(rhs_size, rhs_reg.i);
     rhs_->emit(r, context);
     assembler->pop_target_register();
 
     switch (operator_type()) {
         case operator_type_t::negate: {
-            instruction_block->neg(rhs_size, target_reg->reg.i, rhs_reg.reg.i);
+            instruction_block->neg(rhs_size, target_reg->i, rhs_reg.i);
             break;
         }
         case operator_type_t::binary_not: {
-            instruction_block->not_op(rhs_size, target_reg->reg.i, rhs_reg.reg.i);
+            instruction_block->not_op(rhs_size, target_reg->i, rhs_reg.i);
             break;
         }
         case operator_type_t::logical_not: {
-            instruction_block->xor_ireg_by_ireg(rhs_size, target_reg->reg.i, rhs_reg.reg.i,
-                rhs_reg.reg.i);
+            instruction_block->xor_ireg_by_ireg(rhs_size, target_reg->i, rhs_reg.i, rhs_reg.i);
             break;
         }
         default:

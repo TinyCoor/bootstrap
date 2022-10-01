@@ -414,10 +414,7 @@ struct element_register_t {
     bool valid = false;
     bool clean_up = false;
     bool integer = true;
-    union {
-        i_registers_t i;
-        f_registers_t f;
-    }reg;
+    registers_t i;
     variable_t* var = nullptr;
     assembler* assembler = nullptr;
 };

@@ -34,7 +34,7 @@ bool compiler::integer_literal::on_emit(gfx::result &r, emit_context_t& context)
     auto assembler = context.assembler;
     auto instruction_block = assembler->current_block();
     auto target_reg = assembler->current_target_register();
-    instruction_block->move_constant_to_ireg(target_reg->size, target_reg->reg.i, value_);
+    instruction_block->move_constant_to_ireg(target_reg->size, target_reg->i, value_);
     return true;
 }
 

@@ -24,13 +24,9 @@ public:
 
     assembly_listing& listing();
 
-    void free_reg(i_registers_t reg);
+    void free_reg(registers_t reg);
 
-    void free_reg(f_registers_t reg);
-
-    bool allocate_reg(i_registers_t& reg);
-
-    bool allocate_reg(f_registers_t& reg);
+    bool allocate_reg(registers_t& reg);
 
     instruction_block* pop_block();
 
@@ -52,9 +48,8 @@ public:
 
     target_register_t* current_target_register();
 
-    void push_target_register(op_sizes size, i_registers_t reg);
+    void push_target_register(op_sizes size, registers_t reg);
 
-    void push_target_register(op_sizes size, f_registers_t reg);
 
     gfx::segment* segment(const std::string& name);
 
@@ -79,8 +74,7 @@ private:
     std::vector<instruction_block*> blocks_ {};
     std::stack<instruction_block*> block_stack_{};
     std::stack<target_register_t> target_registers_ {};
-    register_allocator_t<i_registers_t> i_register_allocator_ {};
-    register_allocator_t<f_registers_t> f_register_allocator_ {};
+    register_allocator_t register_allocator_ {};
 	std::unordered_map<std::string, gfx::segment> segments_{};
 };
 }

@@ -65,10 +65,10 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
                     push_size = op_size_for_byte_size(arg_reg.var->type->size_in_bytes());
                     arg_reg.clean_up = true;
                 }
-                assembler->push_target_register(arg_reg.size(), arg_reg.reg.i);
+                assembler->push_target_register(arg_reg.size(), arg_reg.i);
                 arg->emit(r, context);
                 assembler->pop_target_register();
-                instruction_block->push(push_size, arg_reg.reg.i);
+                instruction_block->push(push_size, arg_reg.i);
                 break;
             }
             default:

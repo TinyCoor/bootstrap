@@ -1,0 +1,16 @@
+//
+// Created by 12132 on 2022/9/30.
+//
+
+#ifndef BOOTSTRAP_SRC_COMMON_STRING_EXTENSION_H_
+#define BOOTSTRAP_SRC_COMMON_STRING_EXTENSION_H_
+
+
+
+class string_extension {
+
+};
+
+
+
+#endif //BOOTSTRAP_SRC_COMMON_STRING_EXTENSION_H_

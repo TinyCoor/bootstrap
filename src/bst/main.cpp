@@ -4,6 +4,7 @@
 #include <filesystem>
 #include "common/ya_getopt.h"
 #include "common/result.h"
+#include "common/string_extension.h"
 #include "core/compiler/session.h"
 using namespace gfx;
 
@@ -35,8 +36,8 @@ static void usage()
 	constexpr std::string_view fmt_args = R"(usage: bootstrap
 			   	[-?|--help]
 				[-v|--verbose]
-   				[-G{filename}|--ast={filename}]
-			   	[-H{filename}|--code_dom={filename}]
+   				[-G{{filename}}|--ast={{filename}}]
+			   	[-H{{filename}}|--code_dom={{filename}}]
 				file\n)";
 	fmt::print(fmt::runtime(fmt_args));
 }
@@ -48,7 +49,9 @@ int main(int argc, char** argv) {
 	bool verbose_flag = false;
 	std::filesystem::path ast_graph_file_name;
 	std::filesystem::path code_dom_graph_file_name;
-   /// todo Clara
+    std::unordered_map<std::string, std::string> definitions {};
+
+    /// todo Clara
 	static struct option long_options[] = {
 		{"help",    ya_no_argument,       nullptr, 0  },
 		{"verbose", ya_no_argument,       nullptr, 0  },
@@ -59,7 +62,7 @@ int main(int argc, char** argv) {
 
 	while (true) {
 		int option_index = -1;
-		opt = ya_getopt_long(argc, argv, "?vG:H:", long_options, &option_index);
+		opt = ya_getopt_long(argc, argv, "?vGH:D:", long_options, &option_index);
 		if (opt == -1) {
 			break;
 		}
@@ -96,6 +99,16 @@ int main(int argc, char** argv) {
 			case 'H':
 				code_dom_graph_file_name = std::filesystem::path(ya_optarg);
 				break;
+            case 'D': {
+                auto parts = string_to_list(ya_optarg, '=');
+                std::string value;
+                if (parts.size() == 2) {
+                    value = parts[1];
+                }
+                trim(parts[0]);
+                definitions.insert(std::make_pair(parts[0], value));
+                break;
+            }
 			default:
 				break;
 		}
@@ -120,7 +133,7 @@ int main(int argc, char** argv) {
 	result r;
     compiler::session_options_t session_options {
         .verbose = verbose_flag,
-        .heap_size =heap_size,
+        .heap_size = heap_size,
         .stack_size = stack_size,
         .full_path = std::filesystem::absolute(argv[0]).remove_filename(),
         .ast_graph_file = ast_graph_file_name,
@@ -136,7 +149,8 @@ int main(int argc, char** argv) {
               case gfx::compiler::session_compile_phase_t::failed:
                   break;
             }
-        }
+        },
+        .definitions = definitions
     };
     compiler::session session(session_options, source_files);
     if (!session.initialize(r)) {

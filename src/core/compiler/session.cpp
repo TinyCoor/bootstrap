@@ -37,9 +37,14 @@ void session::raise_phase(session_compile_phase_t phase, const fs::path& source_
 void session::finalize()
 {
     if (options_.verbose) {
-        program_.disassemble(stdout);
-        if (!options_.dom_graph_file.empty())
-            write_code_dom_graph(options_.dom_graph_file);
+        try  {
+            program_.disassemble(stdout);
+            if (!options_.dom_graph_file.empty()) {
+                write_code_dom_graph(options_.dom_graph_file);
+            }
+        } catch (const fmt::format_error& e) {
+            fmt::print("fmt::format_error caught: {}\n", e.what());
+        }
     }
 }
 

@@ -51,14 +51,14 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-class symbol_infix_parser : public infix_parser {
-public:
-	symbol_infix_parser() = default;
-
-	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
-
-	[[nodiscard]] precedence_t precedence() const override;
-};
+//class symbol_infix_parser : public infix_parser {
+//public:
+//	symbol_infix_parser() = default;
+//
+//	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
+//
+//	[[nodiscard]] precedence_t precedence() const override;
+//};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 

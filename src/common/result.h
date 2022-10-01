@@ -35,6 +35,14 @@ public:
 		}
 	}
 
+    void remove_code(const std::string& code)
+    {
+        for (auto it = messages_.begin(); it != messages_.end(); ++it) {
+            if ((*it).code() == code)
+                it = messages_.erase(it);
+        }
+    }
+
 	inline void add_message(const std::string& code, const std::string& message, const std::string& details, bool error)
 	{
 		messages_.emplace_back(code, message, details, 	error ?  result_message::types::error :  result_message::types::info);

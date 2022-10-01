@@ -4,9 +4,11 @@
 
 #ifndef CORE_COMPILER_COMPILER_TYPES_H_
 #define CORE_COMPILER_COMPILER_TYPES_H_
-#include <filesystem>
 #include <vector>
 #include <string>
+#include <filesystem>
+#include <unordered_map>
+
 namespace gfx::compiler{
 namespace fs = std::filesystem;
 using path_list_t = std::vector<fs::path>;
@@ -45,6 +47,7 @@ struct session_options_t {
     fs::path ast_graph_file;
     fs::path dom_graph_file;
     session_compile_callback compile_callback;
+    std::unordered_map<std::string, std::string> definitions {};
 };
 
 }

@@ -51,7 +51,10 @@ set(CMAKE_INSTALL_RPATH "/usr/local/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 add_subdirectory(src/core)
-add_executable(bootstrap src/bst/main.cpp src/common/ya_getopt.c)
+add_executable(bootstrap
+        src/bst/main.cpp
+        src/common/ya_getopt.c
+        src/common/string_extension.cpp)
 target_include_directories(bootstrap PRIVATE src/core)
 target_link_libraries(bootstrap compiler-rt)
 enable_testing()

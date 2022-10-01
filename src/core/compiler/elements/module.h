@@ -14,6 +14,10 @@ public:
 
     compiler::block* scope();
 
+    bool is_root() const;
+
+    void is_root(bool value);
+
     gfx::source_file* source_file() const;
 
     void source_file(gfx::source_file* value);
@@ -23,6 +27,7 @@ protected:
 
     bool on_emit(gfx::result &r, gfx::compiler::emit_context_t &context) override;
 private:
+    bool is_root_ = false;
     block* scope_ = nullptr;
     gfx::source_file *source_file_ = nullptr;
 

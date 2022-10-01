@@ -17,7 +17,7 @@ source_file::~source_file() = default;
 
 rune_t source_file::next(result &r)
 {
-    if (index_ >= buffer_.size()) {
+    if (index_ > buffer_.size() - 1) {
         return rune_eof;
     }
     size_t width = 1;
@@ -44,7 +44,7 @@ rune_t source_file::next(result &r)
 
 [[maybe_unused]] bool source_file::eof() const
 {
-    return index_ >= buffer_.size();
+    return index_ > buffer_.size() - 1u;
 }
 
 bool source_file::empty() const

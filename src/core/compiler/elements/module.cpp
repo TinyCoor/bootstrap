@@ -41,4 +41,14 @@ void module::source_file(gfx::source_file *value)
     source_file_ = value;
 }
 
+bool module::is_root() const
+{
+    return is_root_;
+}
+
+void module::is_root(bool value)
+{
+    is_root_ = value;
+}
+
 }

@@ -20,7 +20,7 @@ enum class term_colors_t : uint8_t {
 
 class colorizer {
 public:
-    static  std::string color_code(term_colors_t color);
+    static std::string color_code(term_colors_t color);
 
     static constexpr const char *color_code_reset();
 

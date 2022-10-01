@@ -10,18 +10,46 @@ message(STATUS ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 # dot -Tpdf ast.dot -o ast.pdf
 # ../../examples/example.gfx -Gast.dot -Hcode_dom.dot --verbose
 
+if (UNIX AND NOT APPLE)
+    set(CMAKE_CXX_FLAGS "-fPIC")
+endif()
+
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override")
-elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    set(CMAKE_CXX_FLAGS "-Wall" CACHE STRING "compile flags" FORCE)
-else()
-    message(STATUS "Unknown Compiler: ${CMAKE_CXX_COMPILER_ID}")
+    if ("${CMAKE_SYSTEM_NAME}" MATCHES "FreeBSD")
+        add_definitions(-D__USE_ISOC99)
+    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override" CACHE STRING "compile flags" FORCE)
+    message(STATUS "using clang flags: ${CMAKE_CXX_FLAGS}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas -Wno-parentheses" CACHE STRING "compile flags" FORCE)
+    message(STATUS "using gcc flags: ${CMAKE_CXX_FLAGS}")
+else ()
+    message(FATAL_ERROR "unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
 endif()
 
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH "/usr/local/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+if (WIN32)
+    set(SHARED_LIBRARY_PREFIX "")
+    set(SHARED_LIBRARY_SUFFIX ".dll")
+elseif (APPLE)
+    set(SHARED_LIBRARY_PREFIX "lib")
+    set(SHARED_LIBRARY_SUFFIX ".dylib")
+else()
+    set(SHARED_LIBRARY_PREFIX "lib")
+    set(SHARED_LIBRARY_SUFFIX ".so")
+endif()
+
+set (VER_MAJOR 0)
+set (VER_MINOR 1)
+
+configure_file (
+        "${PROJECT_SOURCE_DIR}/configure.in.h"
+        "${PROJECT_BINARY_DIR}/configure.h"
+)
 
 enable_testing()
 set_property(GLOBAL PROPERTY UNIT_TEST_TARGETS "")
@@ -62,6 +90,7 @@ set(COMMON_SRC
         ../common/colorizer.h ../common/colorizer.cpp
         ../common/source_file.h ../common/source_file.cpp
         ../common/source_location.h ../common/source_location.cpp
+        ../common/string_extension.h ../common/string_extension.cpp
         ../common/graphviz_formatter.cpp ../common/graphviz_formatter.cpp)
 
 set(VM_SRC
@@ -156,6 +185,7 @@ set(PARSER_SRC
         parser/ast_formatter.h parser/ast_formatter.cpp)
 
 add_library(compiler-rt SHARED
+        configure.in.h
         ${COMMON_SRC}
         ${VM_SRC}
         ${PARSER_SRC}

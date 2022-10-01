@@ -169,11 +169,14 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
             return make_symbol_from_node(r, node);
 		}
 		case ast_node_types_t::attribute: {
-			return make_attribute(current_scope(), node->token.value, evaluate(r, session, node->lhs));
+			auto attribute = make_attribute(current_scope(), node->token.value, evaluate(r, session, node->lhs));
+            attribute->location(node->location);
+            return attribute;
 		}
 		case ast_node_types_t::directive: {
 			auto expression = evaluate(r, session, node->lhs);
 			auto directive_element = make_directive(current_scope(), node->token.value, expression);
+            directive_element->location(node->location);
 			apply_attributes(r, session, directive_element, node);
 			directive_element->evaluate(r, session, this);
 			return directive_element;
@@ -253,7 +256,9 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 			return make_statement(current_scope(), labels, expr);
 		}
 		case ast_node_types_t::expression: {
-			return make_expression(current_scope(), evaluate(r, session, node->lhs));
+			auto expression = make_expression(current_scope(), evaluate(r, session, node->lhs));
+            expression->location(node->location);
+            return expression;
 		}
 		case ast_node_types_t::assignment: {
 			const auto &target_list = node->lhs;
@@ -301,7 +306,9 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 			return make_comment(current_scope(), comment_type_t::block, node->token.value);
 		}
 		case ast_node_types_t::string_literal: {
-			return make_string(current_scope(), node->token.value);
+			auto string_literal = make_string(current_scope(), node->token.value);
+            string_literal->location(node->location);
+            return string_literal;
 		}
 		case ast_node_types_t::number_literal: {
             // TODO: need to handle conversion failures
@@ -340,9 +347,6 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
             element->location(node->location);
             return element;
 		}
-		case ast_node_types_t::else_expression: {
-			return evaluate(r, session, node->children[0]);
-		}
 		case ast_node_types_t::import_expression: {
             qualified_symbol_t qualified_symbol {};
             make_qualified_symbol(qualified_symbol, node->lhs);
@@ -367,6 +371,9 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 			auto false_branch = evaluate(r, session, node->rhs);
 			return make_if(current_scope(), predicate, true_branch, false_branch);
 		}
+        case ast_node_types_t::else_expression: {
+            return evaluate(r, session, node->children[0]);
+        }
 		case ast_node_types_t::unary_operator: {
 			auto it = s_unary_operators.find(node->token.type);
 			if (it == s_unary_operators.end()) {
@@ -489,10 +496,14 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
 				error(r, session, "P002", fmt::format("unknown type '{}'.", type_name), node->lhs->lhs->location);
                 return nullptr;
             }
-			return make_cast(current_scope(), type, resolve_symbol_or_evaluate(r, session, node->rhs));
+			auto cast = make_cast(current_scope(), type, resolve_symbol_or_evaluate(r, session, node->rhs));
+            cast->location(node->location);
+            return cast;
 		}
 		case ast_node_types_t::alias_expression: {
-			return make_alias(current_scope(), evaluate(r, session, node->lhs));
+			auto alias = make_alias(current_scope(), evaluate(r, session, node->lhs));
+            alias->location(node->location);
+            return alias;
 		}
 		case ast_node_types_t::union_expression: {
             auto active_block =  current_scope();

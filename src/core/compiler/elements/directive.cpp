@@ -88,9 +88,8 @@ bool directive::on_execute_foreign(result &r, compiler::session& session, compil
             location());
         return false;
     }
-//    std::stringstream platform_name;
-//    platform_name << SHARED_LIBRARY_PREFIX << library_name << SHARED_LIBRARY_SUFFIX;
-    auto platform_name = fmt::format("{}{}{}", SHARED_LIBRARY_PREFIX,library_name, SHARED_LIBRARY_SUFFIX);
+
+    auto platform_name = fmt::format("{}{}{}", SHARED_LIBRARY_PREFIX, library_name, SHARED_LIBRARY_SUFFIX);
     std::filesystem::path library_path(platform_name);
 	auto library = terp->load_shared_library(r, library_path);
 	if (library == nullptr) {
@@ -108,8 +107,7 @@ bool directive::on_execute_foreign(result &r, compiler::session& session, compil
 	auto alias_attribute = attributes().find("alias");
 	if (alias_attribute != nullptr) {
         if (!alias_attribute->as_string(symbol_name)) {
-            program->error(r, this, "P004", "unable to convert alias attribute's name.",
-                location());
+            program->error(r, this, "P004", "unable to convert alias attribute's name.", location());
             return false;
         }
 	}
@@ -145,7 +143,8 @@ bool directive::on_execute_foreign(result &r, compiler::session& session, compil
 
     auto result = terp->register_foreign_function(r, signature);
 	if (!result) {
-		program->error(r, this, "P004", fmt::format("unable to find foreign function symbol: {}", symbol_name), location());
+		program->error(r, this, "P004", fmt::format("unable to find foreign function symbol: {}", symbol_name),
+                       location());
         return false;
     } else {
         if (proc_type != nullptr) {

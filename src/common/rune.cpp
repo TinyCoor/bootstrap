@@ -48,13 +48,13 @@
 
     auto i = static_cast<uint32_t>(r);
     uint8_t mask = 0x3f;
-    if (i <= (1<<7)-1) {
+    if (i <= (1 << 7) - 1) {
         e.data[0] = static_cast<uint8_t>(r);
         e.width = 1;
         return e;
     }
 
-    if (i <= (1<<11)-1) {
+    if (i <= (1 << 11 ) - 1) {
         e.data[0] = static_cast<uint8_t>(0xc0 | static_cast<uint8_t>((r >> 6)));
         e.data[1] = static_cast<uint8_t>(0x80 | (static_cast<uint8_t>((r)) & mask));
         e.width = 2;
@@ -70,7 +70,7 @@
         return e;
     }
 
-    if (i <= (1<<16)-1) {
+    if (i <= (1 << 16) - 1) {
         e.data[0] = static_cast<uint8_t>(0xe0 | (uint8_t)(r >> 12));
         e.data[1] = static_cast<uint8_t>(0x80 | ((uint8_t)(r >> 6) & mask));
         e.data[2] = static_cast<uint8_t>(0x80 | ((uint8_t)(r) & mask));
@@ -94,10 +94,11 @@
         return cp;
     }
 
-    uint8_t s0 = (uint8_t) str[0];
-    uint8_t x = s_utf8_first[s0], sz;
+    auto s0 = (uint8_t) str[0];
+    uint8_t x = s_utf8_first[s0];
+    uint8_t sz;
     uint8_t b1, b2, b3;
-    utf8_accept_range_t accept;
+    utf8_accept_range_t accept {};
 
     if (x >= 0xf0) {
         rune_t mask = (static_cast<rune_t>(x) << 31) >> 31;
@@ -114,8 +115,10 @@
 
     sz = static_cast<uint8_t>(x & 7);
     accept = s_utf8_accept_ranges[x>>4];
-    if (length < sizeof(sz))
+    if (length < sizeof(sz)) {
         return cp;
+    }
+
 
     b1 = (uint8_t) str[1];
     if (b1 < accept.low || accept.high < b1) {
@@ -134,7 +137,7 @@
     }
 
     if (sz == 3) {
-        cp.value = (static_cast<rune_t>(s0)&0x1f) << 12 | (static_cast<rune_t>(b1)&0x3f)<<6
+        cp.value = (static_cast<rune_t>(s0)&0x1f) << 12 | (static_cast<rune_t>(b1)&0x3f) << 6
             | (static_cast<rune_t>(b2)&0x3f);
         cp.width = 3;
         return cp;

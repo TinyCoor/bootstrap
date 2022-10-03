@@ -62,6 +62,6 @@ struct encoded_rune_t {
 [[maybe_unused]] bool is_rune_whitespace(rune_t r);
 [[maybe_unused]] int64_t utf8_strlen(const std::string& str);
 [[maybe_unused]] encoded_rune_t utf8_encode(rune_t r);
-[[maybe_unused]] codepoint_t utf8_decode(char* str, size_t length);
+codepoint_t utf8_decode(char* str, size_t length);
 
 #endif // COMMON_RUNE_H_

@@ -179,14 +179,6 @@ size_t source_file::pop_mark()
     return mark;
 }
 
-size_t source_file::current_mark() const
-{
-    if  (mark_stack_.empty()) {
-        return index_;
-    }
-    return mark_stack_.top();
-}
-
 uint32_t source_file::column_by_index(size_t index) const
 {
     auto line = line_by_index(index);
@@ -209,7 +201,8 @@ void source_file::restore_top_mark()
     index_ = mark_stack_.top();
 }
 
-void source_file::error(result &r, const std::string &code, const std::string &message, const source_location& location)
+void source_file::error(result &r, const std::string &code, const std::string &message,
+                        const source_location& location)
 {
     std::stringstream stream;
     auto number_lines = static_cast<int32_t>(number_of_lines());

@@ -60,6 +60,7 @@ void shared_library::load_symbols(const char *path)
 		dlSymsCleanup(symbol_ptr);
 	}
 }
+
 void shared_library::get_library_path()
 {
 	if (!library_) {

@@ -40,6 +40,12 @@ union register_value_alias_t {
     uint64_t u;
 };
 
+struct register_t {
+    registers_t number;
+    register_type_t type;
+    register_value_alias_t value;
+};
+
 static constexpr const uint32_t register_integer_start   = 0;
 static constexpr const uint32_t number_integer_registers = 64;
 static constexpr const uint32_t register_float_start     = number_integer_registers;
@@ -129,15 +135,16 @@ static inline op_sizes op_size_for_byte_size(size_t size) {
 }
 
 union operand_value_alias_t {
-    uint8_t r8;
-    uint64_t u64;
-    double d64;
+    uint8_t r;
+    uint64_t u;
+    double d;
 };
 
 struct operand_value_t {
-    register_type_t type;
-    operand_value_alias_t value;
+    register_type_t type = register_type_t::none;
+    operand_value_alias_t alias {.u = 0};
 };
+
 struct operand_encoding_t {
 	using flags_t = uint8_t;
 
@@ -156,18 +163,18 @@ struct operand_encoding_t {
 
     bool is_reg() const;
 
-	bool is_prefix() const ;
+	bool is_prefix() const;
 
 	bool is_postfix() const;
 
-	bool is_integer() const ;
+	bool is_integer() const;
 
-	bool is_negative() const ;
+	bool is_negative() const;
 
     bool is_unresolved() const;
 
     flags_t type = flags::reg | flags::integer;
-    operand_value_alias_t value;
+    operand_value_alias_t value{.u = 0};
 };
 
 struct meta_information_t {

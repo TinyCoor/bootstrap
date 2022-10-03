@@ -27,27 +27,27 @@ public:
 		: type_(type), code_(std::move(code)), message_(std::move(message)), details_(std::move(details))
 	{}
 
-	inline types type() const
+	[[nodiscard]] inline types type() const
 	{
 		return type_;
 	}
 
-	inline bool is_error() const
+	[[nodiscard]] inline bool is_error() const
 	{
 		return type_== types::error;
 	}
 
-	inline const std::string& code() const
+	[[nodiscard]] inline const std::string& code() const
 	{
 		return code_;
 	}
 
-	inline const std::string& details() const
+	[[nodiscard]] inline const std::string& details() const
 	{
 		return details_;
 	}
 
-	inline const std::string& message() const
+	[[nodiscard]] inline const std::string& message() const
 	{
 		return message_;
 	}

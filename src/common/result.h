@@ -16,12 +16,20 @@
 #endif
 
 namespace gfx {
-class result{
+class result {
 public:
 	result() = default;
-	inline void fail() { succeed_ = false;}
-	inline void succeed() { succeed_ = true;}
-	inline void add_message(const std::string& code, const std::string& message)
+
+    inline void fail()
+    {
+        succeed_ = false;
+    }
+    [[maybe_unused]] inline void succeed()
+    {
+        succeed_ = true;
+    }
+
+    [[maybe_unused]] inline void add_message(const std::string& code, const std::string& message)
 	{
 		messages_.emplace_back(code, message, std::string(), result_message::types::info);
 	}
@@ -38,8 +46,9 @@ public:
     void remove_code(const std::string& code)
     {
         for (auto it = messages_.begin(); it != messages_.end(); ++it) {
-            if ((*it).code() == code)
+            if ((*it).code() == code) {
                 it = messages_.erase(it);
+            }
         }
     }
 
@@ -48,17 +57,17 @@ public:
 		messages_.emplace_back(code, message, details, 	error ?  result_message::types::error :  result_message::types::info);
 	}
 
-	inline bool is_failed() const
+	[[nodiscard]] inline bool is_failed() const
 	{
 		return !succeed_;
 	}
 
-	inline const result_message_list& messages() const
+	[[nodiscard]] inline const result_message_list& messages() const
 	{
 		return messages_;
 	}
 
-	inline bool has_code(const std::string& code) const
+    [[nodiscard]] inline bool has_code(const std::string& code) const
 	{
 		for (const auto& msg : messages_) {
 			if (msg.code() == code) {
@@ -68,7 +77,7 @@ public:
 		return false;
 	}
 
-	inline const result_message* find_code(const std::string& code) const
+	[[nodiscard]] inline const result_message* find_code(const std::string& code) const
 	{
 		for (const auto & message : messages_) {
 			if (message.code() == code) {

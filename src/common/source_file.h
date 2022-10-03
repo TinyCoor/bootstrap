@@ -49,8 +49,6 @@ public:
 
     void restore_top_mark();
 
-    [[nodiscard]] size_t current_mark() const;
-
     [[nodiscard]] bool eof() const;
 
     [[nodiscard]] bool empty() const;

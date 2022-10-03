@@ -37,7 +37,7 @@ void instruction_block::call(const std::string& proc_name)
     jsr_op.operands_count = 1;
     jsr_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
-    jsr_op.operands[0].value.u64 = label_ref->id;
+    jsr_op.operands[0].value.u = label_ref->id;
     make_block_entry(jsr_op);
 
 // XXX: this is a PC-relative encoding
@@ -115,7 +115,7 @@ void instruction_block::swi(uint8_t index)
     swi_op.size = op_sizes::byte;
     swi_op.operands_count = 1u;
     swi_op.operands[0].type = operand_encoding_t::flags::integer;
-    swi_op.operands[0].value.u64 = index;
+    swi_op.operands[0].value.u = index;
     make_block_entry(swi_op);
 }
 
@@ -126,7 +126,7 @@ void instruction_block::trap(uint8_t index)
     trap_op.size = op_sizes::byte;
     trap_op.operands_count = 1;
     trap_op.operands[0].type = operand_encoding_t::flags::integer;
-    trap_op.operands[0].value.u64 = index;
+    trap_op.operands[0].value.u = index;
     make_block_entry(trap_op);
 }
 
@@ -138,7 +138,7 @@ void instruction_block::jump_indirect(registers_t reg)
     jmp_op.operands_count = 1;
     jmp_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    jmp_op.operands[0].value.r8 = reg;
+    jmp_op.operands[0].value.r = reg;
     make_block_entry(jmp_op);
 }
 
@@ -152,7 +152,7 @@ void instruction_block::jump_direct(const std::string &label_name)
     jmp_op.operands_count = 1;
     jmp_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
-    jmp_op.operands[0].value.u64 = label_ref->id;
+    jmp_op.operands[0].value.u = label_ref->id;
     make_block_entry(jmp_op);
 }
 
@@ -171,7 +171,7 @@ void instruction_block::call_foreign(uint64_t proc_address)
     ffi_op.operands_count = 1;
     ffi_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant;
-    ffi_op.operands[0].value.u64 = proc_address;
+    ffi_op.operands[0].value.u = proc_address;
     make_block_entry(ffi_op);
 }
 
@@ -183,7 +183,7 @@ void instruction_block::make_inc_instruction(op_sizes size, registers_t reg)
     inc_op.operands_count = 1;
     inc_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    inc_op.operands[0].value.r8 = reg;
+    inc_op.operands[0].value.r = reg;
     make_block_entry(inc_op);
 }
 
@@ -193,7 +193,7 @@ void instruction_block::make_dec_instruction(op_sizes size, registers_t reg)
     dec_op.op = op_codes::dec;
     dec_op.operands_count = 1;
     dec_op.size = size;
-    dec_op.operands[0].value.r8 = reg;
+    dec_op.operands[0].value.r = reg;
     dec_op.operands[0].type =operand_encoding_t::integer | operand_encoding_t::reg;
     make_block_entry(dec_op);
 }
@@ -207,16 +207,16 @@ void instruction_block::make_load_instruction(op_sizes size, registers_t dest_re
     load_op.operands_count = static_cast<uint8_t>(offset != 0 ? 3 : 2);
     load_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    load_op.operands[0].value.r8 = dest_reg;
+    load_op.operands[0].value.r = dest_reg;
     load_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    load_op.operands[1].value.r8 = address_reg;
+    load_op.operands[1].value.r = address_reg;
     if (load_op.operands_count == 3) {
         load_op.operands[2].type = operand_encoding_t::flags::integer | operand_encoding_t::flags::constant;
         if (offset < 0) {
             load_op.operands[2].type |= operand_encoding_t::flags::negative;
         }
-        load_op.operands[2].value.u64 = static_cast<uint64_t>(offset);
+        load_op.operands[2].value.u = static_cast<uint64_t>(offset);
     }
     make_block_entry(load_op);
 }
@@ -230,10 +230,10 @@ void instruction_block::make_store_instruction(op_sizes size, registers_t addres
     store_op.operands_count = static_cast<uint8_t>(offset != 0 ? 3 : 2);
     store_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    store_op.operands[0].value.r8 = address_reg;
+    store_op.operands[0].value.r = address_reg;
     store_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    store_op.operands[1].value.r8 = src_reg;
+    store_op.operands[1].value.r = src_reg;
 
     if (store_op.operands_count == 3) {
         store_op.operands[2].type = operand_encoding_t::flags::integer
@@ -241,7 +241,7 @@ void instruction_block::make_store_instruction(op_sizes size, registers_t addres
         if (offset < 0) {
             store_op.operands[2].type |= operand_encoding_t::flags::negative;
         }
-        store_op.operands[2].value.u64 = static_cast<uint64_t>(offset);
+        store_op.operands[2].value.u = static_cast<uint64_t>(offset);
     }
     make_block_entry(store_op);
 }
@@ -254,10 +254,10 @@ void instruction_block::make_swap_instruction(op_sizes size, registers_t dest_re
     swap_op.operands_count = 2;
     swap_op.operands[0].type = operand_encoding_t::flags::integer
        | operand_encoding_t::flags::reg;
-    swap_op.operands[0].value.r8 = dest_reg;
+    swap_op.operands[0].value.r = dest_reg;
     swap_op.operands[1].type = operand_encoding_t::flags::integer
        | operand_encoding_t::flags::reg;
-    swap_op.operands[1].value.r8 = src_reg;
+    swap_op.operands[1].value.r = src_reg;
     make_block_entry(swap_op);
 }
 
@@ -269,7 +269,7 @@ void instruction_block::make_pop_instruction(op_sizes size, registers_t dest_reg
     pop_op.operands_count = 1;
     pop_op.operands[0].type = operand_encoding_t::flags::integer
        | operand_encoding_t::flags::reg;
-    pop_op.operands[0].value.r8 = dest_reg;
+    pop_op.operands[0].value.r = dest_reg;
     make_block_entry(pop_op);
 }
 
@@ -281,10 +281,10 @@ void instruction_block::make_move_instruction(op_sizes size, registers_t dest_re
     move_op.operands_count = 2;
     move_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    move_op.operands[0].value.r8 = dest_reg;
+    move_op.operands[0].value.r = dest_reg;
     move_op.operands[1].type = operand_encoding_t::flags::integer |
         operand_encoding_t::flags::constant;
-    move_op.operands[1].value.u64 = value;
+    move_op.operands[1].value.u = value;
     make_block_entry(move_op);
 }
 
@@ -297,10 +297,10 @@ void instruction_block::make_move_instruction(op_sizes size, registers_t dest_re
     move_op.operands_count = 2;
     move_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    move_op.operands[0].value.r8 = dest_reg;
+    move_op.operands[0].value.r = dest_reg;
     move_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    move_op.operands[1].value.r8 = src_reg;
+    move_op.operands[1].value.r = src_reg;
     make_block_entry(move_op);
 }
 
@@ -441,7 +441,7 @@ void instruction_block::make_integer_constant_push_instruction(op_sizes size, ui
     push_op.operands_count = 1;
     push_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant;
-    push_op.operands[0].value.u64 = value;
+    push_op.operands[0].value.u = value;
     make_block_entry(push_op);
 }
 
@@ -479,7 +479,7 @@ void instruction_block::make_push_instruction(op_sizes size, registers_t reg)
     push_op.operands_count = 1;
     push_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    push_op.operands[0].value.r8 = reg;
+    push_op.operands[0].value.r = reg;
     make_block_entry(push_op);
 }
 
@@ -516,10 +516,10 @@ void instruction_block::move_label_to_ireg(registers_t dest_reg, const std::stri
     move_op.operands_count = 2;
     move_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    move_op.operands[0].value.r8 = dest_reg;
+    move_op.operands[0].value.r = dest_reg;
     move_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
-    move_op.operands[1].value.u64 = label_ref->id;
+    move_op.operands[1].value.u = label_ref->id;
     make_block_entry(move_op);
 }
 
@@ -535,9 +535,9 @@ void instruction_block::make_neg_instruction(op_sizes size, registers_t dest_reg
     neg_op.size = size;
     neg_op.operands_count = 2;
     neg_op.operands[0].type = operand_encoding_t::flags::reg | operand_encoding_t::flags::integer;
-    neg_op.operands[0].value.r8 = dest_reg;
+    neg_op.operands[0].value.r = dest_reg;
     neg_op.operands[1].type = operand_encoding_t::flags::reg | operand_encoding_t::flags::integer;
-    neg_op.operands[1].value.r8 = src_reg;
+    neg_op.operands[1].value.r = src_reg;
     make_block_entry(neg_op);
 }
 
@@ -550,13 +550,13 @@ void instruction_block::make_add_instruction(op_sizes size,
     add_op.operands_count = 3;
     add_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    add_op.operands[0].value.r8 = dest_reg;
+    add_op.operands[0].value.r = dest_reg;
     add_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    add_op.operands[1].value.r8 = augend_reg;
+    add_op.operands[1].value.r = augend_reg;
     add_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    add_op.operands[2].value.r8 = addend_reg;
+    add_op.operands[2].value.r = addend_reg;
     make_block_entry(add_op);
 }
 
@@ -569,13 +569,13 @@ void instruction_block::make_sub_instruction(op_sizes size, registers_t dest_reg
     sub_op.operands_count = 3;
     sub_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    sub_op.operands[0].value.r8 = dest_reg;
+    sub_op.operands[0].value.r = dest_reg;
     sub_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    sub_op.operands[1].value.r8 = minuend_reg;
+    sub_op.operands[1].value.r = minuend_reg;
     sub_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    sub_op.operands[2].value.r8 = subtrahend_reg;
+    sub_op.operands[2].value.r = subtrahend_reg;
     make_block_entry(sub_op);
 }
 
@@ -592,10 +592,10 @@ void instruction_block::make_cmp_instruction(op_sizes size, registers_t lhs_reg,
     cmp_op.operands_count = 2;
     cmp_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    cmp_op.operands[0].value.r8 = lhs_reg;
+    cmp_op.operands[0].value.r = lhs_reg;
     cmp_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    cmp_op.operands[1].value.r8 = rhs_reg;
+    cmp_op.operands[1].value.r = rhs_reg;
     make_block_entry(cmp_op);
 }
 
@@ -606,9 +606,9 @@ void instruction_block::make_not_instruction(op_sizes size, registers_t dest_reg
     not_op.size = size;
     not_op.operands_count = 2;
     not_op.operands[0].type = operand_encoding_t::flags::reg | operand_encoding_t::flags::integer;
-    not_op.operands[0].value.r8 = dest_reg;
+    not_op.operands[0].value.r = dest_reg;
     not_op.operands[1].type = operand_encoding_t::flags::reg | operand_encoding_t::flags::integer;
-    not_op.operands[1].value.r8 = src_reg;
+    not_op.operands[1].value.r = src_reg;
     make_block_entry(not_op);
 }
 
@@ -622,7 +622,7 @@ void instruction_block::beq(const std::string &label_name)
     branch_op.operands_count = 1;
     branch_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
-    branch_op.operands[0].value.u64 = label_ref->id;
+    branch_op.operands[0].value.u = label_ref->id;
     make_block_entry(branch_op);
 }
 
@@ -641,7 +641,7 @@ void instruction_block::bne(const std::string &label_name)
     branch_op.operands_count = 1;
     branch_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
-    branch_op.operands[0].value.u64 = label_ref->id;
+    branch_op.operands[0].value.u = label_ref->id;
     make_block_entry(branch_op);
 }
 
@@ -654,13 +654,13 @@ void instruction_block::make_shl_instruction(op_sizes size, registers_t dest_reg
     shift_op.operands_count = 3;
     shift_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    shift_op.operands[0].value.r8 = dest_reg;
+    shift_op.operands[0].value.r = dest_reg;
     shift_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    shift_op.operands[1].value.r8 = value_reg;
+    shift_op.operands[1].value.r = value_reg;
     shift_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    shift_op.operands[2].value.r8 = amount_reg;
+    shift_op.operands[2].value.r = amount_reg;
     make_block_entry(shift_op);
 }
 
@@ -673,13 +673,13 @@ void instruction_block::make_rol_instruction(op_sizes size, registers_t dest_reg
     rotate_op.operands_count = 3;
     rotate_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    rotate_op.operands[0].value.r8 = dest_reg;
+    rotate_op.operands[0].value.r = dest_reg;
     rotate_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    rotate_op.operands[1].value.r8 = value_reg;
+    rotate_op.operands[1].value.r = value_reg;
     rotate_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    rotate_op.operands[2].value.r8 = amount_reg;
+    rotate_op.operands[2].value.r = amount_reg;
     make_block_entry(rotate_op);
 }
 
@@ -692,13 +692,13 @@ void instruction_block::make_shr_instruction(op_sizes size, registers_t dest_reg
     shift_op.operands_count = 3;
     shift_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    shift_op.operands[0].value.r8 = dest_reg;
+    shift_op.operands[0].value.r = dest_reg;
     shift_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    shift_op.operands[1].value.r8 = value_reg;
+    shift_op.operands[1].value.r = value_reg;
     shift_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    shift_op.operands[2].value.r8 = amount_reg;
+    shift_op.operands[2].value.r = amount_reg;
     make_block_entry(shift_op);
 }
 
@@ -711,13 +711,13 @@ void instruction_block::make_ror_instruction(op_sizes size, registers_t dest_reg
     rotate_op.operands_count = 3;
     rotate_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    rotate_op.operands[0].value.r8 = dest_reg;
+    rotate_op.operands[0].value.r = dest_reg;
     rotate_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    rotate_op.operands[1].value.r8 = value_reg;
+    rotate_op.operands[1].value.r = value_reg;
     rotate_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    rotate_op.operands[2].value.r8 = amount_reg;
+    rotate_op.operands[2].value.r = amount_reg;
     make_block_entry(rotate_op);
 }
 
@@ -730,13 +730,13 @@ void instruction_block::make_and_instruction(op_sizes size, registers_t dest_reg
     and_op.operands_count = 3;
     and_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    and_op.operands[0].value.r8 = dest_reg;
+    and_op.operands[0].value.r = dest_reg;
     and_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    and_op.operands[1].value.r8 = value_reg;
+    and_op.operands[1].value.r = value_reg;
     and_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    and_op.operands[2].value.r8 = mask_reg;
+    and_op.operands[2].value.r = mask_reg;
     make_block_entry(and_op);
 }
 
@@ -749,13 +749,13 @@ void instruction_block::make_xor_instruction(op_sizes size, registers_t dest_reg
     xor_op.operands_count = 3;
     xor_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    xor_op.operands[0].value.r8 = dest_reg;
+    xor_op.operands[0].value.r = dest_reg;
     xor_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    xor_op.operands[1].value.r8 = value_reg;
+    xor_op.operands[1].value.r = value_reg;
     xor_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    xor_op.operands[2].value.r8 = mask_reg;
+    xor_op.operands[2].value.r = mask_reg;
     make_block_entry(xor_op);
 }
 
@@ -768,13 +768,13 @@ void instruction_block::make_or_instruction(op_sizes size, registers_t dest_reg,
     or_op.operands_count = 3;
     or_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    or_op.operands[0].value.r8 = dest_reg;
+    or_op.operands[0].value.r = dest_reg;
     or_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    or_op.operands[1].value.r8 = value_reg;
+    or_op.operands[1].value.r = value_reg;
     or_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    or_op.operands[2].value.r8 = mask_reg;
+    or_op.operands[2].value.r = mask_reg;
     make_block_entry(or_op);
 }
 
@@ -787,13 +787,13 @@ void instruction_block::make_mod_instruction(op_sizes size, registers_t dest_reg
     mod_op.operands_count = 3;
     mod_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    mod_op.operands[0].value.r8 = dest_reg;
+    mod_op.operands[0].value.r = dest_reg;
     mod_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    mod_op.operands[1].value.r8 = dividend_reg;
+    mod_op.operands[1].value.r = dividend_reg;
     mod_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    mod_op.operands[2].value.r8 = divisor_reg;
+    mod_op.operands[2].value.r = divisor_reg;
     make_block_entry(mod_op);
 }
 
@@ -806,13 +806,13 @@ void instruction_block::make_div_instruction(op_sizes size, registers_t dest_reg
     div_op.operands_count = 3;
     div_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    div_op.operands[0].value.r8 = dest_reg;
+    div_op.operands[0].value.r = dest_reg;
     div_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    div_op.operands[1].value.r8 = dividend_reg;
+    div_op.operands[1].value.r = dividend_reg;
     div_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    div_op.operands[2].value.r8 = divisor_reg;
+    div_op.operands[2].value.r = divisor_reg;
     make_block_entry(div_op);
 }
 
@@ -825,13 +825,13 @@ void instruction_block::make_mul_instruction(op_sizes size, registers_t dest_reg
     mul_op.operands_count = 3;
     mul_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    mul_op.operands[0].value.r8 = dest_reg;
+    mul_op.operands[0].value.r = dest_reg;
     mul_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    mul_op.operands[1].value.r8 = multiplicand_reg;
+    mul_op.operands[1].value.r = multiplicand_reg;
     mul_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    mul_op.operands[2].value.r8 = multiplier_reg;
+    mul_op.operands[2].value.r = multiplier_reg;
     make_block_entry(mul_op);
 }
 
@@ -843,7 +843,7 @@ void instruction_block::setz(registers_t dest_reg)
     setz_op.operands_count = 1;
     setz_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    setz_op.operands[0].value.r8 = dest_reg;
+    setz_op.operands[0].value.r = dest_reg;
     make_block_entry(setz_op);
 }
 
@@ -855,7 +855,7 @@ void instruction_block::setnz(registers_t dest_reg)
     setnz_op.operands_count = 1;
     setnz_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    setnz_op.operands[0].value.r8 = dest_reg;
+    setnz_op.operands[0].value.r = dest_reg;
     make_block_entry(setnz_op);
 }
 
@@ -879,13 +879,13 @@ void instruction_block::make_sub_instruction_immediate(op_sizes size, registers_
     sub_op.operands_count = 3;
     sub_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    sub_op.operands[0].value.r8 = dest_reg;
+    sub_op.operands[0].value.r = dest_reg;
     sub_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    sub_op.operands[1].value.r8 = minuend_reg;
+    sub_op.operands[1].value.r = minuend_reg;
     sub_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant;
-    sub_op.operands[2].value.u64 = subtrahend_immediate;
+    sub_op.operands[2].value.u = subtrahend_immediate;
     make_block_entry(sub_op);
 }
 
@@ -1100,13 +1100,13 @@ void instruction_block::move_label_to_ireg_with_offset(registers_t dest_reg,
     move_op.operands_count = 3;
     move_op.operands[0].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;
-    move_op.operands[0].value.r8 = dest_reg;
+    move_op.operands[0].value.r = dest_reg;
     move_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant | operand_encoding_t::flags::unresolved;
-    move_op.operands[1].value.u64 = label_ref->id;
+    move_op.operands[1].value.u = label_ref->id;
     move_op.operands[2].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::constant;
-    move_op.operands[2].value.u64 = offset;
+    move_op.operands[2].value.u = offset;
     make_block_entry(move_op);
 }
 

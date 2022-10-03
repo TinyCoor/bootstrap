@@ -55,7 +55,10 @@ public:
 	inline void add_message(const std::string& code, const std::string& message, const std::string& details, bool error)
 	{
 		messages_.emplace_back(code, message, details, 	error ?  result_message::types::error :  result_message::types::info);
-	}
+        if (error) {
+            fail();
+        }
+    }
 
 	[[nodiscard]] inline bool is_failed() const
 	{

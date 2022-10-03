@@ -41,10 +41,10 @@ using session_compile_callback = std::function<void (session_compile_phase_t, co
 
 struct session_options_t {
     bool verbose = false;
+    bool output_ast_graph = false;
     size_t heap_size = 0;
     size_t stack_size = 0;
     fs::path full_path;
-    fs::path ast_graph_file;
     fs::path dom_graph_file;
     session_compile_callback compile_callback;
     std::unordered_map<std::string, std::string> definitions {};

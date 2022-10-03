@@ -108,6 +108,7 @@ bool program::compile(result& r, compiler::session& session)
 
 module *program::compile_module(result& r, compiler::session& session, source_file *source)
 {
+    auto is_root = session.current_source_file() == nullptr;
     session.push_source_file(source);
     defer({session.pop_source_file();});
     session.raise_phase(session_compile_phase_t::start, source->path());
@@ -117,6 +118,7 @@ module *program::compile_module(result& r, compiler::session& session, source_fi
         module = dynamic_cast<compiler::module*>(evaluate(r, session, module_node));
         if (module != nullptr) {
             module->parent_element(this);
+            module->is_root(is_root);
         }
     }
     if (!r.is_failed()) {
@@ -213,6 +215,10 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
                 }
                auto source_file = session.add_source_file(source_path);
                auto module = compile_module(r, session, source_file);
+               if (module == nullptr) {
+                   error(r, session,"C021", "unable laod moudle .", node->rhs->location);
+                   return nullptr;
+               }
                referene->module(module);
             } else {
                 error(r, session, "C021", "expected string literal or constant string variable.",
@@ -280,8 +286,8 @@ element* program::evaluate(result& r, compiler::session& session, const ast_node
                     if (rhs == nullptr) {
                         return nullptr;
                     }
-                    auto binary_op = make_binary_operator(current_scope(), operator_type_t::assignment, existing_identifier,
-                         rhs);
+                    auto binary_op = make_binary_operator(current_scope(), operator_type_t::assignment,
+                      existing_identifier, rhs);
                     apply_attributes(r, session, binary_op, node);
 					return binary_op;
 				} else {
@@ -1088,11 +1094,16 @@ void program::add_composite_type_fields(result &r, compiler::session& session, c
 		auto expr_node = child->rhs;
 		switch (expr_node->type) {
 			case ast_node_types_t::assignment: {
-                for (const auto &symbol_node : expr_node->lhs->children) {
-                    auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate_in_scope(r, session, symbol_node, type->scope()));
+                const auto &target_list = expr_node->lhs;
+                const auto &source_list = expr_node->rhs;
+                for (size_t i = 0; i < target_list->children.size(); ++i) {
+                    auto &symbol_node = target_list->children[i];
+                    auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate_in_scope(r, session,
+                        symbol_node,type->scope()));
                     type_find_result_t type_find_result {};
-                    find_identifier_type(r, type_find_result, expr_node->rhs, type->scope());
-                    auto init = make_initializer(type->scope(), evaluate_in_scope(r, session, expr_node->rhs, type->scope()));
+                    find_identifier_type(r, type_find_result, source_list->children[i], type->scope());
+                    auto init = make_initializer(type->scope(), evaluate_in_scope(r, session,
+                         source_list->children[i], type->scope()));
                     auto field_identifier = make_identifier(type->scope(), symbol, init);
                     if (type_find_result.type == nullptr) {
                         type_find_result.type = init->expression()->infer_type(this);
@@ -1509,8 +1520,16 @@ bool program::on_emit(result &r, emit_context_t &context)
                         }
                         case element_type_t::numeric_type: {
                             uint64_t value = 0;
-                            var->as_integer(value);
-
+                            if (var->type()->number_class() == type_number_class_t::integer) {
+                                var->as_integer(value);
+                            } else {
+                                double temp = 0;
+                                if (var->as_float(temp)) {
+                                    register_value_alias_t alias {};
+                                    alias.d = temp;
+                                    value = alias.u;
+                                }
+                            }
                             auto symbol_type = integer_symbol_type_for_size(var->type()->size_in_bytes());
                             switch (symbol_type) {
                                 case symbol_type_t::u8:

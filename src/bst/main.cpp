@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 	int opt = -1;
 	bool help_flag = false;
 	bool verbose_flag = false;
-	std::filesystem::path ast_graph_file_name;
+	bool output_ast_graphs = false;
 	std::filesystem::path code_dom_graph_file_name;
     std::unordered_map<std::string, std::string> definitions {};
 
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 						verbose_flag = true;
 						break;
 					case 2:
-						ast_graph_file_name = ya_optarg;
+						output_ast_graphs = true;
 						break;
 					case 3:
 						code_dom_graph_file_name = ya_optarg;
@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
 				verbose_flag = true;
 				break;
 			case 'G':
-				ast_graph_file_name = std::filesystem::path(ya_optarg);
+				output_ast_graphs = true;
 				break;
 			case 'H':
 				code_dom_graph_file_name = std::filesystem::path(ya_optarg);
@@ -133,20 +133,21 @@ int main(int argc, char** argv) {
 	result r;
     compiler::session_options_t session_options {
         .verbose = verbose_flag,
+        .output_ast_graph = output_ast_graphs,
         .heap_size = heap_size,
         .stack_size = stack_size,
         .full_path = std::filesystem::absolute(argv[0]).remove_filename(),
-        .ast_graph_file = ast_graph_file_name,
         .dom_graph_file = code_dom_graph_file_name,
         .compile_callback = [&](gfx::compiler::session_compile_phase_t phase,
             const std::filesystem::path &source_file) {
             switch (phase) {
               case gfx::compiler::session_compile_phase_t::start:
-                  fmt::print("{}\n", source_file.filename().string());
+                  fmt::print("module: {}\n", source_file.filename().string());
                   break;
               case gfx::compiler::session_compile_phase_t::success:
                   break;
               case gfx::compiler::session_compile_phase_t::failed:
+                  fmt::print("compile module: {} failed\n", source_file.filename().string());
                   break;
             }
         },

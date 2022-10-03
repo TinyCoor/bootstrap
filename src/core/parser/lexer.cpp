@@ -3,6 +3,7 @@
 //
 
 #include "lexer.h"
+#include "common/defer.h"
 #include <sstream>
 
 namespace gfx {
@@ -577,10 +578,6 @@ bool lexer::has_next() const
 
 void lexer::rewind_one_char()
 {
-    if (source_->eof()) {
-        return;
-    }
-
     auto pos = source_->pos();
     if (pos == 0) {
         return;
@@ -597,16 +594,17 @@ bool lexer::next(token_t& token)
         return false;
     }
     rune = rune > 0x80 ? rune : tolower(rune);
-    if (source_->eof()) {
-        has_next_ = false;
+    if (rune == rune_eof) {
         token = s_end_of_file;
         set_token_location(token);
         return true;
     }
-
     rewind_one_char();
     source_->push_mark();
-
+    defer({
+        source_->pop_mark();
+        has_next_ = rune != rune_eof && rune != rune_invalid;
+    });
 	auto case_range = s_cases.equal_range(rune);
 	for (auto it = case_range.first; it != case_range.second; ++it) {
 		token.radix = 10;
@@ -622,11 +620,10 @@ bool lexer::next(token_t& token)
 		}
         source_->restore_top_mark();
 	}
-    source_->pop_mark();
+
 	token = s_invalid;
     token.value = static_cast<char>(rune);
     set_token_location(token);
-	has_next_ = false;
 
 	return true;
 }
@@ -1015,7 +1012,7 @@ bool lexer::line_comment(token_t& token)
 		if (ch == '/') {
 			token.type = token_types_t::line_comment;
 			token.value = read_until('\n');
-			rewind_one_char();
+//			rewind_one_char();
 			return true;
 		}
 	}
@@ -1493,13 +1490,12 @@ bool lexer::block_comment(token_t &token)
 		token = s_block_comment;
 		std::stringstream stream;
 		while (true) {
-			if (source_->eof()) {
-				token = s_end_of_file;
-                set_token_location(token);
-				return true;
-			}
-
 			auto ch = read(false);
+            if (ch == rune_eof) {
+                token = s_end_of_file;
+                set_token_location(token);
+                return true;
+            }
 			if (ch == '/') {
 				ch = read(false);
 				if (ch == '*') {

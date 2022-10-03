@@ -65,20 +65,20 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 		++encoding_size;
 
 		if (operands[i].is_reg()) {
-			*(encoding_ptr + offset) = operands[i].value.r8;
+			*(encoding_ptr + offset) = operands[i].value.r;
 			++offset;
 			++encoding_size;
 		} else {
 			switch (size) {
 				case op_sizes::byte: {
 					auto *constant_value_ptr = reinterpret_cast<uint8_t *>(encoding_ptr + offset);
-					*constant_value_ptr = static_cast<uint8_t>(operands[i].value.u64);
+					*constant_value_ptr = static_cast<uint8_t>(operands[i].value.u);
 					offset += sizeof(uint8_t);
 					encoding_size += sizeof(uint8_t);
 				}break;
 				case op_sizes::word: {
 					auto *constant_value_ptr = reinterpret_cast<uint16_t *>(encoding_ptr + offset);
-					*constant_value_ptr = static_cast<uint16_t>(operands[i].value.u64);
+					*constant_value_ptr = static_cast<uint16_t>(operands[i].value.u);
 					offset += sizeof(uint16_t);
 					encoding_size += sizeof(uint16_t);
 					break;
@@ -86,12 +86,12 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 				case op_sizes::dword: {
 					if ( operands[i].is_integer()) {
 						auto *constant_value_ptr = reinterpret_cast<uint32_t *>(encoding_ptr + offset);
-						*constant_value_ptr = static_cast<uint32_t>(operands[i].value.u64);
+						*constant_value_ptr = static_cast<uint32_t>(operands[i].value.u);
 						offset += sizeof(uint32_t);
 						encoding_size += sizeof(uint32_t);
 					} else {
 						auto *constant_value_ptr = reinterpret_cast<float *>(encoding_ptr + offset);
-						*constant_value_ptr = static_cast<float>(operands[i].value.d64);
+						*constant_value_ptr = static_cast<float>(operands[i].value.d);
 						offset += sizeof(float);
 						encoding_size += sizeof(float);
 					}
@@ -100,12 +100,12 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 				case op_sizes::qword: {
 					if (operands[i].is_integer()) {
 						auto *constant_value_ptr = reinterpret_cast<uint64_t *>(encoding_ptr + offset);
-						*constant_value_ptr = static_cast<uint64_t>(operands[i].value.u64);
+						*constant_value_ptr = static_cast<uint64_t>(operands[i].value.u);
 						offset += sizeof(uint64_t);
 						encoding_size += sizeof(uint64_t);
 					} else {
 						auto *constant_value_ptr = reinterpret_cast<double *>(encoding_ptr + offset);
-						*constant_value_ptr = static_cast<double>(operands[i].value.d64);
+						*constant_value_ptr = static_cast<double>(operands[i].value.d);
 						offset += sizeof(double);
 						encoding_size += sizeof(double);
 					}
@@ -149,7 +149,7 @@ size_t instruction_t::decode(result& r, uint8_t* heap, uint64_t address)
 		++offset;
 
 		if ((operands[i].is_reg())) {
-			operands[i].value.r8 = *(encoding_ptr + offset);
+			operands[i].value.r = *(encoding_ptr + offset);
 			++offset;
 		} else {
 			switch (size) {
@@ -163,33 +163,33 @@ size_t instruction_t::decode(result& r, uint8_t* heap, uint64_t address)
 				}
 				case op_sizes::byte: {
 					auto *constant_value_ptr = reinterpret_cast<uint8_t *>(encoding_ptr + offset);
-					operands[i].value.u64 = *constant_value_ptr;
+					operands[i].value.u = *constant_value_ptr;
 					offset += sizeof(uint8_t);
 				}break;
 				case op_sizes::word: {
 					auto *constant_value_ptr = reinterpret_cast<uint16_t *>(encoding_ptr + offset);
-					operands[i].value.u64 = *constant_value_ptr;
+					operands[i].value.u = *constant_value_ptr;
 					offset += sizeof(uint16_t);
 				}break;
 				case op_sizes::dword: {
 					if (operands[i].is_integer()){
 						auto *constant_value_ptr = reinterpret_cast<uint32_t *>(encoding_ptr + offset);
-						operands[i].value.u64 = *constant_value_ptr;
+						operands[i].value.u = *constant_value_ptr;
 						offset += sizeof(uint32_t);
 					} else{
 						auto *constant_value_ptr = reinterpret_cast<float *>(encoding_ptr + offset);
-						operands[i].value.d64 = *constant_value_ptr;
+						operands[i].value.d = *constant_value_ptr;
 						offset += sizeof(float);
 					}
 				}break;
 				case op_sizes::qword: {
 					if (operands[i].is_integer()) {
 						auto *constant_value_ptr = reinterpret_cast<uint64_t *>(encoding_ptr + offset);
-						operands[i].value.u64 = *constant_value_ptr;
+						operands[i].value.u = *constant_value_ptr;
 						offset += sizeof(uint64_t);
 					} else {
 						auto *constant_value_ptr = reinterpret_cast<double *>(encoding_ptr + offset);
-						operands[i].value.d64 = *constant_value_ptr;
+						operands[i].value.d = *constant_value_ptr;
 						offset += sizeof(double);
 					}
                     break;
@@ -318,7 +318,7 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
 
             if (operand.is_reg()) {
                 if (operand.is_integer()) {
-                    switch (operand.value.r8) {
+                    switch (operand.value.r) {
                         case registers_t::sp: {
                             operands_stream << prefix << "SP" << postfix;
                             break;
@@ -340,28 +340,28 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
                             break;
                         }
                         default: {
-                            operands_stream << prefix << "I" << std::to_string(operand.value.r8)
+                            operands_stream << prefix << "I" << std::to_string(operand.value.r)
                                             << postfix;
                             break;
                         }
                     }
                 } else {
-                    operands_stream << "F" << std::to_string(operand.value.r8);
+                    operands_stream << "F" << std::to_string(operand.value.r);
                 }
             } else {
                 if (operand.is_unresolved()) {
                     if (id_resolver==nullptr) {
-                        operands_stream << fmt::format("id({})", operand.value.u64);
+                        operands_stream << fmt::format("id({})", operand.value.u);
                     }else {
-                        operands_stream << id_resolver(operand.value.u64);
+                        operands_stream << id_resolver(operand.value.u);
                     }
                 } else {
                     if (i==2) {
                         operands_stream << fmt::format(fmt::runtime(offset_spec),
-                            static_cast<int64_t>(operand.value.u64));
+                            static_cast<int64_t>(operand.value.u));
                     } else {
                         operands_stream << prefix
-                                        << fmt::format(fmt::runtime(format_spec), operand.value.u64)
+                                        << fmt::format(fmt::runtime(format_spec), operand.value.u)
                                         << postfix;
                     }
                 }

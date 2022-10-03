@@ -50,7 +50,6 @@ public:
 
     void push_target_register(op_sizes size, registers_t reg);
 
-
     gfx::segment* segment(const std::string& name);
 
     bool assemble(result& r, instruction_block* block = nullptr);

@@ -8,8 +8,7 @@
 
 namespace gfx {
 
-assembler::assembler(terp* terp)
-	: terp_(terp)
+assembler::assembler(terp* terp) : terp_(terp)
 {
 }
 
@@ -26,6 +25,7 @@ bool assembler::initialize(result &r)
     location_counter_ = terp_->heap_vector(heap_vectors_t::program_start);
     return true;
 }
+
 bool assembler::assemble(result &r, instruction_block *block)
 {
     if (block == nullptr) {
@@ -191,9 +191,9 @@ bool assembler::resolve_labels(result &r)
           for (size_t i = 0; i < inst->operands_count; i++) {
               auto& operand = inst->operands[i];
               if (operand.is_unresolved()) {
-                  auto label_ref = block->find_unresolved_label_up(static_cast<uint32_t>(operand.value.u64));
+                  auto label_ref = block->find_unresolved_label_up(static_cast<uint32_t>(operand.value.u));
                   if (label_ref != nullptr) {
-                      operand.value.u64 = label_ref->resolved->address();
+                      operand.value.u = label_ref->resolved->address();
                       operand.clear_unresolved();
                   }
               }

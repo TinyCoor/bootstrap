@@ -111,12 +111,17 @@ bool terp::step(result &r)
             break;
 		}
 		case op_codes::alloc: {
-			uint64_t size;
+            operand_value_t size;
 			if (!get_operand_value(r, inst, 1, size)) {
 				return false;
 			}
-			size *= op_size_in_bytes(inst.size);
-			uint64_t address = alloc(size);
+			size.alias.u *= op_size_in_bytes(inst.size);
+            operand_value_t  address;
+            address.alias.u = alloc(size.alias.u);
+            if (address.alias.u == 0) {
+                execute_trap(trap_out_of_memory);
+                return false;
+            }
 			if (!set_target_operand_value(r, inst, 0, address)) {
 				return false;
 			}
@@ -124,17 +129,17 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, address == 0);
+			registers_.flags(register_file_t::flags_t::zero, address.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(address, inst.size));
 
 		}break;
 		case op_codes ::free: {
-			uint64_t address;
+			operand_value_t address;
 			if (!get_operand_value(r, inst, 0, address)) {
 				return false;
 			}
 
-			auto freed_size = free(address);
+			auto freed_size = free(address.alias.u);
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
@@ -143,142 +148,158 @@ bool terp::step(result &r)
 
 		}break;
 		case op_codes::size: {
-			uint64_t address;
+			operand_value_t address;
 			if (!get_operand_value(r, inst, 1, address)) {
 				return false;
 			}
-
-			uint64_t block_size = size(address);
+            operand_value_t block_size;
+			block_size.alias.u = size(address.alias.u);
 			if (!set_target_operand_value(r, inst, 0, block_size)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, block_size == 0);
+			registers_.flags(register_file_t::flags_t::zero, block_size.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(block_size, inst.size));
 
 		} break;
 		case op_codes::load: {
-			uint64_t address = 0;
+			operand_value_t address;
 			if (!get_operand_value(r, inst, 1, address)) {
 				return false;
 			}
 
 			if (inst.operands_count > 2) {
-				uint64_t offset;
+				operand_value_t offset;
 				if (!get_operand_value(r, inst, 2, offset)) {
 					return false;
 				}
-				address += offset;
+				address.alias.u += offset.alias.u;
 			}
 
-			uint64_t value = read(inst.size, address);
-			if (!set_target_operand_value(r, inst, 0, value)) {
+            operand_value_t loaded_data;
+			loaded_data.alias.u = read(inst.size, address.alias.u);
+			if (!set_target_operand_value(r, inst, 0, loaded_data)) {
 				return false;
 			}
 
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, value == 0);
-			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
-		}break;
+			registers_.flags(register_file_t::flags_t::zero, loaded_data.alias.u == 0);
+			registers_.flags(register_file_t::flags_t::negative, is_negative(loaded_data, inst.size));
+            break;
+		}
 		case op_codes::swap:{
-			uint64_t value;
-
+			operand_value_t value;
 			if (!get_operand_value(r, inst, 1, value)) {
 				return false;
 			}
-
-			uint64_t result = 0;
+            operand_value_t result;
+            result.alias.u = 0;
 			switch (inst.size) {
 				case op_sizes::byte: {
-					uint8_t byte_value = static_cast<uint8_t>(value);
+					uint8_t byte_value = static_cast<uint8_t>(value.alias.u);
 					uint8_t upper_nybble = get_upper_nybble(byte_value);
 					uint8_t lower_nybble = get_lower_nybble(byte_value);
 					byte_value = set_upper_nybble(byte_value, lower_nybble);
-					result = set_lower_nybble(byte_value, upper_nybble);
+					result.alias.u = set_lower_nybble(byte_value, upper_nybble);
 					break;
 				}
 				case op_sizes::word:
-					result = endian_swap_word(static_cast<uint16_t>(value));
+					result.alias.u = endian_swap_word(static_cast<uint16_t>(value.alias.u));
 					break;
 				case op_sizes::dword:
-					result = endian_swap_dword(static_cast<uint32_t>(value));
+					result.alias.u = endian_swap_dword(static_cast<uint32_t>(value.alias.u));
 					break;
 				case op_sizes::qword:
 				default:
-					result = endian_swap_qword(value);
+					result.alias.u = endian_swap_qword(value.alias.u);
 					break;
 			}
 
-			if (!set_target_operand_value(r, inst, 0, result))
-				return false;
+			if (!set_target_operand_value(r, inst, 0, result)) {
+                return false;
+            }
 
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
-
-		}break;
+            break;
+		}
 		case op_codes::store: {
-            uint64_t address = 0;
+            operand_value_t address;
 			if (!get_operand_value(r, inst, 0, address)) {
 				return false;
 			}
 
-            uint64_t value;
+            operand_value_t value;
 			if (!get_operand_value(r, inst, 1, value)) {
 				return false;
 			}
 
 			if (inst.operands_count > 2) {
-				uint64_t offset;
+				operand_value_t offset;
 				if (!get_operand_value(r, inst, 2, offset)) {
 					return false;
 				}
-				address += offset;
+				address.alias.u += offset.alias.u;
 			}
-            write(inst.size, address, value);
+            write(inst.size, address.alias.u, value.alias.u);
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, value == 0);
+			registers_.flags(register_file_t::flags_t::zero, value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
 		}break;
 		case op_codes::inc: {
-			uint8_t reg = inst.operands[0].value.r8;
-			uint64_t lhs_value = registers_.r[reg].u;
-			uint64_t rhs_value = 1;
-			uint64_t value = rhs_value + lhs_value;
-			if (set_target_operand_value(r, inst, reg, value)) {
+            operand_value_t reg_value;
+            if (get_operand_value(r, inst, 0, reg_value)) {
+                return false;
+            }
+	        operand_value_t new_value;
+            if (reg_value.type == register_type_t::floating_point) {
+                new_value.alias.d = reg_value.alias.d + 1.0;
+            } else {
+                new_value.alias.u = reg_value.alias.u + 1;
+            }
+			if (set_target_operand_value(r, inst, 0, reg_value)) {
 				return false;
 			}
-			registers_.flags(register_file_t::flags_t::overflow, has_overflow(lhs_value, rhs_value, value, inst.size));
-			registers_.flags(register_file_t::flags_t::zero, value == 0);
+			registers_.flags(register_file_t::flags_t::overflow,
+                has_overflow(reg_value.alias.u, 1, new_value.alias.u, inst.size));
+			registers_.flags(register_file_t::flags_t::zero, new_value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::carry, has_carry(value, inst.size));
-			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
+			registers_.flags(register_file_t::flags_t::carry, has_carry(new_value, inst.size));
+			registers_.flags(register_file_t::flags_t::negative, is_negative(new_value, inst.size));
 		}break;
 		case op_codes::dec: {
-			uint8_t reg = inst.operands[0].value.r8;
-			uint64_t lhs_value = registers_.r[reg].u;
-			uint64_t rhs_value = 1;
-			uint64_t value = lhs_value - rhs_value;
-			if (set_target_operand_value(r, inst, reg, value)) {
+            operand_value_t reg_value;
+            if (get_operand_value(r, inst, 0, reg_value)) {
+                return false;
+            }
+            operand_value_t new_value;
+            if (reg_value.type == register_type_t::floating_point) {
+                new_value.alias.d = reg_value.alias.d - 1.0;
+            } else {
+                new_value.alias.u = reg_value.alias.u - 1;
+            }
+			if (set_target_operand_value(r, inst, 0, reg_value)) {
 				return false;
 			}
-			registers_.flags(register_file_t::flags_t::overflow, has_overflow(lhs_value, rhs_value, value, inst.size));
+			registers_.flags(register_file_t::flags_t::overflow,
+                has_overflow(reg_value.alias.u, 1, new_value.alias.u, inst.size));
 			registers_.flags(register_file_t::flags_t::subtract, true);
-			registers_.flags(register_file_t::flags_t::zero, value == 0);
-			registers_.flags(register_file_t::flags_t::carry, has_carry(value, inst.size));
-			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
+			registers_.flags(register_file_t::flags_t::zero, new_value.alias.u == 0);
+			registers_.flags(register_file_t::flags_t::carry, has_carry(new_value, inst.size));
+			registers_.flags(register_file_t::flags_t::negative, is_negative(new_value, inst.size));
 
 		}break;
 		case op_codes::copy: {
-			uint64_t source_address, target_address;
+			operand_value_t source_address, target_address;
 			if (!get_operand_value(r, inst, 0, source_address)) {
 				return false;
 			}
@@ -287,12 +308,12 @@ bool terp::step(result &r)
 				return false;
 			}
 
-			uint64_t  length ;
+			operand_value_t length ;
 			if (!get_operand_value(r, inst, 2, length)) {
 				return false;
 			}
 
-			memcpy(heap_ + target_address, heap_ + source_address, length * op_size_in_bytes(inst.size));
+			memcpy(heap_ + target_address.alias.u, heap_ + source_address.alias.u, length.alias.u * op_size_in_bytes(inst.size));
 			registers_.flags(register_file_t::flags_t::zero, false);
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
@@ -300,35 +321,36 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::negative, false);
 		}break;
 		case op_codes::fill: {
-			uint64_t value;
+			operand_value_t value;
 			if (!get_operand_value(r, inst, 0, value)) {
 				return false;
 			}
 
-			uint64_t address;
+			operand_value_t address;
 			if (!get_operand_value(r, inst, 1, address)) {
 				return false;
 			}
 
-			uint64_t  length ;
+			operand_value_t length;
 			if (!get_operand_value(r, inst, 2, length)) {
 				return false;
 			}
 
-			length *= op_size_in_bytes(inst.size);
+			length.alias.u *= op_size_in_bytes(inst.size);
 
 			switch (inst.size) {
 				case op_sizes::byte:
-					memset(heap_ + address, static_cast<uint8_t>(value), length);
+					memset(heap_ + address.alias.u, static_cast<uint8_t>(value.alias.u), length.alias.u);
 					break;
 				case op_sizes::word:
-					memset(heap_ + address, static_cast<uint16_t>(value), length);
+					memset(heap_ + address.alias.u, static_cast<uint16_t>(value.alias.u), length.alias.u);
 					break;
 				case op_sizes::dword:
-					memset(heap_ + address, static_cast<uint32_t>(value), length);
+					memset(heap_ + address.alias.u, static_cast<uint32_t>(value.alias.u), length.alias.u);
 					break;
-				case op_sizes::qword:length *= sizeof(uint64_t);
-					memset(heap_ + address, static_cast<uint64_t>(value), length);
+				case op_sizes::qword:
+                    length.alias.u *= sizeof(uint64_t);
+					memset(heap_ + address.alias.u, static_cast<uint64_t>(value.alias.u), length.alias.u);
 					break;
 				default:
 					//// error
@@ -342,8 +364,9 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::negative, false);
 		}break;
 		case op_codes::move: {
-			uint64_t source_value = 0 ;
-            uint64_t offset = 0;
+			operand_value_t source_value ;
+            operand_value_t offset;
+
             if (inst.operands_count > 2) {
                 if (!get_operand_value(r, inst, 2, offset)) {
                     return false;
@@ -352,126 +375,162 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 1, source_value)) {
 				return false;
 			}
-			if (!set_target_operand_value(r, inst, 0, source_value + offset)) {
+            operand_value_t result;
+            result.alias.u = source_value.alias.u + offset.alias.u;
+			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
 
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::zero, source_value == 0);
+			registers_.flags(register_file_t::flags_t::zero, source_value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(source_value, inst.size));
 		}break;
 		case op_codes::push: {
-			uint64_t source_value;
+			operand_value_t source_value;
 			if (!get_operand_value(r, inst, 0, source_value)) {
 				return false;
 			}
-			push(source_value);
+			push(source_value.alias.u);
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::zero, source_value == 0);
+			registers_.flags(register_file_t::flags_t::zero, source_value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(source_value, inst.size));
 		}break;
 		case op_codes::pop:{
-			uint64_t value = pop();
+            operand_value_t value;
+            value.alias.u = pop();
 			if (!set_target_operand_value(r, inst, 0, value)) {
 				return false;
 			}
-			registers_.flags(register_file_t::flags_t::zero, value == 0);
+			registers_.flags(register_file_t::flags_t::zero, value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
 		}break;
 		case op_codes::dup: {
-			uint64_t value = peek();
-			push(value);
+			operand_value_t value;
+            value.alias.u = peek();
+			push(value.alias.u);
 
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::zero, value == 0);
+			registers_.flags(register_file_t::flags_t::zero, value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
 		}break;
+
 		case op_codes::add:{
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-			uint64_t sum_result = lhs_value + rhs_value;
-			if (!set_target_operand_value(r, inst, 0, sum_result )){
+            operand_value_t sum_result;
+            if (lhs_value.type == register_type_t::floating_point
+                &&  rhs_value.type == register_type_t::floating_point) {
+                sum_result.alias.d = lhs_value.alias.d + rhs_value.alias.d;
+            } else {
+                sum_result.alias.u = lhs_value.alias.u + rhs_value.alias.u;
+            }
+			if (!set_target_operand_value(r, inst, 0, sum_result)){
 				return false;
 			}
-			registers_.flags(register_file_t::flags_t::overflow, has_overflow(lhs_value, rhs_value, sum_result, inst.size));
+			registers_.flags(register_file_t::flags_t::overflow,
+                has_overflow(lhs_value.alias.u, rhs_value.alias.u, sum_result.alias.u, inst.size));
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::zero, sum_result == 0);
+			registers_.flags(register_file_t::flags_t::zero, sum_result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::carry, has_carry(sum_result, inst.size));
 			registers_.flags(register_file_t::flags_t::negative, is_negative(sum_result, inst.size));
 		}break;
 		case op_codes::sub:{
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-			uint64_t sub_res = lhs_value - rhs_value;
+            operand_value_t sub_res;
+            if (lhs_value.type == register_type_t::floating_point
+                &&  rhs_value.type == register_type_t::floating_point) {
+                sub_res.alias.d = lhs_value.alias.d - rhs_value.alias.d;
+            } else {
+                sub_res.alias.u = lhs_value.alias.u - rhs_value.alias.u;
+            }
 			if (!set_target_operand_value(r, inst, 0, sub_res)){
 				return false;
 			}
-			registers_.flags(register_file_t::flags_t::overflow, has_overflow(lhs_value, rhs_value, sub_res, inst.size));
+			registers_.flags(register_file_t::flags_t::overflow,
+               has_overflow(lhs_value.alias.u, rhs_value.alias.u, sub_res.alias.u, inst.size));
 			registers_.flags(register_file_t::flags_t::subtract, true);
-			registers_.flags(register_file_t::flags_t::carry, rhs_value > lhs_value);
-			registers_.flags(register_file_t::flags_t::zero, sub_res == 0);
+			registers_.flags(register_file_t::flags_t::carry, rhs_value.alias.u > lhs_value.alias.u);
+			registers_.flags(register_file_t::flags_t::zero, sub_res.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(sub_res, inst.size));
 		}break;
 		case op_codes::mul: {
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-			uint64_t product_res =  lhs_value * rhs_value;
+            operand_value_t product_res;
+            if (lhs_value.type == register_type_t::floating_point
+                &&  rhs_value.type == register_type_t::floating_point) {
+                product_res.alias.d = lhs_value.alias.d * rhs_value.alias.d;
+            } else {
+                product_res.alias.u = lhs_value.alias.u * rhs_value.alias.u;
+            }
 			if (!set_target_operand_value(r, inst, 0,product_res)){
 				return false;
 			}
-			registers_.flags(register_file_t::flags_t::overflow, has_overflow(lhs_value, rhs_value, product_res, inst.size));
+			registers_.flags(register_file_t::flags_t::overflow,
+                has_overflow(lhs_value.alias.u, rhs_value.alias.u, product_res.alias.u, inst.size));
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::zero, product_res == 0);
+			registers_.flags(register_file_t::flags_t::zero, product_res.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(product_res, inst.size));
-		}break;
+            break;
+		}
 		case op_codes::div:{
-			uint64_t lhs_value, rhs_value;
-			if (!get_operand_value(r, inst, 1, lhs_value))
-				return false;
-			if (!get_operand_value(r, inst, 2, rhs_value))
-				return false;
-			uint64_t result = 0;
-			if (rhs_value != 0) {
-				result = lhs_value / rhs_value;
-			}
+			operand_value_t lhs_value, rhs_value;
+			if (!get_operand_value(r, inst, 1, lhs_value)) {
+                return false;
+            }
 
+			if (!get_operand_value(r, inst, 2, rhs_value)) {
+                return false;
+            }
+            operand_value_t result;
+            if (lhs_value.type == register_type_t::floating_point
+                &&  rhs_value.type == register_type_t::floating_point) {
+                if (rhs_value.alias.d != 0) {
+                    result.alias.d = lhs_value.alias.d / rhs_value.alias.d;
+                }
+            } else {
+                if (rhs_value.alias.u != 0) {
+                    result.alias.u = lhs_value.alias.u / rhs_value.alias.u;
+                }
+            }
 			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
-			registers_.flags(register_file_t::flags_t::overflow, has_overflow(lhs_value, rhs_value, result, inst.size));
+			registers_.flags(register_file_t::flags_t::overflow,
+                has_overflow(lhs_value.alias.u, rhs_value.alias.u, result.alias.u, inst.size));
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 		}break;
 		case op_codes::mod:{
-			uint64_t lhs_value, rhs_value;
-
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
@@ -479,35 +538,41 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-
-			uint64_t result = lhs_value % rhs_value;
+            operand_value_t result;
+			result.alias.u = lhs_value.alias.u % rhs_value.alias.u;
 			if (!set_target_operand_value(r, inst, 0,  result)) {
 				return false;
 			}
-			registers_.flags(register_file_t::flags_t::overflow, has_overflow(lhs_value, rhs_value, result, inst.size));
+			registers_.flags(register_file_t::flags_t::overflow,
+                has_overflow(lhs_value.alias.u, rhs_value.alias.u, result.alias.u, inst.size));
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 		}break;
 		case op_codes::neg:{
-			uint64_t value;
+			operand_value_t value;
 			if (!get_operand_value(r, inst, 1, value)) {
 				return false;
 			}
-			int64_t negate_res = -static_cast<int64_t>(value);
-			uint64_t result = static_cast<uint64_t>(negate_res);
-			if (!set_target_operand_value(r, inst, 0, static_cast<uint64_t>(negate_res))) {
+            operand_value_t result;
+            if (value.type == register_type_t::floating_point) {
+                result.alias.d = value.alias.d * -1.0;
+            } else {
+                int64_t negated_result = -static_cast<int64_t>(value.alias.u);
+                result.alias.u = static_cast<uint64_t>(negated_result);
+            }
+			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 		}break;
 		case op_codes::shl:{
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
@@ -515,7 +580,8 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-			uint64_t result = lhs_value << rhs_value ;
+            operand_value_t result;
+            result.alias.u = lhs_value.alias.u << rhs_value.alias.u;
 			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
@@ -523,31 +589,31 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 
 		}break;
 		case op_codes::shr: {
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
-
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-			uint64_t result = lhs_value >> rhs_value;
+            operand_value_t result;
+			result.alias.u = lhs_value.alias.u >> rhs_value.alias.u;
 			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 		}break;
 		case op_codes::rol:{
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
@@ -555,7 +621,8 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-			uint64_t left_rotated_value =rotl(lhs_value, static_cast<uint8_t>(rhs_value));
+            operand_value_t left_rotated_value;
+			left_rotated_value.alias.u = rotl(lhs_value.alias.u, static_cast<uint8_t>(rhs_value.alias.u));
 			if (!set_target_operand_value(r, inst, 0, left_rotated_value)) {
 				return false;
 			}
@@ -563,11 +630,11 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, left_rotated_value == 0);
+			registers_.flags(register_file_t::flags_t::zero, left_rotated_value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(left_rotated_value, inst.size));
 		}break;
 		case op_codes::ror:{
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
@@ -575,8 +642,8 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-
-			uint64_t right_rotated_value = rotr(lhs_value, static_cast<uint8_t>(rhs_value));
+            operand_value_t right_rotated_value;
+			right_rotated_value.alias.u = rotr(lhs_value.alias.u, static_cast<uint8_t>(rhs_value.alias.u));
 			if (!set_target_operand_value(r, inst, 0, right_rotated_value)) {
 				return false;
 			}
@@ -584,11 +651,11 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, right_rotated_value == 0);
+			registers_.flags(register_file_t::flags_t::zero, right_rotated_value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(right_rotated_value, inst.size));
 		}break;
 		case op_codes::and_op:{
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
@@ -596,20 +663,21 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-			uint64_t result = lhs_value & rhs_value;
-			if (!set_target_operand_value(r, inst, 0, result )) {
+            operand_value_t result;
+            result.alias.u = lhs_value.alias.u & rhs_value.alias.u;
+			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
 
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 
 		}break;
 		case op_codes::or_op:{
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
@@ -617,19 +685,20 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-			uint64_t result =  lhs_value | rhs_value;
+            operand_value_t result;
+            result.alias.u = lhs_value.alias.u | rhs_value.alias.u;
 			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 
 		}break;
 		case op_codes::xor_op: {
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
 				return false;
 			}
@@ -637,23 +706,24 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-			uint64_t result = lhs_value ^ rhs_value;
+            operand_value_t result;
+            result.alias.u = lhs_value.alias.u ^ rhs_value.alias.u;
 			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 		}break;
 		case op_codes::not_op:{
-			uint64_t value;
+			operand_value_t value;
 			if (!get_operand_value(r, inst, 1, value)) {
 				return false;
 			}
-
-			uint64_t not_res = ~value;
+            operand_value_t not_res;
+			not_res.alias.u = ~value.alias.u;
 			if (!set_target_operand_value(r, inst, 0, not_res)) {
 				return false;
 			}
@@ -661,11 +731,11 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, not_res == 0);
+			registers_.flags(register_file_t::flags_t::zero, not_res.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(not_res, inst.size));
 		}break;
 		case op_codes::bis:{
-			uint64_t value, bit_number;
+			operand_value_t value, bit_number;
 			if (!get_operand_value(r, inst, 1, value))  {
 				return false;
 			}
@@ -673,9 +743,9 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, bit_number)) {
 				return false;
 			}
-
-			uint64_t masked_value =static_cast<uint64_t > (1 << bit_number);
-			uint64_t result = value | masked_value;
+            operand_value_t result;
+			uint64_t masked_value =static_cast<uint64_t > (1 << bit_number.alias.u);
+            result.alias.u = value.alias.u | masked_value;
 			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
@@ -686,16 +756,16 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 		}break;
 		case op_codes::bic: {
-			uint64_t value, bit_number;
+			operand_value_t value, bit_number;
 			if (!get_operand_value(r, inst, 1, value)) {
 				return false;
 			}
 			if (!get_operand_value(r, inst, 2, bit_number)) {
 				return false;
 			}
-
-			uint64_t masked_value = static_cast<uint64_t>(~(1 << bit_number));
-			uint64_t result =value & masked_value;
+            operand_value_t result;
+			uint64_t masked_value = static_cast<uint64_t>(~(1 << bit_number.alias.u));
+            result.alias.u =value.alias.u & masked_value;
 			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
 			}
@@ -708,7 +778,7 @@ bool terp::step(result &r)
 
 		}break;
 		case op_codes::test:{
-			uint64_t value, mask;
+			operand_value_t value, mask;
 			if (!get_operand_value(r, inst, 1, value)) {
 				return false;
 			}
@@ -716,15 +786,16 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, mask)) {
 				return false;
 			}
-			uint64_t result = value & mask;
+            operand_value_t result;
+            result.alias.u = value.alias.u & mask.alias.u;
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 		}break;
 		case op_codes::cmp: {
-			uint64_t lhs_value, rhs_value;
+			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 0, lhs_value)) {
 				return false;
 			}
@@ -732,17 +803,18 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 1, rhs_value)) {
 				return false;
 			}
-
-			uint64_t result = lhs_value - rhs_value;
-			registers_.flags(register_file_t::flags_t::overflow, has_overflow(lhs_value, rhs_value, result, inst.size));
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+            operand_value_t result;
+			result.alias.u = lhs_value.alias.u - rhs_value.alias.u;
+			registers_.flags(register_file_t::flags_t::overflow,
+                             has_overflow(lhs_value.alias.u, rhs_value.alias.u, result.alias.u, inst.size));
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::subtract, true);
 			registers_.flags(register_file_t::flags_t::carry, has_carry(result, inst.size));
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 
 		}break;
 		case op_codes::bz: {
-			uint64_t value, address;
+			operand_value_t value, address;
 			if (!get_operand_value(r, inst, 0, value)) {
 				return false;
 			}
@@ -751,17 +823,17 @@ bool terp::step(result &r)
 				return false;
 			}
 
-			if (value == 0) {
-				registers_.r[register_pc].u = address;
+			if (value.alias.u == 0) {
+				registers_.r[register_pc].u = address.alias.u;
 			}
-			registers_.flags(register_file_t::flags_t::zero, value == 0);
+			registers_.flags(register_file_t::flags_t::zero, value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::carry, has_carry(value, inst.size));
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
 		}break;
 		case op_codes::bnz: {
-			uint64_t value, address;
+			operand_value_t value, address;
 			if (!get_operand_value(r, inst, 0, value)) {
 				return false;
 			}
@@ -770,17 +842,17 @@ bool terp::step(result &r)
 				return false;
 			}
 
-			if (value != 0) {
-				registers_.r[register_pc].u = address;
+			if (value.alias.u != 0) {
+				registers_.r[register_pc].u = address.alias.u;
 			}
-			registers_.flags(register_file_t::flags_t::zero, value == 0);
+			registers_.flags(register_file_t::flags_t::zero, value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::carry, has_carry(value, inst.size));
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
 		}break;
 		case op_codes::tbz: {
-			uint64_t value, mask, address;
+			operand_value_t value, mask, address;
 			if (!get_operand_value(r, inst, 0, value)) {
 				return false;
 			}
@@ -791,21 +863,21 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, address)) {
 				return false;
 			}
-
-			uint64_t result = value & mask;
-			if (result == 0) {
-				registers_.r[register_pc].u = address;
+            operand_value_t result;
+            result.alias.u = value.alias.u & mask.alias.u;
+			if (result.alias.u == 0) {
+				registers_.r[register_pc].u = address.alias.u;
 			}
 
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 
 		} break;
 		case op_codes::tbnz: {
-			uint64_t value, mask, address;
+			operand_value_t value, mask, address;
 			if (!get_operand_value(r, inst, 0, value)) {
 				return false;
 			}
@@ -817,42 +889,42 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, address)) {
 				return false;
 			}
-			uint64_t result = value & mask;
-			if (result != 0) {
-				registers_.r[register_pc].u = address;
+            operand_value_t result;
+            result.alias.u = value.alias.u & mask.alias.u;
+			if (result.alias.u != 0) {
+				registers_.r[register_pc].u = address.alias.u;
 			}
 
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::overflow, false);
-			registers_.flags(register_file_t::flags_t::zero, result == 0);
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 		}break;
 		case op_codes::bne: {
-			uint64_t address;
+			operand_value_t address;
 			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
 
-			if (registers_.flags(register_file_t::flags_t::zero) == 0){
-				registers_.r[register_pc].u = address;
+			if (registers_.flags(register_file_t::flags_t::zero) == 0) {
+				registers_.r[register_pc].u = address.alias.u;
 			}
 		}break;
 		case op_codes::beq: {
-			uint64_t address;
+			operand_value_t address;
 			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
 
-			if (registers_.flags(register_file_t::flags_t::zero)){
-				registers_.r[register_pc].u = address;
+			if (registers_.flags(register_file_t::flags_t::zero)) {
+				registers_.r[register_pc].u = address.alias.u;
 			}
 		} break;
 		case op_codes::bg: {
-			uint64_t address;
-
+			operand_value_t address;
 			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
@@ -860,11 +932,11 @@ bool terp::step(result &r)
 
 			if (!registers_.flags(register_file_t::flags_t::carry)
 				&& !registers_.flags(register_file_t::flags_t::zero)) {
-				registers_.r[register_pc].u = address;
+				registers_.r[register_pc].u = address.alias.u;
 			}
 		}break;
 		case op_codes::bge: {
-			uint64_t address;
+			operand_value_t address;
 
 			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
@@ -872,11 +944,11 @@ bool terp::step(result &r)
 			}
 
 			if (!registers_.flags(register_file_t::flags_t::carry)) {
-				registers_.r[register_pc].u = address;
+				registers_.r[register_pc].u = address.alias.u;
 			}
 		}break;
 		case op_codes::bl: {
-			uint64_t address;
+			operand_value_t address;
 
 			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
@@ -885,11 +957,11 @@ bool terp::step(result &r)
 
 			if (registers_.flags(register_file_t::flags_t::carry)
 				|| registers_.flags(register_file_t::flags_t::zero)) {
-				registers_.r[register_pc].u = address;
+				registers_.r[register_pc].u = address.alias.u;
 			}
 		}break;
 		case op_codes::ble:{
-			uint64_t address;
+			operand_value_t address;
 
 			auto result = get_constant_address_or_pc_with_offset(r, inst, 0, inst_size, address);
 			if (!result) {
@@ -897,62 +969,63 @@ bool terp::step(result &r)
 			}
 
 			if (registers_.flags(register_file_t::flags_t::carry)) {
-				registers_.r[register_pc].u = address;
+				registers_.r[register_pc].u = address.alias.u;
 			}
 		}break;
 		case op_codes::jsr: {
 			push(registers_.r[register_pc].u);
-			uint64_t address;
+			operand_value_t address;
 			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
 
-			registers_.r[register_pc].u  = address;
+			registers_.r[register_pc].u  = address.alias.u;
 		}break;
 		case op_codes::rts: {
-			uint64_t address = pop();
-            registers_.r[register_pc].u  = address;
+            operand_value_t address;
+			address.alias.u = pop();
+            registers_.r[register_pc].u  = address.alias.u;
 		}break;
 		case op_codes::jmp: {
-			uint64_t address;
+			operand_value_t address;
 
 			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
-            registers_.r[register_pc].u  = address;
+            registers_.r[register_pc].u  = address.alias.u;
 		}break;
 		case op_codes::swi:{
-			uint64_t index;
+			operand_value_t index;
 			if (!get_operand_value(r, inst, 0, index)) {
 				return false;
 			}
-
-			size_t swi_offset = sizeof(uint64_t) * index;
-			uint64_t swi_address = read(inst.size, swi_offset);
-			if (swi_address != 0) {
+            operand_value_t swi_address;
+			size_t swi_offset = sizeof(uint64_t) * index.alias.u;
+			swi_address.alias.u = read(inst.size, swi_offset);
+			if (swi_address.alias.u != 0) {
 				/// TODO 恢复现场
 				push(registers_.r[register_pc].u);
-				registers_.r[register_pc].u = swi_address;
+				registers_.r[register_pc].u = swi_address.alias.u;
 			}
 		}break;
 		case op_codes::trap:{
-			uint64_t index;
+			operand_value_t index;
 			if (!get_operand_value(r, inst, 0, index)) {
 				return false;
 			}
 
-			execute_trap(static_cast<uint8_t>(index));
+			execute_trap(static_cast<uint8_t>(index.alias.u));
 
 		}break;
 		case op_codes::ffi:{
-			uint64_t address;
+			operand_value_t address;
 			if (!get_operand_value(r, inst, 0, address)) {
 				return false;
 			}
 
-			auto it = foreign_functions_.find(reinterpret_cast<void*>(address));
+			auto it = foreign_functions_.find(reinterpret_cast<void*>(address.alias.u));
 			if (it == foreign_functions_.end()) {
 				execute_trap(trap_invalid_ffi_call);
 				break;
@@ -978,13 +1051,13 @@ bool terp::step(result &r)
                     ++param_index;
                 }
             }
-            uint64_t result_value = func_signature->call(call_vm_, address);
+            uint64_t result_value = func_signature->call(call_vm_, address.alias.u);
             if (func_signature->return_value.type != ffi_types_t::void_type) {
                 push(result_value);
             }
 		}break;
 		case op_codes::meta: {
-			uint64_t meta_data_size;
+			operand_value_t meta_data_size;
 
 			if (!get_operand_value(r, inst, 0, meta_data_size)) {
 				return false;
@@ -995,7 +1068,8 @@ bool terp::step(result &r)
 			exited_ = true;
 		}break;
         case op_codes::setz: {
-            uint64_t result = registers_.flags(register_file_t::flags_t::zero) ? 1 : 0;
+            operand_value_t result;
+            result.alias.u = registers_.flags(register_file_t::flags_t::zero) ? 1 : 0;
             if (!set_target_operand_value(r, inst, 0, result)) {
                 return false;
             }
@@ -1003,7 +1077,8 @@ bool terp::step(result &r)
             break;
         }
         case op_codes::setnz: {
-            uint64_t result = !registers_.flags(register_file_t::flags_t::zero) ? 1 : 0;
+            operand_value_t result;
+            result.alias.u = !registers_.flags(register_file_t::flags_t::zero) ? 1 : 0;
             if (!set_target_operand_value(r, inst, 0, result)) {
                 return false;
             }
@@ -1035,27 +1110,28 @@ void terp::dump_heap(uint64_t offset, size_t size)
 	fmt::print("{}\n",pMemory);
 }
 
-bool terp::get_operand_value(result& r, const instruction_t& instruction, uint8_t operand_index, uint64_t& value) const
+bool terp::get_operand_value(result& r, const instruction_t& instruction, uint8_t operand_index, operand_value_t& value) const
 {
 	auto& operand = instruction.operands[operand_index];
+    value.type = operand.is_integer() ? register_type_t::integer : register_type_t::floating_point;
     if (operand.is_reg()) {
-        auto reg_index = register_index(static_cast<registers_t>(operand.value.r8),
+        auto reg_index = register_index(static_cast<registers_t>(operand.value.r),
             operand.is_integer() ? register_type_t::integer : register_type_t::floating_point);
-        value = registers_.r[reg_index].u;
+        value.alias.u = registers_.r[reg_index].u;
     } else {
-        value = operand.value.u64;
+        value.alias.u = operand.value.u;
     }
 	return true;
 }
 
-bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index, uint64_t value)
+bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index,
+                                    const operand_value_t& value)
 {
 	auto& operand = inst.operands[operand_index];
-
+    auto type = operand.is_integer() ? register_type_t::integer : register_type_t::floating_point;
     if (operand.is_reg()) {
-        auto reg_index = register_index(static_cast<registers_t>(operand.value.r8),
-            operand.is_integer() ? register_type_t::integer : register_type_t::floating_point);
-        registers_.r[reg_index].u = set_zoned_value(registers_.r[reg_index].u, value, inst.size);
+        auto reg_index = register_index(static_cast<registers_t>(operand.value.r), type);
+        registers_.r[reg_index].u = set_zoned_value(registers_.r[reg_index].u, value.alias.u, inst.size);
     } else {
         r.add_message("B006", "constant cannot be a target operand type.", true);
         return false;
@@ -1188,49 +1264,49 @@ bool terp::has_overflow(uint64_t lhs, uint64_t rhs, uint64_t result, op_sizes si
 	return false;
 }
 
-bool terp::is_negative(uint64_t value, op_sizes size)
+bool terp::is_negative(operand_value_t value, op_sizes size)
 {
 	switch (size) {
 		case op_sizes::byte: {
-			return (value & mask_byte_negative) != 0;
+			return (value.alias.u & mask_byte_negative) != 0;
 		}
 		case op_sizes::word: {
-			return (value & mask_word_negative) != 0;
+			return (value.alias.u & mask_word_negative) != 0;
 		}
 		case op_sizes::dword: {
-			return (value & mask_dword_negative) != 0;
+			return (value.alias.u & mask_dword_negative) != 0;
 		}
 		case op_sizes::qword:
 		default:
-			return (value & mask_qword_negative) != 0;
+			return (value.alias.u & mask_qword_negative) != 0;
 	}
 	return false;
 }
 
-bool terp::has_carry(uint64_t value, op_sizes size)
+bool terp::has_carry(operand_value_t value, op_sizes size)
 {
 	switch (size) {
 		case op_sizes::byte:
-			return value > UINT8_MAX;
+			return value.alias.u > UINT8_MAX;
 		case op_sizes::word:
-			return value > UINT16_MAX;
+			return value.alias.u > UINT16_MAX;
 		case op_sizes::dword:
-			return value > UINT32_MAX;
+			return value.alias.u > UINT32_MAX;
 		case op_sizes::qword:
 		default:
-			return value > UINT64_MAX;
+			return value.alias.u > UINT64_MAX;
 	}
 }
 
 bool terp::get_constant_address_or_pc_with_offset(result &r, const instruction_t &inst, uint8_t operand_index,
-	uint64_t inst_size, uint64_t &address)
+	uint64_t inst_size, operand_value_t &address)
 {
 	if (!get_operand_value(r, inst, operand_index, address)) {
 		return false;
 	}
 
 	if (inst.operands_count >= 2) {
-		uint64_t offset;
+		operand_value_t offset;
 
 		uint8_t offset_index = static_cast<uint8_t>(operand_index + 1);
 		if (!get_operand_value(r, inst, offset_index, offset)) {
@@ -1238,9 +1314,9 @@ bool terp::get_constant_address_or_pc_with_offset(result &r, const instruction_t
 		}
 
 		if (inst.operands[offset_index].is_negative()) {
-			address -= offset + inst_size;
+			address.alias.u -= offset.alias.u + inst_size;
 		} else {
-			address += offset - inst_size;
+			address.alias.u += offset.alias.u - inst_size;
 		}
 	}
 
@@ -1573,7 +1649,7 @@ void terp::write(op_sizes size, uint64_t address, uint64_t value)
     }
 }
 
-void terp::set_pc(uint64_t address)
+void terp::set_pc_address(uint64_t address)
 {
     registers_.r[register_pc].u = address;
 }

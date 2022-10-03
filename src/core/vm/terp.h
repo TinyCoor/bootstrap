@@ -30,10 +30,10 @@ namespace gfx {
 		static constexpr uint64_t mask_dword       = 0xffffffff;
 		static constexpr uint64_t mask_dword_clear = ~mask_dword;
 
-		static constexpr uint64_t mask_byte_negative  = 0b0000000000000000000000000000000000000000000000000000000010000000;
-		static constexpr uint64_t mask_word_negative  = 0b0000000000000000000000000000000000000000000000001000000000000000;
-		static constexpr uint64_t mask_dword_negative = 0b0000000000000000000000000000000010000000000000000000000000000000;
-		static constexpr uint64_t mask_qword_negative = 0b1000000000000000000000000000000000000000000000000000000000000000;
+		static constexpr uint64_t mask_byte_negative  = 0x80;
+		static constexpr uint64_t mask_word_negative  = 0x8000;
+		static constexpr uint64_t mask_dword_negative = 0x80000000;
+		static constexpr uint64_t mask_qword_negative = 0x8000000000000000;
 
 		/// 中断向量表
 		static constexpr size_t interrupt_vector_table_start = 0u;
@@ -136,32 +136,30 @@ namespace gfx {
 
 		void execute_trap(uint8_t index);
 
-		bool set_target_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t value);
+		bool set_target_operand_value(result& r, const instruction_t& inst, uint8_t operand_index,
+            const operand_value_t& value);
 
-		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index, uint64_t& value) const;
+		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index,
+            operand_value_t& value) const;
 
 		bool get_constant_address_or_pc_with_offset(result& r, const instruction_t& inst, uint8_t operand_index,
-			uint64_t inst_size, uint64_t& address);
+			uint64_t inst_size, operand_value_t& address);
 
 	private:
-        struct register_t {
-            registers_t number;
-            register_type_t type;
-            register_value_alias_t value;
-        };
-        void set_pc(uint64_t address);
+        void set_pc_address(uint64_t address);
+
 		uint64_t set_zoned_value(uint64_t source, uint64_t value, op_sizes size);
 
 		bool has_overflow(uint64_t lhs, uint64_t rhs, uint64_t result, op_sizes size);
 
-		bool has_carry(uint64_t value, op_sizes size);
+		bool has_carry(operand_value_t value, op_sizes size);
 
-		bool is_negative(uint64_t value, op_sizes size);
+		bool is_negative(operand_value_t value, op_sizes size);
 	private:
 		bool exited_ = false;
 		size_t heap_size_ = 0;
 		size_t stack_size_ = 0;
-		uint8_t * heap_ = nullptr;
+		uint8_t *heap_ = nullptr;
 		register_file_t registers_{};
 		instruction_cache inst_cache_;
 		meta_information_t meta_information_ {};

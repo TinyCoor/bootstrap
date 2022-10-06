@@ -13,7 +13,8 @@ module_type::module_type(block *parent_scope, block* scope)
 
 bool module_type::on_initialize(result &r, compiler::program *program)
 {
-    symbol(program->make_symbol(parent_scope(), "module"));
+    auto builder = program->builder();
+    symbol(builder.make_symbol(parent_scope(), "module"));
     return true;
 }
 }

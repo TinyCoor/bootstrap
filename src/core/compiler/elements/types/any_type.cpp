@@ -24,23 +24,24 @@ any_type::any_type(block * parent, block* scope)
 
 bool any_type::on_initialize(result &r, compiler::program* program)
 {
-    symbol(program->make_symbol(parent_scope(), "any"));
+    auto &builder = program->builder();
+    symbol(builder.make_symbol(parent_scope(), "any"));
     auto block_scope = scope();
 
     auto type_info_type = program->find_type(qualified_symbol_t{.name = "type"});
     auto u8_type = program->find_type(qualified_symbol_t{.name = "u8"});
 
-    auto type_info_identifier = program->make_identifier(block_scope,
-        program->make_symbol(parent_scope(), "type_info"), nullptr);
+    auto type_info_identifier = builder.make_identifier(block_scope,
+        builder.make_symbol(parent_scope(), "type_info"), nullptr);
 
     type_info_identifier->type(type_info_type);
-    auto type_info_field = program->make_field(block_scope, type_info_identifier);
+    auto type_info_field = builder.make_field(block_scope, type_info_identifier);
 
-    auto data_identifier = program->make_identifier(block_scope,
-       program->make_symbol(parent_scope(), "data"), nullptr);
+    auto data_identifier = builder.make_identifier(block_scope,
+                                                   builder.make_symbol(parent_scope(), "data"), nullptr);
 
-    data_identifier->type(program->make_pointer_type(r, block_scope, u8_type));
-    auto data_field = program->make_field(block_scope, data_identifier);
+    data_identifier->type(builder.make_pointer_type(r, block_scope, u8_type));
+    auto data_field = builder.make_field(block_scope, data_identifier);
 
     fields().add(type_info_field);
     fields().add(data_field);

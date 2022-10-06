@@ -38,7 +38,8 @@ compiler::type* array_type::entry_type()
 
 bool array_type::on_initialize(result &r, compiler::program* program)
 {
-    auto type_symbol = program->make_symbol(parent_scope(), name_for_array(entry_type_, size_));
+    auto &builder = program->builder();
+    auto type_symbol = builder.make_symbol(parent_scope(), name_for_array(entry_type_, size_));
     symbol(type_symbol);
     type_symbol->parent_element(this);
 
@@ -48,31 +49,31 @@ bool array_type::on_initialize(result &r, compiler::program* program)
     auto u32_type = program->find_type(qualified_symbol_t{.name = "u32"});
     auto type_info_type = program->find_type(qualified_symbol_t{.name = "type"});
 
-    auto flags_identifier = program->make_identifier(block_scope,
-        program->make_symbol(block_scope,"flags"), nullptr);
+    auto flags_identifier =  builder.make_identifier(block_scope,
+                                                     builder.make_symbol(block_scope,"flags"), nullptr);
     flags_identifier->type(u8_type);
-    auto flags_field = program->make_field(block_scope, flags_identifier);
+    auto flags_field =  builder.make_field(block_scope, flags_identifier);
 
-    auto length_identifier = program->make_identifier(block_scope,
-          program->make_symbol(block_scope,"length"), nullptr);
+    auto length_identifier =  builder.make_identifier(block_scope,
+                                                      builder.make_symbol(block_scope,"length"), nullptr);
     length_identifier->type(u32_type);
-    auto length_field = program->make_field(block_scope, length_identifier);
+    auto length_field =  builder.make_field(block_scope, length_identifier);
 
-    auto capacity_identifier = program->make_identifier(block_scope,
-         program->make_symbol(block_scope,"capacity"), nullptr);
+    auto capacity_identifier = builder.make_identifier(block_scope,
+                                                       builder.make_symbol(block_scope,"capacity"), nullptr);
     capacity_identifier->type(u32_type);
-    auto capacity_field = program->make_field(block_scope, capacity_identifier);
+    auto capacity_field =  builder.make_field(block_scope, capacity_identifier);
 
-    auto element_type_identifier = program->make_identifier(block_scope,
-         program->make_symbol(block_scope, "element_type"), nullptr);
+    auto element_type_identifier =  builder.make_identifier(block_scope,
+                                                            builder.make_symbol(block_scope, "element_type"), nullptr);
 
     element_type_identifier->type(type_info_type);
-    auto element_type_field = program->make_field(block_scope, element_type_identifier);
+    auto element_type_field =  builder.make_field(block_scope, element_type_identifier);
 
-    auto data_identifier = program->make_identifier(block_scope,
-        program->make_symbol(block_scope, "data"), nullptr);
-    data_identifier->type(program->make_pointer_type(r, block_scope, u8_type));
-    auto data_field = program->make_field(block_scope, data_identifier);
+    auto data_identifier =  builder.make_identifier(block_scope,
+                                                    builder.make_symbol(block_scope, "data"), nullptr);
+    data_identifier->type( builder.make_pointer_type(r, block_scope, u8_type));
+    auto data_field =  builder.make_field(block_scope, data_identifier);
 
     auto& field_map = fields();
     field_map.add(flags_field);

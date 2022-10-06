@@ -14,7 +14,8 @@ tuple_type::tuple_type(block *parent_scope, block* scope)
 
 bool tuple_type::on_initialize(result &r, compiler::program *program)
 {
-    symbol(program->make_symbol(parent_scope(), "tuple"));
+    auto &builder =program->builder();
+    symbol(builder.make_symbol(parent_scope(), "tuple"));
     return true;
 }
 

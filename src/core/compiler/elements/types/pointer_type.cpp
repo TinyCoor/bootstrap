@@ -19,7 +19,8 @@ pointer_type::pointer_type(compiler::block* parent_scope, compiler::type* base_t
 
 bool pointer_type::on_initialize(result& r, compiler::program* program)
 {
-    auto type_symbol = program->make_symbol(parent_scope(), name_for_pointer(base_type_));
+    auto &builder = program->builder();
+    auto type_symbol = builder.make_symbol(parent_scope(), name_for_pointer(base_type_));
     symbol(type_symbol);
     type_symbol->parent_element(this);
     return true;

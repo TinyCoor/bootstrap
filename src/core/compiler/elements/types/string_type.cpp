@@ -14,26 +14,27 @@ string_type::string_type(block* parent, block* scope)
 
 bool string_type::on_initialize(result &r, compiler::program *program)
 {
-    symbol(program->make_symbol(parent_scope(), "string"));
+    auto &builder = program->builder();
+    symbol(builder.make_symbol(parent_scope(), "string"));
     auto block_scope = scope();
 
     auto u32_type = program->find_type(qualified_symbol_t{.name = "u32"});
     auto u8_type = program->find_type({.name = "u8"});
 
-    auto length_identifier = program->make_identifier(block_scope,
-        program->make_symbol(block_scope, "length"), nullptr);
+    auto length_identifier = builder.make_identifier(block_scope,
+                                                     builder.make_symbol(block_scope, "length"), nullptr);
     length_identifier->type(u32_type);
-    auto length_field = program->make_field(block_scope, length_identifier);
+    auto length_field = builder.make_field(block_scope, length_identifier);
 
-    auto capacity_identifier = program->make_identifier(block_scope,
-        program->make_symbol(block_scope, "capacity"), nullptr);
+    auto capacity_identifier = builder.make_identifier(block_scope,
+                                                       builder.make_symbol(block_scope, "capacity"), nullptr);
     capacity_identifier->type(u32_type);
-    auto capacity_field = program->make_field(block_scope, capacity_identifier);
+    auto capacity_field = builder.make_field(block_scope, capacity_identifier);
 
-    auto data_identifier = program->make_identifier(block_scope,
-        program->make_symbol(block_scope,  "data"), nullptr);
-    data_identifier->type(program->make_pointer_type(r, block_scope, u8_type));
-    auto data_field = program->make_field(block_scope, data_identifier);
+    auto data_identifier = builder.make_identifier(block_scope,
+                                                   builder.make_symbol(block_scope,  "data"), nullptr);
+    data_identifier->type(builder.make_pointer_type(r, block_scope, u8_type));
+    auto data_field = builder.make_field(block_scope, data_identifier);
 
     fields().add(length_field);
     fields().add(capacity_field);

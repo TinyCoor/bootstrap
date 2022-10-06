@@ -168,6 +168,7 @@ static inline op_sizes op_size_for_byte_size(size_t size) {
 union operand_value_alias_t {
     uint8_t r;
     uint64_t u;
+    float f;
     double d;
 };
 

@@ -28,8 +28,9 @@ uint64_t numeric_type::max() const
 type_list_t numeric_type::make_types(result& r, compiler::block* parent, compiler::program* program)
 {
 	type_list_t list {};
+    auto &builder = program->builder();
 	for (const auto& props : s_type_properties) {
-		auto type = program->make_numeric_type(r, parent, props.name, props.min, props.max, props.is_signed,
+		auto type = builder.make_numeric_type(r, parent, props.name, props.min, props.max, props.is_signed,
                                                props.number_class);
 		type->initialize(r, program);
 		program->add_type_to_scope(type);

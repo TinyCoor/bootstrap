@@ -13,7 +13,8 @@ namespace_type::namespace_type(block *parent)
 
 bool namespace_type::on_initialize(result &r, compiler::program* program)
 {
-    symbol(program->make_symbol(parent_scope(), "namespace"));
+    auto &builder = program->builder();
+    symbol(builder.make_symbol(parent_scope(), "namespace"));
 	return true;
 }
 }

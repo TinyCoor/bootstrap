@@ -75,11 +75,13 @@ struct block_entry_t {
             return nullptr;
         }
     }
-    uint64_t address() const {
+    [[nodiscard]] uint64_t address() const
+    {
         return address_;
     }
 
-    void address(uint64_t value) {
+    void address(uint64_t value)
+    {
         address_ = value;
         for (auto label : labels_) {
             label->address(value);
@@ -91,7 +93,7 @@ struct block_entry_t {
         blank_lines_ += count;
     }
 
-    inline uint16_t blank_lines() const
+    [[nodiscard]] inline uint16_t blank_lines() const
     {
         return blank_lines_;
     }

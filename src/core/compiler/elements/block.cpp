@@ -79,6 +79,7 @@ bool block::on_emit(result &r, emit_context_t& context)
                 instruction_block->current_entry()->comment(fmt::format(
                     "module: {}",
                     parent_module->source_file()->path().string()));
+                cleanup = !parent_module->is_root();
             }
             instruction_block->current_entry()->blank_lines(1);
 

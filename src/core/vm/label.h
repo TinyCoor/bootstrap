@@ -11,9 +11,9 @@ class label {
 public:
     explicit label(const std::string& name);
 
-    uint64_t address() const;
+    [[nodiscard]] uint64_t address() const;
 
-    std::string name() const;
+    [[nodiscard]] std::string name() const;
 
     void address(uint64_t value);
 

@@ -195,7 +195,7 @@ element_register_t::~element_register_t()
         if (var != nullptr) {
             var->make_dormat(assembler);
         } else {
-            assembler->free_reg(i);
+            assembler->free_reg(reg);
         }
     }
 }

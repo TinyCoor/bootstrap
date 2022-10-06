@@ -95,7 +95,8 @@ static inline std::unordered_map<composite_types_t, std::string_view> s_composit
 	{composite_types_t::struct_type, "struct_type"},
 };
 
-static inline std::string_view composite_type_name(composite_types_t type) {
+static inline std::string_view composite_type_name(composite_types_t type)
+{
 	auto it = s_composite_type_names.find(type);
 	if (it == s_composite_type_names.end()) {
 		return "unknown_composite_type";
@@ -410,11 +411,10 @@ std::string make_fully_qualified_name(const qualified_symbol_t& symbol);
 struct variable_t;
 struct element_register_t {
     ~element_register_t();
-    op_sizes size() const;
+    [[nodiscard]] op_sizes size() const;
     bool valid = false;
     bool clean_up = false;
-    bool integer = true;
-    registers_t i;
+    register_t reg;
     variable_t* var = nullptr;
     assembler* assembler = nullptr;
 };

@@ -37,17 +37,17 @@ bool emit_context_t::has_scratch_register() const
     }
 }
 
-registers_t emit_context_t::pop_scratch_register()
+register_t emit_context_t::pop_scratch_register()
 {
     if (scratch_registers.empty()) {
-        return registers_t::r0;
+        return register_t::pc();
     }
     auto reg = scratch_registers.top();
     scratch_registers.pop();
     return reg;
 }
 
-void emit_context_t::push_scratch_register(registers_t reg)
+void emit_context_t::push_scratch_register(register_t reg)
 {
     scratch_registers.push(reg);
 }

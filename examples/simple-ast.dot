@@ -1,0 +1,1325 @@
+digraph {
+graph [ fontsize=22 ];
+labelloc="t";
+label="AST Graph: D:\Coding\Cpp\bootstrap\examples\simple-ast.dot";
+	module1[shape=record,label="<f1> module", fillcolor=cadetblue, style="filled"];
+	statement28[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	directive4[shape=record,label="<f0> lhs|<f1> directive|{ token: 'foreign' }"];
+	assignment7[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list8[shape=record,label="<f1> assignment_target_list"];
+	symbol5[shape=record,label="<f1> symbol"];
+	symbol_part6[shape=record,label="<f1> symbol_part|{ token: 'print' }"];
+symbol5:f1 -> symbol_part6:f1 [label="[00]"];
+
+assignment_target_list8:f1 -> symbol5:f1 [label="[00]"];
+
+assignment7:f0 -> assignment_target_list8:f1;
+	assignment_source_list9[shape=record,label="<f1> assignment_source_list"];
+	proc_expression10[shape=record,label="<f0> lhs|<f1> proc_expression|<f2> rhs", fillcolor=cyan, style="filled"];
+	type_list11[shape=record,label="<f1> type_list"];
+proc_expression10:f0 -> type_list11:f1;
+	parameter_list12[shape=record,label="<f1> parameter_list"];
+	symbol13[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier18[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol16[shape=record,label="<f1> symbol"];
+	symbol_part17[shape=record,label="<f1> symbol_part|{ token: 'string' }"];
+symbol16:f1 -> symbol_part17:f1 [label="[00]"];
+
+type_identifier18:f0 -> symbol16:f1;
+	array_subscript_list15[shape=record,label="<f1> array_subscript_list"];
+type_identifier18:f2 -> array_subscript_list15:f1;
+symbol13:f2 -> type_identifier18:f1;
+	symbol_part14[shape=record,label="<f1> symbol_part|{ token: 'format' }"];
+symbol13:f1 -> symbol_part14:f1 [label="[00]"];
+
+	symbol20[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier25[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol23[shape=record,label="<f1> symbol"];
+	symbol_part24[shape=record,label="<f1> symbol_part|{ token: 'any' }"];
+symbol23:f1 -> symbol_part24:f1 [label="[00]"];
+
+type_identifier25:f0 -> symbol23:f1;
+	array_subscript_list22[shape=record,label="<f1> array_subscript_list"];
+type_identifier25:f2 -> array_subscript_list22:f1;
+symbol20:f2 -> type_identifier25:f1;
+	symbol_part21[shape=record,label="<f1> symbol_part|{ token: 'values' }"];
+symbol20:f1 -> symbol_part21:f1 [label="[00]"];
+
+parameter_list12:f1 -> symbol13:f1 [label="[00]"];
+parameter_list12:f1 -> symbol20:f1 [label="[01]"];
+
+proc_expression10:f2 -> parameter_list12:f1;
+	attribute26[shape=record,label="<f0> lhs|<f1> attribute|{ token: 'alias' }", fillcolor=darkseagreen, style="filled"];
+	string_literal27[shape=record,label="<f1> string_literal|{ token: 'print' }"];
+attribute26:f0 -> string_literal27:f1;
+proc_expression10:f1 -> attribute26:f1 [label="[00]"];
+
+assignment_source_list9:f1 -> proc_expression10:f1 [label="[00]"];
+
+assignment7:f2 -> assignment_source_list9:f1;
+directive4:f0 -> assignment7:f1;
+	attribute2[shape=record,label="<f0> lhs|<f1> attribute|{ token: 'library' }", fillcolor=darkseagreen, style="filled"];
+	string_literal3[shape=record,label="<f1> string_literal|{ token: 'libcompiler-rt' }"];
+attribute2:f0 -> string_literal3:f1;
+directive4:f1 -> attribute2:f1 [label="[00]"];
+
+statement28:f2 -> directive4:f1;
+	statement36[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment31[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list32[shape=record,label="<f1> assignment_target_list"];
+	symbol29[shape=record,label="<f1> symbol"];
+	symbol_part30[shape=record,label="<f1> symbol_part|{ token: 'preload' }"];
+symbol29:f1 -> symbol_part30:f1 [label="[00]"];
+
+assignment_target_list32:f1 -> symbol29:f1 [label="[00]"];
+
+assignment31:f0 -> assignment_target_list32:f1;
+	assignment_source_list33[shape=record,label="<f1> assignment_source_list"];
+	module_expression34[shape=record,label="<f1> module_expression|{ token: 'module' }|<f2> rhs"];
+	string_literal35[shape=record,label="<f1> string_literal|{ token: 'preload.gfx' }"];
+module_expression34:f2 -> string_literal35:f1;
+assignment_source_list33:f1 -> module_expression34:f1 [label="[00]"];
+
+assignment31:f2 -> assignment_source_list33:f1;
+statement36:f2 -> assignment31:f1;
+	line_comment37[shape=record,label="<f1> line_comment|{ token: ' bool' }", fillcolor=green, style="filled"];
+	line_comment38[shape=record,label="<f1> line_comment|{ token: ' uninitialized' }", fillcolor=green, style="filled"];
+	statement45[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol39[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier44[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol42[shape=record,label="<f1> symbol"];
+	symbol_part43[shape=record,label="<f1> symbol_part|{ token: 'bool' }"];
+symbol42:f1 -> symbol_part43:f1 [label="[00]"];
+
+type_identifier44:f0 -> symbol42:f1;
+	array_subscript_list41[shape=record,label="<f1> array_subscript_list"];
+type_identifier44:f2 -> array_subscript_list41:f1;
+symbol39:f2 -> type_identifier44:f1;
+	symbol_part40[shape=record,label="<f1> symbol_part|{ token: 'bool_true_uninit' }"];
+symbol39:f1 -> symbol_part40:f1 [label="[00]"];
+
+statement45:f2 -> symbol39:f1;
+	statement52[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment48[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list49[shape=record,label="<f1> assignment_target_list"];
+	symbol46[shape=record,label="<f1> symbol"];
+	symbol_part47[shape=record,label="<f1> symbol_part|{ token: 'bool_true_uninit' }"];
+symbol46:f1 -> symbol_part47:f1 [label="[00]"];
+
+assignment_target_list49:f1 -> symbol46:f1 [label="[00]"];
+
+assignment48:f0 -> assignment_target_list49:f1;
+	assignment_source_list50[shape=record,label="<f1> assignment_source_list"];
+	boolean_literal51[shape=record,label="<f1> boolean_literal|{ token: 'true' }"];
+assignment_source_list50:f1 -> boolean_literal51:f1 [label="[00]"];
+
+assignment48:f2 -> assignment_source_list50:f1;
+statement52:f2 -> assignment48:f1;
+	statement59[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol53[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier58[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol56[shape=record,label="<f1> symbol"];
+	symbol_part57[shape=record,label="<f1> symbol_part|{ token: 'bool' }"];
+symbol56:f1 -> symbol_part57:f1 [label="[00]"];
+
+type_identifier58:f0 -> symbol56:f1;
+	array_subscript_list55[shape=record,label="<f1> array_subscript_list"];
+type_identifier58:f2 -> array_subscript_list55:f1;
+symbol53:f2 -> type_identifier58:f1;
+	symbol_part54[shape=record,label="<f1> symbol_part|{ token: 'bool_false_uninit' }"];
+symbol53:f1 -> symbol_part54:f1 [label="[00]"];
+
+statement59:f2 -> symbol53:f1;
+	statement66[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment62[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list63[shape=record,label="<f1> assignment_target_list"];
+	symbol60[shape=record,label="<f1> symbol"];
+	symbol_part61[shape=record,label="<f1> symbol_part|{ token: 'bool_false_uninit' }"];
+symbol60:f1 -> symbol_part61:f1 [label="[00]"];
+
+assignment_target_list63:f1 -> symbol60:f1 [label="[00]"];
+
+assignment62:f0 -> assignment_target_list63:f1;
+	assignment_source_list64[shape=record,label="<f1> assignment_source_list"];
+	boolean_literal65[shape=record,label="<f1> boolean_literal|{ token: 'false' }"];
+assignment_source_list64:f1 -> boolean_literal65:f1 [label="[00]"];
+
+assignment62:f2 -> assignment_source_list64:f1;
+statement66:f2 -> assignment62:f1;
+	line_comment67[shape=record,label="<f1> line_comment|{ token: ' initialized' }", fillcolor=green, style="filled"];
+	statement78[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment74[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list75[shape=record,label="<f1> assignment_target_list"];
+	symbol68[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier73[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol71[shape=record,label="<f1> symbol"];
+	symbol_part72[shape=record,label="<f1> symbol_part|{ token: 'bool' }"];
+symbol71:f1 -> symbol_part72:f1 [label="[00]"];
+
+type_identifier73:f0 -> symbol71:f1;
+	array_subscript_list70[shape=record,label="<f1> array_subscript_list"];
+type_identifier73:f2 -> array_subscript_list70:f1;
+symbol68:f2 -> type_identifier73:f1;
+	symbol_part69[shape=record,label="<f1> symbol_part|{ token: 'bool_true_init' }"];
+symbol68:f1 -> symbol_part69:f1 [label="[00]"];
+
+assignment_target_list75:f1 -> symbol68:f1 [label="[00]"];
+
+assignment74:f0 -> assignment_target_list75:f1;
+	assignment_source_list76[shape=record,label="<f1> assignment_source_list"];
+	boolean_literal77[shape=record,label="<f1> boolean_literal|{ token: 'true' }"];
+assignment_source_list76:f1 -> boolean_literal77:f1 [label="[00]"];
+
+assignment74:f2 -> assignment_source_list76:f1;
+statement78:f2 -> assignment74:f1;
+	statement89[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment85[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list86[shape=record,label="<f1> assignment_target_list"];
+	symbol79[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier84[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol82[shape=record,label="<f1> symbol"];
+	symbol_part83[shape=record,label="<f1> symbol_part|{ token: 'bool' }"];
+symbol82:f1 -> symbol_part83:f1 [label="[00]"];
+
+type_identifier84:f0 -> symbol82:f1;
+	array_subscript_list81[shape=record,label="<f1> array_subscript_list"];
+type_identifier84:f2 -> array_subscript_list81:f1;
+symbol79:f2 -> type_identifier84:f1;
+	symbol_part80[shape=record,label="<f1> symbol_part|{ token: 'bool_false_init' }"];
+symbol79:f1 -> symbol_part80:f1 [label="[00]"];
+
+assignment_target_list86:f1 -> symbol79:f1 [label="[00]"];
+
+assignment85:f0 -> assignment_target_list86:f1;
+	assignment_source_list87[shape=record,label="<f1> assignment_source_list"];
+	boolean_literal88[shape=record,label="<f1> boolean_literal|{ token: 'false' }"];
+assignment_source_list87:f1 -> boolean_literal88:f1 [label="[00]"];
+
+assignment85:f2 -> assignment_source_list87:f1;
+statement89:f2 -> assignment85:f1;
+	statement98[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	proc_call92[shape=record,label="<f0> lhs|<f1> proc_call|<f2> rhs", fillcolor=darkorchid1, style="filled"];
+	symbol90[shape=record,label="<f1> symbol"];
+	symbol_part91[shape=record,label="<f1> symbol_part|{ token: 'print' }"];
+symbol90:f1 -> symbol_part91:f1 [label="[00]"];
+
+proc_call92:f0 -> symbol90:f1;
+	argument_list93[shape=record,label="<f1> argument_list"];
+	string_literal94[shape=record,label="<f1> string_literal|{ token: 'bool_true_init := %hhu (before not)\n' }"];
+	symbol96[shape=record,label="<f1> symbol"];
+	symbol_part97[shape=record,label="<f1> symbol_part|{ token: 'bool_true_init' }"];
+symbol96:f1 -> symbol_part97:f1 [label="[00]"];
+
+argument_list93:f1 -> string_literal94:f1 [label="[00]"];
+argument_list93:f1 -> symbol96:f1 [label="[01]"];
+
+proc_call92:f2 -> argument_list93:f1;
+statement98:f2 -> proc_call92:f1;
+	statement107[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment101[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list102[shape=record,label="<f1> assignment_target_list"];
+	symbol99[shape=record,label="<f1> symbol"];
+	symbol_part100[shape=record,label="<f1> symbol_part|{ token: 'bool_true_init' }"];
+symbol99:f1 -> symbol_part100:f1 [label="[00]"];
+
+assignment_target_list102:f1 -> symbol99:f1 [label="[00]"];
+
+assignment101:f0 -> assignment_target_list102:f1;
+	assignment_source_list103[shape=record,label="<f1> assignment_source_list"];
+	unary_operator104[shape=record,label="<f1> unary_operator|{ token: '!' }|<f2> rhs"];
+	symbol105[shape=record,label="<f1> symbol"];
+	symbol_part106[shape=record,label="<f1> symbol_part|{ token: 'bool_true_init' }"];
+symbol105:f1 -> symbol_part106:f1 [label="[00]"];
+
+unary_operator104:f2 -> symbol105:f1;
+assignment_source_list103:f1 -> unary_operator104:f1 [label="[00]"];
+
+assignment101:f2 -> assignment_source_list103:f1;
+statement107:f2 -> assignment101:f1;
+	statement116[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	proc_call110[shape=record,label="<f0> lhs|<f1> proc_call|<f2> rhs", fillcolor=darkorchid1, style="filled"];
+	symbol108[shape=record,label="<f1> symbol"];
+	symbol_part109[shape=record,label="<f1> symbol_part|{ token: 'print' }"];
+symbol108:f1 -> symbol_part109:f1 [label="[00]"];
+
+proc_call110:f0 -> symbol108:f1;
+	argument_list111[shape=record,label="<f1> argument_list"];
+	string_literal112[shape=record,label="<f1> string_literal|{ token: 'bool_true_init := %hhu (after not)\n' }"];
+	symbol114[shape=record,label="<f1> symbol"];
+	symbol_part115[shape=record,label="<f1> symbol_part|{ token: 'bool_true_init' }"];
+symbol114:f1 -> symbol_part115:f1 [label="[00]"];
+
+argument_list111:f1 -> string_literal112:f1 [label="[00]"];
+argument_list111:f1 -> symbol114:f1 [label="[01]"];
+
+proc_call110:f2 -> argument_list111:f1;
+statement116:f2 -> proc_call110:f1;
+	line_comment117[shape=record,label="<f1> line_comment|{ token: '/////////////////////////////////////////////////////////////////////////////' }", fillcolor=green, style="filled"];
+	line_comment118[shape=record,label="<f1> line_comment|{ token: ' u8' }", fillcolor=green, style="filled"];
+	line_comment119[shape=record,label="<f1> line_comment|{ token: ' uninitialized' }", fillcolor=green, style="filled"];
+	statement126[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol120[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier125[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol123[shape=record,label="<f1> symbol"];
+	symbol_part124[shape=record,label="<f1> symbol_part|{ token: 'u8' }"];
+symbol123:f1 -> symbol_part124:f1 [label="[00]"];
+
+type_identifier125:f0 -> symbol123:f1;
+	array_subscript_list122[shape=record,label="<f1> array_subscript_list"];
+type_identifier125:f2 -> array_subscript_list122:f1;
+symbol120:f2 -> type_identifier125:f1;
+	symbol_part121[shape=record,label="<f1> symbol_part|{ token: 'unsigned_byte_min' }"];
+symbol120:f1 -> symbol_part121:f1 [label="[00]"];
+
+statement126:f2 -> symbol120:f1;
+	statement133[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment129[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list130[shape=record,label="<f1> assignment_target_list"];
+	symbol127[shape=record,label="<f1> symbol"];
+	symbol_part128[shape=record,label="<f1> symbol_part|{ token: 'unsigned_byte_min' }"];
+symbol127:f1 -> symbol_part128:f1 [label="[00]"];
+
+assignment_target_list130:f1 -> symbol127:f1 [label="[00]"];
+
+assignment129:f0 -> assignment_target_list130:f1;
+	assignment_source_list131[shape=record,label="<f1> assignment_source_list"];
+	number_literal132[shape=record,label="<f1> number_literal|{ token: '0' | radix: 10}"];
+assignment_source_list131:f1 -> number_literal132:f1 [label="[00]"];
+
+assignment129:f2 -> assignment_source_list131:f1;
+statement133:f2 -> assignment129:f1;
+	statement140[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol134[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier139[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol137[shape=record,label="<f1> symbol"];
+	symbol_part138[shape=record,label="<f1> symbol_part|{ token: 'u8' }"];
+symbol137:f1 -> symbol_part138:f1 [label="[00]"];
+
+type_identifier139:f0 -> symbol137:f1;
+	array_subscript_list136[shape=record,label="<f1> array_subscript_list"];
+type_identifier139:f2 -> array_subscript_list136:f1;
+symbol134:f2 -> type_identifier139:f1;
+	symbol_part135[shape=record,label="<f1> symbol_part|{ token: 'unsigned_byte_max' }"];
+symbol134:f1 -> symbol_part135:f1 [label="[00]"];
+
+statement140:f2 -> symbol134:f1;
+	statement147[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment143[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list144[shape=record,label="<f1> assignment_target_list"];
+	symbol141[shape=record,label="<f1> symbol"];
+	symbol_part142[shape=record,label="<f1> symbol_part|{ token: 'unsigned_byte_max' }"];
+symbol141:f1 -> symbol_part142:f1 [label="[00]"];
+
+assignment_target_list144:f1 -> symbol141:f1 [label="[00]"];
+
+assignment143:f0 -> assignment_target_list144:f1;
+	assignment_source_list145[shape=record,label="<f1> assignment_source_list"];
+	number_literal146[shape=record,label="<f1> number_literal|{ token: '255' | radix: 10}"];
+assignment_source_list145:f1 -> number_literal146:f1 [label="[00]"];
+
+assignment143:f2 -> assignment_source_list145:f1;
+statement147:f2 -> assignment143:f1;
+	statement163[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment150[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list151[shape=record,label="<f1> assignment_target_list"];
+	symbol148[shape=record,label="<f1> symbol"];
+	symbol_part149[shape=record,label="<f1> symbol_part|{ token: 'temp' }"];
+symbol148:f1 -> symbol_part149:f1 [label="[00]"];
+
+assignment_target_list151:f1 -> symbol148:f1 [label="[00]"];
+
+assignment150:f0 -> assignment_target_list151:f1;
+	assignment_source_list152[shape=record,label="<f1> assignment_source_list"];
+	binary_operator162[shape=record,label="<f0> lhs|<f1> binary_operator|{ token: 'shl' }|<f2> rhs", fillcolor=goldenrod1, style="filled"];
+	expression153[shape=record,label="<f0> lhs|<f1> expression"];
+	binary_operator160[shape=record,label="<f0> lhs|<f1> binary_operator|{ token: '/' }|<f2> rhs", fillcolor=goldenrod1, style="filled"];
+	expression154[shape=record,label="<f0> lhs|<f1> expression"];
+	binary_operator158[shape=record,label="<f0> lhs|<f1> binary_operator|{ token: '*' }|<f2> rhs", fillcolor=goldenrod1, style="filled"];
+	symbol155[shape=record,label="<f1> symbol"];
+	symbol_part156[shape=record,label="<f1> symbol_part|{ token: 'unsigned_byte_max' }"];
+symbol155:f1 -> symbol_part156:f1 [label="[00]"];
+
+binary_operator158:f0 -> symbol155:f1;
+	number_literal157[shape=record,label="<f1> number_literal|{ token: '4' | radix: 10}"];
+binary_operator158:f2 -> number_literal157:f1;
+expression154:f0 -> binary_operator158:f1;
+binary_operator160:f0 -> expression154:f1;
+	number_literal159[shape=record,label="<f1> number_literal|{ token: '2' | radix: 10}"];
+binary_operator160:f2 -> number_literal159:f1;
+expression153:f0 -> binary_operator160:f1;
+binary_operator162:f0 -> expression153:f1;
+	number_literal161[shape=record,label="<f1> number_literal|{ token: '4' | radix: 10}"];
+binary_operator162:f2 -> number_literal161:f1;
+assignment_source_list152:f1 -> binary_operator162:f1 [label="[00]"];
+
+assignment150:f2 -> assignment_source_list152:f1;
+statement163:f2 -> assignment150:f1;
+	statement172[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment166[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list167[shape=record,label="<f1> assignment_target_list"];
+	symbol164[shape=record,label="<f1> symbol"];
+	symbol_part165[shape=record,label="<f1> symbol_part|{ token: 'temp' }"];
+symbol164:f1 -> symbol_part165:f1 [label="[00]"];
+
+assignment_target_list167:f1 -> symbol164:f1 [label="[00]"];
+
+assignment166:f0 -> assignment_target_list167:f1;
+	assignment_source_list168[shape=record,label="<f1> assignment_source_list"];
+	unary_operator169[shape=record,label="<f1> unary_operator|{ token: '~' }|<f2> rhs"];
+	symbol170[shape=record,label="<f1> symbol"];
+	symbol_part171[shape=record,label="<f1> symbol_part|{ token: 'temp' }"];
+symbol170:f1 -> symbol_part171:f1 [label="[00]"];
+
+unary_operator169:f2 -> symbol170:f1;
+assignment_source_list168:f1 -> unary_operator169:f1 [label="[00]"];
+
+assignment166:f2 -> assignment_source_list168:f1;
+statement172:f2 -> assignment166:f1;
+	statement181[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	proc_call175[shape=record,label="<f0> lhs|<f1> proc_call|<f2> rhs", fillcolor=darkorchid1, style="filled"];
+	symbol173[shape=record,label="<f1> symbol"];
+	symbol_part174[shape=record,label="<f1> symbol_part|{ token: 'print' }"];
+symbol173:f1 -> symbol_part174:f1 [label="[00]"];
+
+proc_call175:f0 -> symbol173:f1;
+	argument_list176[shape=record,label="<f1> argument_list"];
+	string_literal177[shape=record,label="<f1> string_literal|{ token: 'temp := %X\n' }"];
+	symbol179[shape=record,label="<f1> symbol"];
+	symbol_part180[shape=record,label="<f1> symbol_part|{ token: 'temp' }"];
+symbol179:f1 -> symbol_part180:f1 [label="[00]"];
+
+argument_list176:f1 -> string_literal177:f1 [label="[00]"];
+argument_list176:f1 -> symbol179:f1 [label="[01]"];
+
+proc_call175:f2 -> argument_list176:f1;
+statement181:f2 -> proc_call175:f1;
+	statement188[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol182[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier187[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol185[shape=record,label="<f1> symbol"];
+	symbol_part186[shape=record,label="<f1> symbol_part|{ token: 's8' }"];
+symbol185:f1 -> symbol_part186:f1 [label="[00]"];
+
+type_identifier187:f0 -> symbol185:f1;
+	array_subscript_list184[shape=record,label="<f1> array_subscript_list"];
+type_identifier187:f2 -> array_subscript_list184:f1;
+symbol182:f2 -> type_identifier187:f1;
+	symbol_part183[shape=record,label="<f1> symbol_part|{ token: 'signed_byte_min' }"];
+symbol182:f1 -> symbol_part183:f1 [label="[00]"];
+
+statement188:f2 -> symbol182:f1;
+	statement195[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment191[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list192[shape=record,label="<f1> assignment_target_list"];
+	symbol189[shape=record,label="<f1> symbol"];
+	symbol_part190[shape=record,label="<f1> symbol_part|{ token: 'signed_byte_min' }"];
+symbol189:f1 -> symbol_part190:f1 [label="[00]"];
+
+assignment_target_list192:f1 -> symbol189:f1 [label="[00]"];
+
+assignment191:f0 -> assignment_target_list192:f1;
+	assignment_source_list193[shape=record,label="<f1> assignment_source_list"];
+	number_literal194[shape=record,label="<f1> number_literal|{ token: '-127' | radix: 10}"];
+assignment_source_list193:f1 -> number_literal194:f1 [label="[00]"];
+
+assignment191:f2 -> assignment_source_list193:f1;
+statement195:f2 -> assignment191:f1;
+	statement202[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol196[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier201[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol199[shape=record,label="<f1> symbol"];
+	symbol_part200[shape=record,label="<f1> symbol_part|{ token: 's8' }"];
+symbol199:f1 -> symbol_part200:f1 [label="[00]"];
+
+type_identifier201:f0 -> symbol199:f1;
+	array_subscript_list198[shape=record,label="<f1> array_subscript_list"];
+type_identifier201:f2 -> array_subscript_list198:f1;
+symbol196:f2 -> type_identifier201:f1;
+	symbol_part197[shape=record,label="<f1> symbol_part|{ token: 'signed_byte_max' }"];
+symbol196:f1 -> symbol_part197:f1 [label="[00]"];
+
+statement202:f2 -> symbol196:f1;
+	statement209[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment205[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list206[shape=record,label="<f1> assignment_target_list"];
+	symbol203[shape=record,label="<f1> symbol"];
+	symbol_part204[shape=record,label="<f1> symbol_part|{ token: 'signed_byte_max' }"];
+symbol203:f1 -> symbol_part204:f1 [label="[00]"];
+
+assignment_target_list206:f1 -> symbol203:f1 [label="[00]"];
+
+assignment205:f0 -> assignment_target_list206:f1;
+	assignment_source_list207[shape=record,label="<f1> assignment_source_list"];
+	number_literal208[shape=record,label="<f1> number_literal|{ token: '128' | radix: 10}"];
+assignment_source_list207:f1 -> number_literal208:f1 [label="[00]"];
+
+assignment205:f2 -> assignment_source_list207:f1;
+statement209:f2 -> assignment205:f1;
+	line_comment210[shape=record,label="<f1> line_comment|{ token: ' initialized' }", fillcolor=green, style="filled"];
+	statement221[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment217[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list218[shape=record,label="<f1> assignment_target_list"];
+	symbol211[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier216[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol214[shape=record,label="<f1> symbol"];
+	symbol_part215[shape=record,label="<f1> symbol_part|{ token: 'u8' }"];
+symbol214:f1 -> symbol_part215:f1 [label="[00]"];
+
+type_identifier216:f0 -> symbol214:f1;
+	array_subscript_list213[shape=record,label="<f1> array_subscript_list"];
+type_identifier216:f2 -> array_subscript_list213:f1;
+symbol211:f2 -> type_identifier216:f1;
+	symbol_part212[shape=record,label="<f1> symbol_part|{ token: 'unsigned_byte_init_min' }"];
+symbol211:f1 -> symbol_part212:f1 [label="[00]"];
+
+assignment_target_list218:f1 -> symbol211:f1 [label="[00]"];
+
+assignment217:f0 -> assignment_target_list218:f1;
+	assignment_source_list219[shape=record,label="<f1> assignment_source_list"];
+	number_literal220[shape=record,label="<f1> number_literal|{ token: '0' | radix: 10}"];
+assignment_source_list219:f1 -> number_literal220:f1 [label="[00]"];
+
+assignment217:f2 -> assignment_source_list219:f1;
+statement221:f2 -> assignment217:f1;
+	statement232[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment228[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list229[shape=record,label="<f1> assignment_target_list"];
+	symbol222[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier227[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol225[shape=record,label="<f1> symbol"];
+	symbol_part226[shape=record,label="<f1> symbol_part|{ token: 'u8' }"];
+symbol225:f1 -> symbol_part226:f1 [label="[00]"];
+
+type_identifier227:f0 -> symbol225:f1;
+	array_subscript_list224[shape=record,label="<f1> array_subscript_list"];
+type_identifier227:f2 -> array_subscript_list224:f1;
+symbol222:f2 -> type_identifier227:f1;
+	symbol_part223[shape=record,label="<f1> symbol_part|{ token: 'unsigned_byte_init_max' }"];
+symbol222:f1 -> symbol_part223:f1 [label="[00]"];
+
+assignment_target_list229:f1 -> symbol222:f1 [label="[00]"];
+
+assignment228:f0 -> assignment_target_list229:f1;
+	assignment_source_list230[shape=record,label="<f1> assignment_source_list"];
+	number_literal231[shape=record,label="<f1> number_literal|{ token: '255' | radix: 10}"];
+assignment_source_list230:f1 -> number_literal231:f1 [label="[00]"];
+
+assignment228:f2 -> assignment_source_list230:f1;
+statement232:f2 -> assignment228:f1;
+	statement243[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment239[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list240[shape=record,label="<f1> assignment_target_list"];
+	symbol233[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier238[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol236[shape=record,label="<f1> symbol"];
+	symbol_part237[shape=record,label="<f1> symbol_part|{ token: 's8' }"];
+symbol236:f1 -> symbol_part237:f1 [label="[00]"];
+
+type_identifier238:f0 -> symbol236:f1;
+	array_subscript_list235[shape=record,label="<f1> array_subscript_list"];
+type_identifier238:f2 -> array_subscript_list235:f1;
+symbol233:f2 -> type_identifier238:f1;
+	symbol_part234[shape=record,label="<f1> symbol_part|{ token: 'signed_byte_init_min' }"];
+symbol233:f1 -> symbol_part234:f1 [label="[00]"];
+
+assignment_target_list240:f1 -> symbol233:f1 [label="[00]"];
+
+assignment239:f0 -> assignment_target_list240:f1;
+	assignment_source_list241[shape=record,label="<f1> assignment_source_list"];
+	number_literal242[shape=record,label="<f1> number_literal|{ token: '-128' | radix: 10}"];
+assignment_source_list241:f1 -> number_literal242:f1 [label="[00]"];
+
+assignment239:f2 -> assignment_source_list241:f1;
+statement243:f2 -> assignment239:f1;
+	statement254[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment250[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list251[shape=record,label="<f1> assignment_target_list"];
+	symbol244[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier249[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol247[shape=record,label="<f1> symbol"];
+	symbol_part248[shape=record,label="<f1> symbol_part|{ token: 's8' }"];
+symbol247:f1 -> symbol_part248:f1 [label="[00]"];
+
+type_identifier249:f0 -> symbol247:f1;
+	array_subscript_list246[shape=record,label="<f1> array_subscript_list"];
+type_identifier249:f2 -> array_subscript_list246:f1;
+symbol244:f2 -> type_identifier249:f1;
+	symbol_part245[shape=record,label="<f1> symbol_part|{ token: 'signed_byte_init_max' }"];
+symbol244:f1 -> symbol_part245:f1 [label="[00]"];
+
+assignment_target_list251:f1 -> symbol244:f1 [label="[00]"];
+
+assignment250:f0 -> assignment_target_list251:f1;
+	assignment_source_list252[shape=record,label="<f1> assignment_source_list"];
+	number_literal253[shape=record,label="<f1> number_literal|{ token: '127' | radix: 10}"];
+assignment_source_list252:f1 -> number_literal253:f1 [label="[00]"];
+
+assignment250:f2 -> assignment_source_list252:f1;
+statement254:f2 -> assignment250:f1;
+	line_comment255[shape=record,label="<f1> line_comment|{ token: '/////////////////////////////////////////////////////////////////////////////' }", fillcolor=green, style="filled"];
+	line_comment256[shape=record,label="<f1> line_comment|{ token: ' u16' }", fillcolor=green, style="filled"];
+	line_comment257[shape=record,label="<f1> line_comment|{ token: ' uninitialized' }", fillcolor=green, style="filled"];
+	statement264[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol258[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier263[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol261[shape=record,label="<f1> symbol"];
+	symbol_part262[shape=record,label="<f1> symbol_part|{ token: 'u16' }"];
+symbol261:f1 -> symbol_part262:f1 [label="[00]"];
+
+type_identifier263:f0 -> symbol261:f1;
+	array_subscript_list260[shape=record,label="<f1> array_subscript_list"];
+type_identifier263:f2 -> array_subscript_list260:f1;
+symbol258:f2 -> type_identifier263:f1;
+	symbol_part259[shape=record,label="<f1> symbol_part|{ token: 'unsigned_word_min' }"];
+symbol258:f1 -> symbol_part259:f1 [label="[00]"];
+
+statement264:f2 -> symbol258:f1;
+	statement271[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment267[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list268[shape=record,label="<f1> assignment_target_list"];
+	symbol265[shape=record,label="<f1> symbol"];
+	symbol_part266[shape=record,label="<f1> symbol_part|{ token: 'unsigned_word_min' }"];
+symbol265:f1 -> symbol_part266:f1 [label="[00]"];
+
+assignment_target_list268:f1 -> symbol265:f1 [label="[00]"];
+
+assignment267:f0 -> assignment_target_list268:f1;
+	assignment_source_list269[shape=record,label="<f1> assignment_source_list"];
+	number_literal270[shape=record,label="<f1> number_literal|{ token: '0' | radix: 10}"];
+assignment_source_list269:f1 -> number_literal270:f1 [label="[00]"];
+
+assignment267:f2 -> assignment_source_list269:f1;
+statement271:f2 -> assignment267:f1;
+	statement278[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol272[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier277[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol275[shape=record,label="<f1> symbol"];
+	symbol_part276[shape=record,label="<f1> symbol_part|{ token: 'u16' }"];
+symbol275:f1 -> symbol_part276:f1 [label="[00]"];
+
+type_identifier277:f0 -> symbol275:f1;
+	array_subscript_list274[shape=record,label="<f1> array_subscript_list"];
+type_identifier277:f2 -> array_subscript_list274:f1;
+symbol272:f2 -> type_identifier277:f1;
+	symbol_part273[shape=record,label="<f1> symbol_part|{ token: 'unsigned_word_max' }"];
+symbol272:f1 -> symbol_part273:f1 [label="[00]"];
+
+statement278:f2 -> symbol272:f1;
+	statement285[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment281[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list282[shape=record,label="<f1> assignment_target_list"];
+	symbol279[shape=record,label="<f1> symbol"];
+	symbol_part280[shape=record,label="<f1> symbol_part|{ token: 'unsigned_word_max' }"];
+symbol279:f1 -> symbol_part280:f1 [label="[00]"];
+
+assignment_target_list282:f1 -> symbol279:f1 [label="[00]"];
+
+assignment281:f0 -> assignment_target_list282:f1;
+	assignment_source_list283[shape=record,label="<f1> assignment_source_list"];
+	number_literal284[shape=record,label="<f1> number_literal|{ token: '65535' | radix: 10}"];
+assignment_source_list283:f1 -> number_literal284:f1 [label="[00]"];
+
+assignment281:f2 -> assignment_source_list283:f1;
+statement285:f2 -> assignment281:f1;
+	statement292[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol286[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier291[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol289[shape=record,label="<f1> symbol"];
+	symbol_part290[shape=record,label="<f1> symbol_part|{ token: 's16' }"];
+symbol289:f1 -> symbol_part290:f1 [label="[00]"];
+
+type_identifier291:f0 -> symbol289:f1;
+	array_subscript_list288[shape=record,label="<f1> array_subscript_list"];
+type_identifier291:f2 -> array_subscript_list288:f1;
+symbol286:f2 -> type_identifier291:f1;
+	symbol_part287[shape=record,label="<f1> symbol_part|{ token: 'signed_word_min' }"];
+symbol286:f1 -> symbol_part287:f1 [label="[00]"];
+
+statement292:f2 -> symbol286:f1;
+	statement299[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment295[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list296[shape=record,label="<f1> assignment_target_list"];
+	symbol293[shape=record,label="<f1> symbol"];
+	symbol_part294[shape=record,label="<f1> symbol_part|{ token: 'signed_word_min' }"];
+symbol293:f1 -> symbol_part294:f1 [label="[00]"];
+
+assignment_target_list296:f1 -> symbol293:f1 [label="[00]"];
+
+assignment295:f0 -> assignment_target_list296:f1;
+	assignment_source_list297[shape=record,label="<f1> assignment_source_list"];
+	number_literal298[shape=record,label="<f1> number_literal|{ token: '-32768' | radix: 10}"];
+assignment_source_list297:f1 -> number_literal298:f1 [label="[00]"];
+
+assignment295:f2 -> assignment_source_list297:f1;
+statement299:f2 -> assignment295:f1;
+	statement306[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol300[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier305[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol303[shape=record,label="<f1> symbol"];
+	symbol_part304[shape=record,label="<f1> symbol_part|{ token: 's16' }"];
+symbol303:f1 -> symbol_part304:f1 [label="[00]"];
+
+type_identifier305:f0 -> symbol303:f1;
+	array_subscript_list302[shape=record,label="<f1> array_subscript_list"];
+type_identifier305:f2 -> array_subscript_list302:f1;
+symbol300:f2 -> type_identifier305:f1;
+	symbol_part301[shape=record,label="<f1> symbol_part|{ token: 'signed_word_max' }"];
+symbol300:f1 -> symbol_part301:f1 [label="[00]"];
+
+statement306:f2 -> symbol300:f1;
+	statement313[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment309[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list310[shape=record,label="<f1> assignment_target_list"];
+	symbol307[shape=record,label="<f1> symbol"];
+	symbol_part308[shape=record,label="<f1> symbol_part|{ token: 'signed_word_max' }"];
+symbol307:f1 -> symbol_part308:f1 [label="[00]"];
+
+assignment_target_list310:f1 -> symbol307:f1 [label="[00]"];
+
+assignment309:f0 -> assignment_target_list310:f1;
+	assignment_source_list311[shape=record,label="<f1> assignment_source_list"];
+	number_literal312[shape=record,label="<f1> number_literal|{ token: '32767' | radix: 10}"];
+assignment_source_list311:f1 -> number_literal312:f1 [label="[00]"];
+
+assignment309:f2 -> assignment_source_list311:f1;
+statement313:f2 -> assignment309:f1;
+	line_comment314[shape=record,label="<f1> line_comment|{ token: ' initialized' }", fillcolor=green, style="filled"];
+	statement325[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment321[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list322[shape=record,label="<f1> assignment_target_list"];
+	symbol315[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier320[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol318[shape=record,label="<f1> symbol"];
+	symbol_part319[shape=record,label="<f1> symbol_part|{ token: 'u16' }"];
+symbol318:f1 -> symbol_part319:f1 [label="[00]"];
+
+type_identifier320:f0 -> symbol318:f1;
+	array_subscript_list317[shape=record,label="<f1> array_subscript_list"];
+type_identifier320:f2 -> array_subscript_list317:f1;
+symbol315:f2 -> type_identifier320:f1;
+	symbol_part316[shape=record,label="<f1> symbol_part|{ token: 'unsigned_word_init_min' }"];
+symbol315:f1 -> symbol_part316:f1 [label="[00]"];
+
+assignment_target_list322:f1 -> symbol315:f1 [label="[00]"];
+
+assignment321:f0 -> assignment_target_list322:f1;
+	assignment_source_list323[shape=record,label="<f1> assignment_source_list"];
+	number_literal324[shape=record,label="<f1> number_literal|{ token: '0' | radix: 10}"];
+assignment_source_list323:f1 -> number_literal324:f1 [label="[00]"];
+
+assignment321:f2 -> assignment_source_list323:f1;
+statement325:f2 -> assignment321:f1;
+	statement336[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment332[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list333[shape=record,label="<f1> assignment_target_list"];
+	symbol326[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier331[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol329[shape=record,label="<f1> symbol"];
+	symbol_part330[shape=record,label="<f1> symbol_part|{ token: 'u16' }"];
+symbol329:f1 -> symbol_part330:f1 [label="[00]"];
+
+type_identifier331:f0 -> symbol329:f1;
+	array_subscript_list328[shape=record,label="<f1> array_subscript_list"];
+type_identifier331:f2 -> array_subscript_list328:f1;
+symbol326:f2 -> type_identifier331:f1;
+	symbol_part327[shape=record,label="<f1> symbol_part|{ token: 'unsigned_word_init_max' }"];
+symbol326:f1 -> symbol_part327:f1 [label="[00]"];
+
+assignment_target_list333:f1 -> symbol326:f1 [label="[00]"];
+
+assignment332:f0 -> assignment_target_list333:f1;
+	assignment_source_list334[shape=record,label="<f1> assignment_source_list"];
+	number_literal335[shape=record,label="<f1> number_literal|{ token: '65535' | radix: 10}"];
+assignment_source_list334:f1 -> number_literal335:f1 [label="[00]"];
+
+assignment332:f2 -> assignment_source_list334:f1;
+statement336:f2 -> assignment332:f1;
+	statement347[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment343[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list344[shape=record,label="<f1> assignment_target_list"];
+	symbol337[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier342[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol340[shape=record,label="<f1> symbol"];
+	symbol_part341[shape=record,label="<f1> symbol_part|{ token: 's16' }"];
+symbol340:f1 -> symbol_part341:f1 [label="[00]"];
+
+type_identifier342:f0 -> symbol340:f1;
+	array_subscript_list339[shape=record,label="<f1> array_subscript_list"];
+type_identifier342:f2 -> array_subscript_list339:f1;
+symbol337:f2 -> type_identifier342:f1;
+	symbol_part338[shape=record,label="<f1> symbol_part|{ token: 'signed_word_init_min' }"];
+symbol337:f1 -> symbol_part338:f1 [label="[00]"];
+
+assignment_target_list344:f1 -> symbol337:f1 [label="[00]"];
+
+assignment343:f0 -> assignment_target_list344:f1;
+	assignment_source_list345[shape=record,label="<f1> assignment_source_list"];
+	number_literal346[shape=record,label="<f1> number_literal|{ token: '-32768' | radix: 10}"];
+assignment_source_list345:f1 -> number_literal346:f1 [label="[00]"];
+
+assignment343:f2 -> assignment_source_list345:f1;
+statement347:f2 -> assignment343:f1;
+	statement358[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment354[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list355[shape=record,label="<f1> assignment_target_list"];
+	symbol348[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier353[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol351[shape=record,label="<f1> symbol"];
+	symbol_part352[shape=record,label="<f1> symbol_part|{ token: 's16' }"];
+symbol351:f1 -> symbol_part352:f1 [label="[00]"];
+
+type_identifier353:f0 -> symbol351:f1;
+	array_subscript_list350[shape=record,label="<f1> array_subscript_list"];
+type_identifier353:f2 -> array_subscript_list350:f1;
+symbol348:f2 -> type_identifier353:f1;
+	symbol_part349[shape=record,label="<f1> symbol_part|{ token: 'signed_word_init_max' }"];
+symbol348:f1 -> symbol_part349:f1 [label="[00]"];
+
+assignment_target_list355:f1 -> symbol348:f1 [label="[00]"];
+
+assignment354:f0 -> assignment_target_list355:f1;
+	assignment_source_list356[shape=record,label="<f1> assignment_source_list"];
+	number_literal357[shape=record,label="<f1> number_literal|{ token: '32767' | radix: 10}"];
+assignment_source_list356:f1 -> number_literal357:f1 [label="[00]"];
+
+assignment354:f2 -> assignment_source_list356:f1;
+statement358:f2 -> assignment354:f1;
+	line_comment359[shape=record,label="<f1> line_comment|{ token: '/////////////////////////////////////////////////////////////////////////////' }", fillcolor=green, style="filled"];
+	line_comment360[shape=record,label="<f1> line_comment|{ token: ' u32' }", fillcolor=green, style="filled"];
+	line_comment361[shape=record,label="<f1> line_comment|{ token: ' uninitialized' }", fillcolor=green, style="filled"];
+	statement368[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol362[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier367[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol365[shape=record,label="<f1> symbol"];
+	symbol_part366[shape=record,label="<f1> symbol_part|{ token: 'u32' }"];
+symbol365:f1 -> symbol_part366:f1 [label="[00]"];
+
+type_identifier367:f0 -> symbol365:f1;
+	array_subscript_list364[shape=record,label="<f1> array_subscript_list"];
+type_identifier367:f2 -> array_subscript_list364:f1;
+symbol362:f2 -> type_identifier367:f1;
+	symbol_part363[shape=record,label="<f1> symbol_part|{ token: 'unsigned_dword_min' }"];
+symbol362:f1 -> symbol_part363:f1 [label="[00]"];
+
+statement368:f2 -> symbol362:f1;
+	statement375[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment371[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list372[shape=record,label="<f1> assignment_target_list"];
+	symbol369[shape=record,label="<f1> symbol"];
+	symbol_part370[shape=record,label="<f1> symbol_part|{ token: 'unsigned_dword_min' }"];
+symbol369:f1 -> symbol_part370:f1 [label="[00]"];
+
+assignment_target_list372:f1 -> symbol369:f1 [label="[00]"];
+
+assignment371:f0 -> assignment_target_list372:f1;
+	assignment_source_list373[shape=record,label="<f1> assignment_source_list"];
+	number_literal374[shape=record,label="<f1> number_literal|{ token: '0' | radix: 10}"];
+assignment_source_list373:f1 -> number_literal374:f1 [label="[00]"];
+
+assignment371:f2 -> assignment_source_list373:f1;
+statement375:f2 -> assignment371:f1;
+	statement382[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol376[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier381[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol379[shape=record,label="<f1> symbol"];
+	symbol_part380[shape=record,label="<f1> symbol_part|{ token: 'u32' }"];
+symbol379:f1 -> symbol_part380:f1 [label="[00]"];
+
+type_identifier381:f0 -> symbol379:f1;
+	array_subscript_list378[shape=record,label="<f1> array_subscript_list"];
+type_identifier381:f2 -> array_subscript_list378:f1;
+symbol376:f2 -> type_identifier381:f1;
+	symbol_part377[shape=record,label="<f1> symbol_part|{ token: 'unsigned_dword_max' }"];
+symbol376:f1 -> symbol_part377:f1 [label="[00]"];
+
+statement382:f2 -> symbol376:f1;
+	statement389[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment385[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list386[shape=record,label="<f1> assignment_target_list"];
+	symbol383[shape=record,label="<f1> symbol"];
+	symbol_part384[shape=record,label="<f1> symbol_part|{ token: 'unsigned_dword_max' }"];
+symbol383:f1 -> symbol_part384:f1 [label="[00]"];
+
+assignment_target_list386:f1 -> symbol383:f1 [label="[00]"];
+
+assignment385:f0 -> assignment_target_list386:f1;
+	assignment_source_list387[shape=record,label="<f1> assignment_source_list"];
+	number_literal388[shape=record,label="<f1> number_literal|{ token: '4294967295' | radix: 10}"];
+assignment_source_list387:f1 -> number_literal388:f1 [label="[00]"];
+
+assignment385:f2 -> assignment_source_list387:f1;
+statement389:f2 -> assignment385:f1;
+	statement396[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol390[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier395[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol393[shape=record,label="<f1> symbol"];
+	symbol_part394[shape=record,label="<f1> symbol_part|{ token: 's32' }"];
+symbol393:f1 -> symbol_part394:f1 [label="[00]"];
+
+type_identifier395:f0 -> symbol393:f1;
+	array_subscript_list392[shape=record,label="<f1> array_subscript_list"];
+type_identifier395:f2 -> array_subscript_list392:f1;
+symbol390:f2 -> type_identifier395:f1;
+	symbol_part391[shape=record,label="<f1> symbol_part|{ token: 'signed_dword_min' }"];
+symbol390:f1 -> symbol_part391:f1 [label="[00]"];
+
+statement396:f2 -> symbol390:f1;
+	statement403[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment399[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list400[shape=record,label="<f1> assignment_target_list"];
+	symbol397[shape=record,label="<f1> symbol"];
+	symbol_part398[shape=record,label="<f1> symbol_part|{ token: 'signed_dword_min' }"];
+symbol397:f1 -> symbol_part398:f1 [label="[00]"];
+
+assignment_target_list400:f1 -> symbol397:f1 [label="[00]"];
+
+assignment399:f0 -> assignment_target_list400:f1;
+	assignment_source_list401[shape=record,label="<f1> assignment_source_list"];
+	number_literal402[shape=record,label="<f1> number_literal|{ token: '-2147483646' | radix: 10}"];
+assignment_source_list401:f1 -> number_literal402:f1 [label="[00]"];
+
+assignment399:f2 -> assignment_source_list401:f1;
+statement403:f2 -> assignment399:f1;
+	statement410[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol404[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier409[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol407[shape=record,label="<f1> symbol"];
+	symbol_part408[shape=record,label="<f1> symbol_part|{ token: 's32' }"];
+symbol407:f1 -> symbol_part408:f1 [label="[00]"];
+
+type_identifier409:f0 -> symbol407:f1;
+	array_subscript_list406[shape=record,label="<f1> array_subscript_list"];
+type_identifier409:f2 -> array_subscript_list406:f1;
+symbol404:f2 -> type_identifier409:f1;
+	symbol_part405[shape=record,label="<f1> symbol_part|{ token: 'signed_dword_max' }"];
+symbol404:f1 -> symbol_part405:f1 [label="[00]"];
+
+statement410:f2 -> symbol404:f1;
+	statement417[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment413[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list414[shape=record,label="<f1> assignment_target_list"];
+	symbol411[shape=record,label="<f1> symbol"];
+	symbol_part412[shape=record,label="<f1> symbol_part|{ token: 'signed_dword_max' }"];
+symbol411:f1 -> symbol_part412:f1 [label="[00]"];
+
+assignment_target_list414:f1 -> symbol411:f1 [label="[00]"];
+
+assignment413:f0 -> assignment_target_list414:f1;
+	assignment_source_list415[shape=record,label="<f1> assignment_source_list"];
+	number_literal416[shape=record,label="<f1> number_literal|{ token: '2147483647' | radix: 10}"];
+assignment_source_list415:f1 -> number_literal416:f1 [label="[00]"];
+
+assignment413:f2 -> assignment_source_list415:f1;
+statement417:f2 -> assignment413:f1;
+	line_comment418[shape=record,label="<f1> line_comment|{ token: ' initialized' }", fillcolor=green, style="filled"];
+	statement429[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment425[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list426[shape=record,label="<f1> assignment_target_list"];
+	symbol419[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier424[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol422[shape=record,label="<f1> symbol"];
+	symbol_part423[shape=record,label="<f1> symbol_part|{ token: 'u32' }"];
+symbol422:f1 -> symbol_part423:f1 [label="[00]"];
+
+type_identifier424:f0 -> symbol422:f1;
+	array_subscript_list421[shape=record,label="<f1> array_subscript_list"];
+type_identifier424:f2 -> array_subscript_list421:f1;
+symbol419:f2 -> type_identifier424:f1;
+	symbol_part420[shape=record,label="<f1> symbol_part|{ token: 'unsigned_dword_init_min' }"];
+symbol419:f1 -> symbol_part420:f1 [label="[00]"];
+
+assignment_target_list426:f1 -> symbol419:f1 [label="[00]"];
+
+assignment425:f0 -> assignment_target_list426:f1;
+	assignment_source_list427[shape=record,label="<f1> assignment_source_list"];
+	number_literal428[shape=record,label="<f1> number_literal|{ token: '0' | radix: 10}"];
+assignment_source_list427:f1 -> number_literal428:f1 [label="[00]"];
+
+assignment425:f2 -> assignment_source_list427:f1;
+statement429:f2 -> assignment425:f1;
+	statement440[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment436[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list437[shape=record,label="<f1> assignment_target_list"];
+	symbol430[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier435[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol433[shape=record,label="<f1> symbol"];
+	symbol_part434[shape=record,label="<f1> symbol_part|{ token: 'u32' }"];
+symbol433:f1 -> symbol_part434:f1 [label="[00]"];
+
+type_identifier435:f0 -> symbol433:f1;
+	array_subscript_list432[shape=record,label="<f1> array_subscript_list"];
+type_identifier435:f2 -> array_subscript_list432:f1;
+symbol430:f2 -> type_identifier435:f1;
+	symbol_part431[shape=record,label="<f1> symbol_part|{ token: 'unsigned_dword_init_max' }"];
+symbol430:f1 -> symbol_part431:f1 [label="[00]"];
+
+assignment_target_list437:f1 -> symbol430:f1 [label="[00]"];
+
+assignment436:f0 -> assignment_target_list437:f1;
+	assignment_source_list438[shape=record,label="<f1> assignment_source_list"];
+	number_literal439[shape=record,label="<f1> number_literal|{ token: '4294967295' | radix: 10}"];
+assignment_source_list438:f1 -> number_literal439:f1 [label="[00]"];
+
+assignment436:f2 -> assignment_source_list438:f1;
+statement440:f2 -> assignment436:f1;
+	statement451[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment447[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list448[shape=record,label="<f1> assignment_target_list"];
+	symbol441[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier446[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol444[shape=record,label="<f1> symbol"];
+	symbol_part445[shape=record,label="<f1> symbol_part|{ token: 's32' }"];
+symbol444:f1 -> symbol_part445:f1 [label="[00]"];
+
+type_identifier446:f0 -> symbol444:f1;
+	array_subscript_list443[shape=record,label="<f1> array_subscript_list"];
+type_identifier446:f2 -> array_subscript_list443:f1;
+symbol441:f2 -> type_identifier446:f1;
+	symbol_part442[shape=record,label="<f1> symbol_part|{ token: 'signed_dword_init_min' }"];
+symbol441:f1 -> symbol_part442:f1 [label="[00]"];
+
+assignment_target_list448:f1 -> symbol441:f1 [label="[00]"];
+
+assignment447:f0 -> assignment_target_list448:f1;
+	assignment_source_list449[shape=record,label="<f1> assignment_source_list"];
+	number_literal450[shape=record,label="<f1> number_literal|{ token: '-2147483646' | radix: 10}"];
+assignment_source_list449:f1 -> number_literal450:f1 [label="[00]"];
+
+assignment447:f2 -> assignment_source_list449:f1;
+statement451:f2 -> assignment447:f1;
+	statement462[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment458[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list459[shape=record,label="<f1> assignment_target_list"];
+	symbol452[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier457[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol455[shape=record,label="<f1> symbol"];
+	symbol_part456[shape=record,label="<f1> symbol_part|{ token: 's32' }"];
+symbol455:f1 -> symbol_part456:f1 [label="[00]"];
+
+type_identifier457:f0 -> symbol455:f1;
+	array_subscript_list454[shape=record,label="<f1> array_subscript_list"];
+type_identifier457:f2 -> array_subscript_list454:f1;
+symbol452:f2 -> type_identifier457:f1;
+	symbol_part453[shape=record,label="<f1> symbol_part|{ token: 'signed_dword_init_max' }"];
+symbol452:f1 -> symbol_part453:f1 [label="[00]"];
+
+assignment_target_list459:f1 -> symbol452:f1 [label="[00]"];
+
+assignment458:f0 -> assignment_target_list459:f1;
+	assignment_source_list460[shape=record,label="<f1> assignment_source_list"];
+	number_literal461[shape=record,label="<f1> number_literal|{ token: '2147483647' | radix: 10}"];
+assignment_source_list460:f1 -> number_literal461:f1 [label="[00]"];
+
+assignment458:f2 -> assignment_source_list460:f1;
+statement462:f2 -> assignment458:f1;
+	line_comment463[shape=record,label="<f1> line_comment|{ token: '/////////////////////////////////////////////////////////////////////////////' }", fillcolor=green, style="filled"];
+	line_comment464[shape=record,label="<f1> line_comment|{ token: ' u64' }", fillcolor=green, style="filled"];
+	line_comment465[shape=record,label="<f1> line_comment|{ token: ' uninitialized' }", fillcolor=green, style="filled"];
+	statement472[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol466[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier471[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol469[shape=record,label="<f1> symbol"];
+	symbol_part470[shape=record,label="<f1> symbol_part|{ token: 'u64' }"];
+symbol469:f1 -> symbol_part470:f1 [label="[00]"];
+
+type_identifier471:f0 -> symbol469:f1;
+	array_subscript_list468[shape=record,label="<f1> array_subscript_list"];
+type_identifier471:f2 -> array_subscript_list468:f1;
+symbol466:f2 -> type_identifier471:f1;
+	symbol_part467[shape=record,label="<f1> symbol_part|{ token: 'unsigned_qword_min' }"];
+symbol466:f1 -> symbol_part467:f1 [label="[00]"];
+
+statement472:f2 -> symbol466:f1;
+	statement479[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment475[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list476[shape=record,label="<f1> assignment_target_list"];
+	symbol473[shape=record,label="<f1> symbol"];
+	symbol_part474[shape=record,label="<f1> symbol_part|{ token: 'unsigned_qword_min' }"];
+symbol473:f1 -> symbol_part474:f1 [label="[00]"];
+
+assignment_target_list476:f1 -> symbol473:f1 [label="[00]"];
+
+assignment475:f0 -> assignment_target_list476:f1;
+	assignment_source_list477[shape=record,label="<f1> assignment_source_list"];
+	number_literal478[shape=record,label="<f1> number_literal|{ token: '0' | radix: 10}"];
+assignment_source_list477:f1 -> number_literal478:f1 [label="[00]"];
+
+assignment475:f2 -> assignment_source_list477:f1;
+statement479:f2 -> assignment475:f1;
+	statement486[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol480[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier485[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol483[shape=record,label="<f1> symbol"];
+	symbol_part484[shape=record,label="<f1> symbol_part|{ token: 'u64' }"];
+symbol483:f1 -> symbol_part484:f1 [label="[00]"];
+
+type_identifier485:f0 -> symbol483:f1;
+	array_subscript_list482[shape=record,label="<f1> array_subscript_list"];
+type_identifier485:f2 -> array_subscript_list482:f1;
+symbol480:f2 -> type_identifier485:f1;
+	symbol_part481[shape=record,label="<f1> symbol_part|{ token: 'unsigned_qword_max' }"];
+symbol480:f1 -> symbol_part481:f1 [label="[00]"];
+
+statement486:f2 -> symbol480:f1;
+	statement493[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment489[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list490[shape=record,label="<f1> assignment_target_list"];
+	symbol487[shape=record,label="<f1> symbol"];
+	symbol_part488[shape=record,label="<f1> symbol_part|{ token: 'unsigned_qword_max' }"];
+symbol487:f1 -> symbol_part488:f1 [label="[00]"];
+
+assignment_target_list490:f1 -> symbol487:f1 [label="[00]"];
+
+assignment489:f0 -> assignment_target_list490:f1;
+	assignment_source_list491[shape=record,label="<f1> assignment_source_list"];
+	number_literal492[shape=record,label="<f1> number_literal|{ token: '18446744073709551615' | radix: 10}"];
+assignment_source_list491:f1 -> number_literal492:f1 [label="[00]"];
+
+assignment489:f2 -> assignment_source_list491:f1;
+statement493:f2 -> assignment489:f1;
+	statement500[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol494[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier499[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol497[shape=record,label="<f1> symbol"];
+	symbol_part498[shape=record,label="<f1> symbol_part|{ token: 's64' }"];
+symbol497:f1 -> symbol_part498:f1 [label="[00]"];
+
+type_identifier499:f0 -> symbol497:f1;
+	array_subscript_list496[shape=record,label="<f1> array_subscript_list"];
+type_identifier499:f2 -> array_subscript_list496:f1;
+symbol494:f2 -> type_identifier499:f1;
+	symbol_part495[shape=record,label="<f1> symbol_part|{ token: 'signed_qword_min' }"];
+symbol494:f1 -> symbol_part495:f1 [label="[00]"];
+
+statement500:f2 -> symbol494:f1;
+	statement507[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment503[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list504[shape=record,label="<f1> assignment_target_list"];
+	symbol501[shape=record,label="<f1> symbol"];
+	symbol_part502[shape=record,label="<f1> symbol_part|{ token: 'signed_qword_min' }"];
+symbol501:f1 -> symbol_part502:f1 [label="[00]"];
+
+assignment_target_list504:f1 -> symbol501:f1 [label="[00]"];
+
+assignment503:f0 -> assignment_target_list504:f1;
+	assignment_source_list505[shape=record,label="<f1> assignment_source_list"];
+	number_literal506[shape=record,label="<f1> number_literal|{ token: '-9223372036854775806' | radix: 10}"];
+assignment_source_list505:f1 -> number_literal506:f1 [label="[00]"];
+
+assignment503:f2 -> assignment_source_list505:f1;
+statement507:f2 -> assignment503:f1;
+	statement514[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol508[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier513[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol511[shape=record,label="<f1> symbol"];
+	symbol_part512[shape=record,label="<f1> symbol_part|{ token: 's64' }"];
+symbol511:f1 -> symbol_part512:f1 [label="[00]"];
+
+type_identifier513:f0 -> symbol511:f1;
+	array_subscript_list510[shape=record,label="<f1> array_subscript_list"];
+type_identifier513:f2 -> array_subscript_list510:f1;
+symbol508:f2 -> type_identifier513:f1;
+	symbol_part509[shape=record,label="<f1> symbol_part|{ token: 'signed_qword_max' }"];
+symbol508:f1 -> symbol_part509:f1 [label="[00]"];
+
+statement514:f2 -> symbol508:f1;
+	statement521[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment517[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list518[shape=record,label="<f1> assignment_target_list"];
+	symbol515[shape=record,label="<f1> symbol"];
+	symbol_part516[shape=record,label="<f1> symbol_part|{ token: 'signed_qword_max' }"];
+symbol515:f1 -> symbol_part516:f1 [label="[00]"];
+
+assignment_target_list518:f1 -> symbol515:f1 [label="[00]"];
+
+assignment517:f0 -> assignment_target_list518:f1;
+	assignment_source_list519[shape=record,label="<f1> assignment_source_list"];
+	number_literal520[shape=record,label="<f1> number_literal|{ token: '9223372036854775807' | radix: 10}"];
+assignment_source_list519:f1 -> number_literal520:f1 [label="[00]"];
+
+assignment517:f2 -> assignment_source_list519:f1;
+statement521:f2 -> assignment517:f1;
+	line_comment522[shape=record,label="<f1> line_comment|{ token: ' initialized' }", fillcolor=green, style="filled"];
+	statement533[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment529[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list530[shape=record,label="<f1> assignment_target_list"];
+	symbol523[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier528[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol526[shape=record,label="<f1> symbol"];
+	symbol_part527[shape=record,label="<f1> symbol_part|{ token: 'u64' }"];
+symbol526:f1 -> symbol_part527:f1 [label="[00]"];
+
+type_identifier528:f0 -> symbol526:f1;
+	array_subscript_list525[shape=record,label="<f1> array_subscript_list"];
+type_identifier528:f2 -> array_subscript_list525:f1;
+symbol523:f2 -> type_identifier528:f1;
+	symbol_part524[shape=record,label="<f1> symbol_part|{ token: 'unsigned_qword_init_min' }"];
+symbol523:f1 -> symbol_part524:f1 [label="[00]"];
+
+assignment_target_list530:f1 -> symbol523:f1 [label="[00]"];
+
+assignment529:f0 -> assignment_target_list530:f1;
+	assignment_source_list531[shape=record,label="<f1> assignment_source_list"];
+	number_literal532[shape=record,label="<f1> number_literal|{ token: '0' | radix: 10}"];
+assignment_source_list531:f1 -> number_literal532:f1 [label="[00]"];
+
+assignment529:f2 -> assignment_source_list531:f1;
+statement533:f2 -> assignment529:f1;
+	statement544[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment540[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list541[shape=record,label="<f1> assignment_target_list"];
+	symbol534[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier539[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol537[shape=record,label="<f1> symbol"];
+	symbol_part538[shape=record,label="<f1> symbol_part|{ token: 'u64' }"];
+symbol537:f1 -> symbol_part538:f1 [label="[00]"];
+
+type_identifier539:f0 -> symbol537:f1;
+	array_subscript_list536[shape=record,label="<f1> array_subscript_list"];
+type_identifier539:f2 -> array_subscript_list536:f1;
+symbol534:f2 -> type_identifier539:f1;
+	symbol_part535[shape=record,label="<f1> symbol_part|{ token: 'unsigned_qword_init_max' }"];
+symbol534:f1 -> symbol_part535:f1 [label="[00]"];
+
+assignment_target_list541:f1 -> symbol534:f1 [label="[00]"];
+
+assignment540:f0 -> assignment_target_list541:f1;
+	assignment_source_list542[shape=record,label="<f1> assignment_source_list"];
+	number_literal543[shape=record,label="<f1> number_literal|{ token: '18446744073709551615' | radix: 10}"];
+assignment_source_list542:f1 -> number_literal543:f1 [label="[00]"];
+
+assignment540:f2 -> assignment_source_list542:f1;
+statement544:f2 -> assignment540:f1;
+	statement555[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment551[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list552[shape=record,label="<f1> assignment_target_list"];
+	symbol545[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier550[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol548[shape=record,label="<f1> symbol"];
+	symbol_part549[shape=record,label="<f1> symbol_part|{ token: 's64' }"];
+symbol548:f1 -> symbol_part549:f1 [label="[00]"];
+
+type_identifier550:f0 -> symbol548:f1;
+	array_subscript_list547[shape=record,label="<f1> array_subscript_list"];
+type_identifier550:f2 -> array_subscript_list547:f1;
+symbol545:f2 -> type_identifier550:f1;
+	symbol_part546[shape=record,label="<f1> symbol_part|{ token: 'signed_qword_init_min' }"];
+symbol545:f1 -> symbol_part546:f1 [label="[00]"];
+
+assignment_target_list552:f1 -> symbol545:f1 [label="[00]"];
+
+assignment551:f0 -> assignment_target_list552:f1;
+	assignment_source_list553[shape=record,label="<f1> assignment_source_list"];
+	number_literal554[shape=record,label="<f1> number_literal|{ token: '-9223372036854775806' | radix: 10}"];
+assignment_source_list553:f1 -> number_literal554:f1 [label="[00]"];
+
+assignment551:f2 -> assignment_source_list553:f1;
+statement555:f2 -> assignment551:f1;
+	statement566[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment562[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list563[shape=record,label="<f1> assignment_target_list"];
+	symbol556[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier561[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol559[shape=record,label="<f1> symbol"];
+	symbol_part560[shape=record,label="<f1> symbol_part|{ token: 's64' }"];
+symbol559:f1 -> symbol_part560:f1 [label="[00]"];
+
+type_identifier561:f0 -> symbol559:f1;
+	array_subscript_list558[shape=record,label="<f1> array_subscript_list"];
+type_identifier561:f2 -> array_subscript_list558:f1;
+symbol556:f2 -> type_identifier561:f1;
+	symbol_part557[shape=record,label="<f1> symbol_part|{ token: 'signed_qword_init_max' }"];
+symbol556:f1 -> symbol_part557:f1 [label="[00]"];
+
+assignment_target_list563:f1 -> symbol556:f1 [label="[00]"];
+
+assignment562:f0 -> assignment_target_list563:f1;
+	assignment_source_list564[shape=record,label="<f1> assignment_source_list"];
+	number_literal565[shape=record,label="<f1> number_literal|{ token: '9223372036854775807' | radix: 10}"];
+assignment_source_list564:f1 -> number_literal565:f1 [label="[00]"];
+
+assignment562:f2 -> assignment_source_list564:f1;
+statement566:f2 -> assignment562:f1;
+module1:f1 -> line_comment117:f1 [label="[00]"];
+module1:f1 -> line_comment118:f1 [label="[01]"];
+module1:f1 -> line_comment119:f1 [label="[02]"];
+module1:f1 -> line_comment210:f1 [label="[03]"];
+module1:f1 -> line_comment255:f1 [label="[04]"];
+module1:f1 -> line_comment256:f1 [label="[05]"];
+module1:f1 -> line_comment257:f1 [label="[06]"];
+module1:f1 -> line_comment314:f1 [label="[07]"];
+module1:f1 -> line_comment359:f1 [label="[08]"];
+module1:f1 -> line_comment360:f1 [label="[09]"];
+module1:f1 -> line_comment361:f1 [label="[10]"];
+module1:f1 -> line_comment37:f1 [label="[11]"];
+module1:f1 -> line_comment38:f1 [label="[12]"];
+module1:f1 -> line_comment418:f1 [label="[13]"];
+module1:f1 -> line_comment463:f1 [label="[14]"];
+module1:f1 -> line_comment464:f1 [label="[15]"];
+module1:f1 -> line_comment465:f1 [label="[16]"];
+module1:f1 -> line_comment522:f1 [label="[17]"];
+module1:f1 -> line_comment67:f1 [label="[18]"];
+module1:f1 -> statement107:f1 [label="[19]"];
+module1:f1 -> statement116:f1 [label="[20]"];
+module1:f1 -> statement126:f1 [label="[21]"];
+module1:f1 -> statement133:f1 [label="[22]"];
+module1:f1 -> statement140:f1 [label="[23]"];
+module1:f1 -> statement147:f1 [label="[24]"];
+module1:f1 -> statement163:f1 [label="[25]"];
+module1:f1 -> statement172:f1 [label="[26]"];
+module1:f1 -> statement181:f1 [label="[27]"];
+module1:f1 -> statement188:f1 [label="[28]"];
+module1:f1 -> statement195:f1 [label="[29]"];
+module1:f1 -> statement202:f1 [label="[30]"];
+module1:f1 -> statement209:f1 [label="[31]"];
+module1:f1 -> statement221:f1 [label="[32]"];
+module1:f1 -> statement232:f1 [label="[33]"];
+module1:f1 -> statement243:f1 [label="[34]"];
+module1:f1 -> statement254:f1 [label="[35]"];
+module1:f1 -> statement264:f1 [label="[36]"];
+module1:f1 -> statement271:f1 [label="[37]"];
+module1:f1 -> statement278:f1 [label="[38]"];
+module1:f1 -> statement28:f1 [label="[39]"];
+module1:f1 -> statement285:f1 [label="[40]"];
+module1:f1 -> statement292:f1 [label="[41]"];
+module1:f1 -> statement299:f1 [label="[42]"];
+module1:f1 -> statement306:f1 [label="[43]"];
+module1:f1 -> statement313:f1 [label="[44]"];
+module1:f1 -> statement325:f1 [label="[45]"];
+module1:f1 -> statement336:f1 [label="[46]"];
+module1:f1 -> statement347:f1 [label="[47]"];
+module1:f1 -> statement358:f1 [label="[48]"];
+module1:f1 -> statement36:f1 [label="[49]"];
+module1:f1 -> statement368:f1 [label="[50]"];
+module1:f1 -> statement375:f1 [label="[51]"];
+module1:f1 -> statement382:f1 [label="[52]"];
+module1:f1 -> statement389:f1 [label="[53]"];
+module1:f1 -> statement396:f1 [label="[54]"];
+module1:f1 -> statement403:f1 [label="[55]"];
+module1:f1 -> statement410:f1 [label="[56]"];
+module1:f1 -> statement417:f1 [label="[57]"];
+module1:f1 -> statement429:f1 [label="[58]"];
+module1:f1 -> statement440:f1 [label="[59]"];
+module1:f1 -> statement45:f1 [label="[60]"];
+module1:f1 -> statement451:f1 [label="[61]"];
+module1:f1 -> statement462:f1 [label="[62]"];
+module1:f1 -> statement472:f1 [label="[63]"];
+module1:f1 -> statement479:f1 [label="[64]"];
+module1:f1 -> statement486:f1 [label="[65]"];
+module1:f1 -> statement493:f1 [label="[66]"];
+module1:f1 -> statement500:f1 [label="[67]"];
+module1:f1 -> statement507:f1 [label="[68]"];
+module1:f1 -> statement514:f1 [label="[69]"];
+module1:f1 -> statement52:f1 [label="[70]"];
+module1:f1 -> statement521:f1 [label="[71]"];
+module1:f1 -> statement533:f1 [label="[72]"];
+module1:f1 -> statement544:f1 [label="[73]"];
+module1:f1 -> statement555:f1 [label="[74]"];
+module1:f1 -> statement566:f1 [label="[75]"];
+module1:f1 -> statement59:f1 [label="[76]"];
+module1:f1 -> statement66:f1 [label="[77]"];
+module1:f1 -> statement78:f1 [label="[78]"];
+module1:f1 -> statement89:f1 [label="[79]"];
+module1:f1 -> statement98:f1 [label="[80]"];
+
+}

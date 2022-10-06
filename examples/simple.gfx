@@ -1,6 +1,6 @@
 @library "libcompiler-rt";
 #foreign print := proc(format:string, values:...any) @alias "print";
-
+preload := module("preload.gfx");
 // bool
 
 // uninitialized

@@ -105,6 +105,7 @@ set(VM_SRC
         vm/shared_library.h                 vm/shared_library.cpp
         vm/assembly_listing.h               vm/assembly_listing.cpp
         vm/instruction_builder.h
+        vm/register_allocator.h             vm/register_allocator.cpp
         vm/instruction_block.h              vm/instruction_block.cpp
         vm/instruction_cache.h              vm/instruction_cache.cpp
         )

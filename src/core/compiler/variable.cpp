@@ -7,11 +7,9 @@
 #include "compiler/elements/identifier.h"
 #include <fmt/format.h>
 namespace gfx::compiler {
-
-
 bool variable_register_t::reserve(assembler *assembler)
 {
-    allocated = assembler->allocate_reg(i);
+    allocated = assembler->allocate_reg(reg);
     return allocated;
 }
 
@@ -20,7 +18,7 @@ void variable_register_t::release(assembler *assembler)
     if (!allocated) {
         return;
     }
-    assembler->free_reg(i);
+    assembler->free_reg(reg);
     allocated = false;
 }
 
@@ -41,13 +39,18 @@ bool variable_t::init(gfx::assembler *assembler, instruction_block *block)
         }
 
         if (address_offset != 0) {
-            block->move_label_to_ireg_with_offset(address_reg.i, name, address_offset);
+            block->move_label_to_reg_with_offset(address_reg.reg, name, address_offset);
         } else {
-            block->move_label_to_ireg(address_reg.i, name);
+            block->move_label_to_reg(address_reg.reg, name);
         }
         block->current_entry()->comment(fmt::format("identifier '{}' address (global)", name));
     }
-
+    value_reg.reg.type = register_type_t::integer;
+    if (type != nullptr &&  type->access_model() == type_access_model_t::value) {
+        if (type->number_class() == type_number_class_t::floating_point) {
+            value_reg.reg.type = register_type_t::floating_point;
+        }
+    }
     address_loaded = true;
 
     return true;
@@ -70,10 +73,10 @@ bool variable_t::read(assembler* assembler, instruction_block* block)
 
         if (usage == identifier_usage_t::stack) {
             type_name = stack_frame_entry_type_name(frame_entry->type);
-            block->load_to_ireg(op_sizes::qword, value_reg.i, registers_t::fp, frame_entry->offset);
+            block->load_to_reg(op_sizes::qword, value_reg.reg, register_t::fp(), frame_entry->offset);
         } else {
-            block->load_to_ireg(op_size_for_byte_size(type->size_in_bytes()), value_reg.i,
-                                address_reg.i);
+            block->load_to_reg(op_size_for_byte_size(type->size_in_bytes()), value_reg.reg,
+                                address_reg.reg);
             block->current_entry()->comment(fmt::format("load identifier '{}' value ({})", name, type_name));
         }
         requires_read = false;
@@ -94,8 +97,8 @@ bool variable_t::write(assembler* assembler, instruction_block* block)
     if (target_reg == nullptr) {
         return false;
     }
-    block->store_from_ireg(op_size_for_byte_size(type->size_in_bytes()),
-        address_reg.i, target_reg->i, frame_entry != nullptr ? frame_entry->offset : 0);
+    block->store_from_reg(op_size_for_byte_size(type->size_in_bytes()),
+        address_reg.reg, target_reg->reg, frame_entry != nullptr ? frame_entry->offset : 0);
     written = true;
     requires_read = true;
     return true;

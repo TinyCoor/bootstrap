@@ -24,9 +24,9 @@ public:
 
     assembly_listing& listing();
 
-    void free_reg(registers_t reg);
+    bool allocate_reg(register_t& reg);
 
-    bool allocate_reg(registers_t& reg);
+    void free_reg(const register_t &reg);
 
     instruction_block* pop_block();
 
@@ -48,7 +48,7 @@ public:
 
     target_register_t* current_target_register();
 
-    void push_target_register(op_sizes size, registers_t reg);
+    void push_target_register(op_sizes size, const register_t &reg);
 
     gfx::segment* segment(const std::string& name);
 

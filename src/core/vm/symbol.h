@@ -28,7 +28,7 @@ static inline std::unordered_map<symbol_type_t, std::string_view> symbol_type_na
     {symbol_type_t::bytes, "bytes"},
 };
 
-static inline std::string_view symbol_type_name(symbol_type_t type)
+[[maybe_unused]] static inline std::string_view symbol_type_name(symbol_type_t type)
 {
     auto it = symbol_type_names.find(type);
     if (it == symbol_type_names.end()) {
@@ -50,6 +50,7 @@ static inline size_t sizeof_symbol_type(symbol_type_t type)
         default:return 0;
     }
 }
+
 static inline symbol_type_t float_symbol_type_for_size(size_t size)
 {
     switch (size) {

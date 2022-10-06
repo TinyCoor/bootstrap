@@ -13,47 +13,22 @@ namespace gfx {
 
 struct target_register_t {
     op_sizes size;
-    register_type_t type;
-    registers_t i;
+    register_t reg;
 };
 
 struct register_allocator_t {
-    register_allocator_t()
-    {
-        reset();
-    }
+    register_allocator_t();
 
-    void reset()
-    {
-        used.clear();
-        while (!available.empty()) {
-            available.pop();
-        }
-        for (int8_t r = 63; r >= 0; r--) {
-            available.push(static_cast<registers_t>(r));
-        }
-    }
+    void reset();
 
-    void free(registers_t reg)
-    {
-        if (used.erase(reg) > 0) {
-            available.push(reg);
-        }
-    }
+    void free(const register_t &reg);
 
-    bool allocate(registers_t &reg)
-    {
-        if (available.empty()) {
-            return false;
-        }
-        reg = available.top();
-        available.pop();
-        used.insert(reg);
-        return true;
-    }
+    bool allocate(register_t &reg);
 
-    std::set<registers_t> used{};
-    std::stack<registers_t> available{};
+    std::stack<register_t> available_float{};
+    std::stack<register_t> available_integer{};
+    std::set<register_t, register_comparator> used{};
+
 };
 }
 

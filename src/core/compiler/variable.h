@@ -18,7 +18,7 @@ struct variable_register_t {
 
     bool integer = true;
     bool allocated = false;
-    registers_t i;
+    register_t reg;
 };
 
 struct variable_t {
@@ -41,7 +41,7 @@ struct variable_t {
     int64_t address_offset = 0;
     variable_register_t value_reg;
     compiler::type *type = nullptr;
-    variable_register_t address_reg;
+    variable_register_t address_reg{.reg = {.type = register_type_t::integer,}};
     stack_frame_entry_t *frame_entry = nullptr;
 };
 }

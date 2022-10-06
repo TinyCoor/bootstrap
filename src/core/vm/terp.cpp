@@ -1534,7 +1534,7 @@ bool terp::register_foreign_function(result& r, function_signature_t &signature)
 		return false;
 	}
 
-	auto func_ptr =signature.library->symbol_address(signature.symbol);
+	auto func_ptr = signature.library->symbol_address(signature.symbol);
 	if (func_ptr == nullptr) {
 		/// TODO error msg
 		return false;

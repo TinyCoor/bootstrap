@@ -106,13 +106,13 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
           return true;
     }, scope_);
 
-    instruction_block->move_ireg_to_ireg(registers_t::fp, registers_t::sp);
+    instruction_block->move_reg_to_reg(register_t::fp(), register_t::sp());
     auto size =  8 * local_count;
     if (!return_list.empty()) {
         size += 8;
     }
     if (size > 0) {
-        instruction_block->sub_ireg_by_immediate(op_sizes::qword, registers_t::sp, registers_t::sp, size);
+        instruction_block->sub_reg_by_immediate(op_sizes::qword, register_t::sp(), register_t::sp(), size);
     }
 
     context.assembler->push_block(instruction_block);

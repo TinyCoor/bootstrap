@@ -17,7 +17,7 @@ session::session(const session_options_t& options, const path_list_t& source_fil
 {
     for (const auto &path : source_files) {
         if (path.is_relative()) {
-            add_source_file(std::filesystem::absolute(path));
+            add_source_file(absolute(path));
         } else {
             add_source_file(path);
         }
@@ -26,7 +26,7 @@ session::session(const session_options_t& options, const path_list_t& source_fil
 
 session::~session() = default;
 
-void session::raise_phase(session_compile_phase_t phase, const fs::path& source_file)
+void session::raise_phase(session_compile_phase_t phase, const fs::path& source_file) const
 {
     if (options_.compile_callback == nullptr) {
         return;
@@ -54,10 +54,12 @@ void session::write_code_dom_graph(const fs::path& path)
     if (!path.empty()) {
         output_file = fopen(path.string().c_str(), "wt");
     }
+    defer({ if (output_file !=nullptr) {
+            fclose(output_file);
+    };});
 
     compiler::code_dom_formatter formatter(&program_, output_file);
     formatter.format(fmt::format("Code DOM Graph: {}", path.string()));
-    fclose(output_file);
 }
 
 ast_node_shared_ptr session::parse(result& r, const fs::path& path)
@@ -69,7 +71,7 @@ ast_node_shared_ptr session::parse(result& r, const fs::path& path)
     return parse(r, source_file);
 }
 
-ast_node_shared_ptr session::parse(result &r, source_file *source)
+ast_node_shared_ptr session::parse(result &r, source_file *source) const
 {
     if (source->empty()) {
         if (!source->load(r)) {
@@ -79,8 +81,13 @@ ast_node_shared_ptr session::parse(result &r, source_file *source)
     parser alpha_parser(source);
     auto module_node = alpha_parser.parse(r);
     if (module_node != nullptr && !r.is_failed()) {
-        if (options_.verbose && !options_.ast_graph_file.empty()) {
-            gfx::parser::write_ast_graph(options_.ast_graph_file, module_node);
+        if (options_.output_ast_graph) {
+            std::filesystem::path ast_file_path(source->path().parent_path());
+            auto file_name = source->path().filename().replace_extension("").string();
+            file_name+= "-ast";
+            ast_file_path.append(file_name);
+            ast_file_path.replace_extension(".dot");
+            gfx::parser::write_ast_graph(ast_file_path, module_node);
         }
     }
     return module_node;

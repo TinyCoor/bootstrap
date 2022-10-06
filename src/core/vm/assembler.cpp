@@ -249,16 +249,15 @@ bool assembler::apply_addresses(result &r)
     return !r.is_failed();
 }
 
-bool assembler::allocate_reg(registers_t& reg)
+bool assembler::allocate_reg(register_t& reg)
 {
     return register_allocator_.allocate(reg);
 }
 
-void assembler::free_reg(registers_t reg)
+void assembler::free_reg(const register_t &reg)
 {
     register_allocator_.free(reg);
 }
-
 
 target_register_t assembler::pop_target_register()
 {
@@ -278,12 +277,11 @@ target_register_t *assembler::current_target_register()
     return &target_registers_.top();
 }
 
-void assembler::push_target_register(op_sizes size, registers_t reg)
+void assembler::push_target_register(op_sizes size, const register_t &reg)
 {
     target_register_t target {
         .size = size,
-        .type = register_type_t::integer,
-        .i = reg,
+        .reg = reg,
     };
     target_registers_.push(target);
 }

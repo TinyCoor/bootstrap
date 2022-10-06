@@ -218,20 +218,20 @@ element_register_t element::register_for(result &r, emit_context_t &context, ele
         result.var = var;
         result.var->read(context.assembler, context.assembler->current_block());
         result.valid = true;
-        result.integer = var->value_reg.integer;
+        result.reg = var->value_reg.reg;
         if (var->address_reg.allocated && var->type->access_model() == type_access_model_t::pointer) {
-            result.i = var->address_reg.i;
+            result.reg = var->address_reg.reg;
         } else {
-            result.i = result.var->value_reg.i;
+            result.reg = result.var->value_reg.reg;
         }
     } else {
-        registers_t reg;
+        register_t reg;
+        reg.type = register_type_t::integer;
         if (!context.assembler->allocate_reg(reg)) {
             context.program->error(r, e, "P052", "assembler registers exhausted.", e->location());
         } else {
-            result.i = reg;
+            result.reg = reg;
             result.valid = true;
-            result.integer = true;
             result.clean_up = true;
         }
     }

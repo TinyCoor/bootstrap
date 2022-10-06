@@ -13,6 +13,11 @@
 
 namespace gfx {
 namespace fs = std::filesystem;
+struct listing_source_line_t {
+    uint64_t address = 0;
+    std::string source {};
+};
+
 struct listing_source_file_t {
     void add_source_line(uint64_t address, const std::string& source)
     {
@@ -21,7 +26,9 @@ struct listing_source_file_t {
             .source = source
         });
     }
-    void add_blank_lines(uint64_t address, uint16_t count = 1) {
+
+    void add_blank_lines(uint64_t address, uint16_t count = 1)
+    {
         for (uint16_t i = 0; i < count; i++) {
             lines.push_back(listing_source_line_t {
                 .address = address,
@@ -30,10 +37,6 @@ struct listing_source_file_t {
         }
     }
 
-    struct listing_source_line_t {
-        uint64_t address = 0;
-        std::string source {};
-    };
     fs::path path;
     std::vector<listing_source_line_t> lines {};
 };

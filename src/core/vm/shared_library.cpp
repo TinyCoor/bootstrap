@@ -16,7 +16,8 @@ bool shared_library::initialize(gfx::result &r, const std::filesystem::path &pat
 	return true;
 }
 
- bool shared_library::initialize(gfx::result &r) {
+ bool shared_library::initialize(gfx::result &r)
+ {
 	library_ = dlLoadLibrary(nullptr);
 	if (library_ == nullptr) {
 		r.add_message("B062", fmt::format("unable to load library image for self."), true);
@@ -67,5 +68,4 @@ void shared_library::get_library_path()
 		return;
 	}
 	//todo
-//	path_
 }

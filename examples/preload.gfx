@@ -5,3 +5,4 @@ alpha::compiler::linear := ns {
         z:f64;
     };
 };
+foo := 2;

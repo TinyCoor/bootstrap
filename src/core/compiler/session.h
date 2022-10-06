@@ -49,9 +49,9 @@ public:
 
     ast_node_shared_ptr parse(result& r, const fs::path& path);
 
-    ast_node_shared_ptr parse(result& r, source_file* source);
+    ast_node_shared_ptr parse(result& r, source_file* source) const;
 
-    void raise_phase(session_compile_phase_t phase, const fs::path& source_file);
+    void raise_phase(session_compile_phase_t phase, const fs::path& source_file) const;
 
 private:
     void write_code_dom_graph(const fs::path& path);

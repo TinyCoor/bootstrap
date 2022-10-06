@@ -107,7 +107,8 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
             lhs_->emit(r, context);
             var->init(context.assembler, instruction_block);
 
-            registers_t rhs_reg;
+            register_t rhs_reg;
+            rhs_reg.type = var->value_reg.reg.type;
             if (!assembler->allocate_reg(rhs_reg)) {
                 context.program->error(r, this, "P052", "assembler registers exhausted.", location());
             }
@@ -135,18 +136,18 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
         return;
     }
 
-    assembler->push_target_register(lhs_reg.size(), lhs_reg.i);
+    assembler->push_target_register(lhs_reg.size(), lhs_reg.reg);
     lhs_->emit(r, context);
     assembler->pop_target_register();
 
-    assembler->push_target_register(rhs_reg.size(), rhs_reg.i);
+    assembler->push_target_register(rhs_reg.size(), rhs_reg.reg);
     rhs_->emit(r, context);
     assembler->pop_target_register();
 
     auto if_data = context.top<if_data_t>();
     switch (operator_type()) {
         case operator_type_t::equals: {
-            instruction_block->cmp(op_sizes::qword, lhs_reg.i, rhs_reg.i);
+            instruction_block->cmp(op_sizes::qword, lhs_reg.reg, rhs_reg.reg);
             if (if_data != nullptr) {
                 auto parent_op = parent_element_as<compiler::binary_operator>();
                 if (parent_op !=nullptr && parent_op->operator_type() == operator_type_t::logical_and) {
@@ -156,8 +157,8 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
                 }
             } else {
                 auto target_reg = assembler->current_target_register();
-                instruction_block->setz(target_reg->i);
-                context.push_scratch_register(target_reg->i);
+                instruction_block->setz(target_reg->reg);
+                context.push_scratch_register(target_reg->reg);
             }
             break;
         }
@@ -174,7 +175,7 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
                 auto lhs_target_reg = context.pop_scratch_register();
                 auto rhs_target_reg =  context.pop_scratch_register();
                 auto target_reg = assembler->current_target_register();
-                instruction_block->or_ireg_by_ireg(op_sizes::qword, target_reg->i, lhs_target_reg,
+                instruction_block->or_reg_by_reg(op_sizes::qword, target_reg->reg, lhs_target_reg,
                     rhs_target_reg);
             }
             break;
@@ -186,7 +187,7 @@ void binary_operator::emit_relational_operator(result &r, emit_context_t &contex
                 auto rhs_target_reg = context.pop_scratch_register();
                 auto lhs_target_reg = context.pop_scratch_register();
                 auto target_reg = assembler->current_target_register();
-                instruction_block->and_ireg_by_ireg(op_sizes::qword, target_reg->i, lhs_target_reg,
+                instruction_block->and_reg_by_reg(op_sizes::qword, target_reg->reg, lhs_target_reg,
                     rhs_target_reg);
             }
             break;
@@ -215,64 +216,64 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
     if (!lhs_reg.valid || !rhs_reg.valid) {
         return;
     }
-    assembler->push_target_register(lhs_reg.size(), lhs_reg.i);
+    assembler->push_target_register(lhs_reg.size(), lhs_reg.reg);
     lhs_->emit(r, context);
     assembler->pop_target_register();
-    assembler->push_target_register(rhs_reg.size(), rhs_reg.i);
+    assembler->push_target_register(rhs_reg.size(), rhs_reg.reg);
     rhs_->emit(r, context);
     assembler->pop_target_register();
 
     switch (operator_type()) {
         case operator_type_t::add: {
-            instruction_block->add_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->add_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::divide: {
-            instruction_block->div_ireg_by_ireg(op_sizes::qword,result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->div_reg_by_reg(op_sizes::qword,result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::modulo: {
-            instruction_block->mod_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->mod_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::multiply: {
-            instruction_block->mul_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->mul_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::exponent: {
-//          nstruction_block->pow_ireg_by_ireg_u64(result_reg->reg.i, lhs_reg, rhs_reg);
+//          nstruction_block->pow_reg_by_reg(result_reg->reg.reg, lhs_reg, rhs_reg);
             break;
         }
         case operator_type_t::subtract: {
-            instruction_block->sub_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->sub_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::binary_or: {
-            instruction_block->or_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->or_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::shift_left: {
-            instruction_block->shl_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->shl_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::binary_and: {
-            instruction_block->and_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->and_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::binary_xor: {
-            instruction_block->xor_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->xor_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::rotate_left: {
-            instruction_block->rol_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->rol_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::shift_right: {
-            instruction_block->shr_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->shr_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::rotate_right: {
-            instruction_block->ror_ireg_by_ireg(op_sizes::qword, result_reg->i, lhs_reg.i, rhs_reg.i);
+            instruction_block->ror_reg_by_reg(op_sizes::qword, result_reg->reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         default:

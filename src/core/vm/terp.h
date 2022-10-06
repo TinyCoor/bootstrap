@@ -15,7 +15,6 @@
 #include <map>
 
 namespace gfx {
-
 	class terp {
 	public:
 		/// using to call cpp code

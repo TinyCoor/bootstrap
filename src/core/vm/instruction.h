@@ -9,7 +9,6 @@
 #include <functional>
 #include <type_traits>
 
-constexpr uint8_t REGISTER_COUNT  = 64;
 namespace gfx {
 enum class register_type_t : uint8_t {
     none,
@@ -41,9 +40,32 @@ union register_value_alias_t {
 };
 
 struct register_t {
-    registers_t number;
-    register_type_t type;
-    register_value_alias_t value;
+    static register_t pc()
+    {
+        return register_t {
+            .number = registers_t::pc,
+            .type = register_type_t::pc,
+        };
+    }
+
+    static register_t sp()
+    {
+        return register_t {
+            .number = registers_t::sp,
+            .type = register_type_t::sp,
+        };
+    }
+
+    static register_t fp()
+    {
+        return register_t {
+            .number = registers_t::fp,
+            .type = register_type_t::fp,
+        };
+    }
+    registers_t number = registers_t::r0;
+    register_type_t type = register_type_t::none;
+    register_value_alias_t value{.u = 0};
 };
 
 static constexpr const uint32_t register_integer_start   = 0;
@@ -78,17 +100,26 @@ static inline size_t register_index(registers_t r, register_type_t type)
                 return static_cast<uint8_t>(r);
             }
     }
-    return 0;
 }
+
+struct register_comparator {
+    bool operator()(
+        const register_t& lhs,
+        const register_t& rhs) const {
+        auto lhs_index = register_index(lhs.number, lhs.type);
+        auto rhs_index = register_index(rhs.number, rhs.type);
+        return lhs_index < rhs_index;
+    }
+};
 
 struct register_file_t {
 	enum flags_t : uint64_t {
-		zero     = 0b0000000000000000000000000000000000000000000000000000000000000001,
-		carry    = 0b0000000000000000000000000000000000000000000000000000000000000010,
-		overflow = 0b0000000000000000000000000000000000000000000000000000000000000100,
-		negative = 0b0000000000000000000000000000000000000000000000000000000000001000,
-		extended = 0b0000000000000000000000000000000000000000000000000000000000010000,
-		subtract = 0b0000000000000000000000000000000000000000000000000000000000100000,
+		zero     = 0x1,
+		carry    = 0x2,
+		overflow = 0x4,
+		negative = 0x8,
+		extended = 0x16,
+		subtract = 0x32,
 	};
 
 	[[nodiscard]] bool flags(flags_t flag) const
@@ -126,10 +157,10 @@ static inline uint8_t op_size_in_bytes(op_sizes size)
 }
 static inline op_sizes op_size_for_byte_size(size_t size) {
     switch (size) {
-        case 1:     return op_sizes::byte;
-        case 2:     return op_sizes::word;
-        case 4:     return op_sizes::dword;
-        case 8:     return op_sizes::qword;
+        case 1u:     return op_sizes::byte;
+        case 2u:     return op_sizes::word;
+        case 4u:     return op_sizes::dword;
+        case 8u:     return op_sizes::qword;
         default:    return op_sizes::none;
     }
 }

@@ -3,6 +3,7 @@
 //
 
 #include "symbol_element.h"
+#include "program.h"
 namespace gfx::compiler {
 symbol_element::symbol_element(compiler::block *parent_scope, const std::string &name,
     const string_list_t &namespaces)
@@ -67,6 +68,16 @@ qualified_symbol_t symbol_element::qualified_symbol() const
     symbol.namespaces = namespaces_;
     symbol.fully_qualified_name = fully_qualified_name_;
     return symbol;
+}
+
+type *symbol_element::on_infer_type(const compiler::program *program)
+{
+    auto identifier = program->find_identifier(qualified_symbol());
+    if (identifier != nullptr) {
+        return identifier->type();
+    }
+
+    return nullptr;
 }
 
 }

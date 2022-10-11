@@ -4,34 +4,22 @@
 //
 
 #include "program.h"
-#include "common/bytes.h"
-#include "element_types.h"
-#include "common/defer.h"
-#include "attribute.h"
-#include "module_reference.h"
+#include <fmt/format.h>
 #include "module.h"
-#include "directive.h"
 #include "cast.h"
 #include "label.h"
 #include "alias.h"
-#include "types/type.h"
 #include "import.h"
 #include "comment.h"
-#include "types/any_type.h"
-#include "types/bool_type.h"
-#include "types/tuple_type.h"
-#include "types/array_type.h"
+#include "directive.h"
+#include "attribute.h"
 #include "if_element.h"
 #include "expression.h"
 #include "identifier.h"
 #include "statement.h"
-#include "types/type_info.h"
-#include "types/string_type.h"
-#include "types/numeric_type.h"
-#include "types/procedure_type.h"
-#include "types/unknown_type.h"
-#include "types/pointer_type.h"
-#include "types/module_type.h"
+#include "common/bytes.h"
+#include "element_types.h"
+#include "common/defer.h"
 #include "argument_list.h"
 #include "boolean_literal.h"
 #include "string_literal.h"
@@ -40,14 +28,27 @@
 #include "return_element.h"
 #include "unary_operator.h"
 #include "symbol_element.h"
-#include "types/composite_type.h"
 #include "procedure_call.h"
 #include "binary_operator.h"
 #include "namespace_element.h"
-#include "types/namespace_type.h"
 #include "procedure_instance.h"
 #include "identifier_reference.h"
-#include <fmt/format.h>
+#include "module_reference.h"
+#include "types/type.h"
+#include "types/any_type.h"
+#include "types/bool_type.h"
+#include "types/tuple_type.h"
+#include "types/type_info.h"
+#include "types/string_type.h"
+#include "types/numeric_type.h"
+#include "types/unknown_type.h"
+#include "types/pointer_type.h"
+#include "types/module_type.h"
+#include "types/array_type.h"
+#include "types/procedure_type.h"
+#include "types/namespace_type.h"
+#include "types/composite_type.h"
+
 namespace gfx::compiler {
 
 program::program(class terp* terp ,assembler *assembler)
@@ -84,6 +85,10 @@ bool program::compile(result& r, compiler::session& session)
     }
 
     if (!resolve_unknown_types(r))  {
+        return false;
+    }
+
+    if (!type_check(r, session)) {
         return false;
     }
 
@@ -659,7 +664,7 @@ compiler::element* program::resolve_symbol_or_evaluate(result& r, compiler::sess
 }
 
  identifier* program::add_identifier_to_scope(result &r, compiler::session& session, symbol_element *symbol, type_find_result_t& type_find_result,
-                                           const ast_node_shared_ptr &node, size_t source_index, compiler::block* parent_scope)
+     const ast_node_shared_ptr &node, size_t source_index, compiler::block* parent_scope)
 {
 	auto namespace_type = find_type(qualified_symbol_t{.name = "namespace"});
 	auto scope = symbol->is_qualified() ? current_top_level()
@@ -829,7 +834,7 @@ void program::add_composite_type_fields(result &r, compiler::session& session, c
 }
 
 void program::add_procedure_instance(result &r, compiler::session& session,
-                                     procedure_type *proc_type, const ast_node_shared_ptr &node)
+    procedure_type *proc_type, const ast_node_shared_ptr &node)
 {
 	if (node->children.empty()) {
 		return;
@@ -1286,7 +1291,6 @@ compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_no
     auto symbol =builder_.make_symbol(current_scope(), qualified_symbol.name, qualified_symbol.namespaces);
     symbol->location(node->location);
     symbol->constant(node->is_constant_expression());
-
     return symbol;
 }
 
@@ -1360,7 +1364,7 @@ compiler::block *program::current_top_level()
     return top_level_stack_.top();
 }
 
-compiler::module *program::find_module(compiler::element *element) const
+compiler::module *program::find_module(compiler::element *element)
 {
     return dynamic_cast<compiler::module*>(walk_parent_elements(element,
         [](compiler::element* each) -> compiler::element* {
@@ -1388,7 +1392,7 @@ void program::error(result &r, compiler::element *element, const std::string &co
     }
 }
 
-element *program::walk_parent_scopes(compiler::block *scope, const program::scope_visitor_callable &callable) const
+element *program::walk_parent_scopes(compiler::block *scope, const program::scope_visitor_callable &callable)
 {
     while (scope != nullptr) {
         auto* result = callable(scope);
@@ -1401,7 +1405,7 @@ element *program::walk_parent_scopes(compiler::block *scope, const program::scop
 }
 
 element *program::walk_parent_elements(compiler::element *element,
-                                       const program::element_visitor_callable &callable) const
+    const program::element_visitor_callable &callable)
 {
     auto current = element;
     while (current != nullptr) {
@@ -1456,10 +1460,7 @@ compiler::type *program::make_complete_type(result &r, type_find_result_t &resul
     result.type = find_type(result.type_name, parent_scope);
     if (result.type != nullptr) {
         if (result.is_array) {
-            auto array_type = find_array_type(
-                result.type,
-                result.array_size,
-                parent_scope);
+            auto array_type = find_array_type(result.type, result.array_size, parent_scope);
             if (array_type == nullptr) {
                 array_type =builder_.make_array_type(r,parent_scope, builder_.make_block(parent_scope, element_type_t::block),
                     result.type, result.array_size);
@@ -1486,6 +1487,48 @@ element_builder &program::builder()
 element_map &program::elements()
 {
     return elements_;
+}
+
+bool program::type_check(result &r, session &session)
+{
+    auto identifiers = elements().find_by_type(element_type_t::identifier);
+    for (auto identifier : identifiers) {
+        auto var = dynamic_cast<compiler::identifier*>(identifier);
+        auto init = var->initializer();
+        if (init == nullptr)
+            continue;
+        auto rhs_type = init->infer_type(this);
+        if (!var->type()->type_check(rhs_type)) {
+            error(
+                r,
+                init,
+                "C051",
+                fmt::format(
+                    "type mismatch: cannot assign {} to {}.",
+                    rhs_type->symbol()->name(),
+                    var->type()->symbol()->name()),
+                var->location());
+        }
+    }
+
+    auto binary_ops = elements().find_by_type(element_type_t::binary_operator);
+    for (auto op : binary_ops) {
+        auto binary_op = dynamic_cast<compiler::binary_operator*>(op);
+        if (binary_op->operator_type() != operator_type_t::assignment)
+            continue;
+
+        // XXX: revisit this for destructuring/multiple assignment
+        auto var = dynamic_cast<compiler::identifier*>(binary_op->lhs());
+        auto rhs_type = binary_op->rhs()->infer_type(this);
+        if (!var->type()->type_check(rhs_type)) {
+            error(r, binary_op, "C051",
+                fmt::format( "type mismatch: cannot assign {} to {}.",
+                    rhs_type->symbol()->name(), var->type()->symbol()->name()),
+                binary_op->rhs()->location());
+        }
+    }
+
+    return !r.is_failed();
 }
 
 }

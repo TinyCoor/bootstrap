@@ -22,7 +22,7 @@ using numeric_type_map_t = std::unordered_map<std::string, numeric_type_properti
 class numeric_type : public type {
 public:
 	explicit numeric_type(block* parent_scope, symbol_element* symbol, int64_t min, uint64_t max,
-                          bool is_signed, type_number_class_t number_class);
+         bool is_signed, type_number_class_t number_class);
 
 	int64_t min() const;
 
@@ -61,6 +61,9 @@ protected:
 		{"f32",      &s_type_properties[8]},
 		{"f64",      &s_type_properties[9]},
 	};
+
+    bool on_type_check(compiler::type* other) override;
+
     type_number_class_t on_number_class() const override;
 
     type_access_model_t on_access_model() const override;

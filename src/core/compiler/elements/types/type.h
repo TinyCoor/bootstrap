@@ -33,9 +33,14 @@ public:
 
     void symbol(compiler::symbol_element* value);
 
+    bool type_check(compiler::type* other);
+
+
     bool initialize(result &r, compiler::program* program);
 protected:
 	void size_in_bytes(size_t value);
+
+    virtual bool on_type_check(compiler::type* other);
 
     virtual type_access_model_t on_access_model() const;
 

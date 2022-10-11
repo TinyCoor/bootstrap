@@ -241,7 +241,7 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
             break;
         }
         case operator_type_t::exponent: {
-//          nstruction_block->pow_reg_by_reg(result_reg->reg.reg, lhs_reg, rhs_reg);
+//          instruction_block->pow_reg_by_reg(result_reg->reg.reg, lhs_reg, rhs_reg);
             break;
         }
         case operator_type_t::subtract: {
@@ -364,6 +364,4 @@ void binary_operator::on_owned_elements(element_list_t &list)
         list.emplace_back(rhs_);
     }
 }
-
-
 }

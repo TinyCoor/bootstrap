@@ -844,8 +844,7 @@ void instruction_block::make_mul_instruction(op_sizes size, const register_t& de
     mul_op.op = op_codes::mul;
     mul_op.size = size;
     mul_op.operands_count = 3;
-    mul_op.operands[0].type = operand_encoding_t::flags::integer
-        | operand_encoding_t::flags::reg;
+    mul_op.operands[0].type = operand_encoding_t::flags::reg;
     mul_op.operands[0].value.r = dest_reg.number;
     mul_op.operands[1].type = operand_encoding_t::flags::integer
         | operand_encoding_t::flags::reg;

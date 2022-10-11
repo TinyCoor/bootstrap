@@ -88,4 +88,14 @@ type_number_class_t type::on_number_class() const
     return type_number_class_t::none;
 }
 
+bool type::type_check(compiler::type *other)
+{
+    return on_type_check(other);
+}
+
+bool type::on_type_check(compiler::type *other)
+{
+    return false;
+}
+
 }

@@ -10,6 +10,8 @@ class module_type : public compiler::composite_type {
 public:
     explicit module_type(block* parent_scope, block* scope);
 protected:
+    bool on_type_check(compiler::type* other) override;
+
     bool on_initialize(result &r, compiler::program *program) override;
 };
 }

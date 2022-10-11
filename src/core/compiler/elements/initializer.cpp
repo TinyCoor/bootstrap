@@ -3,7 +3,6 @@
 //
 
 #include "initializer.h"
-#include "binary_operator.h"
 #include "core/compiler/elements/types/procedure_type.h"
 
 namespace gfx::compiler {
@@ -79,6 +78,13 @@ void initializer::on_owned_elements(element_list_t &list)
     if (expr_ != nullptr) {
         list.emplace_back(expr_);
     }
+}
+compiler::type *initializer::on_infer_type(const compiler::program *program)
+{
+    if (expr_ != nullptr) {
+        return expr_->infer_type(program);
+    }
+    return nullptr;
 }
 
 }

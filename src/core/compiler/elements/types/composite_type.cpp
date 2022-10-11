@@ -3,6 +3,7 @@
 //
 
 #include "composite_type.h"
+#include "../symbol_element.h"
 #include "core/compiler/elements/block.h"
 #include "core/compiler/elements/identifier.h"
 namespace gfx::compiler {
@@ -61,5 +62,10 @@ void composite_type::on_owned_elements(element_list_t &list)
 type_access_model_t composite_type::on_access_model() const
 {
     return type_access_model_t::pointer;
+}
+bool composite_type::on_type_check(compiler::type *other)
+{
+    return other != nullptr
+        && other->symbol()->name() == symbol()->name();
 }
 }

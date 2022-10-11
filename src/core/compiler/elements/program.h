@@ -50,14 +50,14 @@ public:
 
 	module* compile_module(result& r, compiler::session& session, source_file *source);
 
-    void error(result& r, compiler::element *element, const std::string &code,
+    static void error(result& r, compiler::element *element, const std::string &code,
                const std::string &message, const source_location& location);
 protected:
 	terp* terp();
 
     compiler::block* current_top_level();
 
-    void error(result& r, compiler::session& session, const std::string &code,
+    static void error(result& r, compiler::session& session, const std::string &code,
                const std::string &message, const source_location& location);
 
 private:
@@ -93,7 +93,7 @@ private:
 
     bool within_procedure_scope(compiler::block* parent_scope) const;
 
-    compiler::module* find_module(compiler::element* module) const;
+    static compiler::module* find_module(compiler::element* module) ;
 private:
     friend class any_type;
     friend class bool_type;
@@ -105,11 +105,14 @@ private:
     friend class string_type;
     friend class numeric_type;
     friend class pointer_type;
+    friend class symbol_element;
     friend class unary_operator;
     friend class namespace_type;
     friend class procedure_type;
     friend class binary_operator;
     friend class element_builder;
+
+    bool type_check(result& r, compiler::session& session);
 
     static void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node);
 
@@ -128,11 +131,11 @@ private:
 
 	void push_scope(class block* block);
 
-    element* walk_parent_scopes(compiler::block* scope,
-        const scope_visitor_callable& callable) const;
+    static element* walk_parent_scopes(compiler::block* scope,
+        const scope_visitor_callable& callable) ;
 
-    element* walk_parent_elements(compiler::element* element,
-        const element_visitor_callable& callable) const;
+    static element* walk_parent_elements(compiler::element* element,
+        const element_visitor_callable& callable) ;
 
     element* walk_qualified_symbol(const qualified_symbol_t& symbol, compiler::block* scope,
         const namespace_visitor_callable& callable) const;

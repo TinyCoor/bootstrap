@@ -29,6 +29,8 @@ protected:
     void on_owned_elements(element_list_t &list) override;
 
     bool on_emit(result& r, emit_context_t& context) override;
+
+    compiler::type* on_infer_type(const compiler::program* program) override;
 private:
 	element* expr_ = nullptr;
 };

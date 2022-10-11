@@ -14,6 +14,8 @@ protected:
 
     type_access_model_t on_access_model() const override;
 
+    bool on_type_check(compiler::type* other) override;
+
     bool on_initialize(result& r, compiler::program* program) override;
 private:
 

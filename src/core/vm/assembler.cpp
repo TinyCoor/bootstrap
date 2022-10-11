@@ -259,17 +259,15 @@ void assembler::free_reg(const register_t &reg)
     register_allocator_.free(reg);
 }
 
-target_register_t assembler::pop_target_register()
+void assembler::pop_target_register()
 {
     if (target_registers_.empty()) {
-        return target_register_t {};
+        return;
     }
-    auto reg = target_registers_.top();
     target_registers_.pop();
-    return reg;
 }
 
-target_register_t *assembler::current_target_register()
+register_t *assembler::current_target_register()
 {
     if (target_registers_.empty()) {
         return nullptr;
@@ -277,13 +275,9 @@ target_register_t *assembler::current_target_register()
     return &target_registers_.top();
 }
 
-void assembler::push_target_register(op_sizes size, const register_t &reg)
+void assembler::push_target_register(const register_t &reg)
 {
-    target_register_t target {
-        .size = size,
-        .reg = reg,
-    };
-    target_registers_.push(target);
+    target_registers_.push(reg);
 }
 
 }

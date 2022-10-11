@@ -143,83 +143,83 @@ public:
     void jump_indirect(const register_t& reg);
 
     // dec variations
-    void dec(op_sizes size, const register_t& reg);
+    void dec(const register_t& reg);
 
     // inc variations
-    void inc(op_sizes size, const register_t& reg);
+    void inc(const register_t& reg);
 
-    void push(op_sizes sizes, const register_t &reg);
+    void push(const register_t &reg);
 
-    void pop(op_sizes size, const register_t &reg);
+    void pop(const register_t &reg);
 
     void call(const std::string& proc_name);
 
     void move_reg_to_reg(const register_t& dest_reg, const register_t& src_reg);
 
     // cmp variations
-    void cmp(op_sizes size, const register_t& lhs_reg, const register_t& rhs_reg);
+    void cmp(const register_t& lhs_reg, const register_t& rhs_reg);
 
     // neg variations
-    void neg(op_sizes size, const register_t& dest_reg, const register_t& src_reg);
+    void neg(const register_t& dest_reg, const register_t& src_reg);
 
     // not variations
-    void not_op(op_sizes size, const register_t& dest_reg, const register_t& src_reg);
+    void not_op(const register_t& dest_reg, const register_t& src_reg);
 
     /// move
-    void move_constant_to_reg(op_sizes size, const register_t& dest_reg, uint64_t immediate);
+    void move_constant_to_reg(const register_t& dest_reg, uint64_t immediate);
 
-    void move_constant_to_reg(op_sizes size, const register_t& dest_reg, double immediate);
+    void move_constant_to_reg(const register_t& dest_reg, double immediate);
 
     /// load variations
-    void load_to_reg(op_sizes size, const register_t& dest_reg, const register_t& address_reg, int64_t offset = 0);
+    void load_to_reg(const register_t& dest_reg, const register_t& address_reg, int64_t offset = 0);
 
     /// store
-    void store_from_reg(op_sizes size, const register_t& address_reg, const register_t& src_reg, int64_t offset = 0);
+    void store_from_reg(const register_t& address_reg, const register_t& src_reg, int64_t offset = 0);
 
     // or variations
-    void or_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
+    void or_reg_by_reg(const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
 
     // xor variations
-    void xor_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
+    void xor_reg_by_reg(const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
 
     // and variations
-    void and_reg_by_reg(op_sizes sizes, const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
+    void and_reg_by_reg(const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
 
     // shl variations
-    void shl_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
+    void shl_reg_by_reg(const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
 
     // shr variations
-    void shr_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
+    void shr_reg_by_reg(const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
 
     // rol variations
-    void rol_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
+    void rol_reg_by_reg(const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
 
     // ror variations
-    void ror_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
+    void ror_reg_by_reg(const register_t& dest_reg, const register_t& lhs_reg, const register_t& rhs_reg);
 
-    void mul_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& multiplicand_reg, const register_t& multiplier_reg);
+    void mul_reg_by_reg(const register_t& dest_reg, const register_t& multiplicand_reg, const register_t& multiplier_reg);
 
     // add variations
-    void add_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& augend_reg, const register_t& addened_reg);
+    void add_reg_by_reg(const register_t& dest_reg, const register_t& augend_reg, const register_t& addened_reg);
 
     // sub variations
-    void sub_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& augend_reg, const register_t& addened_reg);
+    void sub_reg_by_reg(const register_t& dest_reg, const register_t& augend_reg, const register_t& addened_reg);
 
-    void sub_reg_by_immediate(op_sizes size, const register_t& dest_reg, const register_t& minuend_reg, uint64_t subtrahend_immediate);
+    void sub_reg_by_immediate(const register_t& dest_reg, const register_t& minuend_reg, uint64_t subtrahend_immediate);
     // div variations
-    void div_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& dividend_reg, const register_t& divisor_reg);
+    void div_reg_by_reg(const register_t& dest_reg, const register_t& dividend_reg, const register_t& divisor_reg);
 
     // mod variations
-    void mod_reg_by_reg(op_sizes size, const register_t& dest_reg, const register_t& dividend_reg, const register_t& divisor_reg);
+    void mod_reg_by_reg(const register_t& dest_reg, const register_t& dividend_reg, const register_t& divisor_reg);
 
     // swap variations
-    void swap_reg_with_reg(op_sizes size, const register_t& dest_reg, const register_t& src_reg);
+    void swap_reg_with_reg(const register_t& dest_reg, const register_t& src_reg);
 
     // test mask for zero and branch
-    void test_mask_branch_if_zero(op_sizes size, const register_t& value_reg, const register_t& mask_reg, const register_t& address_reg);
+    void test_mask_branch_if_zero(const register_t& value_reg, const register_t& mask_reg, const register_t& address_reg);
 
     // test mask for non-zero and branch
-    void test_mask_branch_if_not_zero(op_sizes size, const register_t& value_reg, const register_t& mask_reg, const register_t& address_reg);
+    void test_mask_branch_if_not_zero(const register_t& value_reg, const register_t& mask_reg, const register_t& address_reg);
 
     ///
     template<class T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
@@ -244,6 +244,14 @@ public:
         uint64_t offset);
 
 private:
+    void make_pop_instruction(const register_t& dest_reg);
+
+    void make_push_instruction(const register_t& reg);
+
+    void make_inc_instruction(op_sizes size, const register_t& reg);
+
+    void make_dec_instruction(op_sizes size, const register_t& reg);
+
     void make_shl_instruction(op_sizes size, const register_t& dest_reg, const register_t& value_reg, const register_t& amount_reg);
 
     void make_rol_instruction(op_sizes size, const register_t& dest_reg, const register_t& value_reg, const register_t& amount_reg);
@@ -269,14 +277,6 @@ private:
     void make_store_instruction(op_sizes size, const register_t& address_reg, const register_t& src_reg, int64_t offset);
 
     void make_swap_instruction(op_sizes size, const register_t& dest_reg, const register_t& src_reg);
-
-    void make_inc_instruction(op_sizes size, const register_t& reg);
-
-    void make_dec_instruction(op_sizes size, const register_t& reg);
-
-    void make_pop_instruction(op_sizes size, const register_t& dest_reg);
-
-    void make_push_instruction(op_sizes size, const register_t& reg);
 
     void make_cmp_instruction(op_sizes size, const register_t& lhs_reg, const register_t& rhs_reg);
 

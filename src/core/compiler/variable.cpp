@@ -45,8 +45,10 @@ bool variable_t::init(gfx::assembler *assembler, instruction_block *block)
         }
         block->current_entry()->comment(fmt::format("identifier '{}' address (global)", name));
     }
+
     value_reg.reg.type = register_type_t::integer;
     if (type != nullptr &&  type->access_model() == type_access_model_t::value) {
+        value_reg.reg.size = op_size_for_byte_size(type->size_in_bytes());
         if (type->number_class() == type_number_class_t::floating_point) {
             value_reg.reg.type = register_type_t::floating_point;
         }
@@ -73,20 +75,13 @@ bool variable_t::read(assembler* assembler, instruction_block* block)
 
         if (usage == identifier_usage_t::stack) {
             type_name = stack_frame_entry_type_name(frame_entry->type);
-            block->load_to_reg(op_sizes::qword, value_reg.reg, register_t::fp(), frame_entry->offset);
+            block->load_to_reg(value_reg.reg, register_t::fp(), frame_entry->offset);
         } else {
-            block->load_to_reg(op_size_for_byte_size(type->size_in_bytes()), value_reg.reg,
-                                address_reg.reg);
+            block->load_to_reg(value_reg.reg, address_reg.reg);
             block->current_entry()->comment(fmt::format("load identifier '{}' value ({})", name, type_name));
         }
         requires_read = false;
     }
-
-//    auto target_reg = assembler->current_target_register();
-//    if (target_reg != nullptr && target_reg->reg.i != value_reg.i) {
-//        block->move_ireg_to_ireg(target_reg->reg.i, value_reg.i);
-//        block->current_entry()->comment("assign target register to value register");
-//    }
 
     return true;
 }
@@ -97,8 +92,7 @@ bool variable_t::write(assembler* assembler, instruction_block* block)
     if (target_reg == nullptr) {
         return false;
     }
-    block->store_from_reg(op_size_for_byte_size(type->size_in_bytes()),
-        address_reg.reg, target_reg->reg, frame_entry != nullptr ? frame_entry->offset : 0);
+    block->store_from_reg(address_reg.reg, *target_reg, frame_entry != nullptr ? frame_entry->offset : 0);
     written = true;
     requires_read = true;
     return true;

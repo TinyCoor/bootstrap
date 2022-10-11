@@ -8,6 +8,7 @@
 #include "dynload/dynload.h"
 #include "dyncall/dyncall_signature.h"
 #include "dyncall/dyncall_struct.h"
+#include "instruction.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -52,6 +53,8 @@ struct function_value_t {
 	}
 
 	void push(DCCallVM* vm, uint64_t value){
+        register_value_alias_t alias {};
+        alias.qw = value;
 		switch (type) {
 			case ffi_types_t::void_type:
 				break;
@@ -71,10 +74,10 @@ struct function_value_t {
 				dcArgLongLong(vm, static_cast<DClonglong>(value));
 				break;
 			case ffi_types_t::float_type:
-				dcArgFloat(vm, static_cast<DCfloat>(value));
+				dcArgFloat(vm, alias.dwf);
 				break;
 			case ffi_types_t::double_type:
-				dcArgDouble(vm, static_cast<DCdouble>(value));
+				dcArgDouble(vm, alias.qwf);
 				break;
 			case ffi_types_t::pointer_type:
 				dcArgPointer(vm, reinterpret_cast<DCpointer>(value));

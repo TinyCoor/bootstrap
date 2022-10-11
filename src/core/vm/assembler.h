@@ -42,13 +42,13 @@ public:
 
     bool apply_addresses(result& r);
 
-    target_register_t pop_target_register();
+    void pop_target_register();
 
     void push_block(instruction_block* block);
 
-    target_register_t* current_target_register();
+    register_t* current_target_register();
 
-    void push_target_register(op_sizes size, const register_t &reg);
+    void push_target_register(const register_t &reg);
 
     gfx::segment* segment(const std::string& name);
 
@@ -72,7 +72,7 @@ private:
     uint32_t procedure_block_count_ = 0;
     std::vector<instruction_block*> blocks_ {};
     std::stack<instruction_block*> block_stack_{};
-    std::stack<target_register_t> target_registers_ {};
+    std::stack<register_t> target_registers_ {};
     register_allocator_t register_allocator_ {};
 	std::unordered_map<std::string, gfx::segment> segments_{};
 };

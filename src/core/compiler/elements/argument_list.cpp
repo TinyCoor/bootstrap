@@ -59,16 +59,15 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
             case element_type_t::unary_operator:
             case element_type_t::binary_operator:
             case element_type_t::identifier_reference:{
-                auto push_size = op_sizes::qword;
                 auto arg_reg = register_for(r, context, arg);
                 if (arg_reg.var != nullptr) {
-                    push_size = op_size_for_byte_size(arg_reg.var->type->size_in_bytes());
+                    // push_size = op_size_for_byte_size(arg_reg.var->type->size_in_bytes());
                     arg_reg.clean_up = true;
                 }
-                assembler->push_target_register(arg_reg.size(), arg_reg.reg);
+                assembler->push_target_register(arg_reg.reg);
                 arg->emit(r, context);
                 assembler->pop_target_register();
-                instruction_block->push(push_size, arg_reg.reg);
+                instruction_block->push(arg_reg.reg);
                 break;
             }
             default:

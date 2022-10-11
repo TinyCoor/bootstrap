@@ -44,13 +44,12 @@ bool terp::initialize(result& r)
 
 void terp::reset()
 {
-	registers_.r[register_pc].u = heap_vector(heap_vectors_t::program_start);
-	registers_.r[register_sp].u = heap_vector(heap_vectors_t::top_of_stack);
-	registers_.r[register_fr].u = 0;
-	registers_.r[register_sr].u = 0;
+	registers_.r[register_pc].qw = heap_vector(heap_vectors_t::program_start);
+	registers_.r[register_sp].qw = heap_vector(heap_vectors_t::top_of_stack);
+	registers_.r[register_fr].qw = 0;
+	registers_.r[register_sr].qw = 0;
 	for (size_t i = 0; i < 64 ; ++i) {
-		registers_.r[i].u = 0;
-		registers_.r[i].d = 0.0;
+		registers_.r[i].qw = 0;
 	}
 	inst_cache_.reset();
 	dcReset(call_vm_);
@@ -72,26 +71,24 @@ void terp::dump_state(uint8_t count)
 {
 	fmt::print("-------------------------------------------------------------\n");
 	fmt::print("PC =${:08x} | SP =${:08x} | FR =${:08x} | SR =${:08x}\n",
-			   registers_.r[register_pc].u, registers_.r[register_sp].u, registers_.r[register_fr].u,
-               registers_.r[register_sr].u);
+			   registers_.r[register_pc].qw, registers_.r[register_sp].qw, registers_.r[register_fr].qw,
+               registers_.r[register_sr].qw);
 	fmt::print("-------------------------------------------------------------\n");
     uint8_t index = register_integer_start;
 	for (int x = 0; x < count; ++x) {
 		fmt::print("I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x} | I{:02}=${:08x}\n",
-			index, registers_.r[index].u,
-			index + 1, registers_.r[index + 1].u,
-			index + 2, registers_.r[index + 2].u,
-			index + 3, registers_.r[index + 3].u);
+			index, registers_.r[index].qw, index + 1, registers_.r[index + 1].qw,
+			index + 2, registers_.r[index + 2].qw, index + 3, registers_.r[index + 3].qw);
 		index += 4;
 	}
 	fmt::print("-------------------------------------------------------------\n");
     index = register_float_start;
 	for (int x = 0; x < count; ++x) {
 		fmt::print("F{:02}=${:08x} | F{:02}=${:08x} | F{:02}=${:08x} | F{:02}=${:08x}\n",
-		   index, static_cast<uint64_t >(registers_.r[index].d),
-		   index + 1, static_cast<uint64_t >(registers_.r[index + 1].d),
-		   index + 2, static_cast<uint64_t >(registers_.r[index + 2].d),
-		   index + 3, static_cast<uint64_t >(registers_.r[index + 3].d));
+		   index, static_cast<uint64_t >(registers_.r[index].qw),
+		   index + 1, static_cast<uint64_t >(registers_.r[index + 1].qw),
+		   index + 2, static_cast<uint64_t >(registers_.r[index + 2].qw),
+		   index + 3, static_cast<uint64_t >(registers_.r[index + 3].qw));
 		index += 4;
 	}
 }
@@ -104,7 +101,7 @@ bool terp::step(result &r)
 		return false;
 	}
 
-	registers_.r[register_pc].u += inst_size;
+	registers_.r[register_pc].qw += inst_size;
 
 	switch (inst.op) {
 		case op_codes::nop:{
@@ -145,8 +142,8 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::negative, false);
 			registers_.flags(register_file_t::flags_t::zero, freed_size != 0);
-
-		}break;
+            break;
+		}
 		case op_codes::size: {
 			operand_value_t address;
 			if (!get_operand_value(r, inst, 1, address)) {
@@ -162,8 +159,8 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::zero, block_size.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(block_size, inst.size));
-
-		} break;
+            break;
+		}
 		case op_codes::load: {
 			operand_value_t address;
 			if (!get_operand_value(r, inst, 1, address)) {
@@ -364,7 +361,7 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::negative, false);
 		}break;
 		case op_codes::move: {
-			operand_value_t source_value ;
+			operand_value_t source_value;
             operand_value_t offset;
 
             if (inst.operands_count > 2) {
@@ -824,7 +821,7 @@ bool terp::step(result &r)
 			}
 
 			if (value.alias.u == 0) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 			registers_.flags(register_file_t::flags_t::zero, value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::subtract, false);
@@ -843,7 +840,7 @@ bool terp::step(result &r)
 			}
 
 			if (value.alias.u != 0) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 			registers_.flags(register_file_t::flags_t::zero, value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::subtract, false);
@@ -866,7 +863,7 @@ bool terp::step(result &r)
             operand_value_t result;
             result.alias.u = value.alias.u & mask.alias.u;
 			if (result.alias.u == 0) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 
 			registers_.flags(register_file_t::flags_t::carry, false);
@@ -892,7 +889,7 @@ bool terp::step(result &r)
             operand_value_t result;
             result.alias.u = value.alias.u & mask.alias.u;
 			if (result.alias.u != 0) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 
 			registers_.flags(register_file_t::flags_t::carry, false);
@@ -909,7 +906,7 @@ bool terp::step(result &r)
 			}
 
 			if (registers_.flags(register_file_t::flags_t::zero) == 0) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 		}break;
 		case op_codes::beq: {
@@ -920,7 +917,7 @@ bool terp::step(result &r)
 			}
 
 			if (registers_.flags(register_file_t::flags_t::zero)) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 		} break;
 		case op_codes::bg: {
@@ -932,7 +929,7 @@ bool terp::step(result &r)
 
 			if (!registers_.flags(register_file_t::flags_t::carry)
 				&& !registers_.flags(register_file_t::flags_t::zero)) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 		}break;
 		case op_codes::bge: {
@@ -944,7 +941,7 @@ bool terp::step(result &r)
 			}
 
 			if (!registers_.flags(register_file_t::flags_t::carry)) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 		}break;
 		case op_codes::bl: {
@@ -957,7 +954,7 @@ bool terp::step(result &r)
 
 			if (registers_.flags(register_file_t::flags_t::carry)
 				|| registers_.flags(register_file_t::flags_t::zero)) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 		}break;
 		case op_codes::ble:{
@@ -969,23 +966,23 @@ bool terp::step(result &r)
 			}
 
 			if (registers_.flags(register_file_t::flags_t::carry)) {
-				registers_.r[register_pc].u = address.alias.u;
+				registers_.r[register_pc].qw = address.alias.u;
 			}
 		}break;
 		case op_codes::jsr: {
-			push(registers_.r[register_pc].u);
+			push(registers_.r[register_pc].qw);
 			operand_value_t address;
 			auto result = get_constant_address_or_pc_with_offset( r, inst, 0, inst_size, address);
 			if (!result) {
 				return false;
 			}
 
-			registers_.r[register_pc].u  = address.alias.u;
+			registers_.r[register_pc].qw  = address.alias.u;
 		}break;
 		case op_codes::rts: {
             operand_value_t address;
 			address.alias.u = pop();
-            registers_.r[register_pc].u  = address.alias.u;
+            registers_.r[register_pc].qw  = address.alias.u;
 		}break;
 		case op_codes::jmp: {
 			operand_value_t address;
@@ -994,7 +991,7 @@ bool terp::step(result &r)
 			if (!result) {
 				return false;
 			}
-            registers_.r[register_pc].u  = address.alias.u;
+            registers_.r[register_pc].qw  = address.alias.u;
 		}break;
 		case op_codes::swi:{
 			operand_value_t index;
@@ -1006,8 +1003,8 @@ bool terp::step(result &r)
 			swi_address.alias.u = read(inst.size, swi_offset);
 			if (swi_address.alias.u != 0) {
 				/// TODO 恢复现场
-				push(registers_.r[register_pc].u);
-				registers_.r[register_pc].u = swi_address.alias.u;
+				push(registers_.r[register_pc].qw);
+                registers_.r[register_pc].qw = swi_address.alias.u;
 			}
 		}break;
 		case op_codes::trap:{
@@ -1093,15 +1090,15 @@ bool terp::step(result &r)
 
 uint64_t terp::pop()
 {
-	uint64_t value = read(op_sizes::qword, registers_.r[register_sp].u);
-	registers_.r[register_sp].u += sizeof(uint64_t);
+	uint64_t value = read(op_sizes::qword, registers_.r[register_sp].qw);
+	registers_.r[register_sp].qw += sizeof(uint64_t);
 	return value;
 }
 
 void terp::push(uint64_t value)
 {
-	registers_.r[register_sp].u -= sizeof(uint64_t);
-    write(op_sizes::qword, registers_.r[register_sp].u, value);
+	registers_.r[register_sp].qw -= sizeof(uint64_t);
+    write(op_sizes::qword, registers_.r[register_sp].qw, value);
 }
 
 void terp::dump_heap(uint64_t offset, size_t size)
@@ -1117,7 +1114,7 @@ bool terp::get_operand_value(result& r, const instruction_t& instruction, uint8_
     if (operand.is_reg()) {
         auto reg_index = register_index(static_cast<registers_t>(operand.value.r),
             operand.is_integer() ? register_type_t::integer : register_type_t::floating_point);
-        value.alias.u = registers_.r[reg_index].u;
+        value.alias.u = registers_.r[reg_index].qw;
     } else {
         value.alias.u = operand.value.u;
     }
@@ -1131,7 +1128,7 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
     auto type = operand.is_integer() ? register_type_t::integer : register_type_t::floating_point;
     if (operand.is_reg()) {
         auto reg_index = register_index(static_cast<registers_t>(operand.value.r), type);
-        registers_.r[reg_index].u = set_zoned_value(registers_.r[reg_index].u, value.alias.u, inst.size);
+        set_zoned_value(registers_.r[reg_index], value.alias.u, inst.size);
     } else {
         r.add_message("B006", "constant cannot be a target operand type.", true);
         return false;
@@ -1174,7 +1171,7 @@ void terp::remove_trap(uint8_t index)
 
 uint64_t terp::peek() const
 {
-	uint64_t value = read(op_sizes::qword, registers_.r[register_sp].u);
+	uint64_t value = read(op_sizes::qword, registers_.r[register_sp].qw);
 	return value;
 }
 
@@ -1188,9 +1185,9 @@ std::vector<uint64_t> terp::jump_to_subroutine(result &r, uint64_t address)
 {
 	std::vector<uint64_t> return_values;
 
-	auto return_address = registers_.r[register_pc].u;
+	auto return_address = registers_.r[register_pc].qw;
 	push(return_address);
-	registers_.r[register_pc].u = address;
+	registers_.r[register_pc].qw = address;
 
 	while (!has_exited()) {
 		// XXX: need to introduce a terp_step_result_t
@@ -1220,31 +1217,27 @@ void terp::heap_vector(heap_vectors_t vector, uint64_t address)
     write(op_sizes::qword, heap_vector_address, address);
 }
 
-uint64_t terp::set_zoned_value(uint64_t source, uint64_t value, op_sizes size)
+void terp::set_zoned_value(register_value_alias_t& reg, uint64_t value, op_sizes size)
 {
-	uint64_t result = source;
 	switch (size) {
 		case op_sizes::byte: {
-			result &= mask_byte_clear;
-			result |= (value & mask_byte);
+            reg.b = static_cast<uint8_t>(value);
 			break;
 		}
 		case op_sizes::word: {
-			result &= mask_word_clear;
-			result |= (value & mask_word);
+            reg.w = static_cast<uint16_t>(value);
 			break;
 		}
 		case op_sizes::dword: {
-			result &= mask_dword_clear;
-			result |= (value & mask_dword);
+            reg.dw = static_cast<uint32_t>(value);
 			break;
 		}
-		case op_sizes::qword:
 		default:
-			result = value;
-			break;
+        case op_sizes::qword: {
+            reg.qw = value;
+            break;
+        }
 	}
-	return result;
 }
 
 bool terp::has_overflow(uint64_t lhs, uint64_t rhs, uint64_t result, op_sizes size)
@@ -1571,6 +1564,7 @@ void terp::dump_shared_libraries()
 	}
 	fmt::print("\n");
 }
+
 uint64_t terp::read(op_sizes size, uint64_t address) const
 {
     uint8_t* relative_heap_ptr = heap_ + address;
@@ -1651,7 +1645,7 @@ void terp::write(op_sizes size, uint64_t address, uint64_t value)
 
 void terp::set_pc_address(uint64_t address)
 {
-    registers_.r[register_pc].u = address;
+    registers_.r[register_pc].qw = address;
 }
 
 }

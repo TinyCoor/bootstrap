@@ -11,11 +11,6 @@
 
 namespace gfx {
 
-struct target_register_t {
-    op_sizes size;
-    register_t reg;
-};
-
 struct register_allocator_t {
     register_allocator_t();
 
@@ -25,9 +20,9 @@ struct register_allocator_t {
 
     bool allocate(register_t &reg);
 
-    std::stack<register_t> available_float{};
-    std::stack<register_t> available_integer{};
-    std::set<register_t, register_comparator> used{};
+    std::set<size_t> used{};
+    std::stack<registers_t> available_float{};
+    std::stack<registers_t> available_integer{};
 
 };
 }

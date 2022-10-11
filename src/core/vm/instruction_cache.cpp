@@ -17,7 +17,7 @@ void instruction_cache::reset()
 
 size_t instruction_cache::fetch(result& r, instruction_t &inst)
 {
-	return fetch_at(r,  inst, terp_->register_file().r[register_pc].u);
+	return fetch_at(r,  inst, terp_->register_file().r[register_pc].qw);
 }
 
 size_t instruction_cache::fetch_at(result& r, instruction_t &inst, uint64_t address)

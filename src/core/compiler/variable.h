@@ -41,7 +41,10 @@ struct variable_t {
     int64_t address_offset = 0;
     variable_register_t value_reg;
     compiler::type *type = nullptr;
-    variable_register_t address_reg{.reg = {.type = register_type_t::integer,}};
+    variable_register_t address_reg{.reg = {
+        .size = op_sizes::qword,
+        .type = register_type_t::integer,}
+    };
     stack_frame_entry_t *frame_entry = nullptr;
 };
 }

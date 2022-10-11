@@ -225,10 +225,16 @@ element_register_t element::register_for(result &r, emit_context_t &context, ele
             result.reg = result.var->value_reg.reg;
         }
     } else {
+        auto type = e->infer_type(context.program);
         register_t reg;
-        reg.type = register_type_t::integer;
+        reg.size = op_size_for_byte_size(type->size_in_bytes());
+        if (e->element_type() == element_type_t::float_literal) {
+            reg.type = register_type_t::floating_point;
+        } else {
+            reg.type = register_type_t::integer;
+        }
         if (!context.assembler->allocate_reg(reg)) {
-            context.program->error(r, e, "P052", "assembler registers exhausted.", e->location());
+            gfx::compiler::program::error(r, e, "P052", "assembler registers exhausted.", e->location());
         } else {
             result.reg = reg;
             result.valid = true;

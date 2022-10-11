@@ -35,9 +35,41 @@ enum registers_t : uint8_t {
 };
 
 union register_value_alias_t {
-    double   d;
-    uint64_t u;
+    uint8_t  b;
+    uint16_t w;
+    uint32_t dw;
+    float    dwf;
+    uint64_t qw;
+    double   qwf;
 };
+
+enum class op_sizes : uint8_t {
+    none,
+    byte,
+    word,
+    dword,
+    qword,
+};
+
+static inline uint8_t op_size_in_bytes(op_sizes size)
+{
+    switch (size) {
+        case op_sizes::byte:  return 1u;
+        case op_sizes::word:  return 2u;
+        case op_sizes::dword: return 4u;
+        case op_sizes::qword: return 8u;
+        default: return 0u;
+    }
+}
+static inline op_sizes op_size_for_byte_size(size_t size) {
+    switch (size) {
+        case 1u:     return op_sizes::byte;
+        case 2u:     return op_sizes::word;
+        case 4u:     return op_sizes::dword;
+        case 8u:     return op_sizes::qword;
+        default:    return op_sizes::none;
+    }
+}
 
 struct register_t {
     static register_t pc()
@@ -63,9 +95,18 @@ struct register_t {
             .type = register_type_t::fp,
         };
     }
+
+    static register_t empty() {
+        return register_t {
+            .number = registers_t::r0,
+            .type = register_type_t::none,
+        };
+    }
+
+    op_sizes size = op_sizes::qword;
     registers_t number = registers_t::r0;
     register_type_t type = register_type_t::none;
-    register_value_alias_t value{.u = 0};
+    register_value_alias_t value{.qw = 0};
 };
 
 static constexpr const uint32_t register_integer_start   = 0;
@@ -102,15 +143,6 @@ static inline size_t register_index(registers_t r, register_type_t type)
     }
 }
 
-struct register_comparator {
-    bool operator()(
-        const register_t& lhs,
-        const register_t& rhs) const {
-        auto lhs_index = register_index(lhs.number, lhs.type);
-        auto rhs_index = register_index(rhs.number, rhs.type);
-        return lhs_index < rhs_index;
-    }
-};
 
 struct register_file_t {
 	enum flags_t : uint64_t {
@@ -124,52 +156,24 @@ struct register_file_t {
 
 	[[nodiscard]] bool flags(flags_t flag) const
     {
-		return (r[register_fr].u & flag) != 0;
+		return (r[register_fr].qw & flag) != 0;
 	}
 
 	void flags(flags_t flag, bool value) {
 		if (value) {
-            r[register_fr].u |= flag;
+            r[register_fr].qw |= flag;
 		} else {
-            r[register_fr].u &= ~flag;
+            r[register_fr].qw &= ~flag;
 		}
 	}
     register_value_alias_t r[number_total_registers];
 };
 
-enum class op_sizes : uint8_t {
-	none,
-	byte,
-	word,
-	dword,
-	qword,
-};
-
-static inline uint8_t op_size_in_bytes(op_sizes size)
-{
-	switch (size) {
-		case op_sizes::byte:  return 1u;
-        case op_sizes::word:  return 2u;
-		case op_sizes::dword: return 4u;
-		case op_sizes::qword: return 8u;
-		default: return 0u;
-	}
-}
-static inline op_sizes op_size_for_byte_size(size_t size) {
-    switch (size) {
-        case 1u:     return op_sizes::byte;
-        case 2u:     return op_sizes::word;
-        case 4u:     return op_sizes::dword;
-        case 8u:     return op_sizes::qword;
-        default:    return op_sizes::none;
-    }
-}
 
 union operand_value_alias_t {
-    uint8_t r;
+    uint8_t  r;
     uint64_t u;
-    float f;
-    double d;
+    double   d;
 };
 
 struct operand_value_t {

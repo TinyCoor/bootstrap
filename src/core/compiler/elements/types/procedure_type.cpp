@@ -112,7 +112,7 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
         size += 8;
     }
     if (size > 0) {
-        instruction_block->sub_reg_by_immediate(op_sizes::qword, register_t::sp(), register_t::sp(), size);
+        instruction_block->sub_reg_by_immediate(register_t::sp(), register_t::sp(), size);
     }
 
     context.assembler->push_block(instruction_block);

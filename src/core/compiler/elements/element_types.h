@@ -419,5 +419,14 @@ struct element_register_t {
     assembler* assembler = nullptr;
 };
 
+struct type_find_result_t {
+    qualified_symbol_t type_name{};
+    bool is_array{false};
+    bool is_pointer = false;
+    bool is_spread = false;
+    size_t array_size{0};
+    compiler::type* type = nullptr;
+};
+
 }
 #endif // COMPILER_ELEMENTS_ELEMENT_TYPES_H_

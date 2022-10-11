@@ -12,16 +12,9 @@
 #include "element_types.h"
 #include "compiler/compiler_types.h"
 #include "common/source_file.h"
+#include "../ast_evaluator.h"
 
 namespace gfx::compiler {
-struct type_find_result_t {
-    qualified_symbol_t type_name{};
-    bool is_array{false};
-    bool is_pointer = false;
-    bool is_spread = false;
-    size_t array_size{0};
-    compiler::type* type = nullptr;
-};
 
 class program : public element {
 public:
@@ -73,23 +66,9 @@ private:
         compiler::block* root_block = nullptr);
 
 private:
-	void add_composite_type_fields(result& r, compiler::session& session, composite_type* struct_type, const ast_node_shared_ptr& block);
-
-    void apply_attributes(result& r, compiler::session& session, compiler::element* element, const ast_node_shared_ptr& node);
-
-	identifier * add_identifier_to_scope(result& r, compiler::session& session, symbol_element* symbol, type_find_result_t& find_type_result,
-                                      const ast_node_shared_ptr& node, size_t source_index, compiler::block* parent_scope = nullptr);
-
     compiler::symbol_element* make_symbol_from_node(result& r, const ast_node_shared_ptr& node);
 
-    void add_procedure_instance(result& r, compiler::session& session, compiler::procedure_type* proc_type, const ast_node_shared_ptr& node);
-
-    static void add_expression_to_scope(compiler::block* scope, compiler::element* expr);
-
     void add_type_to_scope(compiler::type* value);
-
-    compiler::element* resolve_symbol_or_evaluate(result& r, compiler::session& session,
-        const ast_node_shared_ptr& node);
 
     bool within_procedure_scope(compiler::block* parent_scope) const;
 
@@ -111,6 +90,7 @@ private:
     friend class procedure_type;
     friend class binary_operator;
     friend class element_builder;
+    friend class ast_evaluator;
 
     bool type_check(result& r, compiler::session& session);
 
@@ -140,11 +120,6 @@ private:
     element* walk_qualified_symbol(const qualified_symbol_t& symbol, compiler::block* scope,
         const namespace_visitor_callable& callable) const;
 
-    element* evaluate(result& r, compiler::session& session, const ast_node_shared_ptr& node,
-                      element_type_t default_block_type = element_type_t::block);
-
-    element* evaluate_in_scope(result& r, compiler::session& session, const ast_node_shared_ptr& node,
-        compiler::block* scope, element_type_t default_block_type = element_type_t::block);
 
     bool find_identifier_type(result& r, type_find_result_t& result, const ast_node_shared_ptr& type_node,
                               compiler::block* parent_scope = nullptr);
@@ -154,9 +129,10 @@ private:
 private:
 	assembler* assembler_ = nullptr;
 	class terp* terp_ = nullptr;
-    element_map elements_ {};
     element_builder builder_;
+    element_map elements_ {};
 	compiler::block* block_ = nullptr;
+    ast_evaluator ast_evaluator_;
     std::stack<compiler::block*> top_level_stack_;
 	std::stack<compiler::block*> scope_stack_ {};
 	identifier_list_t identifiers_with_unknown_types_ {};

@@ -44,6 +44,13 @@ struct data_definition_t {
     data_definition_type_t type = data_definition_type_t::uninitialized;
 };
 
+struct comment_t {
+    uint8_t indent {};
+    std::string value {};
+};
+
+using comment_list_t = std::vector<comment_t>;
+
 enum class block_entry_type_t : uint8_t {
     section = 1,
     memo,
@@ -80,33 +87,35 @@ struct block_entry_t {
         return address_;
     }
 
-    void address(uint64_t value)
+    block_entry_t *address(uint64_t value)
     {
         address_ = value;
         for (auto label : labels_) {
             label->address(value);
         }
+        return this;
     }
 
-    inline void blank_lines(uint16_t count)
+    block_entry_t* blank_lines(uint16_t count)
     {
         blank_lines_ += count;
+        return this;
     }
 
-    [[nodiscard]] inline uint16_t blank_lines() const
+    [[nodiscard]] uint16_t blank_lines() const
     {
         return blank_lines_;
     }
 
-    void label(class label *label);
+    block_entry_t *label(class label *label);
 
     [[nodiscard]] block_entry_type_t type() const;
 
-    void comment(const std::string &value);
-
     [[nodiscard]] const std::vector<class label *> &labels() const;
 
-    [[nodiscard]] const std::vector<std::string> &comments() const;
+    comment_list_t comments();
+
+    block_entry_t *comment(const std::string& value, uint8_t indent = 0);
 
 private:
     std::any data_;
@@ -114,7 +123,7 @@ private:
     uint64_t address_ = 0;
     uint16_t blank_lines_ = 0;
     std::vector<class label *> labels_{};
-    std::vector<std::string> comments_{};
+    comment_list_t comments_ {};
 };
 }
 #endif // VM_BLOCK_ENTRY_H_

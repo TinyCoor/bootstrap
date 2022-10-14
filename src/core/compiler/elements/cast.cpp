@@ -34,7 +34,9 @@ bool cast::on_emit(result &r, emit_context_t &context)
     }
     auto assembler = context.assembler;
     auto instruction_block = assembler->current_block();
-    instruction_block->current_entry()->comment(fmt::format("XXX: cast<{}> not yet implemented", type_->symbol()->name()));
+    instruction_block->current_entry()->comment(
+        fmt::format("XXX: cast<{}> not yet implemented", type_->symbol()->name()),
+        context.indent);
     return expression_->emit(r, context);
 }
 

@@ -409,6 +409,7 @@ std::string make_fully_qualified_name(const symbol_element* symbol);
 
 std::string make_fully_qualified_name(const qualified_symbol_t& symbol);
 struct variable_t;
+struct emit_context_t;
 struct element_register_t {
     ~element_register_t();
     [[nodiscard]] op_sizes size() const;
@@ -416,7 +417,7 @@ struct element_register_t {
     bool clean_up = false;
     register_t reg;
     variable_t* var = nullptr;
-    assembler* assembler = nullptr;
+    emit_context_t* context = nullptr;
 };
 
 struct type_find_result_t {

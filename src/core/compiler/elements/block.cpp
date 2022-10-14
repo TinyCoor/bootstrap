@@ -61,7 +61,9 @@ bool block::on_emit(result &r, emit_context_t& context)
             instruction_block->memo();
             auto parent_ns = parent_element_as<compiler::namespace_element>();
             if (parent_ns != nullptr) {
-                instruction_block->current_entry()->comment(fmt::format("namespace: {}", parent_ns->name()));
+                instruction_block->current_entry()->comment(
+                    fmt::format("namespace: {}", parent_ns->name()),
+                    context.indent);
             }
             instruction_block->current_entry()->blank_lines(1);
             auto block_label = instruction_block->make_label(label_name());
@@ -76,9 +78,9 @@ bool block::on_emit(result &r, emit_context_t& context)
 
             auto parent_module = parent_element_as<compiler::module>();
             if (parent_module != nullptr) {
-                instruction_block->current_entry()->comment(fmt::format(
-                    "module: {}",
-                    parent_module->source_file()->path().string()));
+                instruction_block->current_entry()->comment(
+                    fmt::format("module: {}", parent_module->source_file()->path().string()),
+                    context.indent);
                 cleanup = !parent_module->is_root();
             }
             instruction_block->current_entry()->blank_lines(1);

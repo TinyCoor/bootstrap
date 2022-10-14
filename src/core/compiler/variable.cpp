@@ -3,6 +3,7 @@
 //
 
 #include "variable.h"
+#include "emit_context.h"
 #include "elements/types/type.h"
 #include "compiler/elements/identifier.h"
 #include <fmt/format.h>
@@ -23,7 +24,7 @@ void variable_register_t::release(assembler *assembler)
 }
 
 
-bool variable_t::init(gfx::assembler *assembler, instruction_block *block)
+bool variable_t::init(emit_context_t& context, instruction_block *block)
 {
     if (!live) {
         return false;
@@ -34,7 +35,7 @@ bool variable_t::init(gfx::assembler *assembler, instruction_block *block)
     }
 
     if (usage == identifier_usage_t::heap) {
-        if (!address_reg.reserve(assembler)) {
+        if (!address_reg.reserve(context.assembler)) {
             return false;
         }
 
@@ -43,7 +44,7 @@ bool variable_t::init(gfx::assembler *assembler, instruction_block *block)
         } else {
             block->move_label_to_reg(address_reg.reg, name);
         }
-        block->current_entry()->comment(fmt::format("identifier '{}' address (global)", name));
+        block->current_entry()->blank_lines(1)->comment(fmt::format("identifier '{}' address (global)", name), context.indent);
     }
 
     value_reg.reg.type = register_type_t::integer;
@@ -58,18 +59,18 @@ bool variable_t::init(gfx::assembler *assembler, instruction_block *block)
     return true;
 }
 
-bool variable_t::read(assembler* assembler, instruction_block* block)
+bool variable_t::read(emit_context_t& context, instruction_block* block)
 {
     if (!live) {
         return false;
     }
-    if (!init(assembler, block)) {
+    if (!init(context, block)) {
         return false;
     }
 
     std::string type_name = "global";
     if (requires_read) {
-        if (!value_reg.reserve(assembler)) {
+        if (!value_reg.reserve(context.assembler)) {
             return false;
         }
 
@@ -78,7 +79,7 @@ bool variable_t::read(assembler* assembler, instruction_block* block)
             block->load_to_reg(value_reg.reg, register_t::fp(), frame_entry->offset);
         } else {
             block->load_to_reg(value_reg.reg, address_reg.reg);
-            block->current_entry()->comment(fmt::format("load identifier '{}' value ({})", name, type_name));
+            block->current_entry() ->blank_lines(1)->comment(fmt::format("load identifier '{}' value ({})", name, type_name), context.indent);
         }
         requires_read = false;
     }
@@ -86,9 +87,9 @@ bool variable_t::read(assembler* assembler, instruction_block* block)
     return true;
 }
 
-bool variable_t::write(assembler* assembler, instruction_block* block)
+bool variable_t::write(emit_context_t& context, instruction_block* block)
 {
-    auto target_reg = assembler->current_target_register();
+    auto target_reg =context.assembler->current_target_register();
     if (target_reg == nullptr) {
         return false;
     }
@@ -98,7 +99,7 @@ bool variable_t::write(assembler* assembler, instruction_block* block)
     return true;
 }
 
-void variable_t::make_live(assembler* assembler)
+void variable_t::make_live(emit_context_t& context)
 {
     if (live) {
         return;
@@ -108,7 +109,7 @@ void variable_t::make_live(assembler* assembler)
     requires_read = type->access_model() != type_access_model_t::pointer;
 }
 
-void variable_t::make_dormat(assembler* assembler)
+void variable_t::make_dormat(emit_context_t& context)
 {
     if (!live) {
         return;
@@ -117,7 +118,7 @@ void variable_t::make_dormat(assembler* assembler)
     live = false;
     requires_read = false;
     address_loaded = false;
-    value_reg.release(assembler);
-    address_reg.release(assembler);
+    value_reg.release(context.assembler);
+    address_reg.release(context.assembler);
 }
 }

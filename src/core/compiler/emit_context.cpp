@@ -63,7 +63,7 @@ void emit_context_t::free_variable(const std::string &name)
 {
     auto var = variable(name);
     if (var != nullptr) {
-        var->make_dormat(assembler);
+        var->make_dormat(*this);
     }
 }
 variable_t *emit_context_t::variable(const std::string &name)

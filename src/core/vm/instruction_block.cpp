@@ -330,7 +330,11 @@ void instruction_block::disassemble(instruction_block *block)
     for (auto& entry : block->entries_) {
         source_file->add_blank_lines(entry.address(), entry.blank_lines());
         for (const auto& comment : entry.comments()) {
-            source_file->add_source_line(entry.address(), fmt::format("; {}", comment));
+            std::string indent;
+            if (comment.indent > 0) {
+                indent = std::string(comment.indent, ' ');
+            }
+            source_file->add_source_line(entry.address(), fmt::format("{}; {}", indent, comment.value));
         }
 
         if (entry.type() == block_entry_type_t::align) {

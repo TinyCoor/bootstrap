@@ -8,6 +8,7 @@
 #include "types/procedure_type.h"
 #include "procedure_call.h"
 #include "fmt/format.h"
+#include "common/defer.h"
 namespace gfx::compiler {
 
 procedure_call::procedure_call(block* parent, compiler::identifier_reference* reference,
@@ -31,6 +32,10 @@ compiler::type *procedure_call::on_infer_type(const compiler::program *program)
 
 bool procedure_call::on_emit(result &r, emit_context_t& context)
 {
+    context.indent = 4;
+    defer({
+              context.indent = 0;
+          });
     auto assembler = context.assembler;
     auto instruction_block = assembler->current_block();
     auto identifier = reference_->identifier();
@@ -46,8 +51,8 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
     if (procedure_type->is_foreign()) {
         instruction_block->push_constant<uint16_t>(arguments_->elements().size());
         instruction_block->call_foreign(procedure_type->foreign_address());
-        instruction_block->current_entry()->comment(fmt::format(
-            "foreign call: {}", identifier->symbol()->name()));
+        instruction_block->current_entry()->comment(fmt::format("foreign call: {}", identifier->symbol()->name()),
+            context.indent);
     } else {
         instruction_block->call(identifier->symbol()->name());
     }

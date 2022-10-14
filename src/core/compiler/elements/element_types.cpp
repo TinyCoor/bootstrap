@@ -187,18 +187,19 @@ std::string make_fully_qualified_name(const qualified_symbol_t& symbol)
 
 element_register_t::~element_register_t()
 {
-    if (assembler == nullptr) {
+    if (context == nullptr) {
         return;
     }
 
     if (clean_up) {
         if (var != nullptr) {
-            var->make_dormat(assembler);
+            var->make_dormat(*context);
         } else {
-            assembler->free_reg(reg);
+           context->assembler->free_reg(reg);
         }
     }
 }
+
 op_sizes element_register_t::size() const
 {
     if (var != nullptr) {

@@ -68,6 +68,10 @@ bool binary_operator::on_is_constant() const
 
 bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
 {
+    context.indent = 4;
+    defer({
+        context.indent = 0;
+    });
     auto assembler= context.assembler;
     auto instruction_block = assembler->current_block();
     switch (operator_type()) {
@@ -105,9 +109,9 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
                     lhs_->location());
                 return false;
             }
-            var->make_live(context.assembler);
+            var->make_live(context);
             lhs_->emit(r, context);
-            var->init(context.assembler, instruction_block);
+            var->init(context, instruction_block);
 
             register_t rhs_reg;
             rhs_reg.size = var->value_reg.reg.size;
@@ -118,10 +122,10 @@ bool compiler::binary_operator::on_emit(gfx::result &r, emit_context_t& context)
 
             assembler->push_target_register(rhs_reg);
             rhs_->emit(r, context);
-            var->write(assembler, instruction_block);
+            var->write(context, instruction_block);
             assembler->pop_target_register();
             assembler->free_reg(rhs_reg);
-            var->make_dormat(assembler);
+            var->make_dormat(context);
             break;
         }
         default:

@@ -21,16 +21,18 @@ struct variable_register_t {
     register_t reg;
 };
 
+struct emit_context_t;
+
 struct variable_t {
-    bool init(gfx::assembler* assembler, instruction_block* block);
+    bool init(emit_context_t& context, instruction_block* block);
 
-    bool read(assembler* assembler, instruction_block* block);
+    bool read(emit_context_t& context, instruction_block* block);
 
-    bool write(assembler* assembler, instruction_block* block);
+    bool write(emit_context_t& context, instruction_block* block);
 
-    void make_live(assembler* assembler);
+    void make_live(emit_context_t& context);
 
-    void make_dormat(assembler* assembler);
+    void make_dormat(emit_context_t& context);
 
     std::string name;
     bool live = false;

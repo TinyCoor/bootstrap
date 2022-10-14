@@ -468,8 +468,8 @@ bool program::on_emit(result &r, emit_context_t &context)
                         }
                         current_entry->blank_lines(1);
                     }
-                    instruction_block->current_entry()->comment(fmt::format("\"{}\"",
-                        string_literal->value()));
+                    instruction_block->current_entry()->comment(fmt::format("\"{}\"", string_literal->value()),
+                        context.indent);
                     instruction_block->string(string_literal->escaped_value());
                     break;
                 }
@@ -551,8 +551,8 @@ bool program::on_emit(result &r, emit_context_t &context)
                         case element_type_t::string_type: {
                             if (init != nullptr) {
                                 auto string_literal = dynamic_cast<compiler::string_literal*>(init->expression());
-                                instruction_block->current_entry()->comment(fmt::format("\"{}\"",
-                                    string_literal->value()));
+                                instruction_block->current_entry()->comment(fmt::format("\"{}\"", string_literal->value()),
+                                    context.indent);
                                 instruction_block->string(string_literal->value());
                             }
                             break;

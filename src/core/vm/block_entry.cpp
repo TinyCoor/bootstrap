@@ -31,9 +31,10 @@ block_entry_t::block_entry_t(const instruction_t& instruction)
 {
 }
 
-void block_entry_t::label(class label *label)
+block_entry_t *block_entry_t::label(class label *label)
 {
     labels_.emplace_back(label);
+    return this;
 }
 
 block_entry_type_t block_entry_t::type() const
@@ -41,17 +42,21 @@ block_entry_type_t block_entry_t::type() const
     return type_;
 }
 
-void block_entry_t::comment(const std::string &value)
-{
-    comments_.emplace_back(value);
-}
-
 const std::vector<class label *> &block_entry_t::labels() const
 {
     return labels_;
 }
 
-const std::vector<std::string> &block_entry_t::comments() const
+block_entry_t *block_entry_t::comment(const std::string& value, uint8_t indent)
+{
+    comments_.push_back(comment_t {
+        .indent = indent,
+        .value = value
+    });
+    return this;
+}
+
+comment_list_t block_entry_t::comments()
 {
     return comments_;
 }

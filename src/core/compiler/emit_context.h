@@ -57,6 +57,7 @@ struct emit_context_t {
 
     register_t pop_scratch_register();
 
+    uint8_t indent = 0;
     terp* terp = nullptr;
     assembler* assembler = nullptr;
     program* program = nullptr;

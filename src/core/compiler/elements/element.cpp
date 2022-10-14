@@ -210,13 +210,13 @@ bool element::is_type() const
 
 element_register_t element::register_for(result &r, emit_context_t &context, element *e)
 {
-    element_register_t result {.assembler = context.assembler};
+    element_register_t result {.context = &context};
 
     auto var = context.variable_for_element(e);
     if (var != nullptr) {
-        var->make_live(context.assembler);
+        var->make_live(context);
         result.var = var;
-        result.var->read(context.assembler, context.assembler->current_block());
+        result.var->read(context, context.assembler->current_block());
         result.valid = true;
         result.reg = var->value_reg.reg;
         if (var->address_reg.allocated && var->type->access_model() == type_access_model_t::pointer) {

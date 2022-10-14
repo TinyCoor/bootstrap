@@ -201,7 +201,7 @@ size_t instruction_t::decode(result& r, uint8_t* heap, uint64_t address)
 	return encoding_size;
 }
 
-size_t instruction_t::align(uint64_t value, size_t size) const
+size_t instruction_t::align(uint64_t value, size_t size)
 {
 	auto offset = value % size;
 	return offset ? value + (size - offset) : value;
@@ -293,6 +293,9 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
             }
 
             const auto &operand = operands[i];
+            register_value_alias_t alias {};
+            alias.qw = operand.value.u;
+
             std::string prefix, postfix;
 
             if (operand.is_negative()) {
@@ -356,13 +359,29 @@ std::string instruction_t::disassemble(const std::function<std::string(uint64_t)
                         operands_stream << id_resolver(operand.value.u);
                     }
                 } else {
-                    if (i==2) {
-                        operands_stream << fmt::format(fmt::runtime(offset_spec),
-                            static_cast<int64_t>(operand.value.u));
+                    if (i == 2) {
+                        operands_stream << fmt::format(fmt::runtime(offset_spec), static_cast<int64_t>(operand.value.u));
                     } else {
-                        operands_stream << prefix
-                                        << fmt::format(fmt::runtime(format_spec), operand.value.u)
-                                        << postfix;
+                        operands_stream << prefix;
+                        switch (size) {
+                            case op_sizes::byte:
+                                operands_stream << fmt::format(fmt::runtime(format_spec), alias.b);
+                                break;
+                            case op_sizes::word:
+                                operands_stream << fmt::format(fmt::runtime(format_spec), alias.w);
+                                break;
+                            case op_sizes::dword:
+                                operands_stream << fmt::format(fmt::runtime(format_spec), alias.dw);
+                                break;
+                            case op_sizes::qword:
+                                operands_stream << fmt::format(fmt::runtime(format_spec), alias.qw);
+                                break;
+                            default: {
+                                break;
+                            }
+                        }
+
+                        operands_stream << postfix;
                     }
                 }
             }

@@ -230,7 +230,7 @@ struct instruction_t {
 
 	size_t decode(result& r, uint8_t* heap, uint64_t address);
 
-	[[nodiscard]] size_t align(uint64_t value, size_t size) const;
+	[[nodiscard]] static size_t align(uint64_t value, size_t size);
 
 	[[nodiscard]] size_t encoding_size() const;
 

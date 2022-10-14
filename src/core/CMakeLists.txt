@@ -156,6 +156,7 @@ set(ELEMENT_SRC
         compiler/elements/element.h                 compiler/elements/element.cpp
         compiler/elements/program.h                 compiler/elements/program.cpp
         compiler/elements/comment.h                 compiler/elements/comment.cpp
+        compiler/elements/transmute.h               compiler/elements/transmute.cpp
         compiler/elements/statement.h               compiler/elements/statement.cpp
         compiler/elements/directive.h               compiler/elements/directive.cpp
         compiler/elements/attribute.h               compiler/elements/attribute.cpp

@@ -68,6 +68,7 @@ enum class ast_node_types_t : uint32_t {
 	struct_expression,
 	continue_statement,
 	constant_expression,
+    transmute_expression,
 	namespace_expression,
 	subscript_expression,
 	return_argument_list,
@@ -121,6 +122,7 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
 	{ast_node_types_t::for_in_statement, 			"for_in_statement"},
 	{ast_node_types_t::switch_expression, 			"switch_statement"},
 	{ast_node_types_t::cast_expression,   			"cast_expression"},
+    {ast_node_types_t::module_expression, 		    "module_expression"},
 	{ast_node_types_t::struct_expression, 			"struct_expression"},
 	{ast_node_types_t::character_literal, 			"character_literal"},
 	{ast_node_types_t::array_constructor, 			"array_constructor"},
@@ -129,7 +131,7 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
 	{ast_node_types_t::constant_expression, 		"constant_expression"},
 	{ast_node_types_t::namespace_expression, 		"namespace_statement"},
 	{ast_node_types_t::subscript_expression, 		"subscript_expression"},
-    {ast_node_types_t::module_expression, 		    "module_expression"},
+    {ast_node_types_t::transmute_expression, 		"transmute_expression"},
 	{ast_node_types_t::return_argument_list, 		"return_argument_list"},
     {ast_node_types_t::array_subscript_list, 		"array_subscript_list"},
     {ast_node_types_t::assignment_source_list, 		"assignment_source_list"},
@@ -266,7 +268,9 @@ public:
 
 	ast_node_shared_ptr symbol_node();
 
-	ast_node_shared_ptr return_argument_list_node();
+    ast_node_shared_ptr transmute_node(token_t& token);
+
+    ast_node_shared_ptr return_argument_list_node();
 
     ast_node_shared_ptr array_subscript_list_node();
 

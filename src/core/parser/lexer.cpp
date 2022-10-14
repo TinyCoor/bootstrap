@@ -103,6 +103,10 @@ static inline token_t s_null_literal = {
 	.value = "null"
 };
 
+static inline token_t s_transmute_literal = {
+    .type = token_types_t::transmute_literal,
+    .value = "transmute"
+};
 
 static inline token_t s_true_literal = {
 	.type = token_types_t::true_literal,
@@ -363,7 +367,10 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	// question
 	{'?', std::bind(&lexer::question, std::placeholders::_1, std::placeholders::_2)},
 
-	// spread
+    // transmute
+    {'t', std::bind(&lexer::transmute_literal, std::placeholders::_1, std::placeholders::_2)},
+
+    // spread
 	// period/spread
 	{'.', std::bind(&lexer::period, std::placeholders::_1, std::placeholders::_2)},
 	{'.', std::bind(&lexer::spread, std::placeholders::_1, std::placeholders::_2)},
@@ -1655,9 +1662,23 @@ bool lexer::module_literal(token_t& token) {
     }
     return false;
 }
+
 const result &lexer::result() const
 {
     return result_;
+}
+
+bool lexer::transmute_literal(token_t &token)
+{
+    if (match_literal("transmute")) {
+        auto ch = read(false);
+        if (!isalnum(ch)) {
+            rewind_one_char();
+            token = s_transmute_literal;
+            return true;
+        }
+    }
+    return false;
 }
 
 }

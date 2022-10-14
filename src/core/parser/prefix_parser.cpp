@@ -6,6 +6,46 @@
 #include "parser.h"
 namespace gfx {
 
+static ast_node_shared_ptr create_transmute_node(result& r, parser* parser, token_t& token)
+{
+    auto transmute_node = parser->ast_builder()->transmute_node(token);
+
+    token_t less_than;
+    less_than.type = token_types_t::less_than;
+    if (!parser->expect(r, less_than)) {
+        return nullptr;
+    }
+
+    token_t identifier;
+    identifier.type = token_types_t::identifier;
+    if (!parser->expect(r, identifier)) {
+        return nullptr;
+    }
+
+    transmute_node->lhs = parser->ast_builder()->type_identifier_node();
+    transmute_node->lhs->lhs = create_symbol_node(r, parser, nullptr, identifier);
+
+    token_t greater_than;
+    greater_than.type = token_types_t::greater_than;
+    if (!parser->expect(r, greater_than)) {
+        return nullptr;
+    }
+    token_t left_paren;
+    left_paren.type = token_types_t::left_paren;
+    if (!parser->expect(r, left_paren)) {
+        return nullptr;
+    }
+
+    transmute_node->rhs = parser->parse_expression(r, 0);
+
+    token_t right_paren;
+    right_paren.type = token_types_t::right_paren;
+    if (!parser->expect(r, right_paren)) {
+        return nullptr;
+    }
+    return transmute_node;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 ast_node_shared_ptr constant_prefix_parser::parse(result& r, parser* parser, token_t& token)
 {
@@ -365,5 +405,10 @@ ast_node_shared_ptr module_prefix_parser::parse(result &r, parser *parser, token
 {
     return create_module_expression_node(r, parser, nullptr, token);
 
+}
+
+ast_node_shared_ptr transmute_prefix_parser::parse(result &r, parser *parser, token_t &token)
+{
+    return create_transmute_node(r, parser, token);
 }
 }

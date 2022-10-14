@@ -117,7 +117,7 @@ module *program::compile_module(result& r, compiler::session& session, source_fi
     auto module_node = session.parse(r, source->path());
     compiler::module* module = nullptr;
     if (module_node != nullptr) {
-        module = dynamic_cast<compiler::module*>(ast_evaluator_.evaluate(r, session, module_node));
+        module = dynamic_cast<compiler::module*>(ast_evaluator_.evaluate(r, session, module_node.get()));
         if (module != nullptr) {
             module->parent_element(this);
             module->is_root(is_root);
@@ -313,7 +313,7 @@ bool program::find_identifier_type(result& r, type_find_result_t &result, const 
     if (type_node == nullptr) {
         return false;
     }
-    make_qualified_symbol(result.type_name, type_node->lhs);
+    builder_.make_qualified_symbol(result.type_name, type_node->lhs.get());
     result.array_size = 0;
     result.is_array = type_node->is_array();
     result.is_spread = type_node->is_spread();
@@ -329,18 +329,6 @@ unknown_type *program::unknown_type_from_result(result &r,compiler::block *scope
     auto type = builder_.make_unknown_type(r, scope, symbol, result.is_pointer, result.is_array, result.array_size);
     identifiers_with_unknown_types_.push_back(identifier);
     return type;
-}
-
-void program::make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node)
-{
-    if (!node->children.empty()) {
-        for (size_t i = 0; i < node->children.size() - 1; i++) {
-            symbol.namespaces.push_back(node->children[i]->token.value);
-        }
-    }
-    symbol.name = node->children.back()->token.value;
-    symbol.location = node->location;
-    symbol.fully_qualified_name = make_fully_qualified_name(symbol);
 }
 
 bool program::within_procedure_scope(compiler::block* parent_scope) const
@@ -621,16 +609,6 @@ bool program::on_emit(result &r, emit_context_t &context)
     context.assembler->pop_block();
 
     return true;
-}
-
-compiler::symbol_element* program::make_symbol_from_node(result& r, const ast_node_shared_ptr& node)
-{
-    qualified_symbol_t qualified_symbol {};
-    make_qualified_symbol(qualified_symbol, node);
-    auto symbol =builder_.make_symbol(current_scope(), qualified_symbol.name, qualified_symbol.namespaces);
-    symbol->location(node->location);
-    symbol->constant(node->is_constant_expression());
-    return symbol;
 }
 
 compiler::type *program::find_type(const qualified_symbol_t &symbol, compiler::block* scope) const

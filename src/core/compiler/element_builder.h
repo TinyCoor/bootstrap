@@ -6,12 +6,13 @@
 #define BOOTSTRAP_SRC_CORE_COMPILER_ELEMENT_BUILDER_H_
 #include "elements/element.h"
 #include "element_map.h"
+#include "parser/ast.h"
 
 namespace gfx::compiler {
 class program;
 class element_builder {
 public:
-    element_builder(program* program);
+    explicit element_builder(program* program);
     ~element_builder();
 
     compiler::cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
@@ -112,6 +113,9 @@ public:
 
     return_element* make_return(compiler::block* parent_scope);
 
+    compiler::symbol_element* make_symbol_from_node(result& r, const ast_node_t *node);
+
+    static void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_t *node);
 private:
 
     compiler::program* program_;

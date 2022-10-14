@@ -66,8 +66,6 @@ private:
         compiler::block* root_block = nullptr);
 
 private:
-    compiler::symbol_element* make_symbol_from_node(result& r, const ast_node_shared_ptr& node);
-
     void add_type_to_scope(compiler::type* value);
 
     bool within_procedure_scope(compiler::block* parent_scope) const;
@@ -93,8 +91,6 @@ private:
     friend class ast_evaluator;
 
     bool type_check(result& r, compiler::session& session);
-
-    static void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_shared_ptr& node);
 
 	class compiler::block* push_new_block(compiler::element_type_t type = element_type_t::block);
 

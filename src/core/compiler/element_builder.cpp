@@ -525,4 +525,28 @@ numeric_type *element_builder::make_numeric_type(result &r, compiler::block* par
 
 }
 
+compiler::symbol_element* element_builder::make_symbol_from_node(result& r, const ast_node_t *node)
+{
+    qualified_symbol_t qualified_symbol {};
+    make_qualified_symbol(qualified_symbol, node);
+    auto symbol = make_symbol(program_->current_scope(), qualified_symbol.name, qualified_symbol.namespaces);
+    symbol->location(node->location);
+    symbol->constant(node->is_constant_expression());
+    return symbol;
+}
+
+void element_builder::make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_t *node)
+{
+    if (!node->children.empty()) {
+        for (size_t i = 0; i < node->children.size() - 1; i++) {
+            symbol.namespaces.push_back(node->children[i]->token.value);
+        }
+    }
+    symbol.name = node->children.back()->token.value;
+    symbol.location = node->location;
+    symbol.fully_qualified_name = make_fully_qualified_name(symbol);
+}
+
+
+
 }

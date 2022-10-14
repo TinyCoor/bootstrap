@@ -80,7 +80,7 @@ void element_map::add_index_by_type(compiler::element* element)
     }
 }
 
-element_by_id_map_t::const_iterator element_map::cend() const
+[[maybe_unused]] element_by_id_map_t::const_iterator element_map::cend() const
 {
     return elements_by_id_.cend();
 }

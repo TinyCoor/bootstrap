@@ -10,7 +10,7 @@ struct_type::struct_type(block *parent, symbol_element* symbol, block* scope)
 
 }
 
-bool struct_type::on_initialize(result &r, compiler::program *program)
+bool struct_type::on_initialize(compiler::session& session)
 {
     return true;
 }

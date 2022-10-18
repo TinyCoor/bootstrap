@@ -3,7 +3,7 @@
 //
 
 #include "array_type.h"
-#include "core/compiler/elements/program.h"
+#include "core/compiler/session.h"
 #include "fmt/format.h"
 #include "pointer_type.h"
 #include "../symbol_element.h"
@@ -36,8 +36,9 @@ compiler::type* array_type::entry_type()
 	return entry_type_;
 }
 
-bool array_type::on_initialize(result &r, compiler::program* program)
+bool array_type::on_initialize(compiler::session& session)
 {
+    auto program = &session.program();
     auto &builder = program->builder();
     auto type_symbol = builder.make_symbol(parent_scope(), name_for_array(entry_type_, size_));
     symbol(type_symbol);
@@ -55,24 +56,24 @@ bool array_type::on_initialize(result &r, compiler::program* program)
     auto flags_field =  builder.make_field(block_scope, flags_identifier);
 
     auto length_identifier =  builder.make_identifier(block_scope,
-                                                      builder.make_symbol(block_scope,"length"), nullptr);
+        builder.make_symbol(block_scope,"length"), nullptr);
     length_identifier->type(u32_type);
     auto length_field =  builder.make_field(block_scope, length_identifier);
 
     auto capacity_identifier = builder.make_identifier(block_scope,
-                                                       builder.make_symbol(block_scope,"capacity"), nullptr);
+        builder.make_symbol(block_scope,"capacity"), nullptr);
     capacity_identifier->type(u32_type);
     auto capacity_field =  builder.make_field(block_scope, capacity_identifier);
 
     auto element_type_identifier =  builder.make_identifier(block_scope,
-                                                            builder.make_symbol(block_scope, "element_type"), nullptr);
+        builder.make_symbol(block_scope, "element_type"), nullptr);
 
     element_type_identifier->type(type_info_type);
     auto element_type_field =  builder.make_field(block_scope, element_type_identifier);
 
     auto data_identifier =  builder.make_identifier(block_scope,
-                                                    builder.make_symbol(block_scope, "data"), nullptr);
-    data_identifier->type( builder.make_pointer_type(r, block_scope, u8_type));
+        builder.make_symbol(block_scope, "data"), nullptr);
+    data_identifier->type( builder.make_pointer_type(session, block_scope, u8_type));
     auto data_field =  builder.make_field(block_scope, data_identifier);
 
     auto& field_map = fields();
@@ -81,7 +82,7 @@ bool array_type::on_initialize(result &r, compiler::program* program)
     field_map.add(capacity_field);
     field_map.add(element_type_field);
     field_map.add(data_field);
-    return composite_type::on_initialize(r, program);
+    return composite_type::on_initialize(session);
 }
 
 type_access_model_t array_type::on_access_model() const

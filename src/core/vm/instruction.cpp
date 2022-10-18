@@ -11,18 +11,19 @@ void operand_encoding_t::clear_unresolved()
 {
     type &= ~flags::unresolved;
 }
+
 bool operand_encoding_t::is_reg() const
 {
     return (type & flags::reg) != 0;
 }
 
- bool operand_encoding_t::is_prefix() const
- {
+bool operand_encoding_t::is_prefix() const
+{
     return (type & flags::prefix) != 0;
 }
 
- bool operand_encoding_t::is_postfix() const
- {
+bool operand_encoding_t::is_postfix() const
+{
     return (type & flags::postfix) != 0;
 }
 

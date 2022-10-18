@@ -35,8 +35,7 @@ public:
 
     bool type_check(compiler::type* other);
 
-
-    bool initialize(result &r, compiler::program* program);
+    bool initialize(compiler::session& session);
 protected:
 	void size_in_bytes(size_t value);
 
@@ -48,7 +47,7 @@ protected:
 
     void on_owned_elements(element_list_t& list) override;
 
-	virtual bool on_initialize(result& r, compiler::program* program);
+	virtual bool on_initialize(compiler::session& session);
 
 private:
     bool packed_ = false;

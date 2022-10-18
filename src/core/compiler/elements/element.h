@@ -20,7 +20,7 @@ public:
 
 	id_t id() const;
 
-	element* fold(result& r, compiler::program* program);
+	element* fold(compiler::session& session);
 
 	block* parent_scope();
 
@@ -84,7 +84,7 @@ protected:
 
     virtual bool on_emit(result& r, emit_context_t& context);
 
-    virtual element *on_fold(result& result, compiler::program* program);
+    virtual element *on_fold(compiler::session& session);
 
 	virtual compiler::type* on_infer_type(const compiler::program* program);
 

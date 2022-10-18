@@ -2,8 +2,8 @@
 // Created by 12132 on 2022/9/24.
 //
 
-#ifndef BOOTSTRAP_SRC_CORE_COMPILER_VARIABLE_H_
-#define BOOTSTRAP_SRC_CORE_COMPILER_VARIABLE_H_
+#ifndef COMPILER_VARIABLE_H_
+#define COMPILER_VARIABLE_H_
 #include <string>
 #include "elements/element_types.h"
 #include "vm/terp.h"
@@ -50,4 +50,4 @@ struct variable_t {
     stack_frame_entry_t *frame_entry = nullptr;
 };
 }
-#endif //BOOTSTRAP_SRC_CORE_COMPILER_VARIABLE_H_
+#endif // COMPILER_VARIABLE_H_

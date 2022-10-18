@@ -11,12 +11,11 @@
 
 namespace gfx::compiler {
 struct evaluator_context_t {
-    evaluator_context_t(result& r, compiler::session& session)
-        : r(r),session(session)
+    evaluator_context_t(compiler::session& session)
+        : session(session)
     {
     }
 
-    result& r;
     compiler::session& session;
     compiler::block* scope = nullptr;
     const ast_node_t* node = nullptr;
@@ -36,29 +35,29 @@ class ast_evaluator {
 public:
     ast_evaluator(element_builder* builder, compiler::program* program);
 
-    element *evaluate(result &r, compiler::session &session, const ast_node_t *node,
+    element *evaluate(compiler::session &session, const ast_node_t *node,
         element_type_t default_block_type = element_type_t::block);
 
-    element *evaluate_in_scope(result &r, compiler::session &session, const ast_node_t *node,
+    element *evaluate_in_scope(compiler::session &session, const ast_node_t *node,
         compiler::block *scope, element_type_t default_block_type = element_type_t::block);
 
 private:
-    void apply_attributes(result &r, compiler::session &session, compiler::element *element, const ast_node_t *node);
+    void apply_attributes(compiler::session &session, compiler::element *element, const ast_node_t *node);
 
-    void add_procedure_instance(result &r, compiler::session &session, compiler::procedure_type *proc_type,
+    void add_procedure_instance(compiler::session &session, compiler::procedure_type *proc_type,
         const ast_node_t *node);
 
     void add_expression_to_scope(compiler::block *scope, compiler::element *expr);
 
-    void add_composite_type_fields(result &r, compiler::session &session, compiler::composite_type *type,
+    void add_composite_type_fields(compiler::session &session, compiler::composite_type *type,
         const ast_node_t *block);
 
-    compiler::block *add_namespaces_to_scope(result &r, compiler::session &session, const ast_node_t *node,
+    compiler::block *add_namespaces_to_scope(compiler::session &session, const ast_node_t *node,
         compiler::symbol_element *symbol, compiler::block *parent_scope);
 
     compiler::element *resolve_symbol_or_evaluate(const evaluator_context_t& context, const ast_node_t *node);
 
-    compiler::identifier *add_identifier_to_scope(result &r, compiler::session &session,
+    compiler::identifier *add_identifier_to_scope(compiler::session &session,
         compiler::symbol_element *symbol, type_find_result_t &find_type_result,
         const ast_node_t *node, size_t source_index, compiler::block *parent_scope = nullptr);
 

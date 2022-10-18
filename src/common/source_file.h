@@ -37,7 +37,7 @@ public:
 
     ~source_file();
 
-    rune_t next(result &r);
+    rune_t next(gfx::result &r);
 
     [[nodiscard]] size_t pos() const;
 

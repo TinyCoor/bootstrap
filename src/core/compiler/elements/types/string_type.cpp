@@ -4,6 +4,7 @@
 
 #include "string_type.h"
 #include "pointer_type.h"
+#include "../../session.h"
 #include "core/compiler/elements/program.h"
 namespace gfx::compiler {
 string_type::string_type(block* parent, block* scope)
@@ -12,9 +13,10 @@ string_type::string_type(block* parent, block* scope)
 
 }
 
-bool string_type::on_initialize(result &r, compiler::program *program)
+bool string_type::on_initialize(compiler::session& session)
 {
-    auto &builder = program->builder();
+    auto program = &session.program();
+    auto &builder =  program->builder();
     symbol(builder.make_symbol(parent_scope(), "string"));
     auto block_scope = scope();
 
@@ -22,24 +24,24 @@ bool string_type::on_initialize(result &r, compiler::program *program)
     auto u8_type = program->find_type({.name = "u8"});
 
     auto length_identifier = builder.make_identifier(block_scope,
-                                                     builder.make_symbol(block_scope, "length"), nullptr);
+        builder.make_symbol(block_scope, "length"), nullptr);
     length_identifier->type(u32_type);
     auto length_field = builder.make_field(block_scope, length_identifier);
 
     auto capacity_identifier = builder.make_identifier(block_scope,
-                                                       builder.make_symbol(block_scope, "capacity"), nullptr);
+        builder.make_symbol(block_scope, "capacity"), nullptr);
     capacity_identifier->type(u32_type);
     auto capacity_field = builder.make_field(block_scope, capacity_identifier);
 
     auto data_identifier = builder.make_identifier(block_scope,
-                                                   builder.make_symbol(block_scope,  "data"), nullptr);
-    data_identifier->type(builder.make_pointer_type(r, block_scope, u8_type));
+        builder.make_symbol(block_scope,  "data"), nullptr);
+    data_identifier->type(builder.make_pointer_type(session, block_scope, u8_type));
     auto data_field = builder.make_field(block_scope, data_identifier);
 
     fields().add(length_field);
     fields().add(capacity_field);
     fields().add(data_field);
-	return composite_type::on_initialize(r, program);
+	return composite_type::on_initialize(session);
 }
 
 type_access_model_t string_type::on_access_model() const

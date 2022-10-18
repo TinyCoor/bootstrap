@@ -21,17 +21,24 @@ public:
 
     virtual ~session();
 
+    bool compile();
+
     void finalize();
 
-    bool initialize(result& r);
+    bool initialize();
 
     assembler& assembler();
 
     compiler::program& program();
 
-    bool compile(result& r);
-
     class terp &terp();
+
+    void error(const std::string& code, const std::string& message, const source_location& location);
+
+    void error(compiler::element* element, const std::string& code, const std::string& message,
+        const source_location& location);
+
+    gfx::result& result();
 
     source_file *add_source_file(const fs::path &path);
 
@@ -47,17 +54,18 @@ public:
 
     source_file* find_source_file(const fs::path &path);
 
-    ast_node_shared_ptr parse(result& r, const fs::path& path);
+    ast_node_shared_ptr parse(const fs::path& path);
 
-    ast_node_shared_ptr parse(result& r, source_file* source) const;
-
-    void raise_phase(session_compile_phase_t phase, const fs::path& source_file) const;
+    ast_node_shared_ptr parse(source_file* source);
 
 private:
+    void raise_phase(session_compile_phase_t phase, const fs::path& source_file) const;
+
     void write_code_dom_graph(const fs::path& path);
 
 private:
     class terp terp_;
+    gfx::result r;
     class assembler assembler_;
     compiler::program program_;
     session_options_t options_ {};

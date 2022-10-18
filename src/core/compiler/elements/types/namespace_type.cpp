@@ -3,7 +3,7 @@
 //
 
 #include "namespace_type.h"
-#include "../program.h"
+#include "core/compiler/session.h"
 #include "../symbol_element.h"
 namespace gfx::compiler{
 namespace_type::namespace_type(block *parent)
@@ -12,12 +12,13 @@ namespace_type::namespace_type(block *parent)
 
 }
 
-bool namespace_type::on_initialize(result &r, compiler::program* program)
+bool namespace_type::on_initialize(compiler::session& session)
 {
-    auto &builder = program->builder();
+    auto &builder = session.program().builder();
     symbol(builder.make_symbol(parent_scope(), "namespace"));
 	return true;
 }
+
 bool namespace_type::on_type_check(compiler::type *other)
 {
     return other != nullptr

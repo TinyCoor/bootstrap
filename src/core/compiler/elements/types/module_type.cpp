@@ -3,7 +3,7 @@
 //
 
 #include "module_type.h"
-#include "../program.h"
+#include "core/compiler/session.h"
 #include "../symbol_element.h"
 namespace gfx::compiler {
 module_type::module_type(block *parent_scope, block* scope)
@@ -12,15 +12,15 @@ module_type::module_type(block *parent_scope, block* scope)
 
 }
 
-bool module_type::on_initialize(result &r, compiler::program *program)
+bool module_type::on_initialize(compiler::session& session)
 {
-    auto builder = program->builder();
+    auto builder =session.program().builder();
     symbol(builder.make_symbol(parent_scope(), "module"));
     return true;
 }
+
 bool module_type::on_type_check(compiler::type *other)
 {
-    return other != nullptr
-        && other->symbol()->name() == symbol()->name();
+    return other != nullptr && other->symbol()->name() == symbol()->name();
 }
 }

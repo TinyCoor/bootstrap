@@ -23,7 +23,7 @@ public:
 
 	bool next(token_t& token);
 
-    const result& result() const;
+    [[nodiscard]] const result& result() const;
 
 private:
 	bool plus(token_t& token);

@@ -4,7 +4,7 @@
 
 #include "pointer_type.h"
 #include "fmt/format.h"
-#include "../program.h"
+#include "core/compiler/session.h"
 #include "../symbol_element.h"
 namespace gfx::compiler {
 std::string pointer_type::name_for_pointer(compiler::type* base_type)
@@ -17,9 +17,9 @@ pointer_type::pointer_type(compiler::block* parent_scope, compiler::type* base_t
 {
 }
 
-bool pointer_type::on_initialize(result& r, compiler::program* program)
+bool pointer_type::on_initialize(compiler::session& session)
 {
-    auto &builder = program->builder();
+    auto &builder = session.program().builder();
     auto type_symbol = builder.make_symbol(parent_scope(), name_for_pointer(base_type_));
     symbol(type_symbol);
     type_symbol->parent_element(this);

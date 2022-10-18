@@ -17,7 +17,7 @@ public:
 protected:
     type_access_model_t on_access_model() const override;
 
-    bool on_initialize(result& r, compiler::program* program) override;
+    bool on_initialize(compiler::session& session) override;
 
 private:
     compiler::type* base_type_ = nullptr;

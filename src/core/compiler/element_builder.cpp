@@ -51,16 +51,14 @@ element_builder::element_builder(program* program)
 {
 
 }
-element_builder::~element_builder()
-{
 
-}
+element_builder::~element_builder() = default;
 
 
-module_type *element_builder::make_module_type(gfx::result &r, compiler::block *parent_scope, compiler::block *scope)
+module_type *element_builder::make_module_type(compiler::session& session, compiler::block *parent_scope, compiler::block *scope)
 {
     auto type = new module_type(parent_scope, scope);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     scope->parent_element(type);
@@ -68,10 +66,10 @@ module_type *element_builder::make_module_type(gfx::result &r, compiler::block *
     return type;
 }
 
-tuple_type *element_builder::make_tuple_type(result &r, compiler::block *parent_scope, compiler::block* scope)
+tuple_type *element_builder::make_tuple_type(compiler::session& session, compiler::block *parent_scope, compiler::block* scope)
 {
     auto type = new tuple_type(parent_scope, scope);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     scope->parent_element(type);
@@ -104,10 +102,10 @@ compiler::symbol_element* element_builder::make_symbol(compiler::block* parent_s
     return symbol;
 }
 
-type_info *element_builder::make_type_info_type(result &r, compiler::block *parent_scope, compiler::block* scope)
+type_info *element_builder::make_type_info_type(compiler::session& session, compiler::block *parent_scope, compiler::block* scope)
 {
     auto type = new type_info(parent_scope, scope);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     scope->parent_element(type);
@@ -148,21 +146,21 @@ module_reference *element_builder::make_module_reference(compiler::block *parent
     return module_ref;
 }
 
-bool_type *element_builder::make_bool_type(result &r, compiler::block *parent_scope)
+bool_type *element_builder::make_bool_type(compiler::session& session, compiler::block *parent_scope)
 {
     auto type = new compiler::bool_type(parent_scope);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
    program_->elements().add(type);
     return type;
 }
 
-array_type *element_builder::make_array_type(result &r, compiler::block* parent_scope, compiler::block* scope,
+array_type *element_builder::make_array_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope,
                                      compiler::type *entry_type, size_t size)
 {
     auto type = new array_type(parent_scope, scope, entry_type, size);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     scope->parent_element(type);
@@ -171,21 +169,21 @@ array_type *element_builder::make_array_type(result &r, compiler::block* parent_
 }
 
 
-namespace_type *element_builder::make_namespace_type(result &r, compiler::block* parent_scope)
+namespace_type *element_builder::make_namespace_type(compiler::session& session, compiler::block* parent_scope)
 {
     auto ns_type = new namespace_type(parent_scope);
-    if (!ns_type->initialize(r, program_)) {
+    if (!ns_type->initialize(session)) {
         return nullptr;
     }
     program_->elements().add(ns_type);
     return ns_type;
 }
 
-unknown_type *element_builder::make_unknown_type(result &r, compiler::block *parent_scope, symbol_element* symbol,
+unknown_type *element_builder::make_unknown_type(compiler::session& session, compiler::block *parent_scope, symbol_element* symbol,
                                          bool is_pointer, bool is_array, size_t array_size)
 {
     auto type = new compiler::unknown_type(parent_scope, symbol);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
 
@@ -197,11 +195,10 @@ unknown_type *element_builder::make_unknown_type(result &r, compiler::block *par
     return type;
 }
 
-
-pointer_type *element_builder::make_pointer_type(result &r, compiler::block *parent_scope, compiler::type *base_type)
+pointer_type *element_builder::make_pointer_type(compiler::session& session, compiler::block *parent_scope, compiler::type *base_type)
 {
     auto type = new compiler::pointer_type(parent_scope, base_type);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     program_->elements().add(type);
@@ -306,12 +303,12 @@ attribute *element_builder::make_attribute(compiler::block* parent_scope, const 
     return attr;
 }
 
-composite_type* element_builder::make_enum_type(result &r, compiler::block* parent_block, compiler::block* scope)
+composite_type* element_builder::make_enum_type(compiler::session& session, compiler::block* parent_block, compiler::block* scope)
 {
     std::string name = fmt::format("__enum_{}__", id_pool::instance()->allocate());
     auto symbol =  make_symbol(parent_block, name);
     auto type = new composite_type(parent_block, composite_types_t::enum_type, scope, symbol);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     symbol->parent_element(type);
@@ -320,7 +317,7 @@ composite_type* element_builder::make_enum_type(result &r, compiler::block* pare
     return type;
 }
 
-composite_type* element_builder::make_union_type(result& r, compiler::block* parent_block, compiler::block* scope)
+composite_type* element_builder::make_union_type(compiler::session& session, compiler::block* parent_block, compiler::block* scope)
 {
     std::string name = fmt::format("__union_{}__", id_pool::instance()->allocate());
     auto symbol = make_symbol(parent_block, name);
@@ -331,12 +328,12 @@ composite_type* element_builder::make_union_type(result& r, compiler::block* par
     return type;
 }
 
-composite_type* element_builder::make_struct_type(result& r, compiler::block* parent_scope, compiler::block* scope)
+composite_type* element_builder::make_struct_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope)
 {
     std::string name = fmt::format("__struct_{}__", id_pool::instance()->allocate());
     auto symbol = make_symbol(parent_scope, name);
     auto type = new composite_type(parent_scope, composite_types_t::struct_type, scope, symbol);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     symbol->parent_element(type);
@@ -433,7 +430,7 @@ alias *element_builder::make_alias(compiler::block* parent_scope, element *expr)
     return alias_type;
 }
 
-procedure_type* element_builder::make_procedure_type(result &r, compiler::block* parent_scope, compiler::block* block_scope)
+procedure_type* element_builder::make_procedure_type(compiler::session& session, compiler::block* parent_scope, compiler::block* block_scope)
 {
     // XXX: the name of the proc isn't correct here, but it works temporarily.
     std::string name = fmt::format("__proc_{}__", id_pool::instance()->allocate());
@@ -491,10 +488,10 @@ if_element *element_builder::make_if(compiler::block* parent_scope, element *pre
     return if_element;
 }
 
-any_type *element_builder::make_any_type(result &r, compiler::block* parent_scope, compiler::block* scope)
+any_type *element_builder::make_any_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope)
 {
     auto type = new any_type(parent_scope, scope);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     scope->parent_element(type);
@@ -502,10 +499,10 @@ any_type *element_builder::make_any_type(result &r, compiler::block* parent_scop
     return type;
 }
 
-string_type *element_builder::make_string_type(result &r, compiler::block* parent_scope, compiler::block* scope)
+string_type *element_builder::make_string_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope)
 {
     auto type = new string_type(parent_scope, scope);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     scope->parent_element(type);
@@ -513,11 +510,11 @@ string_type *element_builder::make_string_type(result &r, compiler::block* paren
     return type;
 }
 
-numeric_type *element_builder::make_numeric_type(result &r, compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max,
+numeric_type *element_builder::make_numeric_type(compiler::session& session, compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max,
     bool is_signed, type_number_class_t number_class)
 {
     auto type = new numeric_type(parent_scope, make_symbol(parent_scope, name), min, max, is_signed, number_class);
-    if (!type->initialize(r, program_)) {
+    if (!type->initialize(session)) {
         return nullptr;
     }
     program_->elements().add(type);
@@ -525,7 +522,7 @@ numeric_type *element_builder::make_numeric_type(result &r, compiler::block* par
 
 }
 
-compiler::symbol_element* element_builder::make_symbol_from_node(result& r, const ast_node_t *node)
+compiler::symbol_element* element_builder::make_symbol_from_node(compiler::session& session, const ast_node_t *node)
 {
     qualified_symbol_t qualified_symbol {};
     make_qualified_symbol(qualified_symbol, node);
@@ -546,7 +543,5 @@ void element_builder::make_qualified_symbol(qualified_symbol_t& symbol, const as
     symbol.location = node->location;
     symbol.fully_qualified_name = make_fully_qualified_name(symbol);
 }
-
-
 
 }

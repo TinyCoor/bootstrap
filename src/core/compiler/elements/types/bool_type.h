@@ -16,7 +16,7 @@ protected:
 
     bool on_type_check(compiler::type* other) override;
 
-    bool on_initialize(result& r, compiler::program* program) override;
+    bool on_initialize(compiler::session& session) override;
 private:
 
 };

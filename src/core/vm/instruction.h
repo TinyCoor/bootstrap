@@ -61,7 +61,8 @@ static inline uint8_t op_size_in_bytes(op_sizes size)
         default: return 0u;
     }
 }
-static inline op_sizes op_size_for_byte_size(size_t size) {
+static inline op_sizes op_size_for_byte_size(size_t size)
+{
     switch (size) {
         case 1u:     return op_sizes::byte;
         case 2u:     return op_sizes::word;
@@ -85,6 +86,22 @@ struct register_t {
         return register_t {
             .number = registers_t::sp,
             .type = register_type_t::sp,
+        };
+    }
+
+    static register_t sr()
+    {
+        return register_t {
+            .number = registers_t::sr,
+            .type = register_type_t::sr,
+        };
+    }
+
+    static register_t fr()
+    {
+        return register_t {
+            .number = registers_t::fr,
+            .type = register_type_t::fr,
         };
     }
 
@@ -116,10 +133,8 @@ static constexpr const uint32_t number_float_registers   = 64;
 static constexpr const uint32_t number_special_registers = 5;
 static constexpr const uint32_t number_general_purpose_registers = number_integer_registers + number_float_registers;
 static constexpr const uint32_t number_total_registers   = number_integer_registers
-    + number_float_registers
-    + number_special_registers;
-static constexpr const uint32_t register_special_start   = number_integer_registers
-    + number_float_registers;
+    + number_float_registers + number_special_registers;
+static constexpr const uint32_t register_special_start   = number_integer_registers + number_float_registers;
 static constexpr const uint32_t register_pc = register_special_start;
 static constexpr const uint32_t register_sp = register_special_start + 1;
 static constexpr const uint32_t register_fr = register_special_start + 2;
@@ -159,7 +174,8 @@ struct register_file_t {
 		return (r[register_fr].qw & flag) != 0;
 	}
 
-	void flags(flags_t flag, bool value) {
+	void flags(flags_t flag, bool value)
+    {
 		if (value) {
             r[register_fr].qw |= flag;
 		} else {
@@ -168,7 +184,6 @@ struct register_file_t {
 	}
     register_value_alias_t r[number_total_registers];
 };
-
 
 union operand_value_alias_t {
     uint8_t  r;
@@ -226,13 +241,13 @@ struct instruction_t {
 	static constexpr size_t base_size = 3;
 	static constexpr size_t alignment = 4;
 
+    [[nodiscard]] size_t encoding_size() const;
+
 	size_t encode(result& r, uint8_t* heap, uint64_t address);
 
 	size_t decode(result& r, uint8_t* heap, uint64_t address);
 
 	[[nodiscard]] static size_t align(uint64_t value, size_t size);
-
-	[[nodiscard]] size_t encoding_size() const;
 
     [[nodiscard]] std::string disassemble(const id_resolve_callable& id_resolver = nullptr) const;
 

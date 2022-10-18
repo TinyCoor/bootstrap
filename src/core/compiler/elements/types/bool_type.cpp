@@ -4,6 +4,7 @@
 
 #include "bool_type.h"
 #include "../program.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
 bool_type::bool_type(block *parent_scope)
     : compiler::type(parent_scope, element_type_t::bool_type, nullptr)
@@ -11,9 +12,9 @@ bool_type::bool_type(block *parent_scope)
 
 }
 
-bool bool_type::on_initialize(result &r, compiler::program *program)
+bool bool_type::on_initialize(compiler::session& session)
 {
-    auto &builder = program->builder();
+    auto &builder = session.program().builder();
     symbol(builder.make_symbol(parent_scope(), "bool"));
     size_in_bytes(1);
     return true;

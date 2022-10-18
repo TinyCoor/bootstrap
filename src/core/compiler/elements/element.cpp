@@ -21,16 +21,16 @@ id_t element::id() const
     return id_;
 }
 
-element *element::fold(result &result, compiler::program *program)
+element *element::fold(compiler::session& session)
 {
     auto no_fold_attribute = find_attribute("no_fold");
     if (no_fold_attribute!=nullptr) {
         return nullptr;
     }
-    return on_fold(result, program);
+    return on_fold(session);
 }
 
-element *element::on_fold(result &result, compiler::program *program)
+element *element::on_fold(compiler::session& session)
 {
     return nullptr;
 }

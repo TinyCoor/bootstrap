@@ -19,9 +19,9 @@ size_t type::size_in_bytes() const
 	return size_in_bytes_;
 }
 
-bool type::initialize(result &r,  compiler::program* program)
+bool type::initialize(compiler::session& session)
 {
-	return on_initialize(r, program);
+	return on_initialize(session);
 }
 
 void type::size_in_bytes(size_t value)
@@ -29,7 +29,7 @@ void type::size_in_bytes(size_t value)
 	size_in_bytes_ = value;
 }
 
-bool type::on_initialize(result &r, compiler::program* program)
+bool type::on_initialize(compiler::session& session)
 {
 	return true;
 }

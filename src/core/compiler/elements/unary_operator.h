@@ -21,7 +21,7 @@ protected:
 
     bool on_emit(result &r, emit_context_t& context) override;
 
-    element* on_fold(result& r, compiler::program* program) override;
+    element* on_fold(compiler::session& session) override;
 
     compiler::type* on_infer_type(const compiler::program* program) override;
 

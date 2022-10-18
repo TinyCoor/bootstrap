@@ -225,7 +225,7 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
         .type = register_type_t::none
     };
     defer({if (target_reg.type != register_type_t::none) {
-                  context.assembler->free_reg(target_reg);
+        context.assembler->free_reg(target_reg);
     }});
 
     if (result_reg == nullptr) {
@@ -301,7 +301,7 @@ void binary_operator::emit_arithmetic_operator(result &r, emit_context_t &contex
     }
 }
 
-element *binary_operator::on_fold(result &r, compiler::program *program)
+element *binary_operator::on_fold(compiler::session& session)
 {
     switch (operator_type()) {
         case operator_type_t::add: {

@@ -72,8 +72,7 @@ void instruction_block::add_block(instruction_block *block)
 
 void instruction_block::remove_block(instruction_block *block)
 {
-    auto it = std::find_if(blocks_.begin(), blocks_.end(),
-        [&block](auto each) { return each == block; });
+    auto it = std::find_if(blocks_.begin(), blocks_.end(), [&block](auto each) { return each == block; });
     if (it == blocks_.end()) {
         return;
     }

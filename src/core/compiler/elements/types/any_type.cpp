@@ -4,7 +4,8 @@
 
 #include "any_type.h"
 #include "pointer_type.h"
-#include "core/compiler/elements/program.h"
+#include "core/compiler/session.h"
+
 namespace gfx::compiler {
 any_type::any_type(block * parent, block* scope)
 	: composite_type(parent, composite_types_t::struct_type, scope, nullptr, element_type_t::any_type)
@@ -22,8 +23,9 @@ any_type::any_type(block * parent, block* scope)
 	underlying_type_ = value;
 }
 
-bool any_type::on_initialize(result &r, compiler::program* program)
+bool any_type::on_initialize(compiler::session& session)
 {
+    auto program = &session.program();
     auto &builder = program->builder();
     symbol(builder.make_symbol(parent_scope(), "any"));
     auto block_scope = scope();
@@ -38,14 +40,14 @@ bool any_type::on_initialize(result &r, compiler::program* program)
     auto type_info_field = builder.make_field(block_scope, type_info_identifier);
 
     auto data_identifier = builder.make_identifier(block_scope,
-                                                   builder.make_symbol(parent_scope(), "data"), nullptr);
+        builder.make_symbol(parent_scope(), "data"), nullptr);
 
-    data_identifier->type(builder.make_pointer_type(r, block_scope, u8_type));
+    data_identifier->type(builder.make_pointer_type(session, block_scope, u8_type));
     auto data_field = builder.make_field(block_scope, data_identifier);
 
     fields().add(type_info_field);
     fields().add(data_field);
-    return composite_type::on_initialize(r, program);
+    return composite_type::on_initialize(session);
 }
 
 type_number_class_t any_type::on_number_class() const

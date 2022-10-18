@@ -74,7 +74,7 @@ void unary_operator::on_owned_elements(element_list_t &list)
     }
 }
 
-element *unary_operator::on_fold(result &r, compiler::program *program)
+element *unary_operator::on_fold(compiler::session& session)
 {
     switch (operator_type()) {
         case operator_type_t::negate: {

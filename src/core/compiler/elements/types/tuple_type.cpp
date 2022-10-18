@@ -3,6 +3,7 @@
 //
 
 #include "tuple_type.h"
+#include "../../session.h"
 #include "../program.h"
 namespace gfx::compiler {
 
@@ -12,9 +13,9 @@ tuple_type::tuple_type(block *parent_scope, block* scope)
 
 }
 
-bool tuple_type::on_initialize(result &r, compiler::program *program)
+bool tuple_type::on_initialize(compiler::session& session)
 {
-    auto &builder =program->builder();
+    auto &builder = session.program().builder();
     symbol(builder.make_symbol(parent_scope(), "tuple"));
     return true;
 }

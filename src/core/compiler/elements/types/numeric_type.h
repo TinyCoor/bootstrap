@@ -34,7 +34,7 @@ public:
 
     static std::string narrow_to_value(double value);
 
-	static type_list_t make_types(result& r, compiler::block* parent, compiler::program* program);
+	static type_list_t make_types(compiler::session& session, compiler::block* parent, compiler::program* program);
 protected:
     static inline std::vector<numeric_type_properties_t> s_type_properties = {
         {"u8",   0,         UINT8_MAX,   1, false, type_number_class_t::integer},
@@ -68,7 +68,7 @@ protected:
 
     type_access_model_t on_access_model() const override;
 
-	bool on_initialize(result& r, compiler::program* program) override;
+	bool on_initialize(compiler::session& session) override;
 
 private:
 	int64_t min_;

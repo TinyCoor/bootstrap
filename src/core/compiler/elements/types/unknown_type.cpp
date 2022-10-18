@@ -39,7 +39,7 @@ void unknown_type::is_pointer(bool value)
     is_pointer_ = value;
 }
 
-bool unknown_type::on_initialize(result &r, compiler::program *program)
+bool unknown_type::on_initialize(compiler::session& session)
 {
     return true;
 }

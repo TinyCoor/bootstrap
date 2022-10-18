@@ -40,7 +40,7 @@ protected:
 
     bool on_emit(result& r, emit_context_t& context)  override;
 
-    bool on_initialize(result& r, compiler::program* program) override;
+    bool on_initialize(compiler::session& session) override;
 
 private:
 	field_map_t returns_{};

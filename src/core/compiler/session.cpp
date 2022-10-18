@@ -62,17 +62,25 @@ void session::write_code_dom_graph(const fs::path& path)
     formatter.format(fmt::format("Code DOM Graph: {}", path.string()));
 }
 
-ast_node_shared_ptr session::parse(result& r, const fs::path& path)
+ast_node_shared_ptr session::parse(const fs::path& path)
 {
     auto source_file = find_source_file(path);
     if (source_file == nullptr) {
         source_file = add_source_file(path);
     }
-    return parse(r, source_file);
+    return parse(source_file);
 }
 
-ast_node_shared_ptr session::parse(result &r, source_file *source) const
+ast_node_shared_ptr session::parse(source_file *source)
 {
+    raise_phase(session_compile_phase_t::start, source->path());
+    defer({
+          if (r.is_failed()) {
+              raise_phase(session_compile_phase_t::failed, source->path());
+          } else {
+              raise_phase(session_compile_phase_t::success, source->path());
+          }
+    });
     if (source->empty()) {
         if (!source->load(r)) {
             return nullptr;
@@ -99,7 +107,7 @@ const session_options_t& session::options() const
     return options_;
 }
 
-bool session::initialize(result &r)
+bool session::initialize()
 {
     terp_.initialize(r);
     assembler_.initialize(r);
@@ -116,9 +124,9 @@ compiler::program &session::program()
     return program_;
 }
 
-bool session::compile(result &r)
+bool session::compile()
 {
-    return program_.compile(r, *this);
+    return program_.compile(*this);
 }
 
 class terp &session::terp()
@@ -173,6 +181,26 @@ source_file *session::pop_source_file()
     auto source = source_file_stack_.top();
     source_file_stack_.pop();
     return source;
+}
+
+gfx::result &session::result()
+{
+    return r;
+}
+void session::error(const std::string &code, const std::string &message, const source_location &location)
+{
+    auto source_file = current_source_file();
+    if (source_file == nullptr) {
+        return;
+    }
+    source_file->error(r, code, message, location);
+
+}
+void session::error(compiler::element *element, const std::string &code, const std::string &message,
+                    const source_location &location)
+{
+//    element->module()->source_file() ->error(_result, code, message, location);
+
 }
 
 }

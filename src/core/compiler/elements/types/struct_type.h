@@ -12,7 +12,7 @@ public:
     struct_type(block* parent_scope, symbol_element* symbol, block* scope);
 private:
 protected:
-    bool on_initialize(result &r, compiler::program *program) override;
+    bool on_initialize(compiler::session& session) override;
 
 };
 }

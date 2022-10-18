@@ -91,7 +91,7 @@ ast_builder* parser::ast_builder()
 	return &ast_builder_;
 }
 
-ast_node_shared_ptr parser::parse(result& r)
+ast_node_shared_ptr parser::parse(gfx::result& r)
 {
     token_t empty_token {};
 	return parse_scope(r, empty_token);
@@ -288,6 +288,7 @@ void parser::write_ast_graph(const std::filesystem::path &path, const ast_node_s
 		fclose(ast_output_file);
 	}
 }
+
 void parser::error(result &r, const std::string &code, const std::string &message, const source_location &location)
 {
     source_->error(r, code, message, location);

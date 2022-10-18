@@ -154,11 +154,11 @@ int main(int argc, char** argv) {
         .definitions = definitions
     };
     compiler::session session(session_options, source_files);
-    if (!session.initialize(r)) {
+    if (!session.initialize()) {
         print_results(r);
         return 1;
     } else {
-        if (!session.compile(r)) {
+        if (!session.compile()) {
             print_results(r);
             return 1;
         } else {

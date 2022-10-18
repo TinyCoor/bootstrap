@@ -443,8 +443,7 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	{'n', std::bind(&lexer::ns_literal, std::placeholders::_1, std::placeholders::_2)},
 
 
-	// enum literal
-	// else if/else literals
+	// enum /else if/else literals
 	{'e', std::bind(&lexer::enum_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'e', std::bind(&lexer::else_if_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'e', std::bind(&lexer::else_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -474,9 +473,7 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	// defer literal
 	{'d', std::bind(&lexer::defer_literal, std::placeholders::_1, std::placeholders::_2)},
 
-	// continue literal
-	// read_only literal
-	// cast literal
+	// continue literal read_only literal cast literal
 	{'c', std::bind(&lexer::continue_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'c', std::bind(&lexer::constant_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'c', std::bind(&lexer::cast_literal, std::placeholders::_1, std::placeholders::_2)},

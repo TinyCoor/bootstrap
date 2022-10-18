@@ -12,6 +12,17 @@
 #include <configure.h>
 
 namespace gfx::compiler {
+
+std::unordered_map<std::string, directive::directive_callable> directive::s_evaluate_handlers = {
+    {"run",     std::bind(&directive::on_evaluate_run,     std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
+    {"foreign", std::bind(&directive::on_evaluate_foreign, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
+};
+
+std::unordered_map<std::string, directive::directive_callable> directive::s_execute_handlers = {
+    {"run",     std::bind(&directive::on_execute_run,     std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
+    {"foreign", std::bind(&directive::on_execute_foreign, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
+};
+
 directive::directive(block* parent, const std::string& name, element* expression)
 	: element(parent, element_type_t::directive), name_(name), expression_(expression)
 {
@@ -27,35 +38,35 @@ element *directive::expression()
 	return expression_;
 }
 
-bool directive::evaluate(result& r, compiler::session& session, compiler::program* program)
+bool directive::evaluate(compiler::session& session, compiler::program* program)
 {
 	auto it = s_evaluate_handlers.find(name_);
 	if (it == s_evaluate_handlers.end()) {
 		return true;
 	}
-	return it->second(this, r, session, program);
+	return it->second(this, session, program);
 }
 
-bool directive::execute(result &r, compiler::session& session, compiler::program *program)
+bool directive::execute(compiler::session& session, compiler::program *program)
 {
 	auto it = s_execute_handlers.find(name_);
 	if (it == s_execute_handlers.end()) {
 		return true;
 	}
-	return it->second(this, r, session, program);
+	return it->second(this, session, program);
 }
 
-bool directive::on_execute_run(result &r, compiler::session& session, compiler::program *program)
+bool directive::on_execute_run(compiler::session& session, compiler::program *program)
 {
 	return true;
 }
 
-bool directive::on_evaluate_run(result &r, compiler::session& session, compiler::program *program)
+bool directive::on_evaluate_run(compiler::session& session, compiler::program *program)
 {
 	return true;
 }
 
-bool directive::on_evaluate_foreign(result &r, compiler::session& session, compiler::program *program)
+bool directive::on_evaluate_foreign(compiler::session& session, compiler::program *program)
 {
 	auto proc_identifier = dynamic_cast<compiler::identifier*>(expression_);
 	auto proc_type = proc_identifier->initializer()->procedure_type();
@@ -71,33 +82,33 @@ bool directive::on_evaluate_foreign(result &r, compiler::session& session, compi
 	return false;
 }
 
-bool directive::on_execute_foreign(result &r, compiler::session& session, compiler::program *program)
+bool directive::on_execute_foreign(compiler::session& session, compiler::program *program)
 {
 	auto terp = program->terp();
 	std::string library_name;
 	auto library_attribute = attributes().find("library");
 	if (library_attribute != nullptr) {
         if (!library_attribute->as_string(library_name)) {
-            program->error(r, this, "P004", "unable to convert library name.", location());
+            program->error(session.result(), this, "P004", "unable to convert library name.", location());
             return false;
         }
 	}
 
     if (library_name.empty()) {
-        program->error(r, this, "P005","library attribute required for foreign directive.",
+        program->error(session.result(), this, "P005","library attribute required for foreign directive.",
             location());
         return false;
     }
 
     auto platform_name = fmt::format("{}{}{}", SHARED_LIBRARY_PREFIX, library_name, SHARED_LIBRARY_SUFFIX);
     std::filesystem::path library_path(platform_name);
-	auto library = terp->load_shared_library(r, library_path);
+	auto library = terp->load_shared_library(session.result(), library_path);
 	if (library == nullptr) {
         // XXX: revisit this at some point
-        auto msg = r.find_code("B062");
+        auto msg = session.result().find_code("B062");
         if (msg != nullptr) {
-            program->error(r, this, "P006", msg->message(), location());
-            r.remove_code("B062");
+            program->error(session.result(), this, "P006", msg->message(), location());
+            session.result().remove_code("B062");
         }
 		return false;
 	}
@@ -107,7 +118,7 @@ bool directive::on_execute_foreign(result &r, compiler::session& session, compil
 	auto alias_attribute = attributes().find("alias");
 	if (alias_attribute != nullptr) {
         if (!alias_attribute->as_string(symbol_name)) {
-            program->error(r, this, "P004", "unable to convert alias attribute's name.", location());
+            program->error(session.result(), this, "P004", "unable to convert alias attribute's name.", location());
             return false;
         }
 	}
@@ -141,9 +152,9 @@ bool directive::on_execute_foreign(result &r, compiler::session& session, compil
         }
     }
 
-    auto result = terp->register_foreign_function(r, signature);
+    auto result = terp->register_foreign_function(session.result(), signature);
 	if (!result) {
-		program->error(r, this, "P004", fmt::format("unable to find foreign function symbol: {}", symbol_name),
+		program->error(session.result(), this, "P004", fmt::format("unable to find foreign function symbol: {}", symbol_name),
                        location());
         return false;
     } else {
@@ -152,7 +163,7 @@ bool directive::on_execute_foreign(result &r, compiler::session& session, compil
         }
     }
 
-	return !r.is_failed();
+	return !session.result().is_failed();
 }
 
 void directive::on_owned_elements(element_list_t& list)

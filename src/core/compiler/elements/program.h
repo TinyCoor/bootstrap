@@ -35,32 +35,34 @@ public:
 
     compiler::block *block() const;
 
-	bool compile(result& r, compiler::session& session);
+	bool compile(compiler::session& session);
 
     element_builder& builder();
 
     compiler::type* find_type(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
 
-	module* compile_module(result& r, compiler::session& session, source_file *source);
+	module* compile_module(compiler::session& session, source_file *source);
 
-    static void error(result& r, compiler::element *element, const std::string &code,
+    static void error(result &r, compiler::element *element, const std::string &code,
                const std::string &message, const source_location& location);
 protected:
 	terp* terp();
 
     compiler::block* current_top_level();
 
-    static void error(result& r, compiler::session& session, const std::string &code,
+    static void error(compiler::session& session, const std::string &code,
                const std::string &message, const source_location& location);
 
 private:
     bool on_emit(result& r, emit_context_t& context) override;
 
-	void initialize_core_types(result &r);
+    bool type_check(compiler::session& session);
 
-    bool resolve_unknown_types(result& r);
+	void initialize_core_types(compiler::session& session);
 
-    bool resolve_unknown_identifiers(result& r);
+    bool resolve_unknown_types(compiler::session& session);
+
+    bool resolve_unknown_identifiers(compiler::session& session);
 
     bool visit_blocks(result& r, const block_visitor_callable& callable,
         compiler::block* root_block = nullptr);
@@ -90,15 +92,13 @@ private:
     friend class element_builder;
     friend class ast_evaluator;
 
-    bool type_check(result& r, compiler::session& session);
-
 	class compiler::block* push_new_block(compiler::element_type_t type = element_type_t::block);
 
 	compiler::type* find_array_type(compiler::type* entry_type, size_t size, compiler::block* scope = nullptr) const;
 
     compiler::type* find_pointer_type(compiler::type* base_type, compiler::block* scope = nullptr) const;
 
-    unknown_type* unknown_type_from_result(result& r, compiler::block* scope, compiler::identifier* identifier,
+    unknown_type* unknown_type_from_result(compiler::session& session, compiler::block* scope, compiler::identifier* identifier,
        type_find_result_t& result);
 private:
 	class block* pop_scope();
@@ -116,12 +116,11 @@ private:
     element* walk_qualified_symbol(const qualified_symbol_t& symbol, compiler::block* scope,
         const namespace_visitor_callable& callable) const;
 
-
-    bool find_identifier_type(result& r, type_find_result_t& result, const ast_node_shared_ptr& type_node,
-                              compiler::block* parent_scope = nullptr);
+    bool find_identifier_type(compiler::session& session, type_find_result_t& result,
+        const ast_node_shared_ptr& type_node, compiler::block* parent_scope = nullptr);
 
 	compiler::identifier* find_identifier(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
-    compiler::type* make_complete_type(result& r, type_find_result_t& result, compiler::block* parent_scope = nullptr);
+    compiler::type* make_complete_type(compiler::session& session, type_find_result_t& result, compiler::block* parent_scope = nullptr);
 private:
 	assembler* assembler_ = nullptr;
 	class terp* terp_ = nullptr;

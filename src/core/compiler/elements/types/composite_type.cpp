@@ -30,7 +30,7 @@ composite_types_t composite_type::type() const
 	return type_;
 }
 
-bool composite_type::on_initialize(result &r, compiler::program* program)
+bool composite_type::on_initialize(compiler::session& session)
 {
     size_t size = 0;
     for (auto &filed : fields_.as_list()) {

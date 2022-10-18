@@ -12,9 +12,9 @@
 #include "compiler_types.h"
 namespace gfx::compiler {
 struct variable_register_t {
-    bool reserve(assembler* assembler);
+    bool reserve(compiler::session& session);
 
-    void release(assembler* assembler);
+    void release(compiler::session& session);
 
     bool integer = true;
     bool allocated = false;
@@ -24,15 +24,15 @@ struct variable_register_t {
 struct emit_context_t;
 
 struct variable_t {
-    bool init(emit_context_t& context, instruction_block* block);
+    bool init(compiler::session& session, instruction_block* block);
 
-    bool read(emit_context_t& context, instruction_block* block);
+    bool read(compiler::session& session, instruction_block* block);
 
-    bool write(emit_context_t& context, instruction_block* block);
+    bool write(compiler::session& session, instruction_block* block);
 
-    void make_live(emit_context_t& context);
+    void make_live(compiler::session& session);
 
-    void make_dormat(emit_context_t& context);
+    void make_dormat(compiler::session& session);
 
     std::string name;
     bool live = false;

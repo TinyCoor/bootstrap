@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class bool_type : public compiler::type {
 public:
-    explicit bool_type(block* parent_scope);
+    explicit bool_type(compiler::module* module, block* parent_scope);
 protected:
     type_number_class_t on_number_class() const override;
 

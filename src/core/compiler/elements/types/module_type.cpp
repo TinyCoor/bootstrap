@@ -6,8 +6,9 @@
 #include "core/compiler/session.h"
 #include "../symbol_element.h"
 namespace gfx::compiler {
-module_type::module_type(block *parent_scope, block* scope)
-    : composite_type(parent_scope, composite_types_t::struct_type, scope, nullptr, element_type_t::module_type)
+module_type::module_type(compiler::module* module, block *parent_scope, block* scope)
+    : composite_type(module, parent_scope, composite_types_t::struct_type, scope, nullptr,
+                     element_type_t::module_type)
 {
 
 }

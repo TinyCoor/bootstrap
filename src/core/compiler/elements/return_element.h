@@ -8,13 +8,14 @@
 namespace gfx::compiler {
 class return_element : public element {
 public:
-	explicit return_element(block* parent_scope);
+	explicit return_element(compiler::module* module, block* parent_scope);
 
     element_list_t& expressions();
 protected:
+    bool on_emit(compiler::session &session) override;
+
     void on_owned_elements(element_list_t& list) override;
 
-    bool on_emit(result &r, emit_context_t &context ) override;
 
 private:
 	element_list_t expressions_ {};

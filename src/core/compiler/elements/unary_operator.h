@@ -10,16 +10,16 @@
 namespace gfx::compiler {
 class unary_operator : public operator_base {
 public:
-	unary_operator(block* parent_scope, operator_type_t type, element* rhs);
+	unary_operator(compiler::module* module, block* parent_scope, operator_type_t type, element* rhs);
 
 	element* rhs();
 
 protected:
     bool on_is_constant() const override;
 
-    void on_owned_elements(element_list_t& list) override;
+    bool on_emit(compiler::session &session) override;
 
-    bool on_emit(result &r, emit_context_t& context) override;
+    void on_owned_elements(element_list_t& list) override;
 
     element* on_fold(compiler::session& session) override;
 

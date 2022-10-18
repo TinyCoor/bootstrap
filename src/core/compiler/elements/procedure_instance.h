@@ -8,15 +8,15 @@
 namespace gfx::compiler {
 class procedure_instance : public element {
 public:
-	procedure_instance(block *parent_scope, compiler::type *procedure_type, block *scope);
+	procedure_instance(compiler::module* module, block *parent_scope, compiler::type *procedure_type, block *scope);
 
 	block *scope();
 
 	compiler::type *procedure_type();
 protected:
-    void on_owned_elements(element_list_t& list) override;
+    bool on_emit(compiler::session &session) override;
 
-    bool on_emit(result& r, emit_context_t& context) override;
+    void on_owned_elements(element_list_t& list) override;
 
 private:
 	block * scope_ = nullptr;

@@ -2,14 +2,15 @@
 // Created by 12132 on 2022/4/23.
 //
 #include "common/id_pool.h"
+#include "../session.h"
 #include "element.h"
 #include "types/type.h"
 #include "vm/assembler.h"
 #include "fmt/format.h"
 #include "program.h"
 namespace gfx::compiler {
-element::element(block *parent_scope, element_type_t type, element *parent_element)
-    : id_(id_pool::instance()->allocate()), parent_scope_(parent_scope),
+element::element(compiler::module* module, block *parent_scope, element_type_t type, element *parent_element)
+    : id_(id_pool::instance()->allocate()), module_(module), parent_scope_(parent_scope),
       parent_element_(parent_element), element_type_(type)
 {
 }
@@ -123,12 +124,12 @@ bool element::on_is_constant() const
     return false;
 }
 
-bool element::emit(result &r, emit_context_t &context)
+bool element::emit(compiler::session& session)
 {
-    return on_emit(r, context);
+    return on_emit(session);
 }
 
-bool compiler::element::on_emit(gfx::result &r, emit_context_t &context)
+bool compiler::element::on_emit(compiler::session& session)
 {
     return true;
 }
@@ -208,15 +209,15 @@ bool element::is_type() const
     }
 }
 
-element_register_t element::register_for(result &r, emit_context_t &context, element *e)
+element_register_t element::register_for(compiler::session& session, element *e)
 {
-    element_register_t result {.context = &context};
+    element_register_t result {.session = &session};
 
-    auto var = context.variable_for_element(e);
+    auto var = session.emit_context().variable_for_element(e);
     if (var != nullptr) {
-        var->make_live(context);
+        var->make_live(session);
         result.var = var;
-        result.var->read(context, context.assembler->current_block());
+        result.var->read(session, session.assembler().current_block());
         result.valid = true;
         result.reg = var->value_reg.reg;
         if (var->address_reg.allocated && var->type->access_model() == type_access_model_t::pointer) {
@@ -225,7 +226,7 @@ element_register_t element::register_for(result &r, emit_context_t &context, ele
             result.reg = result.var->value_reg.reg;
         }
     } else {
-        auto type = e->infer_type(context.program);
+        auto type = e->infer_type(&session.program());
         register_t reg;
         reg.size = op_size_for_byte_size(type->size_in_bytes());
         if (e->element_type() == element_type_t::float_literal) {
@@ -233,8 +234,8 @@ element_register_t element::register_for(result &r, emit_context_t &context, ele
         } else {
             reg.type = register_type_t::integer;
         }
-        if (!context.assembler->allocate_reg(reg)) {
-            gfx::compiler::program::error(r, e, "P052", "assembler registers exhausted.", e->location());
+        if (!session.assembler().allocate_reg(reg)) {
+            session.error(e, "P052", "assembler registers exhausted.", e->location());
         } else {
             result.reg = reg;
             result.valid = true;
@@ -243,5 +244,15 @@ element_register_t element::register_for(result &r, emit_context_t &context, ele
     }
 
     return result;
+}
+
+compiler::module *element::module()
+{
+    return module_;
+}
+
+void element::module(compiler::module *value)
+{
+    module_ = value;
 }
 }

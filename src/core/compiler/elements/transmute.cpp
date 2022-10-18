@@ -7,23 +7,24 @@
 #include "types/type.h"
 #include "symbol_element.h"
 #include "fmt/format.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
-transmute::transmute(block* parent_scope, compiler::type* type, element* expr)
-    : element(parent_scope, element_type_t::cast), expression_(expr), type_(type)
+transmute::transmute(compiler::module* module, block* parent_scope, compiler::type* type, element* expr)
+    : element(module, parent_scope, element_type_t::cast), expression_(expr), type_(type)
 {
 }
 
-bool transmute::on_emit(result& r, emit_context_t& context)
+bool transmute::on_emit(compiler::session &session)
 {
     if (expression_ == nullptr) {
         return true;
     }
 
-    auto instruction_block = context.assembler->current_block();
+    auto instruction_block = session.assembler().current_block();
     instruction_block->current_entry()->comment(
         fmt::format("XXX: transmute<{}> not yet implemented", type_->symbol()->name()),
-        context.indent);
-    return expression_->emit(r, context);
+        session.emit_context().indent);
+    return expression_->emit(session);
 }
 
 element* transmute::expression()

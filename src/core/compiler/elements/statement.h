@@ -9,16 +9,16 @@
 namespace gfx::compiler {
 class statement : public element {
 public:
-	statement(block* parent_scope, element* expr);
+	statement(compiler::module* module, block* parent_scope, element* expr);
 
 	element* expression();
 
 	label_list_t& labels();
 
 protected:
-    void on_owned_elements(element_list_t& list) override;
+    bool on_emit(compiler::session &session) override;
 
-    bool on_emit(result &r, emit_context_t &context) override;
+    void on_owned_elements(element_list_t& list) override;
 
 private:
 	label_list_t labels_ {};

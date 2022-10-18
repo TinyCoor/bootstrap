@@ -21,6 +21,8 @@ public:
 
     virtual ~session();
 
+    bool run();
+
     bool compile();
 
     void finalize();
@@ -33,12 +35,9 @@ public:
 
     class terp &terp();
 
-    void error(const std::string& code, const std::string& message, const source_location& location);
-
-    void error(compiler::element* element, const std::string& code, const std::string& message,
-        const source_location& location);
-
     gfx::result& result();
+
+    emit_context_t& emit_context();
 
     source_file *add_source_file(const fs::path &path);
 
@@ -58,6 +57,11 @@ public:
 
     ast_node_shared_ptr parse(source_file* source);
 
+    void error(const std::string& code, const std::string& message, const source_location& location);
+
+    void error(compiler::element* element, const std::string& code, const std::string& message,
+               const source_location& location);
+
 private:
     void raise_phase(session_compile_phase_t phase, const fs::path& source_file) const;
 
@@ -68,6 +72,7 @@ private:
     gfx::result r;
     class assembler assembler_;
     compiler::program program_;
+    emit_context_t context_;
     session_options_t options_ {};
     std::stack<source_file*> source_file_stack_{};
     std::map<std::string, source_file> source_files_ {};

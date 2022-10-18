@@ -3,14 +3,15 @@
 //
 
 #include "identifier.h"
+#include "../session.h"
 #include "types/type.h"
 #include "initializer.h"
 #include "fmt/format.h"
 #include "symbol_element.h"
 #include "vm/instruction_block.h"
 namespace gfx::compiler {
-identifier::identifier(block* parent_scope, symbol_element* symbol, compiler::initializer* initializer)
-	: element(parent_scope, element_type_t::identifier), symbol_(symbol), initializer_(initializer)
+identifier::identifier(compiler::module* module, block* parent_scope, symbol_element* symbol, compiler::initializer* initializer)
+	: element(module, parent_scope, element_type_t::identifier), symbol_(symbol), initializer_(initializer)
 {
 }
 
@@ -71,18 +72,18 @@ bool identifier::on_as_float(double &value) const
     return initializer_->as_float(value);
 }
 
-bool identifier::on_emit(result &r, emit_context_t &context)
+bool identifier::on_emit(compiler::session &session)
 {
     if (type_->element_type() == element_type_t::namespace_type) {
         return true;
     }
-    auto instruction_block = context.assembler->current_block();
+    auto instruction_block = session.assembler().current_block();
     stack_frame_entry_t* frame_entry = nullptr;
     auto stack_frame = instruction_block->stack_frame();
     if (stack_frame != nullptr) {
         frame_entry = stack_frame->find_up(symbol_->name());
     }
-    context.allocate_variable(r, symbol_->name(), type_, usage_, frame_entry);
+    session.emit_context().allocate_variable(symbol_->name(), type_, usage_, frame_entry);
     return true;
 }
 

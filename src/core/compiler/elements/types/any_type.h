@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class any_type : public composite_type {
 public:
-	explicit any_type(block * parent_scope, block* scope);
+	explicit any_type(compiler::module* module, block * parent_scope, block* scope);
 
     [[maybe_unused]] compiler::type* underlying_type();
 

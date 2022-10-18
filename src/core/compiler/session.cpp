@@ -8,11 +8,12 @@
 #include <common/defer.h>
 #include <parser/parser.h>
 #include "elements/program.h"
+#include "elements/module.h"
 #include "code_dom_formatter.h"
 namespace gfx::compiler {
 session::session(const session_options_t& options, const path_list_t& source_files)
     : terp_(options.heap_size, options.stack_size),
-          assembler_(&terp_), program_(&terp_, &assembler_),
+          assembler_(&terp_), program_(),
           options_(options)
 {
     for (const auto &path : source_files) {
@@ -38,7 +39,7 @@ void session::finalize()
 {
     if (options_.verbose) {
         try  {
-            program_.disassemble(stdout);
+            program_.disassemble(*this, stdout);
             if (!options_.dom_graph_file.empty()) {
                 write_code_dom_graph(options_.dom_graph_file);
             }
@@ -46,6 +47,16 @@ void session::finalize()
             fmt::print("fmt::format_error caught: {}\n", e.what());
         }
     }
+}
+
+bool session::run()
+{
+    while (!terp_.has_exited()) {
+        if (!terp_.step(r)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void session::write_code_dom_graph(const fs::path& path)
@@ -199,8 +210,11 @@ void session::error(const std::string &code, const std::string &message, const s
 void session::error(compiler::element *element, const std::string &code, const std::string &message,
                     const source_location &location)
 {
-//    element->module()->source_file() ->error(_result, code, message, location);
-
+    element->module()->source_file() ->error(r, code, message, location);
+}
+emit_context_t &session::emit_context()
+{
+    return context_;
 }
 
 }

@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class field : public element {
 public:
-	field(block* parent_scope,  compiler::identifier* identifier);
+	field(compiler::module* module,block* parent_scope, compiler::identifier* identifier);
 
 	compiler::identifier* identifier();
 

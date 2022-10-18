@@ -5,11 +5,12 @@
 #include "argument_list.h"
 #include "types/type.h"
 #include "program.h"
+#include "core/compiler/session.h"
 #include "vm/instruction_block.h"
 #include "fmt/format.h"
 namespace gfx::compiler {
-argument_list::argument_list(block* parent)
-	: element(parent, element_type_t::argument_list)
+argument_list::argument_list(compiler::module* module, block* parent)
+	: element(module, parent, element_type_t::argument_list)
 {
 }
 
@@ -43,10 +44,10 @@ const element_list_t& argument_list::elements() const
 	return elements_;
 }
 
-bool argument_list::on_emit(result &r, emit_context_t& context)
+bool argument_list::on_emit(compiler::session& session)
 {
-    auto assembler = context.assembler;
-    auto instruction_block = assembler->current_block();
+    auto &assembler = session.assembler();
+    auto instruction_block = assembler.current_block();
     for (auto it = elements_.rbegin(); it != elements_.rend(); ++it) {
         element* arg = *it;
         switch (arg->element_type()) {
@@ -59,14 +60,14 @@ bool argument_list::on_emit(result &r, emit_context_t& context)
             case element_type_t::unary_operator:
             case element_type_t::binary_operator:
             case element_type_t::identifier_reference:{
-                auto arg_reg = register_for(r, context, arg);
+                auto arg_reg = register_for(session, arg);
                 if (arg_reg.var != nullptr) {
                     // push_size = op_size_for_byte_size(arg_reg.var->type->size_in_bytes());
                     arg_reg.clean_up = true;
                 }
-                assembler->push_target_register(arg_reg.reg);
-                arg->emit(r, context);
-                assembler->pop_target_register();
+                assembler.push_target_register(arg_reg.reg);
+                arg->emit(session);
+                assembler.pop_target_register();
                 instruction_block->push(arg_reg.reg);
                 break;
             }

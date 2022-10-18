@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class float_literal : public element {
 public:
-	explicit float_literal(block* parent_scope, double value);
+	explicit float_literal(compiler::module* module, block* parent_scope, double value);
 
 	double value() const;
 
@@ -17,9 +17,9 @@ public:
 protected:
     bool on_is_constant() const override;
 
-    bool on_as_float(double &value) const override;
+    bool on_emit(compiler::session &session) override;
 
-    bool on_emit(result &r, emit_context_t &context) override;
+    bool on_as_float(double &value) const override;
 
     compiler::type* on_infer_type(const compiler::program* program) override;
 

@@ -5,8 +5,8 @@
 #include "alias.h"
 namespace gfx::compiler {
 
-alias::alias(block* parent, element* expr)
-	: element(parent, element_type_t::alias_type), expression_(expr)
+alias::alias(compiler::module* module, block* parent, element* expr)
+	: element(module, parent, element_type_t::alias_type), expression_(expr)
 {
 
 }

@@ -7,8 +7,8 @@
 #include "../program.h"
 namespace gfx::compiler {
 
-tuple_type::tuple_type(block *parent_scope, block* scope)
-    : composite_type(parent_scope, composite_types_t::struct_type, scope, nullptr, element_type_t::tuple_type)
+tuple_type::tuple_type(compiler::module* module, block *parent_scope, block* scope)
+    : composite_type(module, parent_scope, composite_types_t::struct_type, scope, nullptr, element_type_t::tuple_type)
 {
 
 }

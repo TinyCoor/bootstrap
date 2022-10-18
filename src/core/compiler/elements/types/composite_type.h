@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class composite_type : public type {
 public:
-  	explicit composite_type(block* parent_scope, composite_types_t type,
+  	explicit composite_type(compiler::module* module, block* parent_scope, composite_types_t type,
        block* scope, compiler::symbol_element *symbol,
        element_type_t element = element_type_t::composite_type);
 

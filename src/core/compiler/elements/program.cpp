@@ -50,9 +50,9 @@
 
 namespace gfx::compiler {
 
-program::program(class terp* terp ,assembler *assembler)
-	: element(nullptr, element_type_t::program), assembler_(assembler), terp_(terp)
-    , builder_(this) , ast_evaluator_(&builder_, this)
+program::program()
+	: element(nullptr, nullptr, element_type_t::program),
+      builder_(this) , ast_evaluator_(&builder_, this)
 {
 }
 
@@ -93,16 +93,15 @@ bool program::compile(compiler::session& session)
     }
 
     if (!r.is_failed()) {
-        auto& listing = assembler_->listing();
+        auto& listing = session.assembler().listing();
         listing.add_source_file("top_level.basm");
         listing.select_source_file("top_level.basm");
 
-        emit_context_t context(terp_, assembler_, this);
-        emit(r, context);
-        context.assembler->apply_addresses(r);
-        context.assembler->resolve_labels(r);
-        if (context.assembler->assemble(r)) {
-            context.terp->run(r);
+        emit(session);
+        session.assembler().apply_addresses(r);
+        session.assembler().resolve_labels(r);
+        if (session.assembler().assemble(r)) {
+            session.run();
         }
     }
     top_level_stack_.pop();
@@ -126,25 +125,15 @@ module *program::compile_module(compiler::session& session, source_file *source)
     return module;
 }
 
-bool program::run(result &r)
+void program::disassemble(compiler::session& session, FILE * file)
 {
-    while (!terp_->has_exited()) {
-        if (!terp_->step(r)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-void program::disassemble(FILE * file)
-{
-    auto root_block = assembler_->root_block();
+    auto root_block = session.assembler().root_block();
     if (root_block == nullptr) {
         return;
     }
     root_block->disassemble();
     if (file != nullptr) {
-        assembler_->listing().write(file);
+        session.assembler().listing().write(file);
     }
 }
 
@@ -285,16 +274,11 @@ bool program::resolve_unknown_types(compiler::session& session)
             it = identifiers_with_unknown_types_.erase(it);
         } else {
             ++it;
-            error(session.result(), var, "P004", fmt::format("unable to resolve type for identifier: {}", var->symbol()->name()),
+           session.error(var, "P004", fmt::format("unable to resolve type for identifier: {}", var->symbol()->name()),
                   var->symbol()->location());
         }
     }
 	return identifiers_with_unknown_types_.empty();
-}
-
-terp *program::terp()
-{
-	return terp_;
 }
 
 void program::add_type_to_scope(compiler::type *value)
@@ -308,7 +292,7 @@ bool program::find_identifier_type(compiler::session& session, type_find_result_
     if (type_node == nullptr) {
         return false;
     }
-    builder_.make_qualified_symbol(result.type_name, type_node->lhs.get());
+    compiler::element_builder::make_qualified_symbol(result.type_name, type_node->lhs.get());
     result.array_size = 0;
     result.is_array = type_node->is_array();
     result.is_spread = type_node->is_spread();
@@ -359,9 +343,9 @@ bool program::visit_blocks(result &r, const block_visitor_callable &callable,
 }
 
 
-bool program::on_emit(result &r, emit_context_t &context)
+bool program::on_emit(compiler::session &session)
 {
-    auto instruction_block = context.assembler->make_basic_block();
+    auto instruction_block = session.assembler().make_basic_block();
     instruction_block->jump_direct("_initializer");
 
     std::map<section_t, element_list_t> vars_by_section {};
@@ -442,8 +426,8 @@ bool program::on_emit(result &r, emit_context_t &context)
                         for (auto str : str_list) {
                             auto var_label = instruction_block->make_label(str->label_name());
                             current_entry->label(var_label);
-                            auto var = context.allocate_variable(r, var_label->name(),
-                                context.program->find_type({.name = "string"}), identifier_usage_t::heap);
+                            auto var = session.emit_context().allocate_variable(var_label->name(),
+                                session.program().find_type({.name = "string"}), identifier_usage_t::heap);
                             if (var != nullptr) {
                                 var->address_offset = 4;
                                 literals.emplace_back(var);
@@ -452,7 +436,7 @@ bool program::on_emit(result &r, emit_context_t &context)
                         current_entry->blank_lines(1);
                     }
                     instruction_block->current_entry()->comment(fmt::format("\"{}\"", string_literal->value()),
-                        context.indent);
+                        session.emit_context().indent);
                     instruction_block->string(string_literal->escaped_value());
                     break;
                 }
@@ -468,7 +452,7 @@ bool program::on_emit(result &r, emit_context_t &context)
 
                     auto var_label = instruction_block->make_label(var->symbol()->name());
                     instruction_block->current_entry()->label(var_label);
-                    context.allocate_variable(r, var_label->name(), var->type(),
+                    session.emit_context().allocate_variable(var_label->name(), var->type(),
                         identifier_usage_t::heap, nullptr);
                     switch (var->type()->element_type()) {
                         case element_type_t::bool_type: {
@@ -535,7 +519,7 @@ bool program::on_emit(result &r, emit_context_t &context)
                             if (init != nullptr) {
                                 auto string_literal = dynamic_cast<compiler::string_literal*>(init->expression());
                                 instruction_block->current_entry()->comment(fmt::format("\"{}\"", string_literal->value()),
-                                    context.indent);
+                                    session.emit_context().indent);
                                 instruction_block->string(string_literal->value());
                             }
                             break;
@@ -552,7 +536,7 @@ bool program::on_emit(result &r, emit_context_t &context)
         }
     }
 
-    context.assembler->push_block(instruction_block);
+    session.assembler().push_block(instruction_block);
 
     auto procedure_types = elements().find_by_type(element_type_t::proc_type);
     procedure_type_list_t proc_list {};
@@ -571,10 +555,10 @@ bool program::on_emit(result &r, emit_context_t &context)
     }
 
     for (auto procedure_type : proc_list) {
-        procedure_type->emit(r, context);
+        procedure_type->emit(session);
     }
 
-    auto top_level_block = context.assembler->make_basic_block();
+    auto top_level_block = session.assembler().make_basic_block();
     top_level_block->align(instruction_t::alignment);
     top_level_block->current_entry()->blank_lines(1);
     top_level_block->memo();
@@ -589,19 +573,19 @@ bool program::on_emit(result &r, emit_context_t &context)
         implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
     }
 
-    context.assembler->push_block(top_level_block);
+    session.assembler().push_block(top_level_block);
     for (auto block : implicit_blocks) {
-        block->emit(r, context);
+        block->emit(session);
     }
 
-    auto finalizer_block = context.assembler->make_basic_block();
+    auto finalizer_block =session.assembler().make_basic_block();
     finalizer_block->align(instruction_t::alignment);
     finalizer_block->current_entry()->blank_lines(1);
     finalizer_block->exit();
     finalizer_block->current_entry()->label(finalizer_block->make_label("_finalizer"));
 
-    context.assembler->pop_block();
-    context.assembler->pop_block();
+    session.assembler().pop_block();
+    session.assembler().pop_block();
 
     return true;
 }
@@ -652,7 +636,7 @@ bool program::resolve_unknown_identifiers(compiler::session& session)
             unresolved_reference->parent_scope());
         if (identifier == nullptr) {
             ++it;
-            error(session.result(), unresolved_reference, "P004",  fmt::format("unable to resolve identifier: {}", unresolved_reference->symbol().name),
+            session.error(unresolved_reference, "P004",  fmt::format("unable to resolve identifier: {}", unresolved_reference->symbol().name),
                   unresolved_reference->symbol().location);
             continue;
         }
@@ -684,24 +668,6 @@ compiler::module *program::find_module(compiler::element *element)
               return each;
           return nullptr;
         }));
-}
-
-void program::error(compiler::session &session, const std::string &code,
-                    const std::string &message, const source_location &location)
-{
-    auto source_file = session.current_source_file();
-    if (source_file != nullptr) {
-        source_file->error(session.result(), code, message, location);
-    }
-}
-
-void program::error(result& r, compiler::element *element, const std::string &code,
-                    const std::string &message, const source_location &location)
-{
-    auto module = find_module(element);
-    if (module != nullptr) {
-        module->source_file()->error(r, code, message, location);
-    }
 }
 
 element *program::walk_parent_scopes(compiler::block *scope, const program::scope_visitor_callable &callable)
@@ -812,7 +778,7 @@ bool program::type_check(compiler::session &session)
         }
         auto rhs_type = init->infer_type(this);
         if (!var->type()->type_check(rhs_type)) {
-            error(session.result(), init, "C051", fmt::format("type mismatch: cannot assign {} to {}.",
+            session.error(init, "C051", fmt::format("type mismatch: cannot assign {} to {}.",
                  rhs_type->symbol()->name(),var->type()->symbol()->name()), var->location());
         }
     }
@@ -827,7 +793,7 @@ bool program::type_check(compiler::session &session)
         auto var = dynamic_cast<compiler::identifier*>(binary_op->lhs());
         auto rhs_type = binary_op->rhs()->infer_type(this);
         if (!var->type()->type_check(rhs_type)) {
-            error(session.result(), binary_op, "C051", fmt::format( "type mismatch: cannot assign {} to {}.",
+            session.error(binary_op, "C051", fmt::format( "type mismatch: cannot assign {} to {}.",
                     rhs_type->symbol()->name(), var->type()->symbol()->name()), binary_op->rhs()->location());
         }
     }

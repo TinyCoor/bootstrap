@@ -5,8 +5,8 @@
 #include "module_reference.h"
 #include "program.h"
 namespace gfx::compiler {
-module_reference::module_reference(compiler::block *parent_scope, compiler::element *expr)
-    : element(parent_scope, element_type_t::module_reference), expression_(expr)
+module_reference::module_reference(compiler::module* module, compiler::block *parent_scope, compiler::element *expr)
+    : element(module, parent_scope, element_type_t::module_reference), expression_(expr)
 {
 
 }
@@ -26,11 +26,11 @@ compiler::type *module_reference::on_infer_type(const compiler::program *program
 {
     return program->find_type({.name = "module"});
 }
-compiler::module *module_reference::module()
+compiler::module *module_reference::reference()
 {
     return module_;
 }
-void module_reference::module(compiler::module *value)
+void module_reference::reference(compiler::module *value)
 {
     module_ = value;
 }

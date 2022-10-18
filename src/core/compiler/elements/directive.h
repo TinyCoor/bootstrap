@@ -11,7 +11,7 @@ class directive : public element {
 public:
 	using directive_callable = std::function<bool(compiler::directive*, compiler::session&, compiler::program*)>;
 
-    directive(block* parent_scope, const std::string& name, element* expression);
+    directive(compiler::module *module, block* parent_scope, const std::string& name, element* expression);
 
 	element* expression();
 

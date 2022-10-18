@@ -4,8 +4,8 @@
 
 #include "unknown_type.h"
 namespace gfx::compiler {
-unknown_type::unknown_type(block *parent_scope, compiler::symbol_element *symbol)
-    : type(parent_scope, element_type_t::unknown_type, symbol)
+unknown_type::unknown_type(compiler::module* module, block *parent_scope, compiler::symbol_element *symbol)
+    : type(module, parent_scope, element_type_t::unknown_type, symbol)
 {
 
 }

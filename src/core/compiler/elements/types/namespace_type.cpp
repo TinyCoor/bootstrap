@@ -6,8 +6,8 @@
 #include "core/compiler/session.h"
 #include "../symbol_element.h"
 namespace gfx::compiler{
-namespace_type::namespace_type(block *parent)
-	: type(parent, element_type_t::namespace_type, nullptr)
+namespace_type::namespace_type(compiler::module* module, block *parent)
+	: type(module, parent, element_type_t::namespace_type, nullptr)
 {
 
 }

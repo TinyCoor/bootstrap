@@ -5,8 +5,8 @@
 #include "attribute.h"
 
 namespace gfx::compiler {
-attribute::attribute(block* parent, const std::string& name, element* expr)
-	: element(parent, element_type_t::attribute), name_(name), expr_(expr)
+attribute::attribute(compiler::module* module, block* parent, const std::string& name, element* expr)
+	: element(module, parent, element_type_t::attribute), name_(name), expr_(expr)
 {
 
 }

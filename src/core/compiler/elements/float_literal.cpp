@@ -5,9 +5,10 @@
 #include "float_literal.h"
 #include "types/numeric_type.h"
 #include "program.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
-float_literal::float_literal(block* parent,double value)
-	: element(parent, element_type_t::float_literal), value_(value)
+float_literal::float_literal(compiler::module* module, block* parent,double value)
+	: element(module, parent, element_type_t::float_literal), value_(value)
 {
 }
 
@@ -28,10 +29,10 @@ bool float_literal::on_as_float(double &value) const
     return true;
 }
 
-bool compiler::float_literal::on_emit(gfx::result &r, emit_context_t &context)
+bool compiler::float_literal::on_emit(compiler::session &session)
 {
-    auto instruction_block = context.assembler->current_block();
-    auto target_reg = context.assembler->current_target_register();
+    auto instruction_block = session.assembler().current_block();
+    auto target_reg = session.assembler().current_target_register();
     instruction_block->move_constant_to_reg(*target_reg, value_);
     return true;
 }

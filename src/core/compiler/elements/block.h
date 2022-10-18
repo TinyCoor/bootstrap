@@ -13,7 +13,7 @@
 namespace gfx::compiler {
 class block : public element {
 public:
-	explicit block(block* parent_scope, element_type_t type = element_type_t::block);
+	explicit block(compiler::module* module, block* parent_scope, element_type_t type = element_type_t::block);
 
 	~block() override;
 
@@ -32,7 +32,7 @@ protected:
     void on_owned_elements(element_list_t& list) override;
 
 private:
-    bool on_emit(result& r, emit_context_t& context) override;
+    bool on_emit(compiler::session& session) override;
 
 private:
 	type_map_t types_ {};

@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class comment : public element {
 public:
-	comment(block* parent_scope, comment_type_t type, const std::string& value);
+	comment(compiler::module* module, block* parent_scope, comment_type_t type, const std::string& value);
 
 	std::string value() const ;
 

@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class label : public element {
 public:
-	label(block* parent_scope, const std::string& name);
+	label(compiler::module* module, block* parent_scope, const std::string& name);
 
 	std::string name() const;
 private:

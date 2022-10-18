@@ -7,8 +7,8 @@
 #include "symbol_element.h"
 #include "program.h"
 namespace gfx::compiler {
-namespace_element::namespace_element(block* parent_scope, element* expr)
-	: element(parent_scope, element_type_t::namespace_e), expression_(expr)
+namespace_element::namespace_element(compiler::module* module, block* parent_scope, element* expr)
+	: element(module, parent_scope, element_type_t::namespace_e), expression_(expr)
 {
 }
 
@@ -27,13 +27,13 @@ bool compiler::namespace_element::on_is_constant() const
     return true;
 }
 
-bool namespace_element::on_emit(result &r, emit_context_t &context)
+bool namespace_element::on_emit(compiler::session &session)
 {
     if (expression_ == nullptr) {
         return true;
     }
 
-    return expression_->emit(r, context);
+    return expression_->emit(session);
 }
 
 std::string namespace_element::name()

@@ -3,6 +3,7 @@
 //
 
 #include "emit_context.h"
+#include "session.h"
 #include "elements/types/type.h"
 #include "elements/identifier.h"
 #include "elements/symbol_element.h"
@@ -11,10 +12,8 @@
 
 #include "compiler_types.h"
 namespace gfx::compiler {
-emit_context_t::emit_context_t(class terp* terp, class assembler* assembler, compiler::program* program)
-    : terp(terp), assembler(assembler), program(program)
+emit_context_t::emit_context_t()
 {
-
 }
 
 void emit_context_t::push_if(const std::string &true_label_name, const std::string &false_label_name)
@@ -51,6 +50,7 @@ void emit_context_t::push_scratch_register(register_t reg)
 {
     scratch_registers.push(reg);
 }
+
 void emit_context_t::pop()
 {
     if (data_stack.empty()) {
@@ -59,11 +59,11 @@ void emit_context_t::pop()
     data_stack.pop();
 }
 
-void emit_context_t::free_variable(const std::string &name)
+void emit_context_t::free_variable(compiler::session& session, const std::string &name)
 {
     auto var = variable(name);
     if (var != nullptr) {
-        var->make_dormat(*this);
+        var->make_dormat(session);
     }
 }
 variable_t *emit_context_t::variable(const std::string &name)
@@ -75,7 +75,7 @@ variable_t *emit_context_t::variable(const std::string &name)
     return &it->second;
 }
 
-variable_t *emit_context_t::allocate_variable(result &r,  const std::string &name, compiler::type *type,
+variable_t *emit_context_t::allocate_variable(const std::string &name, compiler::type *type,
     identifier_usage_t usage, stack_frame_entry_t *frame_entry)
 {
     auto var = variable(name);

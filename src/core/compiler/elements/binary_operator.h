@@ -10,7 +10,8 @@ namespace gfx::compiler {
 
 class binary_operator : public operator_base {
 public:
-	binary_operator(block* parent_scope, operator_type_t type, element* lhs, element* rhs);
+	binary_operator(compiler::module* module, block* parent_scope, operator_type_t type,
+                    element* lhs, element* rhs);
 
 	element* lhs();
 
@@ -21,15 +22,15 @@ protected:
 
     void on_owned_elements(element_list_t& list) override;
 
-    bool on_emit(result &r, emit_context_t& context) override;
+    bool on_emit(compiler::session& session) override;
 
     element* on_fold(compiler::session& session) override;
 
 	compiler::type* on_infer_type(const compiler::program* program) override;
 
-    void emit_relational_operator(result& r, emit_context_t& context, instruction_block* instruction_block);
+    void emit_relational_operator(compiler::session& session, instruction_block* instruction_block);
 
-    void emit_arithmetic_operator(result& r, emit_context_t& context, instruction_block* instruction_block);
+    void emit_arithmetic_operator(compiler::session& session, instruction_block* instruction_block);
 private:
 	element* lhs_ = nullptr;
 	element* rhs_ = nullptr;

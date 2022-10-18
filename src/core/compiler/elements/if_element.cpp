@@ -3,9 +3,10 @@
 //
 
 #include "if_element.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
-if_element::if_element(block *parent, element *predicate, element *true_branch, element *false_branch)
-	: element(parent, element_type_t::if_e), predicate_(predicate), true_branch_(true_branch),
+if_element::if_element(compiler::module* module, block *parent, element *predicate, element *true_branch, element *false_branch)
+	: element(module, parent, element_type_t::if_e), predicate_(predicate), true_branch_(true_branch),
 		false_branch_(false_branch)
 {
 
@@ -26,14 +27,14 @@ element *if_element::false_branch()
 	return false_branch_;
 }
 
-bool if_element::on_emit(result &r, emit_context_t &context)
+bool if_element::on_emit(compiler::session &session)
 {
-    context.push_if(true_branch_->label_name(), false_branch_ != nullptr ? false_branch_->label_name(): "");
-    predicate_->emit(r, context);
+    session.emit_context().push_if(true_branch_->label_name(), false_branch_ != nullptr ? false_branch_->label_name(): "");
+    predicate_->emit(session);
     if (false_branch_!= nullptr) {
-        false_branch_->emit(r, context);
+        false_branch_->emit(session);
     }
-    context.pop();
+    session.emit_context().pop();
     return true;
 }
 

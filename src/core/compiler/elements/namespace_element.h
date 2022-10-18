@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class namespace_element : public element {
 public:
-	namespace_element(block* parent_scope, element* expr);
+	namespace_element(compiler::module* module, block* parent_scope, element* expr);
 
 	element* expression();
 
@@ -18,9 +18,9 @@ public:
 protected:
     bool on_is_constant() const override;
 
-    void on_owned_elements(element_list_t& list) override;
+    bool on_emit(compiler::session &session) override;
 
-    bool on_emit(result& r, emit_context_t& context) override;
+    void on_owned_elements(element_list_t& list) override;
 
     compiler::type* on_infer_type(const compiler::program* program) override;
 

@@ -10,7 +10,7 @@ class pointer_type : public compiler::type {
 public:
     static std::string name_for_pointer(compiler::type* base_type);
 
-    pointer_type(compiler::block* parent_scope, compiler::type* base_type);
+    pointer_type(compiler::module* module, compiler::block* parent_scope, compiler::type* base_type);
 
     compiler::type* base_type() const;
 

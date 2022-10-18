@@ -4,9 +4,10 @@
 
 #include "unary_operator.h"
 #include "program.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
-unary_operator::unary_operator(block* parent, operator_type_t type,element* rhs)
-	: operator_base(parent, element_type_t::unary_operator, type), rhs_(rhs)
+unary_operator::unary_operator(compiler::module* module, block* parent, operator_type_t type,element* rhs)
+	: operator_base(module, parent, element_type_t::unary_operator, type), rhs_(rhs)
 {
 }
 
@@ -35,18 +36,18 @@ bool unary_operator::on_is_constant() const
     return rhs_ != nullptr && rhs_->is_constant();
 }
 
-bool compiler::unary_operator::on_emit(gfx::result &r, emit_context_t& context)
+bool compiler::unary_operator::on_emit(compiler::session &session)
 {
-    auto assembler = context.assembler;
-    auto instruction_block = assembler->current_block();
-    auto target_reg = assembler->current_target_register();
-    auto rhs_reg = register_for(r, context, rhs_);
+    auto &assembler = session.assembler();
+    auto instruction_block = assembler.current_block();
+    auto target_reg = assembler.current_target_register();
+    auto rhs_reg = register_for(session, rhs_);
     if (!rhs_reg.valid) {
         return false;
     }
-    assembler->push_target_register(rhs_reg.reg);
-    rhs_->emit(r, context);
-    assembler->pop_target_register();
+    assembler.push_target_register(rhs_reg.reg);
+    rhs_->emit(session);
+    assembler.pop_target_register();
 
     switch (operator_type()) {
         case operator_type_t::negate: {

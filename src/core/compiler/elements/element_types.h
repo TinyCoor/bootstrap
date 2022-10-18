@@ -410,6 +410,7 @@ std::string make_fully_qualified_name(const symbol_element* symbol);
 std::string make_fully_qualified_name(const qualified_symbol_t& symbol);
 struct variable_t;
 struct emit_context_t;
+class session;
 struct element_register_t {
     ~element_register_t();
     [[nodiscard]] op_sizes size() const;
@@ -417,7 +418,7 @@ struct element_register_t {
     bool clean_up = false;
     register_t reg;
     variable_t* var = nullptr;
-    emit_context_t* context = nullptr;
+    compiler::session* session;
 };
 
 struct type_find_result_t {

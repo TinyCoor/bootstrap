@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class if_element : public element {
 public:
-	if_element(block* parent_scope, element* predicate, element* true_branch, element* false_branch);
+	if_element(compiler::module* module, block* parent_scope, element* predicate, element* true_branch, element* false_branch);
 
 	element* predicate();
 
@@ -16,9 +16,9 @@ public:
 
 	element* false_branch();
 protected:
-    void on_owned_elements(element_list_t& list) override;
+    bool on_emit(compiler::session &session) override;
 
-    bool on_emit(result& r, emit_context_t& context) override;
+    void on_owned_elements(element_list_t& list) override;
 
 private:
 	element* predicate_ = nullptr;

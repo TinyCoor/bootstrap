@@ -2,12 +2,13 @@
 // Created by 12132 on 2022/5/2.
 //
 #include "core/compiler/elements/program.h"
+#include "core/compiler/session.h"
 #include "procedure_type.h"
 #include "../symbol_element.h"
 #include "fmt/core.h"
 namespace gfx::compiler {
-procedure_type::procedure_type(block* parent_scope, compiler::block* scope, symbol_element* symbol)
-	: type(parent_scope, element_type_t::proc_type, symbol), scope_(scope)
+procedure_type::procedure_type(compiler::module* module, block* parent_scope, compiler::block* scope, symbol_element* symbol)
+	: type(module, parent_scope, element_type_t::proc_type, symbol), scope_(scope)
 {
 
 }
@@ -52,7 +53,7 @@ bool procedure_type::on_initialize(compiler::session& session)
 	return true;
 }
 
-bool procedure_type::on_emit(result &r, emit_context_t &context)
+bool procedure_type::on_emit(compiler::session &session)
 {
     auto procedure_label = symbol()->name();
     auto parent_init = parent_element_as<compiler::initializer>();
@@ -67,7 +68,7 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
         return true;
     }
 
-    auto instruction_block = context.assembler->make_procedure_block();
+    auto instruction_block = session.assembler().make_procedure_block();
     instruction_block->align(instruction_t::alignment);
     instruction_block->current_entry()->blank_lines(1);
     instruction_block->memo();
@@ -90,7 +91,7 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
     }
     offset = 16;
     size_t local_count = 0;
-    context.program->visit_blocks(r, [&](compiler::block* scope) {
+    session.program().visit_blocks(session.result(), [&](compiler::block* scope) {
           if (scope->element_type() == element_type_t::proc_type_block) {
               return true;
           }
@@ -115,9 +116,9 @@ bool procedure_type::on_emit(result &r, emit_context_t &context)
         instruction_block->sub_reg_by_immediate(register_t::sp(), register_t::sp(), size);
     }
 
-    context.assembler->push_block(instruction_block);
-    scope_->emit(r, context);
-    context.assembler->pop_block();
+    session.assembler().push_block(instruction_block);
+    scope_->emit(session);
+    session.assembler().pop_block();
 
     return true;
 }

@@ -4,8 +4,8 @@
 
 #include "expression.h"
 namespace gfx::compiler {
-expression::expression(block* parent, element* root)
-	: element(parent, element_type_t::expression),root_(root)
+expression::expression(compiler::module* module, block* parent, element* root)
+	: element(module, parent, element_type_t::expression),root_(root)
 {
 }
 
@@ -30,13 +30,13 @@ bool expression::on_is_constant() const
     return root_->is_constant();
 }
 
-bool compiler::expression::on_emit(gfx::result &r, emit_context_t& context)
+bool compiler::expression::on_emit(compiler::session& session)
 {
     if (root_ == nullptr) {
         return true;
     }
 
-    return root_->emit(r, context);
+    return root_->emit(session);
 }
 void expression::on_owned_elements(element_list_t &list)
 {

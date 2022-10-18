@@ -7,8 +7,8 @@
 
 namespace gfx::compiler {
 
-initializer::initializer(block* parent, element* expr)
-	: element(parent, element_type_t::initializer), expr_(expr)
+initializer::initializer(compiler::module* module, block* parent, element* expr)
+	: element(module, parent, element_type_t::initializer), expr_(expr)
 {
 
 }
@@ -58,13 +58,13 @@ bool initializer::on_as_float(double &value) const
     return expr_->as_float(value);
 }
 
-bool initializer::on_emit(result &r, emit_context_t &context)
+bool initializer::on_emit(compiler::session &session)
 {
     if (expr_ == nullptr)
         return true;
 
     if (expr_->element_type() == element_type_t::namespace_e) {
-        expr_->emit(r, context);
+        expr_->emit(session);
     }
     return true;
 }

@@ -18,6 +18,8 @@ class assembler {
 public:
 	explicit assembler(terp* terp);
 
+    assembler(const assembler& other) = delete;
+
 	virtual ~assembler();
 
     bool initialize(result& r);

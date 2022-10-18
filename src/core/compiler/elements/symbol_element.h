@@ -8,7 +8,8 @@
 namespace gfx::compiler {
 class symbol_element : public element {
 public:
-    symbol_element(compiler::block *parent_scope, const std::string &name, const string_list_t &namespaces);
+    symbol_element(compiler::module* module, compiler::block *parent_scope, const std::string &name,
+                   const string_list_t &namespaces);
 
     std::string name() const;
 
@@ -30,6 +31,7 @@ public:
 
 protected:
     bool on_is_constant() const override;
+
     type *on_infer_type(const compiler::program *program) override;
 
 private:

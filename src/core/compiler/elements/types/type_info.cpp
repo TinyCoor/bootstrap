@@ -6,8 +6,9 @@
 #include "core/compiler/session.h"
 namespace gfx::compiler {
 
-type_info::type_info(block *parent_scope, block* scope)
-    : compiler::composite_type(parent_scope, composite_types_t::struct_type, scope, nullptr, element_type_t::type_info)
+type_info::type_info(compiler::module* module, block *parent_scope, block* scope)
+    : compiler::composite_type(module, parent_scope, composite_types_t::struct_type,
+                               scope, nullptr, element_type_t::type_info)
 {
 
 }

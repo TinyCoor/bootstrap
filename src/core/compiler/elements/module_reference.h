@@ -8,13 +8,13 @@
 namespace gfx::compiler {
 class module_reference : public element {
 public:
-    module_reference(compiler::block* parent_scope, compiler::element* expr);
+    module_reference(compiler::module* module, compiler::block* parent_scope, compiler::element* expr);
 
-    compiler::module* module();
+    compiler::module* reference();
 
     compiler::element* expression();
 
-    void module(compiler::module* value);
+    void reference(compiler::module* value);
 
 protected:
     bool on_is_constant() const override;

@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class namespace_type : public type {
 public:
-	explicit namespace_type(block* parent_scope);
+	explicit namespace_type(compiler::module* module, block* parent_scope);
 
 protected:
     bool on_type_check(compiler::type* other) override;

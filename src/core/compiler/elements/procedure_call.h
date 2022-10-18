@@ -8,7 +8,8 @@
 namespace gfx::compiler {
 class procedure_call : public element {
 public:
-	procedure_call(block* parent_scope, compiler::identifier_reference* reference, argument_list* args);
+	procedure_call(compiler::module* module,block* parent_scope, compiler::identifier_reference* reference,
+                   argument_list* args);
 
 	argument_list* arguments();
 
@@ -17,9 +18,9 @@ public:
     void reference(compiler::identifier_reference* value);
 
 protected:
-    void on_owned_elements(element_list_t& list) override;
+    bool on_emit(compiler::session &session) override;
 
-    bool on_emit(result& r, emit_context_t& context) override;
+    void on_owned_elements(element_list_t& list) override;
 
 	compiler::type* on_infer_type(const compiler::program* program) override;
 

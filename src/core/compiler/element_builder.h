@@ -20,7 +20,7 @@ public:
     compiler::alias* make_alias(compiler::block* parent_scope, element* expr);
 
     compiler::import* make_import(compiler::block* parent_scope, element* expr,
-         element* from_expr, compiler::module* module);
+         element* from_expr, compiler::module* imported_module);
 
     compiler::label* make_label(compiler::block* parent_scope, const std::string& name);
 
@@ -121,4 +121,4 @@ private:
 };
 }
 
-#endif //BOOTSTRAP_SRC_CORE_COMPILER_ELEMENT_BUILDER_H_
+#endif // COMPILER_ELEMENT_BUILDER_H_

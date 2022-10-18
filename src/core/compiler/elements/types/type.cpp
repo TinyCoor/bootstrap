@@ -5,8 +5,8 @@
 #include "type.h"
 #include "../symbol_element.h"
 namespace gfx::compiler {
-type::type(block* parent, element_type_t type, compiler::symbol_element* symbol)
-	: element(parent,type), symbol_(symbol)
+type::type(compiler::module* module, block* parent, element_type_t type, compiler::symbol_element* symbol)
+	: element(module, parent, type), symbol_(symbol)
 {
 }
 

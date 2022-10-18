@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class type_info : public compiler::composite_type {
 public:
-    type_info(block* parent_scope, block* scope);
+    type_info(compiler::module* module, block* parent_scope, block* scope);
 
 protected:
     type_access_model_t on_access_model() const override;

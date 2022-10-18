@@ -10,7 +10,7 @@ namespace gfx::compiler {
 namespace fs = std::filesystem;
 class module : public element {
 public:
-    module(compiler::block* parent_scope, compiler::block* scope);
+    module(compiler::module* module, compiler::block* parent_scope, compiler::block* scope);
 
     compiler::block* scope();
 
@@ -23,9 +23,10 @@ public:
     void source_file(gfx::source_file* value);
 
 protected:
+    bool on_emit(compiler::session &session) override;
+
     void on_owned_elements(gfx::compiler::element_list_t &list) override;
 
-    bool on_emit(gfx::result &r, gfx::compiler::emit_context_t &context) override;
 private:
     bool is_root_ = false;
     block* scope_ = nullptr;

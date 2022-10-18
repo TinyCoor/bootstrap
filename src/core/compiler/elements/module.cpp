@@ -5,8 +5,8 @@
 #include "module.h"
 #include "block.h"
 namespace gfx::compiler {
-module::module(compiler::block *parent_scope, compiler::block *scope)
-    : element(parent_scope, element_type_t::module), scope_(scope)
+module::module(compiler::module* module, compiler::block *parent_scope, compiler::block *scope)
+    : element(module, parent_scope, element_type_t::module), scope_(scope)
 {
 
 }
@@ -23,12 +23,12 @@ void module::on_owned_elements(element_list_t &list)
     }
 }
 
-bool module::on_emit(result &r, emit_context_t &context)
+bool module::on_emit(compiler::session &session)
 {
     if (scope_ == nullptr) {
         return true;
     }
-    return scope_->emit(r, context);
+    return scope_->emit(session);
 }
 
 gfx::source_file *module::source_file() const

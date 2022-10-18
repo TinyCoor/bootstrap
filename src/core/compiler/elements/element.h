@@ -14,11 +14,15 @@ namespace gfx::compiler {
 
 class element {
 public:
-	element(block* parent, element_type_t type, element* parent_element = nullptr);
+	element(compiler::module* module, block* parent, element_type_t type, element* parent_element = nullptr);
 
 	virtual ~element();
 
 	id_t id() const;
+
+    compiler::module* module();
+
+    void module(compiler::module* module);
 
 	element* fold(compiler::session& session);
 
@@ -45,7 +49,7 @@ public:
 
     void parent_element(element* parent);
 
-    bool emit(result& r, emit_context_t& context);
+    bool emit(compiler::session& session);
 
     bool is_constant() const;
 
@@ -72,6 +76,8 @@ public:
 protected:
     virtual bool on_is_constant() const;
 
+    virtual bool on_emit(compiler::session& session);
+
     virtual bool on_as_bool(bool &value) const;
 
     virtual bool on_as_float(double &value) const;
@@ -82,16 +88,15 @@ protected:
 
     virtual void on_owned_elements(element_list_t& list);
 
-    virtual bool on_emit(result& r, emit_context_t& context);
-
     virtual element *on_fold(compiler::session& session);
 
 	virtual compiler::type* on_infer_type(const compiler::program* program);
 
-    static element_register_t register_for(result& r, emit_context_t& context, element* e);
+    static element_register_t register_for(compiler::session& session, element* e);
 
 private:
 	id_t id_;
+    compiler::module* module_ = nullptr;
 	block* parent_scope_ = nullptr;
     element* parent_element_ = nullptr;
     source_location location_ {};

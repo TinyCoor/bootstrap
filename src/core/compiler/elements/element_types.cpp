@@ -8,6 +8,7 @@
 #include "identifier.h"
 #include "symbol_element.h"
 #include "types/type.h"
+#include "core/compiler/session.h"
 
 namespace gfx::compiler {
 
@@ -187,15 +188,15 @@ std::string make_fully_qualified_name(const qualified_symbol_t& symbol)
 
 element_register_t::~element_register_t()
 {
-    if (context == nullptr) {
+    if (session == nullptr) {
         return;
     }
 
     if (clean_up) {
         if (var != nullptr) {
-            var->make_dormat(*context);
+            var->make_dormat(*session);
         } else {
-           context->assembler->free_reg(reg);
+           session->assembler().free_reg(reg);
         }
     }
 }

@@ -57,7 +57,7 @@ element_builder::~element_builder() = default;
 
 module_type *element_builder::make_module_type(compiler::session& session, compiler::block *parent_scope, compiler::block *scope)
 {
-    auto type = new module_type(parent_scope, scope);
+    auto type = new module_type(program_->find_module(program_->current_top_level()), parent_scope, scope);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -68,7 +68,7 @@ module_type *element_builder::make_module_type(compiler::session& session, compi
 
 tuple_type *element_builder::make_tuple_type(compiler::session& session, compiler::block *parent_scope, compiler::block* scope)
 {
-    auto type = new tuple_type(parent_scope, scope);
+    auto type = new tuple_type(program_->find_module(program_->current_top_level()), parent_scope, scope);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -80,7 +80,7 @@ tuple_type *element_builder::make_tuple_type(compiler::session& session, compile
 import* element_builder::make_import(compiler::block* parent_scope, element* expr,
     element* from_expr, compiler::module* module)
 {
-    auto import_element = new compiler::import(parent_scope, expr, from_expr, module);
+    auto import_element = new compiler::import(program_->find_module(program_->current_top_level()), parent_scope, expr, from_expr, module);
 
     if (expr !=nullptr) {
         expr->parent_element(import_element);
@@ -95,7 +95,7 @@ import* element_builder::make_import(compiler::block* parent_scope, element* exp
 compiler::symbol_element* element_builder::make_symbol(compiler::block* parent_scope, const std::string& name,
                                                const string_list_t& namespaces)
 {
-    auto symbol = new compiler::symbol_element(parent_scope, name, namespaces);
+    auto symbol = new compiler::symbol_element(program_->find_module(program_->current_top_level()), parent_scope, name, namespaces);
 
     symbol->cache_fully_qualified_name();
     program_->elements().add(symbol);
@@ -104,7 +104,7 @@ compiler::symbol_element* element_builder::make_symbol(compiler::block* parent_s
 
 type_info *element_builder::make_type_info_type(compiler::session& session, compiler::block *parent_scope, compiler::block* scope)
 {
-    auto type = new type_info(parent_scope, scope);
+    auto type = new type_info(program_->find_module(program_->current_top_level()), parent_scope, scope);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -116,7 +116,7 @@ type_info *element_builder::make_type_info_type(compiler::session& session, comp
 identifier_reference *element_builder::make_identifier_reference(compiler::block *parent_scope,
      const qualified_symbol_t &symbol, compiler::identifier *identifier)
 {
-    auto reference = new compiler::identifier_reference(parent_scope, symbol, identifier);
+    auto reference = new compiler::identifier_reference(program_->find_module(program_->current_top_level()), parent_scope, symbol, identifier);
 
     if (!reference->resolved()) {
        program_->unresolved_identifier_references_.emplace_back(reference);
@@ -128,7 +128,7 @@ identifier_reference *element_builder::make_identifier_reference(compiler::block
 
 module *element_builder::make_module(compiler::block* parent_scope, compiler::block* scope)
 {
-    auto module_element = new compiler::module(parent_scope, scope);
+    auto module_element = new compiler::module(program_->find_module(program_->current_top_level()), parent_scope, scope);
     if (scope !=nullptr) {
         scope->parent_element(module_element);
     }
@@ -138,7 +138,7 @@ module *element_builder::make_module(compiler::block* parent_scope, compiler::bl
 
 module_reference *element_builder::make_module_reference(compiler::block *parent_scope, compiler::element *expr)
 {
-    auto module_ref= new compiler::module_reference(parent_scope, expr);
+    auto module_ref= new compiler::module_reference(program_->find_module(program_->current_top_level()), parent_scope, expr);
     if (expr != nullptr) {
         expr->parent_element(module_ref);
     }
@@ -148,7 +148,7 @@ module_reference *element_builder::make_module_reference(compiler::block *parent
 
 bool_type *element_builder::make_bool_type(compiler::session& session, compiler::block *parent_scope)
 {
-    auto type = new compiler::bool_type(parent_scope);
+    auto type = new compiler::bool_type(program_->find_module(program_->current_top_level()), parent_scope);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -159,7 +159,7 @@ bool_type *element_builder::make_bool_type(compiler::session& session, compiler:
 array_type *element_builder::make_array_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope,
                                      compiler::type *entry_type, size_t size)
 {
-    auto type = new array_type(parent_scope, scope, entry_type, size);
+    auto type = new array_type(program_->find_module(program_->current_top_level()), parent_scope, scope, entry_type, size);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -171,7 +171,7 @@ array_type *element_builder::make_array_type(compiler::session& session, compile
 
 namespace_type *element_builder::make_namespace_type(compiler::session& session, compiler::block* parent_scope)
 {
-    auto ns_type = new namespace_type(parent_scope);
+    auto ns_type = new namespace_type(program_->find_module(program_->current_top_level()), parent_scope);
     if (!ns_type->initialize(session)) {
         return nullptr;
     }
@@ -182,7 +182,7 @@ namespace_type *element_builder::make_namespace_type(compiler::session& session,
 unknown_type *element_builder::make_unknown_type(compiler::session& session, compiler::block *parent_scope, symbol_element* symbol,
                                          bool is_pointer, bool is_array, size_t array_size)
 {
-    auto type = new compiler::unknown_type(parent_scope, symbol);
+    auto type = new compiler::unknown_type(program_->find_module(program_->current_top_level()), parent_scope, symbol);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -197,7 +197,7 @@ unknown_type *element_builder::make_unknown_type(compiler::session& session, com
 
 pointer_type *element_builder::make_pointer_type(compiler::session& session, compiler::block *parent_scope, compiler::type *base_type)
 {
-    auto type = new compiler::pointer_type(parent_scope, base_type);
+    auto type = new compiler::pointer_type(program_->find_module(program_->current_top_level()), parent_scope, base_type);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -208,14 +208,14 @@ pointer_type *element_builder::make_pointer_type(compiler::session& session, com
 
 return_element *element_builder::make_return(compiler::block* parent_scope)
 {
-    auto return_element = new compiler::return_element(parent_scope);
+    auto return_element = new compiler::return_element(program_->find_module(program_->current_top_level()), parent_scope);
     program_->elements().add(return_element);
     return return_element;
 }
 
 argument_list* element_builder::make_argument_list(compiler::block* parent_scope)
 {
-    auto arg = new compiler::argument_list(parent_scope);
+    auto arg = new compiler::argument_list(program_->find_module(program_->current_top_level()), parent_scope);
     program_->elements().add(arg);
     return arg;
 }
@@ -223,7 +223,7 @@ argument_list* element_builder::make_argument_list(compiler::block* parent_scope
 procedure_call *element_builder::make_procedure_call(compiler::block* parent_scope, compiler::identifier_reference* reference,
                                              compiler::argument_list* args)
 {
-    auto call = new compiler::procedure_call(parent_scope, reference, args);
+    auto call = new compiler::procedure_call(program_->find_module(program_->current_top_level()), parent_scope, reference, args);
     args->parent_element(call);
     reference->parent_element(call);
     program_->elements().add(call);
@@ -232,7 +232,7 @@ procedure_call *element_builder::make_procedure_call(compiler::block* parent_sco
 
 namespace_element *element_builder::make_namespace(compiler::block* parent_scope, element *expr)
 {
-    auto ns = new compiler::namespace_element(parent_scope, expr);
+    auto ns = new compiler::namespace_element(program_->find_module(program_->current_top_level()), parent_scope, expr);
     if (expr != nullptr) {
         expr->parent_element(ns);
     }
@@ -242,35 +242,35 @@ namespace_element *element_builder::make_namespace(compiler::block* parent_scope
 
 class block *element_builder::make_block(compiler::block* parent_scope, element_type_t block_type)
 {
-    auto block = new compiler::block(parent_scope, block_type);
+    auto block = new compiler::block(program_->find_module(program_->current_top_level()), parent_scope, block_type);
     program_->elements().add(block);
     return block;
 }
 
 boolean_literal *element_builder::make_bool(compiler::block* parent_scope, bool value)
 {
-    auto bool_literal = new compiler::boolean_literal(parent_scope, value);
+    auto bool_literal = new compiler::boolean_literal(program_->find_module(program_->current_top_level()), parent_scope, value);
     program_->elements().add(bool_literal);
     return bool_literal;
 }
 
 float_literal *element_builder::make_float(compiler::block* parent_scope, double value)
 {
-    auto float_literal = new compiler::float_literal(parent_scope, value);
+    auto float_literal = new compiler::float_literal(program_->find_module(program_->current_top_level()), parent_scope, value);
     program_->elements().add(float_literal);
     return float_literal;
 }
 
 integer_literal *element_builder::make_integer(compiler::block* parent_scope, uint64_t value)
 {
-    auto integer_literal = new compiler::integer_literal(parent_scope, value);
+    auto integer_literal = new compiler::integer_literal(program_->find_module(program_->current_top_level()), parent_scope, value);
     program_->elements().add(integer_literal);
     return integer_literal;
 }
 
 string_literal *element_builder::make_string(compiler::block* parent_scope, const std::string &value)
 {
-    auto string_literal = new compiler::string_literal(parent_scope, value);
+    auto string_literal = new compiler::string_literal(program_->find_module(program_->current_top_level()), parent_scope, value);
 
     auto it = program_->interned_string_literals_.find(value);
     if (it != program_->interned_string_literals_.end()) {
@@ -287,7 +287,7 @@ string_literal *element_builder::make_string(compiler::block* parent_scope, cons
 
 field* element_builder::make_field(compiler::block* parent_scope, compiler::identifier* identifier)
 {
-    auto field = new compiler::field(parent_scope, identifier);
+    auto field = new compiler::field(program_->find_module(program_->current_top_level()), parent_scope, identifier);
     identifier->parent_element(field);
     program_->elements().add(field);
     return field;
@@ -295,7 +295,7 @@ field* element_builder::make_field(compiler::block* parent_scope, compiler::iden
 
 attribute *element_builder::make_attribute(compiler::block* parent_scope, const std::string &name, element *expr)
 {
-    auto attr = new compiler::attribute(parent_scope, name, expr);
+    auto attr = new compiler::attribute(program_->find_module(program_->current_top_level()), parent_scope, name, expr);
     if (expr != nullptr) {
         expr->parent_element(attr);
     }
@@ -307,7 +307,7 @@ composite_type* element_builder::make_enum_type(compiler::session& session, comp
 {
     std::string name = fmt::format("__enum_{}__", id_pool::instance()->allocate());
     auto symbol =  make_symbol(parent_block, name);
-    auto type = new composite_type(parent_block, composite_types_t::enum_type, scope, symbol);
+    auto type = new composite_type(program_->find_module(program_->current_top_level()), parent_block, composite_types_t::enum_type, scope, symbol);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -321,7 +321,7 @@ composite_type* element_builder::make_union_type(compiler::session& session, com
 {
     std::string name = fmt::format("__union_{}__", id_pool::instance()->allocate());
     auto symbol = make_symbol(parent_block, name);
-    auto type = new composite_type(parent_block,  composite_types_t::union_type, scope, symbol);
+    auto type = new composite_type(program_->find_module(program_->current_top_level()), parent_block,  composite_types_t::union_type, scope, symbol);
     symbol->parent_element(type);
     scope->parent_element(type);
     program_->elements().add(type);
@@ -332,7 +332,7 @@ composite_type* element_builder::make_struct_type(compiler::session& session, co
 {
     std::string name = fmt::format("__struct_{}__", id_pool::instance()->allocate());
     auto symbol = make_symbol(parent_scope, name);
-    auto type = new composite_type(parent_scope, composite_types_t::struct_type, scope, symbol);
+    auto type = new composite_type(program_->find_module(program_->current_top_level()), parent_scope, composite_types_t::struct_type, scope, symbol);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -344,14 +344,14 @@ composite_type* element_builder::make_struct_type(compiler::session& session, co
 
 comment *element_builder::make_comment(compiler::block* parent_scope, comment_type_t type, const std::string &value)
 {
-    auto commnet = new compiler::comment(parent_scope, type, value);
+    auto commnet = new compiler::comment(program_->find_module(program_->current_top_level()), parent_scope, type, value);
     program_->elements().add(commnet);
     return commnet;
 }
 
 directive *element_builder::make_directive(compiler::block* parent_scope, const std::string &name, element *expr)
 {
-    auto directive = new compiler::directive(parent_scope, name, expr);
+    auto directive = new compiler::directive(program_->find_module(program_->current_top_level()), parent_scope, name, expr);
     if (expr != nullptr) {
         expr->parent_element(directive);
     }
@@ -361,7 +361,7 @@ directive *element_builder::make_directive(compiler::block* parent_scope, const 
 
 statement *element_builder::make_statement(compiler::block* parent_scope, const label_list_t &labels, element *expr)
 {
-    auto statement = new compiler::statement(parent_scope, expr);
+    auto statement = new compiler::statement(program_->find_module(program_->current_top_level()), parent_scope, expr);
     if (expr != nullptr && expr->parent_element() == nullptr) {
         expr->parent_element(statement);
     }
@@ -376,14 +376,14 @@ statement *element_builder::make_statement(compiler::block* parent_scope, const 
 
 label *element_builder::make_label(compiler::block* parent_scope, const std::string &name)
 {
-    auto label = new compiler::label(parent_scope, name);
+    auto label = new compiler::label(program_->find_module(program_->current_top_level()), parent_scope, name);
     program_->elements().add(label);
     return label;
 }
 
 identifier* element_builder::make_identifier(compiler::block* parent_scope, compiler::symbol_element* symbol, initializer* expr)
 {
-    auto identifier = new compiler::identifier(parent_scope, symbol, expr);
+    auto identifier = new compiler::identifier(program_->find_module(program_->current_top_level()), parent_scope, symbol, expr);
     if (expr != nullptr) {
         expr->parent_element(identifier);
     }
@@ -395,7 +395,7 @@ identifier* element_builder::make_identifier(compiler::block* parent_scope, comp
 
 unary_operator* element_builder::make_unary_operator(compiler::block* parent_scope, operator_type_t type, element* rhs)
 {
-    auto unary_operator = new compiler::unary_operator(parent_scope, type, rhs);
+    auto unary_operator = new compiler::unary_operator(program_->find_module(program_->current_top_level()), parent_scope, type, rhs);
     rhs->parent_element(unary_operator);
     program_->elements().add(unary_operator);
     return unary_operator;
@@ -403,7 +403,7 @@ unary_operator* element_builder::make_unary_operator(compiler::block* parent_sco
 
 binary_operator* element_builder::make_binary_operator(compiler::block* parent_scope, operator_type_t type, element* lhs, element* rhs)
 {
-    auto binary_operator = new compiler::binary_operator(parent_scope, type, lhs, rhs);
+    auto binary_operator = new compiler::binary_operator(program_->find_module(program_->current_top_level()), parent_scope, type, lhs, rhs);
     lhs->parent_element(binary_operator);
     rhs->parent_element(binary_operator);
     program_->elements().add(binary_operator);
@@ -412,7 +412,7 @@ binary_operator* element_builder::make_binary_operator(compiler::block* parent_s
 
 expression* element_builder::make_expression(compiler::block* parent_scope, element* expr)
 {
-    auto expression = new compiler::expression(parent_scope, expr);
+    auto expression = new compiler::expression(program_->find_module(program_->current_top_level()), parent_scope, expr);
     if (expr != nullptr) {
         expr->parent_element(expression);
     }
@@ -422,7 +422,7 @@ expression* element_builder::make_expression(compiler::block* parent_scope, elem
 
 alias *element_builder::make_alias(compiler::block* parent_scope, element *expr)
 {
-    auto alias_type = new compiler::alias(parent_scope, expr);
+    auto alias_type = new compiler::alias(program_->find_module(program_->current_top_level()), parent_scope, expr);
     if (expr != nullptr) {
         expr->parent_element(alias_type);
     }
@@ -434,7 +434,7 @@ procedure_type* element_builder::make_procedure_type(compiler::session& session,
 {
     // XXX: the name of the proc isn't correct here, but it works temporarily.
     std::string name = fmt::format("__proc_{}__", id_pool::instance()->allocate());
-    auto procedure_type = new compiler::procedure_type(parent_scope, block_scope, make_symbol(parent_scope, name));
+    auto procedure_type = new compiler::procedure_type(program_->find_module(program_->current_top_level()), parent_scope, block_scope, make_symbol(parent_scope, name));
     if (block_scope != nullptr) {
         block_scope->parent_element(procedure_type);
     }
@@ -445,7 +445,7 @@ procedure_type* element_builder::make_procedure_type(compiler::session& session,
 procedure_instance* element_builder::make_procedure_instance(compiler::block* parent_scope,
                                                      compiler::type* procedure_type, compiler::block* scope)
 {
-    auto procedure_instance = new compiler::procedure_instance(parent_scope, procedure_type, scope);
+    auto procedure_instance = new compiler::procedure_instance(program_->find_module(program_->current_top_level()), parent_scope, procedure_type, scope);
     scope->parent_element(procedure_instance);
     program_->elements().add(procedure_instance);
     return procedure_instance;
@@ -453,7 +453,7 @@ procedure_instance* element_builder::make_procedure_instance(compiler::block* pa
 
 initializer* element_builder::make_initializer(compiler::block* parent_scope, element* expr)
 {
-    auto initializer = new compiler::initializer(parent_scope, expr);
+    auto initializer = new compiler::initializer(program_->find_module(program_->current_top_level()), parent_scope, expr);
     if (expr != nullptr) {
         expr->parent_element(initializer);
     }
@@ -463,7 +463,7 @@ initializer* element_builder::make_initializer(compiler::block* parent_scope, el
 
 cast* element_builder::make_cast(compiler::block* parent_scope, compiler::type* type, element* expr)
 {
-    auto cast = new compiler::cast(parent_scope, type, expr);
+    auto cast = new compiler::cast(program_->find_module(program_->current_top_level()), parent_scope, type, expr);
     program_->elements().add(cast);
     if (expr != nullptr) {
         expr->parent_element(cast);
@@ -474,7 +474,7 @@ cast* element_builder::make_cast(compiler::block* parent_scope, compiler::type* 
 if_element *element_builder::make_if(compiler::block* parent_scope, element *predicate,
                              element *true_branch, element *false_branch)
 {
-    auto if_element = new compiler::if_element(parent_scope, predicate, true_branch, false_branch);
+    auto if_element = new compiler::if_element(program_->find_module(program_->current_top_level()), parent_scope, predicate, true_branch, false_branch);
     if (predicate != nullptr) {
         predicate->parent_element(if_element);
     }
@@ -490,7 +490,7 @@ if_element *element_builder::make_if(compiler::block* parent_scope, element *pre
 
 any_type *element_builder::make_any_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope)
 {
-    auto type = new any_type(parent_scope, scope);
+    auto type = new any_type(program_->find_module(program_->current_top_level()), parent_scope, scope);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -501,7 +501,7 @@ any_type *element_builder::make_any_type(compiler::session& session, compiler::b
 
 string_type *element_builder::make_string_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope)
 {
-    auto type = new string_type(parent_scope, scope);
+    auto type = new string_type(program_->find_module(program_->current_top_level()), parent_scope, scope);
     if (!type->initialize(session)) {
         return nullptr;
     }
@@ -513,7 +513,7 @@ string_type *element_builder::make_string_type(compiler::session& session, compi
 numeric_type *element_builder::make_numeric_type(compiler::session& session, compiler::block* parent_scope, const std::string &name, int64_t min, uint64_t max,
     bool is_signed, type_number_class_t number_class)
 {
-    auto type = new numeric_type(parent_scope, make_symbol(parent_scope, name), min, max, is_signed, number_class);
+    auto type = new numeric_type(program_->find_module(program_->current_top_level()), parent_scope, make_symbol(parent_scope, name), min, max, is_signed, number_class);
     if (!type->initialize(session)) {
         return nullptr;
     }

@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class integer_literal : public element {
 public:
-    integer_literal(block* parent_scope, uint64_t value);
+    integer_literal(compiler::module* module, block* parent_scope, uint64_t value);
 
 	uint64_t value() const;
 
@@ -17,11 +17,11 @@ public:
 protected:
     bool on_is_constant() const override;
 
+    bool on_emit(compiler::session &session) override;
+
     bool on_as_integer(uint64_t &value) const override;
 
     compiler::type* on_infer_type(const compiler::program* program) override;
-
-    bool on_emit(result &r, emit_context_t& context) override;
 
 private:
 	uint64_t value_;

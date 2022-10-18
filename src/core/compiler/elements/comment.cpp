@@ -4,8 +4,8 @@
 
 #include "comment.h"
 namespace gfx::compiler {
-comment::comment(block *parent, comment_type_t type,const std::string &value)
-	: element(parent, element_type_t::comment), value_(value), type_(type)
+comment::comment(compiler::module* module, block *parent, comment_type_t type,const std::string &value)
+	: element(module, parent, element_type_t::comment), value_(value), type_(type)
 {
 
 }

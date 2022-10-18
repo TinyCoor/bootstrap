@@ -12,7 +12,7 @@ namespace gfx::compiler {
 
 class identifier : public element {
 public:
-	identifier(block* parent_scope, symbol_element* symbol, compiler::initializer* initializer);
+	identifier(compiler::module* module, block* parent_scope, symbol_element* symbol, compiler::initializer* initializer);
 
 	compiler::type* type();
 
@@ -34,6 +34,8 @@ public:
 protected:
     bool on_is_constant() const override;
 
+    bool on_emit(compiler::session &session) override;
+
     bool on_as_bool(bool &value) const override;
 
     bool on_as_float(double &value) const override;
@@ -43,8 +45,6 @@ protected:
     bool on_as_string(std::string &value) const override;
 
     void on_owned_elements(element_list_t& list) override;
-
-    bool on_emit(result& r, emit_context_t& context) override;
 
     compiler::type* on_infer_type(const compiler::program* program) override;
 

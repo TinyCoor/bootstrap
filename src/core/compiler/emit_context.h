@@ -22,7 +22,9 @@ struct if_data_t {
 
 class program;
 struct emit_context_t {
-    emit_context_t(gfx::terp* terp, gfx::assembler* assembler, compiler::program* program);
+    emit_context_t();
+
+    emit_context_t(const emit_context_t& other) = delete;
 
     template <typename T>
     T* top() {
@@ -38,13 +40,13 @@ struct emit_context_t {
 
     void push_if(const std::string& true_label_name, const std::string& false_label_name);
 
-    void free_variable(const std::string& name);
+    void free_variable(compiler::session& session, const std::string& name);
 
     variable_t* variable(const std::string& name);
 
     variable_t* variable_for_element(compiler::element* element);
 
-    variable_t* allocate_variable(result& r, const std::string& name, compiler::type* type,
+    variable_t* allocate_variable(const std::string& name, compiler::type* type,
         identifier_usage_t usage, stack_frame_entry_t* frame_entry = nullptr);
 
     void pop();
@@ -58,9 +60,6 @@ struct emit_context_t {
     register_t pop_scratch_register();
 
     uint8_t indent = 0;
-    terp* terp = nullptr;
-    assembler* assembler = nullptr;
-    program* program = nullptr;
     std::stack<std::any> data_stack {};
     std::stack<register_t> scratch_registers {};
     std::unordered_map<std::string, variable_t> variables {};

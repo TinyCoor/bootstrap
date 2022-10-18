@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class array_type : public composite_type {
 public:
-	array_type(block* parent_scope, compiler::block* scope,
+	array_type(compiler::module* module, block* parent_scope, compiler::block* scope,
                compiler::type* entry_type, size_t size);
 
 	uint64_t size() const;

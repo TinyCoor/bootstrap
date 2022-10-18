@@ -2,6 +2,7 @@
 // Created by 12132 on 2022/5/14.
 //
 #include "program.h"
+#include "core/compiler/session.h"
 #include "identifier.h"
 #include "identifier_reference.h"
 #include "symbol_element.h"
@@ -11,9 +12,9 @@
 #include "common/defer.h"
 namespace gfx::compiler {
 
-procedure_call::procedure_call(block* parent, compiler::identifier_reference* reference,
+procedure_call::procedure_call(compiler::module* module, block* parent, compiler::identifier_reference* reference,
     argument_list* args)
-	: element(parent, element_type_t::proc_call),  arguments_(args), reference_(reference)
+	: element(module, parent, element_type_t::proc_call),  arguments_(args), reference_(reference)
 {
 
 }
@@ -30,14 +31,15 @@ compiler::type *procedure_call::on_infer_type(const compiler::program *program)
 	return returns_list.front()->identifier()->type();
 }
 
-bool procedure_call::on_emit(result &r, emit_context_t& context)
+bool procedure_call::on_emit(compiler::session &session)
 {
-    context.indent = 4;
+    auto &context = session.emit_context();
+    session.emit_context().indent = 4;
     defer({
-              context.indent = 0;
-          });
-    auto assembler = context.assembler;
-    auto instruction_block = assembler->current_block();
+          context.indent = 0;
+    });
+    auto &assembler = session.assembler();
+    auto instruction_block = assembler.current_block();
     auto identifier = reference_->identifier();
     auto init = identifier->initializer();
     if (init == nullptr) {
@@ -46,7 +48,7 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
     auto procedure_type = init->procedure_type();
 
     if (arguments_ != nullptr) {
-        arguments_->emit(r, context);
+        arguments_->emit(session);
     }
     if (procedure_type->is_foreign()) {
         instruction_block->push_constant<uint16_t>(arguments_->elements().size());
@@ -56,7 +58,7 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
     } else {
         instruction_block->call(identifier->symbol()->name());
     }
-    auto target_reg = assembler->current_target_register();
+    auto target_reg = assembler.current_target_register();
     if (target_reg != nullptr) {
         if (!procedure_type->returns().as_list().empty()) {
             instruction_block->pop(*target_reg);
@@ -64,6 +66,7 @@ bool procedure_call::on_emit(result &r, emit_context_t& context)
     }
     return true;
 }
+
 compiler::identifier_reference* procedure_call::reference()
 {
     return reference_;

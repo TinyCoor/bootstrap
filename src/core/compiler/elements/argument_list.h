@@ -10,7 +10,7 @@
 namespace gfx::compiler {
 class argument_list : public element {
 public:
-	explicit argument_list(block* parent_scope);
+	explicit argument_list(compiler::module* module, block* parent_scope);
 
 	void add(element* item);
 
@@ -20,9 +20,9 @@ public:
 
 	const element_list_t& elements() const;
 protected:
-    void on_owned_elements(element_list_t& list) override;
+    bool on_emit(compiler::session& session) override;
 
-    bool on_emit(result& r, emit_context_t& context) override;
+    void on_owned_elements(element_list_t& list) override;
 
 private:
 	element_list_t elements_ {};

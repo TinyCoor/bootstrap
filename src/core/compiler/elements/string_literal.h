@@ -8,20 +8,20 @@
 namespace gfx::compiler {
 class string_literal : public element {
 public:
-	string_literal(block* parent_scope, const std::string& value);
+	string_literal(compiler::module* module, block* parent_scope, const std::string& value);
 
 	std::string value() const;
 
     std::string escaped_value() const;
 
 protected:
+    bool on_is_constant() const override;
+
+    bool on_emit(compiler::session &session) override;
+
     bool on_as_string(std::string &value) const override;
 
     compiler::type* on_infer_type(const compiler::program* program) override;
-
-    bool on_is_constant() const override;
-
-    bool on_emit(result &r, emit_context_t &context) override;
 
 private:
 	std::string value_;

@@ -5,9 +5,9 @@
 #include "identifier_reference.h"
 #include "identifier.h"
 namespace gfx::compiler {
-identifier_reference::identifier_reference(block* parent_scope,
+identifier_reference::identifier_reference(compiler::module* module, block* parent_scope,
     const qualified_symbol_t& symbol, compiler::identifier* identifier)
-        : element(parent_scope, element_type_t::identifier_reference),
+        : element(module, parent_scope, element_type_t::identifier_reference),
         symbol_(symbol), identifier_(identifier) {
 }
 
@@ -31,12 +31,12 @@ void identifier_reference::identifier(compiler::identifier* value)
     identifier_ = value;
 }
 
-bool identifier_reference::on_emit(result &r, emit_context_t &context)
+bool identifier_reference::on_emit(compiler::session &session)
 {
     if (identifier_ == nullptr) {
         return false;
     }
-    return identifier_->emit(r, context);
+    return identifier_->emit(session);
 }
 
 bool identifier_reference::on_is_constant() const

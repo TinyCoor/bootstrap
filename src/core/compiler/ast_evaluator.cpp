@@ -139,7 +139,7 @@ element* ast_evaluator::evaluate(compiler::session& session, const ast_node_t *n
         if (it->second(this, context, result)) {
             return result.element;
         } else {
-            program_->error(session, "P071",fmt::format("ast node evaluation failed: id = {}, type = {}",node->id,
+            session.error("P071", fmt::format("ast node evaluation failed: id = {}, type = {}",node->id,
                     ast_node_type_name(node->type)), node->location);
         }
     }
@@ -168,7 +168,7 @@ identifier* ast_evaluator::add_identifier_to_scope(compiler::session& session, s
 {
     auto namespace_type = program_->find_type(qualified_symbol_t{.name = "namespace"});
     auto scope = symbol->is_qualified() ? program_->current_top_level()
-                                        : (parent_scope != nullptr ? parent_scope : program_->current_scope());
+        : (parent_scope != nullptr ? parent_scope : program_->current_scope());
 
     auto namespaces = symbol->namespaces();
     string_list_t temp_list {};
@@ -196,7 +196,7 @@ identifier* ast_evaluator::add_identifier_to_scope(compiler::session& session, s
                 auto ns = dynamic_cast<namespace_element*>(expr);
                 scope = dynamic_cast<compiler::block*>(ns->expression());
             } else {
-                program_->error(session, "P018", "only a namespace is valid within a qualified name.", node->lhs->location);
+                session.error("P018", "only a namespace is valid within a qualified name.", node->lhs->location);
                 return nullptr;
             }
         }
@@ -258,7 +258,7 @@ identifier* ast_evaluator::add_identifier_to_scope(compiler::session& session, s
     }
 
     if (init == nullptr && init_expr == nullptr && new_identifier->type() == nullptr) {
-        program_->error(session, "P019", fmt::format("unable to infer type: {}", new_identifier->symbol()->name()),
+        session.error("P019", fmt::format("unable to infer type: {}", new_identifier->symbol()->name()),
               new_identifier->symbol()->location());
         return nullptr;
     } else {
@@ -440,8 +440,7 @@ compiler::block* ast_evaluator::add_namespaces_to_scope(compiler::session& sessi
                 auto ns = dynamic_cast<namespace_element*>(expr);
                 scope = dynamic_cast<compiler::block*>(ns->expression());
             } else {
-                gfx::compiler::program::error(session, "P018",
-                    "only a namespace is valid within a qualified name.",
+                session.error("P018", "only a namespace is valid within a qualified name.",
                     node->lhs->location);
                 return nullptr;
             }
@@ -528,16 +527,13 @@ bool ast_evaluator::module_expression(evaluator_context_t& context, evaluator_re
         auto source_file = context.session.add_source_file(source_path);
         auto module = program_->compile_module(context.session, source_file);
         if (module == nullptr) {
-            program_->error(context.session, "C021", "unable to load module.",
-                context.node->rhs->location);
+            context.session.error("C021", "unable to load module.",context.node->rhs->location);
             return false;
         }
         reference->module(module);
         result.element = reference;
     } else {
-        program_->error(context.session,
-            "C021",
-            "expected string literal or constant string variable.",
+        context.session.error("C021", "expected string literal or constant string variable.",
             context.node->rhs->location);
         return false;
     }
@@ -583,9 +579,7 @@ bool ast_evaluator::number_literal(evaluator_context_t& context, evaluator_resul
                 result.element->location(context.node->location);
                 return true;
             } else {
-                program_->error(context.session, "P041",
-                    "invalid integer literal",
-                    context.node->location);
+                context.session.error("P041", "invalid integer literal", context.node->location);
             }
             break;
         }
@@ -598,7 +592,7 @@ bool ast_evaluator::number_literal(evaluator_context_t& context, evaluator_resul
                 result.element->location(context.node->location);
                 return true;
             } else {
-                program_->error(context.session, "P041", "invalid float literal", context.node->location);
+                context.session.error("P041", "invalid float literal", context.node->location);
             }
             break;
         }
@@ -681,9 +675,7 @@ bool ast_evaluator::cast_expression(
     auto type_name = context.node->lhs->lhs->children[0]->token.value;
     auto type = program_->find_type(qualified_symbol_t {.name = type_name});
     if (type == nullptr) {
-        program_->error(context.session,
-            "P002",
-            fmt::format("unknown type '{}'.", type_name),
+        context.session.error("P002", fmt::format("unknown type '{}'.", type_name),
             context.node->lhs->lhs->location);
         return false;
     }
@@ -764,10 +756,7 @@ bool ast_evaluator::basic_block(
             current_node.get(),
             context.default_block_type);
         if (expr == nullptr) {
-            program_->error(context.session,
-                "C024",
-                "invalid statement",
-                current_node->location);
+            context.session.error("C024", "invalid statement", current_node->location);
             return false;
         }
         add_expression_to_scope(active_scope, expr);
@@ -955,8 +944,7 @@ bool ast_evaluator::proc_expression(evaluator_context_t& context, evaluator_resu
                     proc_type->parameters().add(field);
                     field->parent_element(proc_type);
                 } else {
-                    program_->error(context.session, "P014",
-                        fmt::format("invalid parameter declaration: {}", symbol->name()),
+                    context.session.error("P014", fmt::format("invalid parameter declaration: {}", symbol->name()),
                         symbol->location());
                 }
                 break;
@@ -978,8 +966,7 @@ bool ast_evaluator::assignment(evaluator_context_t& context, evaluator_result_t&
     const auto& source_list = context.node->rhs;
 
     if (target_list->children.size() != source_list->children.size()) {
-        program_->error(context.session, "P027",
-            "the number of left-hand-side targets must match"
+        context.session.error("P027", "the number of left-hand-side targets must match"
             " the number of right-hand-side expressions.",
             source_list->location);
         return false;
@@ -991,7 +978,7 @@ bool ast_evaluator::assignment(evaluator_context_t& context, evaluator_result_t&
         const auto& symbol_node = target_list->children[i];
 
         qualified_symbol_t qualified_symbol {};
-        builder_->make_qualified_symbol(qualified_symbol, symbol_node.get());
+        gfx::compiler::element_builder::make_qualified_symbol(qualified_symbol, symbol_node.get());
         auto existing_identifier = program_->find_identifier(qualified_symbol);
         if (existing_identifier != nullptr) {
             auto rhs = evaluate(context.session, source_list->children[i].get());

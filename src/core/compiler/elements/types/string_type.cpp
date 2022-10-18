@@ -7,8 +7,8 @@
 #include "../../session.h"
 #include "core/compiler/elements/program.h"
 namespace gfx::compiler {
-string_type::string_type(block* parent, block* scope)
-	: composite_type(parent, composite_types_t::struct_type, scope, nullptr, element_type_t::string_type)
+string_type::string_type(compiler::module* module, block* parent, block* scope)
+	: composite_type(module, parent, composite_types_t::struct_type, scope, nullptr, element_type_t::string_type)
 {
 
 }

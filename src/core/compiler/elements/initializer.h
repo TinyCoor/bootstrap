@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class initializer : public element {
 public:
-	explicit initializer(block* parent_scope, element* expr);
+	explicit initializer(compiler::module* module, block* parent_scope, element* expr);
 
 	element* expression();
 
@@ -17,6 +17,7 @@ public:
 
 	compiler::procedure_type* procedure_type();
 protected:
+    bool on_emit(compiler::session &session) override;
 
     bool on_as_bool(bool &value) const override;
 
@@ -27,8 +28,6 @@ protected:
     bool on_as_string(std::string &value) const override;
 
     void on_owned_elements(element_list_t &list) override;
-
-    bool on_emit(result& r, emit_context_t& context) override;
 
     compiler::type* on_infer_type(const compiler::program* program) override;
 private:

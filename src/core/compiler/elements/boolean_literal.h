@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class boolean_literal : public element {
 public:
-	boolean_literal(block* parent_scope, bool value);
+	boolean_literal(compiler::module* module, block* parent_scope, bool value);
 
 	bool value() const;
 
@@ -18,9 +18,9 @@ protected:
 
     bool on_as_bool(bool &value) const override;
 
-	compiler::type* on_infer_type(const compiler::program* program) override;
+    bool on_emit(compiler::session &session) override;
 
-    bool on_emit(result &r, emit_context_t &context) override;
+	compiler::type* on_infer_type(const compiler::program* program) override;
 
 private:
 	bool value_ = false;

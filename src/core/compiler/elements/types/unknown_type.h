@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class unknown_type : public type {
 public:
-    unknown_type(block* parent_scope, compiler::symbol_element* symbol);
+    unknown_type(compiler::module* module, block* parent_scope, compiler::symbol_element* symbol);
 
     bool is_pointer() const;
 

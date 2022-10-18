@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class struct_type : public composite_type {
 public:
-    struct_type(block* parent_scope, symbol_element* symbol, block* scope);
+    struct_type(compiler::module* module, block* parent_scope, symbol_element* symbol, block* scope);
 private:
 protected:
     bool on_initialize(compiler::session& session) override;

@@ -3,28 +3,26 @@
 //
 
 #include "variable.h"
-#include "emit_context.h"
-#include "elements/types/type.h"
-#include "compiler/elements/identifier.h"
+#include "core/compiler/session.h"
 #include <fmt/format.h>
 namespace gfx::compiler {
-bool variable_register_t::reserve(assembler *assembler)
+bool variable_register_t::reserve(compiler::session& session)
 {
-    allocated = assembler->allocate_reg(reg);
+    allocated = session.assembler().allocate_reg(reg);
     return allocated;
 }
 
-void variable_register_t::release(assembler *assembler)
+void variable_register_t::release(compiler::session& session)
 {
     if (!allocated) {
         return;
     }
-    assembler->free_reg(reg);
+    session.assembler().free_reg(reg);
     allocated = false;
 }
 
 
-bool variable_t::init(emit_context_t& context, instruction_block *block)
+bool variable_t::init(compiler::session& session, instruction_block *block)
 {
     if (!live) {
         return false;
@@ -35,7 +33,7 @@ bool variable_t::init(emit_context_t& context, instruction_block *block)
     }
 
     if (usage == identifier_usage_t::heap) {
-        if (!address_reg.reserve(context.assembler)) {
+        if (!address_reg.reserve(session)) {
             return false;
         }
 
@@ -44,7 +42,8 @@ bool variable_t::init(emit_context_t& context, instruction_block *block)
         } else {
             block->move_label_to_reg(address_reg.reg, name);
         }
-        block->current_entry()->blank_lines(1)->comment(fmt::format("identifier '{}' address (global)", name), context.indent);
+        block->current_entry()->blank_lines(1)->comment(fmt::format("identifier '{}' address (global)", name),
+                                                        session.emit_context().indent);
     }
 
     value_reg.reg.type = register_type_t::integer;
@@ -59,18 +58,18 @@ bool variable_t::init(emit_context_t& context, instruction_block *block)
     return true;
 }
 
-bool variable_t::read(emit_context_t& context, instruction_block* block)
+bool variable_t::read(compiler::session& session, instruction_block* block)
 {
     if (!live) {
         return false;
     }
-    if (!init(context, block)) {
+    if (!init(session, block)) {
         return false;
     }
 
     std::string type_name = "global";
     if (requires_read) {
-        if (!value_reg.reserve(context.assembler)) {
+        if (!value_reg.reserve(session)) {
             return false;
         }
 
@@ -79,7 +78,8 @@ bool variable_t::read(emit_context_t& context, instruction_block* block)
             block->load_to_reg(value_reg.reg, register_t::fp(), frame_entry->offset);
         } else {
             block->load_to_reg(value_reg.reg, address_reg.reg);
-            block->current_entry() ->blank_lines(1)->comment(fmt::format("load identifier '{}' value ({})", name, type_name), context.indent);
+            block->current_entry() ->blank_lines(1)->comment(fmt::format("load identifier '{}' value ({})", name, type_name),
+                                                            session.emit_context().indent);
         }
         requires_read = false;
     }
@@ -87,9 +87,9 @@ bool variable_t::read(emit_context_t& context, instruction_block* block)
     return true;
 }
 
-bool variable_t::write(emit_context_t& context, instruction_block* block)
+bool variable_t::write(compiler::session& session, instruction_block* block)
 {
-    auto target_reg =context.assembler->current_target_register();
+    auto target_reg = session.assembler().current_target_register();
     if (target_reg == nullptr) {
         return false;
     }
@@ -99,7 +99,7 @@ bool variable_t::write(emit_context_t& context, instruction_block* block)
     return true;
 }
 
-void variable_t::make_live(emit_context_t& context)
+void variable_t::make_live(compiler::session& session)
 {
     if (live) {
         return;
@@ -109,7 +109,7 @@ void variable_t::make_live(emit_context_t& context)
     requires_read = type->access_model() != type_access_model_t::pointer;
 }
 
-void variable_t::make_dormat(emit_context_t& context)
+void variable_t::make_dormat(compiler::session& session)
 {
     if (!live) {
         return;
@@ -118,7 +118,7 @@ void variable_t::make_dormat(emit_context_t& context)
     live = false;
     requires_read = false;
     address_loaded = false;
-    value_reg.release(context.assembler);
-    address_reg.release(context.assembler);
+    value_reg.release(session);
+    address_reg.release(session);
 }
 }

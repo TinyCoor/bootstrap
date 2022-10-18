@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class module_type : public compiler::composite_type {
 public:
-    explicit module_type(block* parent_scope, block* scope);
+    explicit module_type(compiler::module* module, block* parent_scope, block* scope);
 protected:
     bool on_type_check(compiler::type* other) override;
 

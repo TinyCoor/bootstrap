@@ -14,9 +14,9 @@ std::string array_type::name_for_array(compiler::type* entry_type, size_t size)
     return fmt::format("__array_{}_{}__", entry_type->symbol()->name(), size);
 }
 
-array_type::array_type(block* parent, compiler::block* scope,
+array_type::array_type(compiler::module* module, block* parent, compiler::block* scope,
                        compiler::type* entry_type,size_t size)
-	:   composite_type(parent, composite_types_t::struct_type, scope, nullptr,  element_type_t::array_type),
+	:   composite_type(module, parent, composite_types_t::struct_type, scope, nullptr,  element_type_t::array_type),
         size_(size), entry_type_(entry_type)
 {
 }

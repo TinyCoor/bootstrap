@@ -6,8 +6,8 @@
 #include "../program.h"
 #include "core/compiler/session.h"
 namespace gfx::compiler {
-bool_type::bool_type(block *parent_scope)
-    : compiler::type(parent_scope, element_type_t::bool_type, nullptr)
+bool_type::bool_type(compiler::module* module, block *parent_scope)
+    : compiler::type(module, parent_scope, element_type_t::bool_type, nullptr)
 {
 
 }

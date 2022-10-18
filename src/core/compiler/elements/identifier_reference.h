@@ -8,7 +8,7 @@
 namespace gfx::compiler {
 class identifier_reference : public element {
 public:
-    identifier_reference(block* parent_scope, const qualified_symbol_t& symbol,
+    identifier_reference(compiler::module* module, block* parent_scope, const qualified_symbol_t& symbol,
         compiler::identifier* identifier);
 
     bool resolved() const;
@@ -21,6 +21,8 @@ public:
 protected:
     bool on_is_constant() const override;
 
+    bool on_emit(compiler::session &session) override;
+
     bool on_as_bool(bool &value) const override;
 
     bool on_as_float(double &value) const override;
@@ -28,8 +30,6 @@ protected:
     bool on_as_integer(uint64_t &value) const override;
 
     bool on_as_string(std::string &value) const override;
-
-    bool on_emit(result& r, emit_context_t& context) override;
 
     compiler::type* on_infer_type(const compiler::program* program) override;
 

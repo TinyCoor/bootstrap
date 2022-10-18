@@ -12,10 +12,11 @@
 #include "module.h"
 #include "namespace_element.h"
 #include <fmt/format.h>
+#include "core/compiler/session.h"
 
 namespace gfx::compiler {
-block::block(block* parent, element_type_t type)
-	: element(parent, type)
+block::block(compiler::module* module, block* parent, element_type_t type)
+	: element(module, parent, type)
 {
 }
 
@@ -51,36 +52,36 @@ block_list_t &block::blocks()
 	return blocks_;
 }
 
-bool block::on_emit(result &r, emit_context_t& context)
+bool block::on_emit(compiler::session& session)
 {
     instruction_block* instruction_block = nullptr;
     auto cleanup = false;
     switch (element_type()) {
         case element_type_t::block:{
-            instruction_block = context.assembler->make_basic_block();
+            instruction_block = session.assembler().make_basic_block();
             instruction_block->memo();
             auto parent_ns = parent_element_as<compiler::namespace_element>();
             if (parent_ns != nullptr) {
                 instruction_block->current_entry()->comment(
                     fmt::format("namespace: {}", parent_ns->name()),
-                    context.indent);
+                    session.emit_context().indent);
             }
             instruction_block->current_entry()->blank_lines(1);
             auto block_label = instruction_block->make_label(label_name());
             instruction_block->current_entry()->label(block_label);
-            context.assembler->push_block(instruction_block);
+            session.assembler().push_block(instruction_block);
             cleanup = true;
             break;
         }
         case element_type_t::module_block: {
-            instruction_block = context.assembler->make_basic_block();
+            instruction_block = session.assembler().make_basic_block();
             instruction_block->memo();
 
             auto parent_module = parent_element_as<compiler::module>();
             if (parent_module != nullptr) {
                 instruction_block->current_entry()->comment(
                     fmt::format("module: {}", parent_module->source_file()->path().string()),
-                    context.indent);
+                    session.emit_context().indent);
                 cleanup = !parent_module->is_root();
             }
             instruction_block->current_entry()->blank_lines(1);
@@ -88,7 +89,7 @@ bool block::on_emit(result &r, emit_context_t& context)
             auto block_label = instruction_block->make_label(label_name());
             instruction_block->current_entry()->label(block_label);
 
-            context.assembler->push_block(instruction_block);
+            session.assembler().push_block(instruction_block);
             break;
         }
         case element_type_t::proc_type_block:
@@ -98,12 +99,12 @@ bool block::on_emit(result &r, emit_context_t& context)
     }
 
     for (auto stmt : statements_) {
-        stmt->emit(r, context);
+        stmt->emit(session);
     }
     if (cleanup) {
-        context.assembler->pop_block();
+        session.assembler().pop_block();
     }
-    return !r.is_failed();
+    return !session.result().is_failed();
 }
 
 void block::on_owned_elements(element_list_t &list)

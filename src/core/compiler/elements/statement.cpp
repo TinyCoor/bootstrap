@@ -4,9 +4,9 @@
 #include "label.h"
 #include "statement.h"
 namespace gfx::compiler {
-statement::statement(block* parent, element* expr)
-	: element(parent, element_type_t::statement),
-					 expression_(expr) {
+statement::statement(compiler::module* module,block* parent, element* expr)
+	: element(module, parent, element_type_t::statement), expression_(expr)
+{
 }
 
 element* statement::expression() {
@@ -18,7 +18,7 @@ label_list_t& statement::labels()
 	return labels_;
 }
 
-bool statement::on_emit(result &r, emit_context_t &context)
+bool statement::on_emit(compiler::session &session)
 {
     if (expression_ == nullptr) {
         return true;
@@ -27,7 +27,7 @@ bool statement::on_emit(result &r, emit_context_t &context)
     //
     // need to loop over labels and add them to the assembler here
     //
-    return expression_->emit(r, context);
+    return expression_->emit(session);
 }
 
 void statement::on_owned_elements(element_list_t &list)

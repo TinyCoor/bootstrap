@@ -5,9 +5,9 @@
 #include "symbol_element.h"
 #include "program.h"
 namespace gfx::compiler {
-symbol_element::symbol_element(compiler::block *parent_scope, const std::string &name,
+symbol_element::symbol_element(compiler::module* module, compiler::block *parent_scope, const std::string &name,
     const string_list_t &namespaces)
-    : element(parent_scope, element_type_t::symbol),
+    : element(module, parent_scope, element_type_t::symbol),
       name_(name), namespaces_(namespaces)
 {
 }

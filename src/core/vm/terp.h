@@ -52,6 +52,8 @@ namespace gfx {
 
 		explicit terp(size_t heap_size, size_t stack_size);
 
+        terp(const terp& other) = delete;
+
 		virtual ~terp();
 
 		void reset();

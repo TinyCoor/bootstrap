@@ -7,8 +7,8 @@
 #include "core/compiler/session.h"
 
 namespace gfx::compiler {
-any_type::any_type(block * parent, block* scope)
-	: composite_type(parent, composite_types_t::struct_type, scope, nullptr, element_type_t::any_type)
+any_type::any_type(compiler::module* module, block * parent, block* scope)
+	: composite_type(module, parent, composite_types_t::struct_type, scope, nullptr, element_type_t::any_type)
 {
 
 }

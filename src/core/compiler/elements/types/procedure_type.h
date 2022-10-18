@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class procedure_type : public type {
 public:
-	explicit procedure_type(block* parent_scope, compiler::block* scope, symbol_element* symbol);
+	explicit procedure_type(compiler::module* module, block* parent_scope, compiler::block* scope, symbol_element* symbol);
 
 	compiler::block* scope();
 
@@ -32,13 +32,13 @@ public:
 protected:
     bool on_is_constant() const override;
 
+    bool on_emit(compiler::session &session)  override;
+
     bool on_type_check(compiler::type* other) override;
 
     type_access_model_t on_access_model() const override;
 
     void on_owned_elements(element_list_t& list) override;
-
-    bool on_emit(result& r, emit_context_t& context)  override;
 
     bool on_initialize(compiler::session& session) override;
 

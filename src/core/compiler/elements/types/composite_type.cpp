@@ -7,10 +7,9 @@
 #include "core/compiler/elements/block.h"
 #include "core/compiler/elements/identifier.h"
 namespace gfx::compiler {
-composite_type::composite_type(block* parent, composite_types_t type, block* scope,
+composite_type::composite_type(compiler::module* module, block* parent, composite_types_t type, block* scope,
                                compiler::symbol_element* symbol, element_type_t element_type)
-
-	: compiler::type(parent, element_type, symbol), scope_(scope), type_(type)
+	: compiler::type(module, parent, element_type, symbol), scope_(scope), type_(type)
 {
 
 }

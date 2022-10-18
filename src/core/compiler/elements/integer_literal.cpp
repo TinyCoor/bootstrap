@@ -6,9 +6,10 @@
 #include "common/bytes.h"
 #include "types/numeric_type.h"
 #include "program.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
-integer_literal::integer_literal(block* parent, uint64_t value)
-	: element(parent, element_type_t::integer_literal),value_(value)
+integer_literal::integer_literal(compiler::module* module, block* parent, uint64_t value)
+	: element(module, parent, element_type_t::integer_literal),value_(value)
 {
 }
 
@@ -29,11 +30,11 @@ bool integer_literal::on_as_integer(uint64_t &value) const
     return true;
 }
 
-bool compiler::integer_literal::on_emit(gfx::result &r, emit_context_t& context)
+bool compiler::integer_literal::on_emit(compiler::session &session)
 {
-    auto assembler = context.assembler;
-    auto instruction_block = assembler->current_block();
-    auto target_reg = assembler->current_target_register();
+    auto &assembler = session.assembler();
+    auto instruction_block = assembler.current_block();
+    auto target_reg = assembler.current_target_register();
     instruction_block->move_constant_to_reg(*target_reg, value_);
     return true;
 }

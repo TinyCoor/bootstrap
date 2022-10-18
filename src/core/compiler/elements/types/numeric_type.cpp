@@ -7,9 +7,9 @@
 #include "../symbol_element.h"
 #include "core/compiler/elements/program.h"
 namespace gfx::compiler {
-numeric_type::numeric_type(block* parent, symbol_element* symbol,  int64_t min, uint64_t max,
+numeric_type::numeric_type(compiler::module* module, block* parent, symbol_element* symbol,  int64_t min, uint64_t max,
                            bool is_signed, type_number_class_t number_class)
-	: type(parent, element_type_t::numeric_type, symbol), min_(min), max_(max),
+	: type(module, parent, element_type_t::numeric_type, symbol), min_(min), max_(max),
         is_signed_(is_signed) , number_class_(number_class)
 {
 

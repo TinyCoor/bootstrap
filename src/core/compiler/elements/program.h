@@ -23,15 +23,15 @@ public:
     using element_visitor_callable = std::function<compiler::element* (compiler::element*)>;
     using namespace_visitor_callable = std::function<compiler::element* (compiler::block*)>;
 
-    program(terp* terp, assembler* assembler);
+    program();
+
+    program(const program& other) = delete;
 
 	~program() override;
 
-    bool run(result& r);
-
     element_map& elements();
 
-    void disassemble(FILE *file);
+    void disassemble(compiler::session& session, FILE *file);
 
     compiler::block *block() const;
 
@@ -41,20 +41,13 @@ public:
 
     compiler::type* find_type(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
 
-	module* compile_module(compiler::session& session, source_file *source);
+	compiler::module* compile_module(compiler::session& session, source_file *source);
 
-    static void error(result &r, compiler::element *element, const std::string &code,
-               const std::string &message, const source_location& location);
 protected:
-	terp* terp();
-
     compiler::block* current_top_level();
 
-    static void error(compiler::session& session, const std::string &code,
-               const std::string &message, const source_location& location);
-
 private:
-    bool on_emit(result& r, emit_context_t& context) override;
+    bool on_emit(compiler::session &session) override;
 
     bool type_check(compiler::session& session);
 
@@ -64,15 +57,14 @@ private:
 
     bool resolve_unknown_identifiers(compiler::session& session);
 
-    bool visit_blocks(result& r, const block_visitor_callable& callable,
-        compiler::block* root_block = nullptr);
+    bool visit_blocks(result& r, const block_visitor_callable& callable, compiler::block* root_block = nullptr);
 
+    static compiler::module* find_module(compiler::element* module);
 private:
     void add_type_to_scope(compiler::type* value);
 
     bool within_procedure_scope(compiler::block* parent_scope) const;
 
-    static compiler::module* find_module(compiler::element* module) ;
 private:
     friend class any_type;
     friend class bool_type;
@@ -122,8 +114,6 @@ private:
 	compiler::identifier* find_identifier(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
     compiler::type* make_complete_type(compiler::session& session, type_find_result_t& result, compiler::block* parent_scope = nullptr);
 private:
-	assembler* assembler_ = nullptr;
-	class terp* terp_ = nullptr;
     element_builder builder_;
     element_map elements_ {};
 	compiler::block* block_ = nullptr;

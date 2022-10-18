@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class cast : public element {
 public:
-	cast(block* parent_scope, compiler::type* type, element* expr);
+	cast(compiler::module* module, block* parent_scope, compiler::type* type, element* expr);
 
 	compiler::type* type();
 
@@ -18,7 +18,7 @@ public:
 protected:
     void on_owned_elements(element_list_t& list) override;
 
-    bool on_emit(result& r, emit_context_t& context) override;
+    bool on_emit(compiler::session& session) override;
 
     compiler::type* on_infer_type(const compiler::program* program) override;
 

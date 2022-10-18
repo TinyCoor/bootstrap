@@ -12,8 +12,8 @@ std::string pointer_type::name_for_pointer(compiler::type* base_type)
     return fmt::format("__ptr_{}__", base_type->symbol()->name());
 }
 
-pointer_type::pointer_type(compiler::block* parent_scope, compiler::type* base_type)
-    : compiler::type(parent_scope, element_type_t::pointer_type, nullptr), base_type_(base_type)
+pointer_type::pointer_type(compiler::module* module, compiler::block* parent_scope, compiler::type* base_type)
+    : compiler::type(module, parent_scope, element_type_t::pointer_type, nullptr), base_type_(base_type)
 {
 }
 

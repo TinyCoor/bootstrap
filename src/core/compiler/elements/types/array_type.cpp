@@ -38,7 +38,7 @@ compiler::type* array_type::entry_type()
 
 bool array_type::on_initialize(compiler::session& session)
 {
-    auto program = &session.program();
+
     auto &builder = session.builder();
     auto type_symbol = builder.make_symbol(parent_scope(), name_for_array(entry_type_, size_));
     symbol(type_symbol);
@@ -46,9 +46,9 @@ bool array_type::on_initialize(compiler::session& session)
 
     auto block_scope = scope();
 
-    auto u8_type = program->find_type(qualified_symbol_t{.name =  "u8"});
-    auto u32_type = program->find_type(qualified_symbol_t{.name = "u32"});
-    auto type_info_type = program->find_type(qualified_symbol_t{.name = "type"});
+    auto u8_type = session.scope_manager().find_type(qualified_symbol_t{.name =  "u8"});
+    auto u32_type = session.scope_manager().find_type(qualified_symbol_t{.name = "u32"});
+    auto type_info_type = session.scope_manager().find_type(qualified_symbol_t{.name = "type"});
 
     auto flags_identifier =  builder.make_identifier(block_scope,
                                                      builder.make_symbol(block_scope,"flags"), nullptr);
@@ -73,7 +73,7 @@ bool array_type::on_initialize(compiler::session& session)
 
     auto data_identifier =  builder.make_identifier(block_scope,
         builder.make_symbol(block_scope, "data"), nullptr);
-    data_identifier->type( builder.make_pointer_type(session, block_scope, u8_type));
+    data_identifier->type(builder.make_pointer_type(block_scope, u8_type));
     auto data_field =  builder.make_field(block_scope, data_identifier);
 
     auto& field_map = fields();

@@ -20,7 +20,7 @@ element *namespace_element::expression()
 
 compiler::type *namespace_element::on_infer_type(const compiler::session& session)
 {
-	return session.program().find_type(qualified_symbol_t{.name = "namespace"});
+	return session.scope_manager().find_type(qualified_symbol_t{.name = "namespace"});
 }
 
 bool compiler::namespace_element::on_is_constant() const

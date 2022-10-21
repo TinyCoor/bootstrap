@@ -3,7 +3,6 @@
 //
 
 #include "unary_operator.h"
-#include "program.h"
 #include "core/compiler/session.h"
 namespace gfx::compiler {
 unary_operator::unary_operator(compiler::module* module, block* parent, operator_type_t type,element* rhs)
@@ -21,10 +20,10 @@ compiler::type *unary_operator::on_infer_type(const compiler::session& session)
 	switch (operator_type()) {
 		case operator_type_t::negate:
 		case operator_type_t::binary_not: {
-			return  session.program().find_type(qualified_symbol_t{.name= "u64"});
+			return  session.scope_manager().find_type(qualified_symbol_t{.name= "u64"});
 		}
 		case operator_type_t::logical_not: {
-			return session.program().find_type(qualified_symbol_t{.name = "bool"});
+			return session.scope_manager().find_type(qualified_symbol_t{.name = "bool"});
 		}
 		default:
 			return nullptr;

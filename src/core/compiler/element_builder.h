@@ -63,39 +63,38 @@ public:
 
     class compiler::block* make_block(compiler::block* parent_scope, element_type_t type);
 
-    compiler::bool_type* make_bool_type(compiler::session& session, compiler::block* parent_scope);
+    compiler::bool_type* make_bool_type(compiler::block* parent_scope);
 
-    compiler::unknown_type* make_unknown_type(compiler::session& session, compiler::block* parent_scope, compiler::symbol_element* symbol,
+    compiler::unknown_type* make_unknown_type(compiler::block* parent_scope, compiler::symbol_element* symbol,
         bool is_pointer, bool is_array, size_t array_size);
 
-    compiler::numeric_type* make_numeric_type(compiler::session& session, compiler::block* parent_scope, const std::string& name,
+    compiler::numeric_type* make_numeric_type(compiler::block* parent_scope, const std::string& name,
          int64_t min, uint64_t max, bool is_signed, type_number_class_t number_class);
 
-    compiler::array_type* make_array_type(compiler::session& session,compiler::block* parent_scope, compiler::block* scope,
+    compiler::array_type* make_array_type(compiler::block* parent_scope, compiler::block* scope,
                                           compiler::type* entry_type, size_t size);
 
-    compiler::pointer_type* make_pointer_type(compiler::session& session, compiler::block* parent_scope,
-                                              compiler::type* base_type);
+    compiler::pointer_type* make_pointer_type(compiler::block* parent_scope, compiler::type* base_type);
 
-    compiler::composite_type* make_enum_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope);
+    compiler::composite_type* make_enum_type(compiler::block* parent_scope, compiler::block* scope);
 
-    composite_type* make_struct_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope);
+    composite_type* make_struct_type(compiler::block* parent_scope, compiler::block* scope);
 
-    composite_type* make_union_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope);
+    composite_type* make_union_type(compiler::block* parent_scope, compiler::block* scope);
 
-    string_type* make_string_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope);
+    string_type* make_string_type(compiler::block* parent_scope, compiler::block* scope);
 
-    type_info* make_type_info_type(compiler::session& session,  compiler::block* parent_scope, compiler::block* scope);
+    type_info* make_type_info_type(compiler::block* parent_scope, compiler::block* scope);
 
-    tuple_type* make_tuple_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope);
+    tuple_type* make_tuple_type(compiler::block* parent_scope, compiler::block* scope);
 
-    module_type* make_module_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope);
+    module_type* make_module_type(compiler::block* parent_scope, compiler::block* scope);
 
-    any_type* make_any_type(compiler::session& session, compiler::block* parent_scope, compiler::block* scope);
+    any_type* make_any_type(compiler::block* parent_scope, compiler::block* scope);
 
-    procedure_type* make_procedure_type(compiler::session& session, compiler::block* parent_scope, compiler::block* block_scope);
+    procedure_type* make_procedure_type(compiler::block* parent_scope, compiler::block* block_scope);
 
-    namespace_type* make_namespace_type(compiler::session& session, compiler::block* parent_scope);
+    namespace_type* make_namespace_type(compiler::block* parent_scope);
 
     attribute* make_attribute(compiler::block* parent_scope, const std::string& name, element* expr);
 
@@ -115,9 +114,10 @@ public:
 
     return_element* make_return(compiler::block* parent_scope);
 
-    compiler::symbol_element* make_symbol_from_node(compiler::session& session, const ast_node_t *node);
+    compiler::symbol_element* make_symbol_from_node(const ast_node_t *node);
 
     static void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_t *node);
+    compiler::type* make_complete_type(type_find_result_t &result, block *p_block);
 private:
     compiler::session& session_;
 };

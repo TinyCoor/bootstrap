@@ -30,10 +30,10 @@ type_list_t numeric_type::make_types(compiler::session& session, compiler::block
 	type_list_t list {};
     auto &builder = session.builder();
 	for (const auto& props : s_type_properties) {
-		auto type = builder.make_numeric_type(session, parent, props.name, props.min, props.max, props.is_signed,
+		auto type = builder.make_numeric_type(parent, props.name, props.min, props.max, props.is_signed,
                                                props.number_class);
 		type->initialize(session);
-		program->add_type_to_scope(type);
+        session.scope_manager().add_type_to_scope(type);
 	}
 	return list;
 }

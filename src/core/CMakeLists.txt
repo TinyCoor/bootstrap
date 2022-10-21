@@ -118,6 +118,7 @@ set(ELEMENT_SRC
         compiler/variable.h             compiler/variable.cpp
         compiler/ast_evaluator.h        compiler/ast_evaluator.cpp
         compiler/element_builder.h      compiler/element_builder.cpp
+        compiler/scope_manager.h        compiler/scope_manager.cpp
 
         # operator
         compiler/elements/operator_base.h           compiler/elements/operator_base.cpp

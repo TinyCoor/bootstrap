@@ -19,7 +19,7 @@ bool boolean_literal::value() const
 
 compiler::type *boolean_literal::on_infer_type(const compiler::session& session)
 {
-	return session.program().find_type(qualified_symbol_t{.name = "bool"});
+	return session.scope_manager().find_type(qualified_symbol_t{.name = "bool"});
 }
 
 bool boolean_literal::on_as_bool(bool &value) const

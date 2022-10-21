@@ -54,7 +54,7 @@ compiler::type *binary_operator::on_infer_type(const compiler::session& session)
 		case operator_type_t::greater_than:
 		case operator_type_t::less_than_or_equal:
 		case operator_type_t::greater_than_or_equal: {
-			return session.program().find_type(qualified_symbol_t{.name = "bool"});
+			return session.scope_manager().find_type(qualified_symbol_t{.name = "bool"});
 		}
 		default:
 			return nullptr;

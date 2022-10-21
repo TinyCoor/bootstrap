@@ -9,7 +9,7 @@
 namespace gfx::compiler {
 class directive : public element {
 public:
-	using directive_callable = std::function<bool(compiler::directive*, compiler::session&, compiler::program*)>;
+	using directive_callable = std::function<bool(compiler::directive*, compiler::session&)>;
 
     directive(compiler::module *module, block* parent_scope, const std::string& name, element* expression);
 
@@ -17,20 +17,20 @@ public:
 
 	std::string name() const;
 
-	bool evaluate(compiler::session &session, compiler::program* program);
+	bool evaluate(compiler::session &session);
 
-	bool execute(compiler::session &session, compiler::program* program);
+	bool execute(compiler::session &session);
 protected:
     void on_owned_elements(element_list_t& list) override;
 
 private:
-	bool on_execute_run(compiler::session &session, compiler::program* program);
+	bool on_execute_run(compiler::session &session);
 
-	bool on_evaluate_run(compiler::session &session, compiler::program* program);
+	bool on_evaluate_run(compiler::session &session);
 
-	bool on_execute_foreign(compiler::session &session, compiler::program* program);
+	bool on_execute_foreign(compiler::session &session);
 
-	bool on_evaluate_foreign(compiler::session &session, compiler::program* program);
+	bool on_evaluate_foreign(compiler::session &session);
 
 private:
 	std::string name_;

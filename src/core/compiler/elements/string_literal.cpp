@@ -18,7 +18,7 @@ std::string string_literal::value() const
 
 compiler::type *string_literal::on_infer_type(const compiler::session& session)
 {
-	return session.program().find_type(qualified_symbol_t{.name =  "string"});
+	return session.scope_manager().find_type(qualified_symbol_t{.name =  "string"});
 }
 
 bool string_literal::on_as_string(std::string &value) const

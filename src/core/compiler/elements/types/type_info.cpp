@@ -15,11 +15,10 @@ type_info::type_info(compiler::module* module, block *parent_scope, block* scope
 
 bool type_info::on_initialize(compiler::session& session)
 {
-    auto program = &session.program();
     auto &builder = session.builder();
     symbol(builder.make_symbol(parent_scope(), "type"));
     auto block_scope = parent_scope();
-    auto string_type = program->find_type(qualified_symbol_t{.name = "string"});
+    auto string_type = session.scope_manager().find_type(qualified_symbol_t{.name = "string"});
     auto name_identifier = builder.make_identifier(block_scope,
         builder.make_symbol(block_scope,  "name"), nullptr);
     name_identifier->type(string_type);

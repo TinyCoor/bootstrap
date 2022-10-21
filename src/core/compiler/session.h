@@ -16,6 +16,7 @@
 #include "element_map.h"
 #include "ast_evaluator.h"
 #include "element_builder.h"
+#include "scope_manager.h"
 namespace gfx::compiler {
 
 class session {
@@ -50,6 +51,12 @@ public:
 
     ast_evaluator& evaluator();
 
+    void disassemble(FILE *file);
+
+    compiler::scope_manager& scope_manager();
+
+    const compiler::scope_manager& scope_manager() const;
+
     emit_context_t& emit_context();
 
     source_file *add_source_file(const fs::path &path);
@@ -75,7 +82,17 @@ public:
     void error(compiler::element* element, const std::string& code, const std::string& message,
                const source_location& location);
 
+    compiler::module *compile_module(source_file *source);
+
 private:
+    bool type_check();
+
+    void initialize_core_types();
+
+    bool resolve_unknown_types();
+
+    bool resolve_unknown_identifiers();
+
     void raise_phase(session_compile_phase_t phase, const fs::path& source_file) const;
 
     void write_code_dom_graph(const fs::path& path);
@@ -88,9 +105,9 @@ private:
     ast_evaluator ast_evaluator_;
     class assembler assembler_;
     compiler::program program_;
+    compiler::scope_manager scope_manager_;
     emit_context_t context_;
     session_options_t options_ {};
-
     std::stack<source_file*> source_file_stack_{};
     std::map<std::string, source_file> source_files_ {};
 };

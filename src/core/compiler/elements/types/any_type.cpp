@@ -25,13 +25,12 @@ any_type::any_type(compiler::module* module, block * parent, block* scope)
 
 bool any_type::on_initialize(compiler::session& session)
 {
-    auto program = &session.program();
     auto &builder = session.builder();
     symbol(builder.make_symbol(parent_scope(), "any"));
     auto block_scope = scope();
 
-    auto type_info_type = program->find_type(qualified_symbol_t{.name = "type"});
-    auto u8_type = program->find_type(qualified_symbol_t{.name = "u8"});
+    auto type_info_type = session.scope_manager().find_type(qualified_symbol_t{.name = "type"});
+    auto u8_type =session.scope_manager().find_type(qualified_symbol_t{.name = "u8"});
 
     auto type_info_identifier = builder.make_identifier(block_scope,
         builder.make_symbol(parent_scope(), "type_info"), nullptr);
@@ -42,7 +41,7 @@ bool any_type::on_initialize(compiler::session& session)
     auto data_identifier = builder.make_identifier(block_scope,
         builder.make_symbol(parent_scope(), "data"), nullptr);
 
-    data_identifier->type(builder.make_pointer_type(session, block_scope, u8_type));
+    data_identifier->type(builder.make_pointer_type(block_scope, u8_type));
     auto data_field = builder.make_field(block_scope, data_identifier);
 
     fields().add(type_info_field);

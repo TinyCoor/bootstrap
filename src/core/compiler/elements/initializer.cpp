@@ -79,10 +79,10 @@ void initializer::on_owned_elements(element_list_t &list)
         list.emplace_back(expr_);
     }
 }
-compiler::type *initializer::on_infer_type(const compiler::program *program)
+compiler::type *initializer::on_infer_type(const compiler::session& session)
 {
     if (expr_ != nullptr) {
-        return expr_->infer_type(program);
+        return expr_->infer_type(session);
     }
     return nullptr;
 }

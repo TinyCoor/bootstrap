@@ -13,6 +13,9 @@
 #include "parser/ast.h"
 #include "common/result.h"
 #include "common/source_file.h"
+#include "element_map.h"
+#include "ast_evaluator.h"
+#include "element_builder.h"
 namespace gfx::compiler {
 
 class session {
@@ -33,9 +36,19 @@ public:
 
     compiler::program& program();
 
+    const compiler::program& program() const;
+
     class terp &terp();
 
     gfx::result& result();
+
+    element_builder& builder();
+
+    element_map& elements();
+
+    const element_map& elements() const;
+
+    ast_evaluator& evaluator();
 
     emit_context_t& emit_context();
 
@@ -70,10 +83,14 @@ private:
 private:
     class terp terp_;
     gfx::result r;
+    element_builder builder_;
+    element_map elements_ {};
+    ast_evaluator ast_evaluator_;
     class assembler assembler_;
     compiler::program program_;
     emit_context_t context_;
     session_options_t options_ {};
+
     std::stack<source_file*> source_file_stack_{};
     std::map<std::string, source_file> source_files_ {};
 };

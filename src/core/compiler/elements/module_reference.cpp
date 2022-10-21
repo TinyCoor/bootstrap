@@ -3,6 +3,7 @@
 //
 
 #include "module_reference.h"
+#include "core/compiler/session.h"
 #include "program.h"
 namespace gfx::compiler {
 module_reference::module_reference(compiler::module* module, compiler::block *parent_scope, compiler::element *expr)
@@ -22,9 +23,9 @@ void module_reference::on_owned_elements(element_list_t &list)
     }
 }
 
-compiler::type *module_reference::on_infer_type(const compiler::program *program)
+compiler::type *module_reference::on_infer_type(const compiler::session& session)
 {
-    return program->find_type({.name = "module"});
+    return session.program().find_type({.name = "module"});
 }
 compiler::module *module_reference::reference()
 {

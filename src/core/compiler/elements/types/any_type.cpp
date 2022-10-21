@@ -26,7 +26,7 @@ any_type::any_type(compiler::module* module, block * parent, block* scope)
 bool any_type::on_initialize(compiler::session& session)
 {
     auto program = &session.program();
-    auto &builder = program->builder();
+    auto &builder = session.builder();
     symbol(builder.make_symbol(parent_scope(), "any"));
     auto block_scope = scope();
 

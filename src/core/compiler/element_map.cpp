@@ -80,7 +80,7 @@ void element_map::add_index_by_type(compiler::element* element)
     }
 }
 
-[[maybe_unused]] element_by_id_map_t::const_iterator element_map::cend() const
+element_by_id_map_t::const_iterator element_map::end() const
 {
     return elements_by_id_.cend();
 }
@@ -97,7 +97,7 @@ element_list_t element_map::find_by_type(element_type_t type)
     return list;
 }
 
-element_by_id_map_t::const_iterator element_map::cbegin() const
+element_by_id_map_t::const_iterator element_map::begin() const
 {
     return elements_by_id_.cbegin();
 }

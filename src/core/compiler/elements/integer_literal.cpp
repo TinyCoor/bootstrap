@@ -18,10 +18,9 @@ uint64_t integer_literal::value() const
 	return value_;
 }
 
-compiler::type *integer_literal::on_infer_type(const compiler::program *program)
+compiler::type *integer_literal::on_infer_type(const compiler::session& session)
 {
-	/// XXX: i'm a bad person, i should do type narrowing here
-	return program->find_type(qualified_symbol_t{.name = numeric_type::narrow_to_value(value_)});
+	return session.program().find_type(qualified_symbol_t{.name = numeric_type::narrow_to_value(value_)});
 }
 
 bool integer_literal::on_as_integer(uint64_t &value) const

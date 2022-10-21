@@ -45,8 +45,8 @@
 #include "elements/module_reference.h"
 
 namespace gfx::compiler {
-code_dom_formatter::code_dom_formatter(const compiler::program* program_element,FILE* file)
-	: file_(file), program_(program_element)
+code_dom_formatter::code_dom_formatter(const compiler::session& session, FILE* file)
+	: file_(file), session_(session)
 {
 }
 
@@ -452,10 +452,10 @@ void code_dom_formatter::format(const std::string& title)
 	nodes_.clear();
 	edges_.clear();
 
-    auto non_const_program = const_cast<compiler::program*>(program_);
+    auto non_const_program = const_cast<compiler::program*>(&session_.program());
     nodes_.insert(format_node(non_const_program));
 
-	for (const auto& pair : non_const_program->elements()) {
+	for (const auto& pair : session_.elements()) {
 		auto node_def = format_node(pair.second);
 		if (node_def.empty()) {
 			continue;

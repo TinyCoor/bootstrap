@@ -14,8 +14,7 @@ namespace_type::namespace_type(compiler::module* module, block *parent)
 
 bool namespace_type::on_initialize(compiler::session& session)
 {
-    auto &builder = session.program().builder();
-    symbol(builder.make_symbol(parent_scope(), "namespace"));
+    symbol(session.builder().make_symbol(parent_scope(), "namespace"));
 	return true;
 }
 

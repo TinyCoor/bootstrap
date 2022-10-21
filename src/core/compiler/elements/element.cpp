@@ -51,7 +51,7 @@ element_type_t element::element_type() const
     return element_type_;
 }
 
-compiler::type *element::infer_type(const compiler::program *program)
+compiler::type *element::infer_type(const compiler::session& session)
 {
     switch (element_type_) {
         case element_type_t::any_type:
@@ -65,11 +65,11 @@ compiler::type *element::infer_type(const compiler::program *program)
         case element_type_t::pointer_type:
         case element_type_t::composite_type:
         case element_type_t::namespace_type: return dynamic_cast<compiler::type *>(this);
-        default: return on_infer_type(program);
+        default: return on_infer_type(session);
     }
 }
 
-compiler::type *element::on_infer_type(const compiler::program *program)
+compiler::type *element::on_infer_type(const compiler::session& session)
 {
     return nullptr;
 }
@@ -226,7 +226,7 @@ element_register_t element::register_for(compiler::session& session, element *e)
             result.reg = result.var->value_reg.reg;
         }
     } else {
-        auto type = e->infer_type(&session.program());
+        auto type = e->infer_type(session);
         register_t reg;
         reg.size = op_size_for_byte_size(type->size_in_bytes());
         if (e->element_type() == element_type_t::float_literal) {

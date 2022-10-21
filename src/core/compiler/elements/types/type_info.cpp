@@ -16,7 +16,7 @@ type_info::type_info(compiler::module* module, block *parent_scope, block* scope
 bool type_info::on_initialize(compiler::session& session)
 {
     auto program = &session.program();
-    auto &builder = program->builder();
+    auto &builder = session.builder();
     symbol(builder.make_symbol(parent_scope(), "type"));
     auto block_scope = parent_scope();
     auto string_type = program->find_type(qualified_symbol_t{.name = "string"});

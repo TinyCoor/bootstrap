@@ -23,7 +23,7 @@ compiler::type* cast::type()
 	return type_;
 }
 
-compiler::type *cast::on_infer_type(const compiler::program *program)
+compiler::type *cast::on_infer_type(const compiler::session& session)
 {
 	return type_;
 }

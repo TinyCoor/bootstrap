@@ -123,7 +123,7 @@ void identifier::on_owned_elements(element_list_t &list)
     }
 }
 
-compiler::type *identifier::on_infer_type(const compiler::program *program)
+compiler::type *identifier::on_infer_type(const compiler::session& session)
 {
     return type_;
 }

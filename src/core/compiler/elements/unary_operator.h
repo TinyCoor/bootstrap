@@ -23,7 +23,7 @@ protected:
 
     element* on_fold(compiler::session& session) override;
 
-    compiler::type* on_infer_type(const compiler::program* program) override;
+    compiler::type* on_infer_type(const compiler::session& session) override;
 
 private:
 	element* rhs_ = nullptr;

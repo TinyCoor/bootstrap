@@ -5,7 +5,7 @@
 #include "numeric_type.h"
 #include "common/bytes.h"
 #include "../symbol_element.h"
-#include "core/compiler/elements/program.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
 numeric_type::numeric_type(compiler::module* module, block* parent, symbol_element* symbol,  int64_t min, uint64_t max,
                            bool is_signed, type_number_class_t number_class)
@@ -28,7 +28,7 @@ uint64_t numeric_type::max() const
 type_list_t numeric_type::make_types(compiler::session& session, compiler::block* parent, compiler::program* program)
 {
 	type_list_t list {};
-    auto &builder = program->builder();
+    auto &builder = session.builder();
 	for (const auto& props : s_type_properties) {
 		auto type = builder.make_numeric_type(session, parent, props.name, props.min, props.max, props.is_signed,
                                                props.number_class);

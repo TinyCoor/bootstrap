@@ -6,6 +6,7 @@
 #include "initializer.h"
 #include "symbol_element.h"
 #include "program.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
 namespace_element::namespace_element(compiler::module* module, block* parent_scope, element* expr)
 	: element(module, parent_scope, element_type_t::namespace_e), expression_(expr)
@@ -17,9 +18,9 @@ element *namespace_element::expression()
 	return expression_;
 }
 
-compiler::type *namespace_element::on_infer_type(const compiler::program *program)
+compiler::type *namespace_element::on_infer_type(const compiler::session& session)
 {
-	return program->find_type(qualified_symbol_t{.name = "namespace"});
+	return session.program().find_type(qualified_symbol_t{.name = "namespace"});
 }
 
 bool compiler::namespace_element::on_is_constant() const

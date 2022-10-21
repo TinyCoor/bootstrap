@@ -12,7 +12,7 @@ namespace gfx::compiler {
 class program;
 class element_builder {
 public:
-    explicit element_builder(program* program);
+    explicit element_builder(compiler::session& session);
     ~element_builder();
 
     compiler::cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
@@ -55,6 +55,8 @@ public:
         compiler::symbol_element* symbol, initializer* expr);
 
     compiler::namespace_element* make_namespace(compiler::block* parent_scope, compiler::element* expr);
+
+    compiler::transmute* make_transmute(compiler::block* parent_scope, compiler::type* type, element* expr);
 
     compiler::symbol_element* make_symbol(compiler::block* parent_scope,
         const std::string& name, const string_list_t& namespaces = {});
@@ -117,7 +119,7 @@ public:
 
     static void make_qualified_symbol(qualified_symbol_t& symbol, const ast_node_t *node);
 private:
-    compiler::program* program_;
+    compiler::session& session_;
 };
 }
 

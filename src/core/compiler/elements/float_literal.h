@@ -21,7 +21,7 @@ protected:
 
     bool on_as_float(double &value) const override;
 
-    compiler::type* on_infer_type(const compiler::program* program) override;
+    compiler::type* on_infer_type(const compiler::session& session) override;
 
 private:
 	double value_;

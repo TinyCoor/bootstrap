@@ -51,8 +51,7 @@
 namespace gfx::compiler {
 
 program::program()
-	: element(nullptr, nullptr, element_type_t::program),
-      builder_(this) , ast_evaluator_(&builder_, this)
+	: element(nullptr, nullptr, element_type_t::program)
 {
 }
 
@@ -61,7 +60,7 @@ program::~program() = default;
 bool program::compile(compiler::session& session)
 {
     auto &r = session.result();
-    block_ = push_new_block();
+    block_ = push_new_block(session);
     block_->parent_element(this);
     top_level_stack_.push(block_);
     initialize_core_types(session);
@@ -72,7 +71,7 @@ bool program::compile(compiler::session& session)
         }
     }
     // process directives
-    auto directives = elements().find_by_type(element_type_t::directive);
+    auto directives = session.elements().find_by_type(element_type_t::directive);
     for (auto directive : directives) {
         auto directive_element = dynamic_cast<compiler::directive*>(directive);
         if (!directive_element->execute(session, this)) {
@@ -116,7 +115,7 @@ module *program::compile_module(compiler::session& session, source_file *source)
     auto module_node = session.parse(source->path());
     compiler::module* module = nullptr;
     if (module_node != nullptr) {
-        module = dynamic_cast<compiler::module*>(ast_evaluator_.evaluate(session, module_node.get()));
+        module = dynamic_cast<compiler::module*>(session.evaluator().evaluate(module_node.get()));
         if (module != nullptr) {
             module->parent_element(this);
             module->is_root(is_root);
@@ -139,8 +138,9 @@ void program::disassemble(compiler::session& session, FILE * file)
 
 
 
-block *program::push_new_block(element_type_t type)
+block *program::push_new_block(compiler::session& session,  element_type_t type)
 {
+    auto &builder_= session.builder();
 	auto parent_scope = current_scope();
 	auto scope_block = builder_.make_block(parent_scope, type);
 
@@ -165,6 +165,7 @@ block *program::pop_scope()
 
 void program::initialize_core_types(compiler::session& session)
 {
+    auto &builder_ =session.builder();
 	auto parent_scope = current_scope();
     auto numeric_types = numeric_type::make_types(session, parent_scope, this);
 
@@ -177,7 +178,7 @@ void program::initialize_core_types(compiler::session& session)
     auto namespace_type =builder_.make_namespace_type(session, parent_scope);
     add_type_to_scope(namespace_type);
 
-    auto type_info_type =builder_.make_type_info_type(session, parent_scope, builder_.make_block(parent_scope, element_type_t::block));
+    auto type_info_type = builder_.make_type_info_type(session, parent_scope, builder_.make_block(parent_scope, element_type_t::block));
     add_type_to_scope(type_info_type);
 
     auto tuple_type = builder_.make_tuple_type(session, parent_scope, builder_.make_block(parent_scope, element_type_t::block));
@@ -246,7 +247,7 @@ bool program::resolve_unknown_types(compiler::session& session)
         if (var->is_parent_element(element_type_t::binary_operator)) {
             auto binary_operator = dynamic_cast<compiler::binary_operator *>(var->parent_element());
             if (binary_operator->operator_type()==operator_type_t::assignment) {
-                identifier_type = binary_operator->rhs()->infer_type(this);
+                identifier_type = binary_operator->rhs()->infer_type(session);
                 var->type(identifier_type);
             }
         } else {
@@ -262,10 +263,10 @@ bool program::resolve_unknown_types(compiler::session& session)
                 identifier_type = find_type(qualified_symbol_t{.name = type_name});
                 if (identifier_type != nullptr) {
                     var->type(identifier_type);
-                    elements_.remove(unknown_type->id());
+                    session.elements().remove(unknown_type->id());
                 }
             } else {
-                identifier_type = var->initializer()->expression()->infer_type(this);
+                identifier_type = var->initializer()->expression()->infer_type(session);
                 var->type(identifier_type);
             }
         }
@@ -287,7 +288,7 @@ void program::add_type_to_scope(compiler::type *value)
 }
 
 bool program::find_identifier_type(compiler::session& session, type_find_result_t &result,
-                                   const ast_node_shared_ptr &type_node, compiler::block* parent_scope)
+    const ast_node_shared_ptr &type_node, compiler::block* parent_scope)
 {
     if (type_node == nullptr) {
         return false;
@@ -304,8 +305,8 @@ bool program::find_identifier_type(compiler::session& session, type_find_result_
 unknown_type *program::unknown_type_from_result(compiler::session& session, compiler::block *scope,
     compiler::identifier *identifier, type_find_result_t &result)
 {
-    auto symbol = builder_.make_symbol(scope, result.type_name.name, result.type_name.namespaces);
-    auto type = builder_.make_unknown_type(session, scope, symbol, result.is_pointer, result.is_array, result.array_size);
+    auto symbol = session.builder().make_symbol(scope, result.type_name.name, result.type_name.namespaces);
+    auto type = session.builder().make_unknown_type(session, scope, symbol, result.is_pointer, result.is_array, result.array_size);
     identifiers_with_unknown_types_.push_back(identifier);
     return type;
 }
@@ -354,7 +355,7 @@ bool program::on_emit(compiler::session &session)
     auto data = vars_by_section.insert(std::make_pair(section_t::data,    element_list_t()));
     vars_by_section.insert(std::make_pair(section_t::text,    element_list_t()));
 
-    auto identifiers = elements().find_by_type(element_type_t::identifier);
+    auto identifiers = session.elements().find_by_type(element_type_t::identifier);
     for (auto identifier : identifiers) {
         auto var = dynamic_cast<compiler::identifier*>(identifier);
         auto var_type = var->type();
@@ -538,7 +539,7 @@ bool program::on_emit(compiler::session &session)
 
     session.assembler().push_block(instruction_block);
 
-    auto procedure_types = elements().find_by_type(element_type_t::proc_type);
+    auto procedure_types = session.elements().find_by_type(element_type_t::proc_type);
     procedure_type_list_t proc_list {};
     for (auto p : procedure_types) {
         auto procedure_type = dynamic_cast<compiler::procedure_type*>(p);
@@ -568,7 +569,7 @@ bool program::on_emit(compiler::session &session)
 //    }
 
     block_list_t implicit_blocks {};
-    auto module_blocks = elements().find_by_type(element_type_t::module_block);
+    auto module_blocks = session.elements().find_by_type(element_type_t::module_block);
     for (auto block : module_blocks) {
         implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
     }
@@ -652,7 +653,7 @@ compiler::block *program::block() const
     return block_;
 }
 
-compiler::block *program::current_top_level()
+compiler::block *program::current_top_level() const
 {
     if (top_level_stack_.empty()) {
         return nullptr;
@@ -735,12 +736,13 @@ compiler::type *program::find_array_type(compiler::type *entry_type, size_t size
 
 compiler::type *program::make_complete_type(compiler::session& session, type_find_result_t &result, compiler::block *parent_scope)
 {
+    auto &builder_ = session.builder();
     result.type = find_type(result.type_name, parent_scope);
     if (result.type != nullptr) {
         if (result.is_array) {
             auto array_type = find_array_type(result.type, result.array_size, parent_scope);
             if (array_type == nullptr) {
-                array_type =builder_.make_array_type(session, parent_scope, builder_.make_block(parent_scope, element_type_t::block),
+                array_type = builder_.make_array_type(session, parent_scope, builder_.make_block(parent_scope, element_type_t::block),
                     result.type, result.array_size);
             }
             result.type = array_type;
@@ -757,33 +759,23 @@ compiler::type *program::make_complete_type(compiler::session& session, type_fin
     return result.type;
 }
 
-element_builder &program::builder()
-{
-    return builder_;
-}
-
-element_map &program::elements()
-{
-    return elements_;
-}
-
 bool program::type_check(compiler::session &session)
 {
-    auto identifiers = elements().find_by_type(element_type_t::identifier);
+    auto identifiers = session.elements().find_by_type(element_type_t::identifier);
     for (auto identifier : identifiers) {
         auto var = dynamic_cast<compiler::identifier*>(identifier);
         auto init = var->initializer();
         if (init == nullptr) {
             continue;
         }
-        auto rhs_type = init->infer_type(this);
+        auto rhs_type = init->infer_type(session);
         if (!var->type()->type_check(rhs_type)) {
             session.error(init, "C051", fmt::format("type mismatch: cannot assign {} to {}.",
                  rhs_type->symbol()->name(),var->type()->symbol()->name()), var->location());
         }
     }
 
-    auto binary_ops = elements().find_by_type(element_type_t::binary_operator);
+    auto binary_ops = session.elements().find_by_type(element_type_t::binary_operator);
     for (auto op : binary_ops) {
         auto binary_op = dynamic_cast<compiler::binary_operator*>(op);
         if (binary_op->operator_type() != operator_type_t::assignment) {
@@ -791,13 +783,21 @@ bool program::type_check(compiler::session &session)
         }
         // XXX: revisit this for destructuring/multiple assignment
         auto var = dynamic_cast<compiler::identifier*>(binary_op->lhs());
-        auto rhs_type = binary_op->rhs()->infer_type(this);
+        auto rhs_type = binary_op->rhs()->infer_type(session);
         if (!var->type()->type_check(rhs_type)) {
             session.error(binary_op, "C051", fmt::format( "type mismatch: cannot assign {} to {}.",
                     rhs_type->symbol()->name(), var->type()->symbol()->name()), binary_op->rhs()->location());
         }
     }
     return !session.result().is_failed();
+}
+
+compiler::module *program::current_module() const
+{
+    if (module_stack_.empty()) {
+        return nullptr;
+    }
+    return module_stack_.top();
 }
 
 }

@@ -79,12 +79,12 @@ bool identifier_reference::on_as_string(std::string &value) const
     return identifier_->as_string(value);
 }
 
-compiler::type *identifier_reference::on_infer_type(const compiler::program *program)
+compiler::type *identifier_reference::on_infer_type(const compiler::session& session)
 {
     if (identifier_ == nullptr) {
         return nullptr;
     }
-    return identifier_->infer_type(program);
+    return identifier_->infer_type(session);
 }
 
 }

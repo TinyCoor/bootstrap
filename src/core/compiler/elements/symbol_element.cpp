@@ -4,6 +4,7 @@
 
 #include "symbol_element.h"
 #include "program.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
 symbol_element::symbol_element(compiler::module* module, compiler::block *parent_scope, const std::string &name,
     const string_list_t &namespaces)
@@ -70,9 +71,9 @@ qualified_symbol_t symbol_element::qualified_symbol() const
     return symbol;
 }
 
-type *symbol_element::on_infer_type(const compiler::program *program)
+type *symbol_element::on_infer_type(const compiler::session& session)
 {
-    auto identifier = program->find_identifier(qualified_symbol());
+    auto identifier = session.program().find_identifier(qualified_symbol());
     if (identifier != nullptr) {
         return identifier->type();
     }

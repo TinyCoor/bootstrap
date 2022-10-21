@@ -14,8 +14,7 @@ bool_type::bool_type(compiler::module* module, block *parent_scope)
 
 bool bool_type::on_initialize(compiler::session& session)
 {
-    auto &builder = session.program().builder();
-    symbol(builder.make_symbol(parent_scope(), "bool"));
+    symbol(session.builder().make_symbol(parent_scope(), "bool"));
     size_in_bytes(1);
     return true;
 }

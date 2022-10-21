@@ -16,7 +16,6 @@ protected:
 
     void on_owned_elements(element_list_t& list) override;
 
-
 private:
 	element_list_t expressions_ {};
 };

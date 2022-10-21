@@ -39,7 +39,7 @@ compiler::type* array_type::entry_type()
 bool array_type::on_initialize(compiler::session& session)
 {
     auto program = &session.program();
-    auto &builder = program->builder();
+    auto &builder = session.builder();
     auto type_symbol = builder.make_symbol(parent_scope(), name_for_array(entry_type_, size_));
     symbol(type_symbol);
     type_symbol->parent_element(this);

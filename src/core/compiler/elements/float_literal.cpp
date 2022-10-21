@@ -17,10 +17,9 @@ double float_literal::value() const
 	return value_;
 }
 
-compiler::type *float_literal::on_infer_type(const compiler::program *program)
+compiler::type *float_literal::on_infer_type(const compiler::session& session)
 {
-    return program->find_type({.name = numeric_type::narrow_to_value(value_)
-                              });
+    return session.program().find_type({.name = numeric_type::narrow_to_value(value_)});
 }
 
 bool float_literal::on_as_float(double &value) const

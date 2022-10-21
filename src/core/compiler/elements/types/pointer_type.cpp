@@ -19,8 +19,7 @@ pointer_type::pointer_type(compiler::module* module, compiler::block* parent_sco
 
 bool pointer_type::on_initialize(compiler::session& session)
 {
-    auto &builder = session.program().builder();
-    auto type_symbol = builder.make_symbol(parent_scope(), name_for_pointer(base_type_));
+    auto type_symbol = session.builder().make_symbol(parent_scope(), name_for_pointer(base_type_));
     symbol(type_symbol);
     type_symbol->parent_element(this);
     return true;

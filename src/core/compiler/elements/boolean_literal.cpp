@@ -17,9 +17,9 @@ bool boolean_literal::value() const
 	return value_;
 }
 
-compiler::type *boolean_literal::on_infer_type(const compiler::program *program)
+compiler::type *boolean_literal::on_infer_type(const compiler::session& session)
 {
-	return program->find_type(qualified_symbol_t{.name = "bool"});
+	return session.program().find_type(qualified_symbol_t{.name = "bool"});
 }
 
 bool boolean_literal::on_as_bool(bool &value) const

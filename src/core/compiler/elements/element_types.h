@@ -26,6 +26,7 @@ class import;
 class module;
 class element;
 class program;
+class transmute;
 class comment;
 class any_type;
 class directive;

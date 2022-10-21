@@ -15,8 +15,7 @@ module_type::module_type(compiler::module* module, block *parent_scope, block* s
 
 bool module_type::on_initialize(compiler::session& session)
 {
-    auto builder =session.program().builder();
-    symbol(builder.make_symbol(parent_scope(), "module"));
+    symbol(session.builder().make_symbol(parent_scope(), "module"));
     return true;
 }
 

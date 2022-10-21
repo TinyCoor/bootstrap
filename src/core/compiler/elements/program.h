@@ -29,22 +29,20 @@ public:
 
 	~program() override;
 
-    element_map& elements();
-
     void disassemble(compiler::session& session, FILE *file);
 
     compiler::block *block() const;
 
 	bool compile(compiler::session& session);
 
-    element_builder& builder();
-
     compiler::type* find_type(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
 
 	compiler::module* compile_module(compiler::session& session, source_file *source);
 
 protected:
-    compiler::block* current_top_level();
+    compiler::block* current_top_level() const;
+
+    compiler::module* current_module() const;
 
 private:
     bool on_emit(compiler::session &session) override;
@@ -84,14 +82,14 @@ private:
     friend class element_builder;
     friend class ast_evaluator;
 
-	class compiler::block* push_new_block(compiler::element_type_t type = element_type_t::block);
+	class compiler::block* push_new_block(compiler::session& session, compiler::element_type_t type = element_type_t::block);
 
 	compiler::type* find_array_type(compiler::type* entry_type, size_t size, compiler::block* scope = nullptr) const;
 
     compiler::type* find_pointer_type(compiler::type* base_type, compiler::block* scope = nullptr) const;
 
     unknown_type* unknown_type_from_result(compiler::session& session, compiler::block* scope, compiler::identifier* identifier,
-       type_find_result_t& result);
+       type_find_result_t& result) ;
 private:
 	class block* pop_scope();
 
@@ -114,12 +112,11 @@ private:
 	compiler::identifier* find_identifier(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
     compiler::type* make_complete_type(compiler::session& session, type_find_result_t& result, compiler::block* parent_scope = nullptr);
 private:
-    element_builder builder_;
-    element_map elements_ {};
+
 	compiler::block* block_ = nullptr;
-    ast_evaluator ast_evaluator_;
     std::stack<compiler::block*> top_level_stack_;
 	std::stack<compiler::block*> scope_stack_ {};
+    std::stack<compiler::module*> module_stack_ {};
 	identifier_list_t identifiers_with_unknown_types_ {};
     identifier_reference_list_t unresolved_identifier_references_ {};
     std::unordered_map<std::string, string_literal_list_t> interned_string_literals_ {};

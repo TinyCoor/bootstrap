@@ -44,7 +44,7 @@ void transmute::on_owned_elements(element_list_t& list)
     }
 }
 
-compiler::type* transmute::on_infer_type(const compiler::program* program)
+compiler::type* transmute::on_infer_type(const compiler::session& session)
 {
     return type_;
 }

@@ -10,6 +10,7 @@
 #include "element_builder.h"
 
 namespace gfx::compiler {
+class ast_evaluator;
 struct evaluator_context_t {
     evaluator_context_t(compiler::session& session)
         : session(session)
@@ -26,38 +27,38 @@ struct evaluator_result_t {
     compiler::element* element = nullptr;
 };
 
-class ast_evaluator;
+
 
 using node_evaluator_callable = std::function<bool (ast_evaluator*, evaluator_context_t&,
     evaluator_result_t&)>;
 
 class ast_evaluator {
 public:
-    ast_evaluator(element_builder* builder, compiler::program* program);
+    ast_evaluator(compiler::session& session);
 
-    element *evaluate(compiler::session &session, const ast_node_t *node,
-        element_type_t default_block_type = element_type_t::block);
-
-    element *evaluate_in_scope(compiler::session &session, const ast_node_t *node,
-        compiler::block *scope, element_type_t default_block_type = element_type_t::block);
+    element *evaluate(const ast_node_t *node, element_type_t default_block_type = element_type_t::block);
 
 private:
-    void apply_attributes(compiler::session &session, compiler::element *element, const ast_node_t *node);
 
-    void add_procedure_instance(compiler::session &session, compiler::procedure_type *proc_type,
+    element *evaluate_in_scope(const evaluator_context_t ast_context, const ast_node_t *node,
+                               compiler::block *scope, element_type_t default_block_type = element_type_t::block);
+
+    void apply_attributes(const evaluator_context_t ast_context, compiler::element *element, const ast_node_t *node);
+
+    void add_procedure_instance(const evaluator_context_t ast_context, compiler::procedure_type *proc_type,
         const ast_node_t *node);
 
-    void add_expression_to_scope(compiler::block *scope, compiler::element *expr);
+    void add_expression_to_scope( compiler::block* scope, compiler::element *expr);
 
-    void add_composite_type_fields(compiler::session &session, compiler::composite_type *type,
+    void add_composite_type_fields(const evaluator_context_t ast_context, compiler::composite_type *type,
         const ast_node_t *block);
 
-    compiler::block *add_namespaces_to_scope(compiler::session &session, const ast_node_t *node,
+    compiler::block *add_namespaces_to_scope(const evaluator_context_t &ast_context, const ast_node_t *node,
         compiler::symbol_element *symbol, compiler::block *parent_scope);
 
     compiler::element *resolve_symbol_or_evaluate(const evaluator_context_t& context, const ast_node_t *node);
 
-    compiler::identifier *add_identifier_to_scope(compiler::session &session,
+    compiler::identifier *add_identifier_to_scope(const evaluator_context_t ast_context,
         compiler::symbol_element *symbol, type_find_result_t &find_type_result,
         const ast_node_t *node, size_t source_index, compiler::block *parent_scope = nullptr);
 
@@ -122,10 +123,12 @@ private:
 
     bool assignment(evaluator_context_t& context, evaluator_result_t& result);
 
+    bool transmute_expression(evaluator_context_t& context, evaluator_result_t& result);
+
 private:
-    element_builder *builder_;
-    compiler::program* program_ = nullptr;
+    compiler::session& session_;
     static std::unordered_map<ast_node_types_t, node_evaluator_callable> s_node_evaluators;
+
 };
 }
 

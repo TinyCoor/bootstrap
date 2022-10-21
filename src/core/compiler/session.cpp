@@ -12,9 +12,8 @@
 #include "code_dom_formatter.h"
 namespace gfx::compiler {
 session::session(const session_options_t& options, const path_list_t& source_files)
-    : terp_(options.heap_size, options.stack_size),
-          assembler_(&terp_), program_(),
-          options_(options)
+    : terp_(options.heap_size, options.stack_size), builder_(*this),
+      ast_evaluator_(*this), assembler_(&terp_), options_(options)
 {
     for (const auto &path : source_files) {
         if (path.is_relative()) {
@@ -69,7 +68,7 @@ void session::write_code_dom_graph(const fs::path& path)
             fclose(output_file);
     };});
 
-    compiler::code_dom_formatter formatter(&program_, output_file);
+    compiler::code_dom_formatter formatter(*this, output_file);
     formatter.format(fmt::format("Code DOM Graph: {}", path.string()));
 }
 
@@ -130,7 +129,7 @@ assembler &session::assembler()
     return assembler_;
 }
 
-compiler::program &session::program()
+const compiler::program &session::program() const
 {
     return program_;
 }
@@ -215,6 +214,30 @@ void session::error(compiler::element *element, const std::string &code, const s
 emit_context_t &session::emit_context()
 {
     return context_;
+}
+
+compiler::program &session::program()
+{
+    return program_;
+}
+
+const element_map &session::elements() const
+{
+    return elements_;
+}
+element_builder &session::builder()
+{
+    return builder_;
+}
+
+element_map &session::elements()
+{
+    return elements_;
+}
+
+ast_evaluator &session::evaluator()
+{
+    return ast_evaluator_;
 }
 
 }

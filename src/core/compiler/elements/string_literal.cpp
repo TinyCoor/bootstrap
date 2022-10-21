@@ -4,6 +4,7 @@
 
 #include "string_literal.h"
 #include "program.h"
+#include "core/compiler/session.h"
 namespace gfx::compiler {
 string_literal::string_literal(compiler::module* module, block* parent, const std::string& value)
 	: element(module, parent, element_type_t::string_literal), value_(value)
@@ -15,9 +16,9 @@ std::string string_literal::value() const
 	return value_;
 }
 
-compiler::type *string_literal::on_infer_type(const compiler::program *program)
+compiler::type *string_literal::on_infer_type(const compiler::session& session)
 {
-	return program->find_type(qualified_symbol_t{.name =  "string"});
+	return session.program().find_type(qualified_symbol_t{.name =  "string"});
 }
 
 bool string_literal::on_as_string(std::string &value) const

@@ -15,8 +15,7 @@ tuple_type::tuple_type(compiler::module* module, block *parent_scope, block* sco
 
 bool tuple_type::on_initialize(compiler::session& session)
 {
-    auto &builder = session.program().builder();
-    symbol(builder.make_symbol(parent_scope(), "tuple"));
+    symbol(session.builder().make_symbol(parent_scope(), "tuple"));
     return true;
 }
 

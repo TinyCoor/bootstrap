@@ -31,9 +31,9 @@ public:
 
     element_list_t find_by_type(element_type_t type);
 
-    element_by_id_map_t::const_iterator cend() const;
+    element_by_id_map_t::const_iterator end() const;
 
-    element_by_id_map_t::const_iterator cbegin() const;
+    element_by_id_map_t::const_iterator begin() const;
 
 private:
     void add_index_by_type(compiler::element* element);

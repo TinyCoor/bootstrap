@@ -122,9 +122,14 @@ ast_evaluator::ast_evaluator(compiler::session& session)
 element *ast_evaluator::evaluate_in_scope(const evaluator_context_t ast_context, const ast_node_t *node,
                                     compiler::block* scope, element_type_t default_block_type)
 {
-    session_.scope_manager().push_scope(scope);
+    auto &scope_manager = session_.scope_manager();
+    if (scope != nullptr) {
+        scope_manager.push_scope(scope);
+    }
     auto result = evaluate(node, default_block_type);
-    session_.scope_manager().pop_scope();
+    if (scope != nullptr) {
+        scope_manager.pop_scope();
+    }
     return result;
 }
 
@@ -253,7 +258,6 @@ identifier* ast_evaluator::add_identifier_to_scope(const evaluator_context_t con
 void ast_evaluator::add_composite_type_fields(const evaluator_context_t context, composite_type *type, const ast_node_t *block)
 {
     auto &builder_ = session_.builder();
-    auto u32_type = session_.scope_manager().find_type(qualified_symbol_t{.name= "u32"});
 
     for (const auto& child : block->children) {
         if (child->type != ast_node_types_t::statement) {
@@ -263,47 +267,22 @@ void ast_evaluator::add_composite_type_fields(const evaluator_context_t context,
         auto expr_node = child->rhs;
         switch (expr_node->type) {
             case ast_node_types_t::assignment: {
-                const auto &target_list = expr_node->lhs;
-                const auto &source_list = expr_node->rhs;
-                for (size_t i = 0; i < target_list->children.size(); ++i) {
-                    auto &symbol_node = target_list->children[i];
-                    auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate_in_scope(context,
-                        symbol_node.get() ,type->scope()));
-                    type_find_result_t type_find_result {};
-                    session_.scope_manager().find_identifier_type(type_find_result, source_list->children[i], type->scope());
-                    auto init = builder_.make_initializer(type->scope(), evaluate_in_scope(context,
-                        source_list->children[i].get(), type->scope()));
-                    auto field_identifier = builder_.make_identifier(type->scope(), symbol, init);
-                    if (type_find_result.type == nullptr) {
-                        type_find_result.type = init->expression()->infer_type(session_);
-                        field_identifier->inferred_type(type_find_result.type != nullptr);
-                    }
-                    field_identifier->type(type_find_result.type);
-                    auto new_field = builder_.make_field(type->scope(), field_identifier);
+                element_list_t list {};
+                auto success = add_assignments_to_scope(context, expr_node.get(), list, type->scope());
+                if (success) {
+                    auto new_field = builder_.make_field(type, type->scope(),
+                        dynamic_cast<compiler::identifier*>(list.front()));
                     new_field->parent_element(type);
                     type->fields().add(new_field);
                 }
                 break;
             }
             case ast_node_types_t::symbol: {
-                auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate_in_scope(context,
-                    expr_node.get(), type->scope()));
-                type_find_result_t type_find_result {};
-                session_.scope_manager().find_identifier_type(type_find_result, expr_node->rhs, type->scope());
-                auto field_identifier = builder_.make_identifier(type->scope(), symbol, nullptr);
-                if (type_find_result.type == nullptr) {
-                    if (type->type() == composite_types_t::enum_type) {
-                        field_identifier->type(u32_type);
-                    } else {
-                        field_identifier->type(session_.scope_manager().unknown_type_from_result(type->scope(), field_identifier,
-                                                                        type_find_result));
-                    }
-                } else {
-                    field_identifier->type(type_find_result.type);
+                auto field_identifier = declare_identifier(context, expr_node.get(), type->scope());
+                if (field_identifier != nullptr) {
+                    auto new_field = builder_.make_field(type, type->scope(), field_identifier);
+                    type->fields().add(new_field);
                 }
-                auto new_field = builder_.make_field(type->scope(), field_identifier);
-                new_field->parent_element(type);
-                type->fields().add(new_field);
                 break;
             }
             default:
@@ -860,7 +839,7 @@ bool ast_evaluator::proc_expression(evaluator_context_t& context, evaluator_resu
                 return_identifier->type(session_.scope_manager().find_type(qualified_symbol_t {
                     .name = type_node->children[0]->token.value
                 }));
-                auto new_field = builder_.make_field(block_scope, return_identifier);
+                auto new_field = builder_.make_field(proc_type, block_scope, return_identifier);
                 proc_type->returns().add(new_field);
                 new_field->parent_element(proc_type);
                 break;
@@ -874,35 +853,26 @@ bool ast_evaluator::proc_expression(evaluator_context_t& context, evaluator_resu
     for (const auto& param_node : context.node->rhs->children) {
         switch (param_node->type) {
             case ast_node_types_t::assignment: {
-                // XXX: in the parameter list, multiple targets is an error
-                const auto& first_target = param_node->lhs->children[0];
-                auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate_in_scope(
-                    context.session, first_target.get(), block_scope));
-                type_find_result_t find_type_result {};
-                session_.scope_manager().find_identifier_type(find_type_result, first_target->rhs, block_scope);
-                auto param_identifier = add_identifier_to_scope(context.session, symbol,
-                    find_type_result, param_node.get(), 0, block_scope);
-                param_identifier->usage(identifier_usage_t::stack);
-                auto field = builder_.make_field(block_scope, param_identifier);
-                proc_type->parameters().add(field);
-                field->parent_element(proc_type);
+                element_list_t list {};
+                auto success = add_assignments_to_scope(context, param_node.get(), list, block_scope);
+                if (success) {
+                    auto param_identifier = dynamic_cast<compiler::identifier*>(list.front());
+                    param_identifier->usage(identifier_usage_t::stack);
+                    auto field = builder_.make_field(proc_type, block_scope, param_identifier);
+                    proc_type->parameters().add(field);
+                } else {
+                    return false;
+                }
                 break;
             }
             case ast_node_types_t::symbol: {
-                auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate_in_scope(
-                    context.session, param_node.get(), block_scope));
-                type_find_result_t find_type_result {};
-                session_.scope_manager().find_identifier_type(find_type_result, param_node->rhs, block_scope);
-                auto param_identifier = add_identifier_to_scope(context.session, symbol,
-                    find_type_result, nullptr, 0, block_scope);
+                auto param_identifier = declare_identifier(context, param_node.get(), block_scope);
                 if (param_identifier != nullptr) {
                     param_identifier->usage(identifier_usage_t::stack);
-                    auto field = builder_.make_field(block_scope, param_identifier);
+                    auto field = builder_.make_field(proc_type, block_scope, param_identifier);
                     proc_type->parameters().add(field);
-                    field->parent_element(proc_type);
                 } else {
-                    context.session.error("P014", fmt::format("invalid parameter declaration: {}", symbol->name()),
-                        symbol->location());
+                    return false;
                 }
                 break;
             }
@@ -919,49 +889,10 @@ bool ast_evaluator::proc_expression(evaluator_context_t& context, evaluator_resu
 
 bool ast_evaluator::assignment(evaluator_context_t& context, evaluator_result_t& result)
 {
-    auto &builder_ = session_.builder();
-    const auto& target_list = context.node->lhs;
-    const auto& source_list = context.node->rhs;
-
-    if (target_list->children.size() != source_list->children.size()) {
-        context.session.error("P027", "the number of left-hand-side targets must match"
-            " the number of right-hand-side expressions.",
-            source_list->location);
-        return false;
-    }
-
     element_list_t list {};
-
-    for (size_t i = 0; i < target_list->children.size(); i++) {
-        const auto& symbol_node = target_list->children[i];
-
-        qualified_symbol_t qualified_symbol {};
-        gfx::compiler::element_builder::make_qualified_symbol(qualified_symbol, symbol_node.get());
-        auto existing_identifier = session_.scope_manager().find_identifier(qualified_symbol);
-        if (existing_identifier != nullptr) {
-            auto rhs = evaluate(source_list->children[i].get());
-            if (rhs == nullptr) {
-                return false;
-            }
-            auto binary_op = builder_.make_binary_operator(session_.scope_manager().current_scope(),
-                operator_type_t::assignment, existing_identifier, rhs);
-            apply_attributes(context, binary_op, context.node);
-            list.emplace_back(binary_op);
-        } else {
-            auto symbol = dynamic_cast<compiler::symbol_element*>(evaluate(symbol_node.get()));
-            type_find_result_t find_type_result {};
-            session_.scope_manager().find_identifier_type(find_type_result, symbol_node->rhs);
-            auto new_identifier = add_identifier_to_scope(context.session, symbol, find_type_result, context.node, i);
-            if (new_identifier == nullptr) {
-                return false;
-            }
-            list.emplace_back(new_identifier);
-        }
-    }
-
+    auto success = add_assignments_to_scope(context, context.node, list, nullptr);
     result.element = list.front();
-
-    return true;
+    return success;
 }
 
 bool ast_evaluator::transmute_expression(evaluator_context_t &context, evaluator_result_t &result)
@@ -973,11 +904,75 @@ bool ast_evaluator::transmute_expression(evaluator_context_t &context, evaluator
             context.node->lhs->lhs->location);
         return false;
     }
-    result.element = session_.builder().make_transmute(session_.scope_manager().current_scope(),type,
+    result.element = session_.builder().make_transmute(session_.scope_manager().current_scope(), type,
         resolve_symbol_or_evaluate(context, context.node->rhs.get()));
 
     result.element->location(context.node->location);
     return true;
+}
+bool ast_evaluator::add_assignments_to_scope(const evaluator_context_t &context, const ast_node_t *node,
+                                             element_list_t &identifiers, compiler::block *scope)
+{
+    auto& builder = session_.builder();
+    auto& scope_manager = session_.scope_manager();
+
+    const auto& target_list = node->lhs;
+    const auto& source_list = node->rhs;
+
+    if (target_list->children.size() != source_list->children.size()) {
+        context.session.error(
+            "P027",
+            "the number of left-hand-side targets must match"
+            " the number of right-hand-side expressions.",
+            source_list->location);
+        return false;
+    }
+
+    for (size_t i = 0; i < target_list->children.size(); i++) {
+        const auto& target_symbol = target_list->children[i];
+
+        qualified_symbol_t qualified_symbol {};
+        builder.make_qualified_symbol(qualified_symbol, target_symbol.get());
+        auto existing_identifier = scope_manager.find_identifier(qualified_symbol, scope);
+        if (existing_identifier != nullptr) {
+            auto rhs = evaluate_in_scope(context, source_list->children[i].get(), scope);
+            if (rhs == nullptr) {
+                return false;
+            }
+            auto binary_op = builder.make_binary_operator(scope_manager.current_scope(),
+                operator_type_t::assignment,
+                existing_identifier,
+                rhs);
+            apply_attributes(context, binary_op, node);
+            identifiers.emplace_back(binary_op);
+        } else {
+            auto lhs = evaluate_in_scope(context, target_symbol.get(), scope);
+            auto symbol = dynamic_cast<compiler::symbol_element*>(lhs);
+            type_find_result_t find_type_result {};
+            scope_manager.find_identifier_type(find_type_result, target_symbol->rhs, scope);
+            auto new_identifier = add_identifier_to_scope(context, symbol, find_type_result, node, i, scope);
+            if (new_identifier == nullptr) {
+                return false;
+            }
+            identifiers.emplace_back(new_identifier);
+        }
+    }
+
+    return true;
+}
+compiler::identifier *ast_evaluator::declare_identifier(const evaluator_context_t &context,
+                                                        const ast_node_t *node,
+                                                        compiler::block *scope)
+{
+    auto& scope_manager = session_.scope_manager();
+
+    auto element = evaluate_in_scope(context, node, scope);
+    auto symbol = dynamic_cast<compiler::symbol_element*>(element);
+
+    type_find_result_t type_find_result {};
+    scope_manager.find_identifier_type(type_find_result, node->rhs, scope);
+
+    return add_identifier_to_scope(context, symbol, type_find_result, nullptr, 0, scope);
 }
 
 }

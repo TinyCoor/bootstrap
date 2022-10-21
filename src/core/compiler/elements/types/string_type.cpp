@@ -15,7 +15,6 @@ string_type::string_type(compiler::module* module, block* parent, block* scope)
 
 bool string_type::on_initialize(compiler::session& session)
 {
-    auto program = &session.program();
     auto &builder = session.builder();
     symbol(builder.make_symbol(parent_scope(), "string"));
     auto block_scope = scope();
@@ -26,17 +25,17 @@ bool string_type::on_initialize(compiler::session& session)
     auto length_identifier = builder.make_identifier(block_scope,
         builder.make_symbol(block_scope, "length"), nullptr);
     length_identifier->type(u32_type);
-    auto length_field = builder.make_field(block_scope, length_identifier);
+    auto length_field = builder.make_field(this, block_scope, length_identifier);
 
     auto capacity_identifier = builder.make_identifier(block_scope,
         builder.make_symbol(block_scope, "capacity"), nullptr);
     capacity_identifier->type(u32_type);
-    auto capacity_field = builder.make_field(block_scope, capacity_identifier);
+    auto capacity_field = builder.make_field(this, block_scope, capacity_identifier);
 
     auto data_identifier = builder.make_identifier(block_scope,
         builder.make_symbol(block_scope,  "data"), nullptr);
     data_identifier->type(builder.make_pointer_type(block_scope, u8_type));
-    auto data_field = builder.make_field(block_scope, data_identifier);
+    auto data_field = builder.make_field(this, block_scope, data_identifier);
 
     fields().add(length_field);
     fields().add(capacity_field);

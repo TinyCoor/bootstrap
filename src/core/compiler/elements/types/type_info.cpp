@@ -22,7 +22,7 @@ bool type_info::on_initialize(compiler::session& session)
     auto name_identifier = builder.make_identifier(block_scope,
         builder.make_symbol(block_scope,  "name"), nullptr);
     name_identifier->type(string_type);
-    auto name_field = builder.make_field(block_scope, name_identifier);
+    auto name_field = builder.make_field(this, block_scope, name_identifier);
     fields().add(name_field);
     return composite_type::on_initialize(session);
 }

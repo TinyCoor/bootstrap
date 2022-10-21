@@ -27,8 +27,6 @@ struct evaluator_result_t {
     compiler::element* element = nullptr;
 };
 
-
-
 using node_evaluator_callable = std::function<bool (ast_evaluator*, evaluator_context_t&,
     evaluator_result_t&)>;
 
@@ -39,16 +37,15 @@ public:
     element *evaluate(const ast_node_t *node, element_type_t default_block_type = element_type_t::block);
 
 private:
-
     element *evaluate_in_scope(const evaluator_context_t ast_context, const ast_node_t *node,
-                               compiler::block *scope, element_type_t default_block_type = element_type_t::block);
+        compiler::block *scope, element_type_t default_block_type = element_type_t::block);
 
     void apply_attributes(const evaluator_context_t ast_context, compiler::element *element, const ast_node_t *node);
 
     void add_procedure_instance(const evaluator_context_t ast_context, compiler::procedure_type *proc_type,
         const ast_node_t *node);
 
-    void add_expression_to_scope( compiler::block* scope, compiler::element *expr);
+    void add_expression_to_scope(compiler::block* scope, compiler::element *expr);
 
     void add_composite_type_fields(const evaluator_context_t ast_context, compiler::composite_type *type,
         const ast_node_t *block);
@@ -61,6 +58,11 @@ private:
     compiler::identifier *add_identifier_to_scope(const evaluator_context_t ast_context,
         compiler::symbol_element *symbol, type_find_result_t &find_type_result,
         const ast_node_t *node, size_t source_index, compiler::block *parent_scope = nullptr);
+
+    bool add_assignments_to_scope(const evaluator_context_t& context, const ast_node_t* node,
+        element_list_t& identifiers, compiler::block* scope);
+
+    compiler::identifier* declare_identifier(const evaluator_context_t& context, const ast_node_t* node, compiler::block* scope);
 
 private:
     bool noop(evaluator_context_t& context, evaluator_result_t& result);

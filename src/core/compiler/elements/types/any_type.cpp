@@ -36,13 +36,13 @@ bool any_type::on_initialize(compiler::session& session)
         builder.make_symbol(parent_scope(), "type_info"), nullptr);
 
     type_info_identifier->type(type_info_type);
-    auto type_info_field = builder.make_field(block_scope, type_info_identifier);
+    auto type_info_field = builder.make_field(this, block_scope, type_info_identifier);
 
     auto data_identifier = builder.make_identifier(block_scope,
         builder.make_symbol(parent_scope(), "data"), nullptr);
 
     data_identifier->type(builder.make_pointer_type(block_scope, u8_type));
-    auto data_field = builder.make_field(block_scope, data_identifier);
+    auto data_field = builder.make_field(this, block_scope, data_identifier);
 
     fields().add(type_info_field);
     fields().add(data_field);

@@ -288,10 +288,11 @@ string_literal *element_builder::make_string(compiler::block* parent_scope, cons
     return string_literal;
 }
 
-field* element_builder::make_field(compiler::block* parent_scope, compiler::identifier* identifier)
+field* element_builder::make_field(compiler::type* type, compiler::block* parent_scope, compiler::identifier* identifier)
 {
     auto field = new compiler::field(session_.scope_manager().current_module(), parent_scope, identifier);
     identifier->parent_element(field);
+    field->parent_element(type);
     session_.elements().add(field);
     return field;
 }

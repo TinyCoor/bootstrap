@@ -188,6 +188,7 @@ struct register_file_t {
 union operand_value_alias_t {
     uint8_t  r;
     uint64_t u;
+    float    f;
     double   d;
 };
 

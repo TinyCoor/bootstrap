@@ -149,7 +149,7 @@ namespace gfx {
 	private:
         void set_pc_address(uint64_t address);
 
-		void set_zoned_value(register_value_alias_t& reg, uint64_t value, op_sizes size);
+        void set_zoned_value(register_type_t type, register_value_alias_t& reg, uint64_t value, op_sizes size);
 
 		bool has_overflow(uint64_t lhs, uint64_t rhs, uint64_t result, op_sizes size);
 

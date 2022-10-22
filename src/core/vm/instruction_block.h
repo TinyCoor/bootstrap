@@ -142,6 +142,9 @@ public:
 
     void jump_indirect(const register_t& reg);
 
+    // convert
+    void convert(const register_t& dest_reg, const register_t& src_reg);
+
     // dec variations
     void dec(const register_t& reg);
 

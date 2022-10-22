@@ -92,7 +92,7 @@ size_t instruction_t::encode(result& r, uint8_t* heap, uint64_t address)
 						encoding_size += sizeof(uint32_t);
 					} else {
 						auto *constant_value_ptr = reinterpret_cast<float *>(encoding_ptr + offset);
-						*constant_value_ptr = static_cast<float>(operands[i].value.d);
+						*constant_value_ptr = static_cast<float>(operands[i].value.f);
 						offset += sizeof(float);
 						encoding_size += sizeof(float);
 					}
@@ -179,7 +179,7 @@ size_t instruction_t::decode(result& r, uint8_t* heap, uint64_t address)
 						offset += sizeof(uint32_t);
 					} else{
 						auto *constant_value_ptr = reinterpret_cast<float *>(encoding_ptr + offset);
-						operands[i].value.d = *constant_value_ptr;
+						operands[i].value.f = *constant_value_ptr;
 						offset += sizeof(float);
 					}
 				}break;

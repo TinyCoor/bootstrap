@@ -1306,10 +1306,32 @@ void instruction_block::moves_reg_to_reg(const register_t &dest_reg, const regis
 {
     make_move_instruction(dest_reg.size, op_codes::moves, dest_reg, src_reg);
 }
+
 void instruction_block::movez_reg_to_reg(const register_t &dest_reg, const register_t &src_reg)
 {
     make_move_instruction(dest_reg.size, op_codes::movez, dest_reg, src_reg);
 }
 
+void instruction_block::convert(const register_t &dest_reg, const register_t &src_reg)
+{
+    instruction_t convert_op;
+    convert_op.op = op_codes::convert;
+    convert_op.size = dest_reg.size;
+    convert_op.operands_count = 2;
+    convert_op.operands[0].value.r = dest_reg.number;
+    convert_op.operands[0].type = operand_encoding_t::flags::reg;
+    if (dest_reg.type == register_type_t::integer) {
+        convert_op.operands[0].type |= operand_encoding_t::flags::integer;
+    }
+
+    convert_op.operands[1].value.r = src_reg.number;
+    convert_op.operands[1].type = operand_encoding_t::flags::reg;
+    if (src_reg.type == register_type_t::integer) {
+        convert_op.operands[1].type |= operand_encoding_t::flags::integer;
+    }
+
+
+    make_block_entry(convert_op);
+}
 
 }

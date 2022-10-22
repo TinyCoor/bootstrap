@@ -251,56 +251,69 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::zero, value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
-		}break;
+            break;
+		}
 		case op_codes::inc: {
             operand_value_t reg_value;
             if (get_operand_value(r, inst, 0, reg_value)) {
                 return false;
             }
-	        operand_value_t new_value;
+	        operand_value_t result;
             if (reg_value.type == register_type_t::floating_point) {
-                new_value.alias.d = reg_value.alias.d + 1.0;
+                if (inst.size == op_sizes::dword) {
+                    result.alias.f = reg_value.alias.f + 1.0;
+                } else {
+                    result.alias.d = reg_value.alias.d + 1.0;
+                }
+                result.type = register_type_t::floating_point;
             } else {
-                new_value.alias.u = reg_value.alias.u + 1;
+                result.alias.u = reg_value.alias.u + 1;
+                result.type = register_type_t::integer;
             }
 			if (set_target_operand_value(r, inst, 0, reg_value)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
-                has_overflow(reg_value.alias.u, 1, new_value.alias.u, inst.size));
-			registers_.flags(register_file_t::flags_t::zero, new_value.alias.u == 0);
+                has_overflow(reg_value.alias.u, 1, result.alias.u, inst.size));
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::carry, has_carry(new_value, inst.size));
-			registers_.flags(register_file_t::flags_t::negative, is_negative(new_value, inst.size));
-		}break;
+			registers_.flags(register_file_t::flags_t::carry, has_carry(result, inst.size));
+			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
+            break;
+		}
 		case op_codes::dec: {
             operand_value_t reg_value;
             if (get_operand_value(r, inst, 0, reg_value)) {
                 return false;
             }
-            operand_value_t new_value;
+            operand_value_t result;
             if (reg_value.type == register_type_t::floating_point) {
-                new_value.alias.d = reg_value.alias.d - 1.0;
+                if (inst.size == op_sizes::dword) {
+                    result.alias.f = reg_value.alias.f - 1.0;
+                } else {
+                    result.alias.d = reg_value.alias.d - 1.0;
+                }
+                result.type = register_type_t::floating_point;
             } else {
-                new_value.alias.u = reg_value.alias.u - 1;
+                result.alias.u = reg_value.alias.u + 1;
+                result.type = register_type_t::integer;
             }
 			if (set_target_operand_value(r, inst, 0, reg_value)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
-                has_overflow(reg_value.alias.u, 1, new_value.alias.u, inst.size));
+                has_overflow(reg_value.alias.u, 1, result.alias.u, inst.size));
 			registers_.flags(register_file_t::flags_t::subtract, true);
-			registers_.flags(register_file_t::flags_t::zero, new_value.alias.u == 0);
-			registers_.flags(register_file_t::flags_t::carry, has_carry(new_value, inst.size));
-			registers_.flags(register_file_t::flags_t::negative, is_negative(new_value, inst.size));
-
-		}break;
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
+			registers_.flags(register_file_t::flags_t::carry, has_carry(result, inst.size));
+			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
+            break;
+		}
 		case op_codes::copy: {
 			operand_value_t source_address, target_address;
 			if (!get_operand_value(r, inst, 0, source_address)) {
 				return false;
 			}
-
 			if (!get_operand_value(r, inst, 0, target_address)) {
 				return false;
 			}
@@ -316,7 +329,88 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::overflow, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::negative, false);
-		}break;
+            break;
+		}
+        case op_codes::convert: {
+            operand_value_t target_value;
+            if (!get_operand_value(r, inst, 0, target_value)) {
+                return false;
+            }
+
+            operand_value_t value;
+            if (!get_operand_value(r, inst, 1, value)) {
+                return false;
+            }
+            auto casted_value = value;
+            switch (target_value.type) {
+                case register_type_t::integer: {
+                    casted_value.type = register_type_t::integer;
+                    switch (value.type) {
+                        case register_type_t::floating_point: {
+                            switch (inst.size) {
+                                case op_sizes::dword:
+                                    casted_value.alias.u = static_cast<uint64_t>(value.alias.f);
+                                    break;
+                                case op_sizes::qword:
+                                    casted_value.alias.u = static_cast<uint64_t>(value.alias.d);
+                                    break;
+                                default:
+                                    // XXX: this is an error
+                                    break;
+                            }
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                    break;
+                }
+                case register_type_t::floating_point: {
+                    casted_value.type = register_type_t::floating_point;
+                    switch (value.type) {
+                        case register_type_t::integer: {
+                            switch (inst.size) {
+                                case op_sizes::dword:
+                                    casted_value.alias.f = static_cast<float>(value.alias.u);
+                                    break;
+                                case op_sizes::qword:
+                                    casted_value.alias.d = static_cast<double>(value.alias.u);
+                                    break;
+                                default:
+                                    // XXX: this is an error
+                                    break;
+                            }
+                            break;
+                        }
+                        case register_type_t::floating_point: {
+                            switch (inst.size) {
+                                case op_sizes::dword:
+                                    casted_value.alias.f = static_cast<float>(value.alias.d);
+                                    break;
+                                case op_sizes::qword:
+                                    casted_value.alias.d = value.alias.f;
+                                    break;
+                                default:
+                                    // XXX: this is an error
+                                    break;
+                            }
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            if (!set_target_operand_value(r, inst, 0, casted_value))
+                return false;
+
+            break;
+        }
 		case op_codes::fill: {
 			operand_value_t value;
 			if (!get_operand_value(r, inst, 0, value)) {
@@ -509,23 +603,29 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-            operand_value_t sum_result;
-            if (lhs_value.type == register_type_t::floating_point
-                &&  rhs_value.type == register_type_t::floating_point) {
-                sum_result.alias.d = lhs_value.alias.d + rhs_value.alias.d;
+            operand_value_t result;
+            if (lhs_value.type == register_type_t::floating_point && rhs_value.type == register_type_t::floating_point) {
+                if (inst.size == op_sizes::dword) {
+                    result.alias.f = lhs_value.alias.f + rhs_value.alias.f;
+                } else {
+                    result.alias.d = lhs_value.alias.d + rhs_value.alias.d;
+                }
+                result.type = register_type_t::floating_point;
             } else {
-                sum_result.alias.u = lhs_value.alias.u + rhs_value.alias.u;
+                result.alias.u = lhs_value.alias.u + rhs_value.alias.u;
+                result.type = register_type_t::integer;
             }
-			if (!set_target_operand_value(r, inst, 0, sum_result)){
+			if (!set_target_operand_value(r, inst, 0, result)){
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
-                has_overflow(lhs_value.alias.u, rhs_value.alias.u, sum_result.alias.u, inst.size));
+                has_overflow(lhs_value.alias.u, rhs_value.alias.u, result.alias.u, inst.size));
 			registers_.flags(register_file_t::flags_t::subtract, false);
-			registers_.flags(register_file_t::flags_t::zero, sum_result.alias.u == 0);
-			registers_.flags(register_file_t::flags_t::carry, has_carry(sum_result, inst.size));
-			registers_.flags(register_file_t::flags_t::negative, is_negative(sum_result, inst.size));
-		}break;
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
+			registers_.flags(register_file_t::flags_t::carry, has_carry(result, inst.size));
+			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
+            break;
+		}
 		case op_codes::sub:{
 			operand_value_t lhs_value, rhs_value;
 			if (!get_operand_value(r, inst, 1, lhs_value)) {
@@ -534,22 +634,27 @@ bool terp::step(result &r)
 			if (!get_operand_value(r, inst, 2, rhs_value)) {
 				return false;
 			}
-            operand_value_t sub_res;
-            if (lhs_value.type == register_type_t::floating_point
-                &&  rhs_value.type == register_type_t::floating_point) {
-                sub_res.alias.d = lhs_value.alias.d - rhs_value.alias.d;
+            operand_value_t result;
+            if (lhs_value.type == register_type_t::floating_point && rhs_value.type == register_type_t::floating_point) {
+                if (inst.size == op_sizes::dword) {
+                    result.alias.f = lhs_value.alias.f - rhs_value.alias.f;
+                } else {
+                    result.alias.d = lhs_value.alias.d - rhs_value.alias.d;
+                }
+                result.type = register_type_t::floating_point;
             } else {
-                sub_res.alias.u = lhs_value.alias.u - rhs_value.alias.u;
+                result.alias.u = lhs_value.alias.u - rhs_value.alias.u;
+                result.type = register_type_t::integer;
             }
-			if (!set_target_operand_value(r, inst, 0, sub_res)){
+			if (!set_target_operand_value(r, inst, 0, result)){
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
-               has_overflow(lhs_value.alias.u, rhs_value.alias.u, sub_res.alias.u, inst.size));
+               has_overflow(lhs_value.alias.u, rhs_value.alias.u, result.alias.u, inst.size));
 			registers_.flags(register_file_t::flags_t::subtract, true);
 			registers_.flags(register_file_t::flags_t::carry, rhs_value.alias.u > lhs_value.alias.u);
-			registers_.flags(register_file_t::flags_t::zero, sub_res.alias.u == 0);
-			registers_.flags(register_file_t::flags_t::negative, is_negative(sub_res, inst.size));
+			registers_.flags(register_file_t::flags_t::zero, result.alias.u == 0);
+			registers_.flags(register_file_t::flags_t::negative, is_negative(result, inst.size));
 		}break;
 		case op_codes::mul: {
 			operand_value_t lhs_value, rhs_value;
@@ -562,8 +667,14 @@ bool terp::step(result &r)
             operand_value_t product_res;
             if (lhs_value.type == register_type_t::floating_point
                 &&  rhs_value.type == register_type_t::floating_point) {
-                product_res.alias.d = lhs_value.alias.d * rhs_value.alias.d;
+                product_res.type = register_type_t::floating_point;
+                if (inst.size == op_sizes::dword) {
+                    product_res.alias.f = lhs_value.alias.f * rhs_value.alias.f;
+                } else {
+                    product_res.alias.d = lhs_value.alias.d * rhs_value.alias.d;
+                }
             } else {
+                product_res.type = register_type_t::integer;
                 product_res.alias.u = lhs_value.alias.u * rhs_value.alias.u;
             }
 			if (!set_target_operand_value(r, inst, 0,product_res)){
@@ -587,11 +698,19 @@ bool terp::step(result &r)
                 return false;
             }
             operand_value_t result;
+            result.type = register_type_t::integer;
             if (lhs_value.type == register_type_t::floating_point
                 &&  rhs_value.type == register_type_t::floating_point) {
-                if (rhs_value.alias.d != 0) {
-                    result.alias.d = lhs_value.alias.d / rhs_value.alias.d;
+                if (inst.size == op_sizes::qword) {
+                    if (rhs_value.alias.f != 0) {
+                        result.alias.f = lhs_value.alias.f / rhs_value.alias.f;
+                    }
+                } else {
+                    if (rhs_value.alias.d != 0) {
+                        result.alias.d = lhs_value.alias.d / rhs_value.alias.d;
+                    }
                 }
+                result.type = register_type_t::floating_point;
             } else {
                 if (rhs_value.alias.u != 0) {
                     result.alias.u = lhs_value.alias.u / rhs_value.alias.u;
@@ -635,10 +754,16 @@ bool terp::step(result &r)
 			}
             operand_value_t result;
             if (value.type == register_type_t::floating_point) {
-                result.alias.d = value.alias.d * -1.0;
+                if (inst.size == op_sizes::dword) {
+                    result.alias.f = value.alias.f * -1.0;
+                } else {
+                    result.alias.d = value.alias.d * -1.0;
+                }
+                result.type = register_type_t::floating_point;
             } else {
                 int64_t negated_result = -static_cast<int64_t>(value.alias.u);
                 result.alias.u = static_cast<uint64_t>(negated_result);
+                result.type = register_type_t::integer;
             }
 			if (!set_target_operand_value(r, inst, 0, result)) {
 				return false;
@@ -1209,7 +1334,7 @@ bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_
     auto type = operand.is_integer() ? register_type_t::integer : register_type_t::floating_point;
     if (operand.is_reg()) {
         auto reg_index = register_index(static_cast<registers_t>(operand.value.r), type);
-        set_zoned_value(registers_.r[reg_index], value.alias.u, inst.size);
+        set_zoned_value(type, registers_.r[reg_index], value.alias.u, inst.size);
     } else {
         r.add_message("B006", "constant cannot be a target operand type.", true);
         return false;
@@ -1298,7 +1423,7 @@ void terp::heap_vector(heap_vectors_t vector, uint64_t address)
     write(op_sizes::qword, heap_vector_address, address);
 }
 
-void terp::set_zoned_value(register_value_alias_t& reg, uint64_t value, op_sizes size)
+void terp::set_zoned_value(register_type_t type, register_value_alias_t& reg, uint64_t value, op_sizes size)
 {
 	switch (size) {
 		case op_sizes::byte: {

@@ -15,6 +15,8 @@ public:
 
 	element* expression();
 
+    void type_location(const source_location& loc);
+
 protected:
     void on_owned_elements(element_list_t& list) override;
 
@@ -25,6 +27,7 @@ protected:
 private:
 	element* expression_ = nullptr;
 	compiler::type* type_ = nullptr;
+    source_location type_location_ {};
 };
 }
 

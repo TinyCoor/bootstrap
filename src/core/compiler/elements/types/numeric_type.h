@@ -34,7 +34,7 @@ public:
 
     static std::string narrow_to_value(double value);
 
-	static type_list_t make_types(compiler::session& session, compiler::block* parent, compiler::program* program);
+	static type_list_t make_types(compiler::session& session, compiler::block* parent);
 protected:
     static inline std::vector<numeric_type_properties_t> s_type_properties = {
         {"u8",   0,         UINT8_MAX,   1, false, type_number_class_t::integer},

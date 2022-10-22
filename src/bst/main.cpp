@@ -130,7 +130,6 @@ int main(int argc, char** argv) {
         usage();
         return 1;
     }
-	result r;
     compiler::session_options_t session_options {
         .verbose = verbose_flag,
         .output_ast_graph = output_ast_graphs,
@@ -155,11 +154,11 @@ int main(int argc, char** argv) {
     };
     compiler::session session(session_options, source_files);
     if (!session.initialize()) {
-        print_results(r);
+        print_results(session.result());
         return 1;
     } else {
         if (!session.compile()) {
-            print_results(r);
+            print_results(session.result());
             return 1;
         } else {
             high_resolution_clock::time_point end = high_resolution_clock::now();

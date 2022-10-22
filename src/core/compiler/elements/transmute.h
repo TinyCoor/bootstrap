@@ -14,6 +14,8 @@ public:
 
     element* expression();
 
+    void type_location(const source_location& loc);
+
 protected:
     bool on_emit(compiler::session &session) override;
 
@@ -24,6 +26,7 @@ protected:
 private:
     element* expression_ = nullptr;
     compiler::type* type_ = nullptr;
+    source_location type_location_;
 };
 }
 

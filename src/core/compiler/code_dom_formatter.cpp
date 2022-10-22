@@ -12,6 +12,7 @@
 #include "elements/import.h"
 #include "elements/program.h"
 #include "elements/comment.h"
+#include "elements/transmute.h"
 #include "elements/attribute.h"
 #include "elements/directive.h"
 #include "elements/statement.h"
@@ -124,6 +125,16 @@ std::string code_dom_formatter::format_node(element* node)
 			return fmt::format("{}[shape=record,label=\"cast|{}\"{}];", node_vertex_name,
 				element->type()->symbol()->name(), style);
 		}
+        case element_type_t::transmute: {
+            auto element = dynamic_cast<transmute*>(node);
+            auto style = ", fillcolor=deeppink, style=\"filled\"";
+            add_primary_edge(element, element->expression());
+            return fmt::format(
+                "{}[shape=record,label=\"transmute|{}\"{}];",
+                node_vertex_name,
+                element->type()->symbol()->name(),
+                style);
+        }
         case element_type_t::type_info: {
             auto element = dynamic_cast<type_info*>(node);
             auto style = ", fillcolor=gainsboro, style=\"filled\"";

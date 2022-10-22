@@ -25,7 +25,7 @@ uint64_t numeric_type::max() const
 	return max_;
 }
 
-type_list_t numeric_type::make_types(compiler::session& session, compiler::block* parent, compiler::program* program)
+type_list_t numeric_type::make_types(compiler::session& session, compiler::block* parent)
 {
 	type_list_t list {};
     auto &builder = session.builder();
@@ -98,18 +98,22 @@ std::string numeric_type::narrow_to_value(double value)
         return "unknown";
     }
 }
+
 bool numeric_type::on_type_check(compiler::type *other)
 {
     auto other_numeric_type = dynamic_cast<compiler::numeric_type*>(other);
-    if (other_numeric_type == nullptr)
+    if (other_numeric_type == nullptr) {
         return false;
+    }
 
-    if (symbol()->name() == other_numeric_type->symbol()->name())
+    if (symbol()->name() == other_numeric_type->symbol()->name()) {
         return true;
+    }
 
-    if (number_class_ == type_number_class_t::floating_point
-        &&  other_numeric_type->number_class() == type_number_class_t::floating_point) {
-        return other_numeric_type->size_in_bytes() < size_in_bytes();
+    if (other_numeric_type->number_class()  == type_number_class_t::floating_point) {
+        if (number_class_ == type_number_class_t::floating_point) {
+            return other_numeric_type->size_in_bytes() <= size_in_bytes();
+        }
     }
 
     if (is_signed() && other_numeric_type->is_signed()) {

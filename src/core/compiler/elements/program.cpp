@@ -59,6 +59,7 @@ program::~program() = default;
 
 bool program::on_emit(compiler::session &session)
 {
+    auto& scope_manager = session.scope_manager();
     auto instruction_block = session.assembler().make_basic_block();
     instruction_block->jump_direct("_initializer");
 
@@ -71,12 +72,17 @@ bool program::on_emit(compiler::session &session)
     auto identifiers = session.elements().find_by_type(element_type_t::identifier);
     for (auto identifier : identifiers) {
         auto var = dynamic_cast<compiler::identifier*>(identifier);
-        auto var_type = var->type();
-        if (var_type == nullptr || var_type->element_type() == element_type_t::namespace_type ) {
+        if (scope_manager.within_procedure_scope(var->parent_scope())) {
             continue;
         }
-
-        if (session.scope_manager().within_procedure_scope(var->parent_scope()) || var->is_parent_element(element_type_t::field)) {
+        if (var->is_parent_element(element_type_t::field)) {
+            continue;
+        }
+        auto var_type = var->type();
+        if  (var_type == nullptr) {
+            return false;
+        }
+        if (var_type->element_type() == element_type_t::namespace_type ) {
             continue;
         }
 
@@ -97,14 +103,12 @@ bool program::on_emit(compiler::session &session)
             case element_type_t::tuple_type:
             case element_type_t::string_type:
             case element_type_t::composite_type: {
-                if (var->initializer() != nullptr) {
-                    if (var->is_constant()) {
-                        auto& list = ro.first->second;
-                        list.emplace_back(var);
-                    } else {
-                        auto& list = data.first->second;
-                        list.emplace_back(var);
-                    }
+                if (var->is_constant()) {
+                    auto& list = ro.first->second;
+                    list.emplace_back(var);
+                } else {
+                    auto& list = data.first->second;
+                    list.emplace_back(var);
                 }
                 break;
             }

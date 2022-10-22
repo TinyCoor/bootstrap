@@ -464,6 +464,7 @@ bool ast_evaluator::module(evaluator_context_t& context, evaluator_result_t& res
         expr->parent_element(module);
     }
     top_level_stack.pop();
+    session_.scope_manager().module_stack().pop();
     result.element = module;
 
     return true;
@@ -479,8 +480,7 @@ bool ast_evaluator::module_expression(evaluator_context_t& context, evaluator_re
     if (expr->is_constant() && expr->as_string(path)) {
         std::filesystem::path source_path(path);
         auto current_source_file = context.session.current_source_file();
-        if (current_source_file != nullptr
-            &&  source_path.is_relative()) {
+        if (current_source_file != nullptr &&  source_path.is_relative()) {
             auto absolutePath = current_source_file->path().parent_path() / source_path;
             source_path = absolutePath;
         }
@@ -631,9 +631,11 @@ bool ast_evaluator::cast_expression(evaluator_context_t& context, evaluator_resu
             context.node->lhs->lhs->location);
         return false;
     }
-    result.element = session_.builder().make_cast(session_.scope_manager().current_scope(),type,
+    auto cast_element = session_.builder().make_cast(session_.scope_manager().current_scope(),type,
         resolve_symbol_or_evaluate(context, context.node->rhs.get()));
-    result.element->location(context.node->location);
+    cast_element->location(context.node->location);
+    cast_element->type_location(context.node->lhs->lhs->location);
+    result.element = cast_element;
     return true;
 }
 
@@ -904,10 +906,11 @@ bool ast_evaluator::transmute_expression(evaluator_context_t &context, evaluator
             context.node->lhs->lhs->location);
         return false;
     }
-    result.element = session_.builder().make_transmute(session_.scope_manager().current_scope(), type,
+    auto transmute_element = session_.builder().make_transmute(session_.scope_manager().current_scope(), type,
         resolve_symbol_or_evaluate(context, context.node->rhs.get()));
-
-    result.element->location(context.node->location);
+    transmute_element->type_location(context.node->lhs->lhs->location);
+    transmute_element->location(context.node->location);
+    result.element = transmute_element;
     return true;
 }
 bool ast_evaluator::add_assignments_to_scope(const evaluator_context_t &context, const ast_node_t *node,

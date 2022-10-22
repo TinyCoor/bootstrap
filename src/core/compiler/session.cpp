@@ -410,7 +410,9 @@ module *session::compile_module(source_file *source)
 {
     auto is_root = current_source_file() == nullptr;
     push_source_file(source);
-    defer({pop_source_file();});
+    defer({
+        pop_source_file();
+    });
     auto module_node = parse(source->path());
     compiler::module* module = nullptr;
     if (module_node != nullptr) {
@@ -426,7 +428,7 @@ module *session::compile_module(source_file *source)
 void session::initialize_core_types()
 {
     auto parent_scope = scope_manager_.current_scope();
-    auto numeric_types = numeric_type::make_types(*this, parent_scope, &program_);
+    auto numeric_types = numeric_type::make_types(*this, parent_scope);
 
     auto string_type = builder_.make_string_type(parent_scope,builder_.make_block(parent_scope, element_type_t::block));
     scope_manager_.add_type_to_scope(string_type);
@@ -496,9 +498,4 @@ bool session::resolve_unknown_types()
     }
     return identifiers.empty();
 }
-
-
-
-
-
 }

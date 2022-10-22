@@ -16,6 +16,14 @@ inline bool is_sign_bit_set(T value) {
     return (value & (static_cast<T>(1) << ((sizeof(T) * CHAR_BIT) - 1))) != 0;
 }
 
+inline uint64_t sign_extend(int64_t value, uint32_t bits)
+{
+    auto shift = sizeof(uint64_t) * CHAR_BIT - bits;
+    auto result = (value << shift) >> shift;
+    return static_cast<uint64_t>(result);
+}
+
+
 inline bool is_power_of_two(int64_t x)
 {
     if (x <= 0)

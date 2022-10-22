@@ -232,7 +232,7 @@ void source_file::error(result &r, const std::string &code, const std::string &m
         }
     }
 
-    r.add_message(code, fmt::format("({}@{}:{}){}",path_.filename().string(),
+    r.add_message(code, fmt::format("({}@{}:{}){}", path_.filename().string(),
         location.start().line + 1, location.start().column + 1, message), stream.str(), true);
 }
 

@@ -129,6 +129,19 @@ public:
 	[[nodiscard]] precedence_t precedence() const override;
 };
 
+///////////////////////////////////////////////////////////////////////////
+
+class constant_assignment_infix_parser : public infix_parser {
+public:
+    constant_assignment_infix_parser() = default;
+
+    ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+        token_t& token) override;
+
+    precedence_t precedence() const override;
+};
+
+
 ast_node_shared_ptr create_type_identifier_node(result& r, parser* parser, token_t& token);
 
 ast_node_shared_ptr create_cast_node(result& r, parser* parser, token_t& token);

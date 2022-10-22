@@ -166,6 +166,8 @@ private:
 
 	bool greater_than_operator(token_t& token);
 
+    bool constant_assignment(token_t& token);
+
 	bool less_than_equal_operator(token_t& token);
 
 	bool greater_than_equal_operator(token_t& token);

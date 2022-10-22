@@ -85,6 +85,7 @@ enum class token_types_t {
 	greater_than_equal,			/// '>='
 	left_square_bracket,		/// '['
 	right_square_bracket,		/// ']'
+	constant_assignment,
 };
 
 static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name = {
@@ -107,12 +108,10 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::left_curly_brace,       "left_curly_brace"},
 	{token_types_t::right_curly_brace,      "right_curly_brace"},
 	{token_types_t::greater_than,           "greater_than"},
-
 	{token_types_t::less_than,              "less_than"},
 	{token_types_t::less_than_equal,        "less_than_equal"},
 	{token_types_t::logical_or,             "logical_or"},
 	{token_types_t::logical_and,            "logical_and"},
-
 	{token_types_t::plus,                   "plus"},
 	{token_types_t::minus,                  "minus"},
 	{token_types_t::asterisk,               "asterisk"},
@@ -163,6 +162,7 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
     {token_types_t::greater_than_equal,     "greater_than_equal"},
     {token_types_t::left_square_bracket,    "left_square_bracket"},
     {token_types_t::right_square_bracket,   "right_square_bracket"},
+    {token_types_t::constant_assignment,    "constant_assignment"},
 };
 
 enum class conversion_result_t {

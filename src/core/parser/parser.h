@@ -135,7 +135,8 @@ private:
 	static inline assignment_infix_parser s_assignment_infix_parser {};
 	static inline block_comment_infix_parser s_block_comment_infix_parser {};
 	static inline type_identifier_infix_parser s_type_identifier_infix_parser {};
-	static inline binary_operator_infix_parser s_sum_binary_op_parser {precedence_t::sum, false};
+    static inline constant_assignment_infix_parser s_constant_assignment_infix_parser {};
+    static inline binary_operator_infix_parser s_sum_binary_op_parser {precedence_t::sum, false};
 	static inline binary_operator_infix_parser s_product_binary_op_parser {precedence_t::product, false};
 	static inline binary_operator_infix_parser s_bitwise_binary_op_parser {precedence_t::bitwise, false};
 	static inline binary_operator_infix_parser s_logical_binary_op_parser {precedence_t::logical, false};
@@ -170,7 +171,8 @@ private:
 		{token_types_t::greater_than,       &s_relational_binary_op_parser},
 		{token_types_t::greater_than_equal, &s_relational_binary_op_parser},
 		{token_types_t::colon,              &s_type_identifier_infix_parser},
-	};
+        {token_types_t::constant_assignment,&s_constant_assignment_infix_parser},
+    };
 
 private:
 	source_file *source_ = nullptr;

@@ -71,6 +71,7 @@ enum class ast_node_types_t : uint32_t {
     transmute_expression,
 	namespace_expression,
 	subscript_expression,
+	constant_assignment,
 	return_argument_list,
     array_subscript_list,
     assignment_source_list,
@@ -134,6 +135,7 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
     {ast_node_types_t::transmute_expression, 		"transmute_expression"},
 	{ast_node_types_t::return_argument_list, 		"return_argument_list"},
     {ast_node_types_t::array_subscript_list, 		"array_subscript_list"},
+	{ast_node_types_t::constant_assignment, 		"constant_assignment"},
     {ast_node_types_t::assignment_source_list, 		"assignment_source_list"},
 	{ast_node_types_t::assignment_target_list, 		"assignment_target_list"},
 };
@@ -268,23 +270,23 @@ public:
 
 	ast_node_shared_ptr symbol_node();
 
-    ast_node_shared_ptr transmute_node(token_t& token);
+    ast_node_shared_ptr transmute_node(const token_t& token);
 
     ast_node_shared_ptr return_argument_list_node();
 
     ast_node_shared_ptr array_subscript_list_node();
 
-    ast_node_shared_ptr if_node(token_t &token);
+    ast_node_shared_ptr if_node(const token_t &token);
 
-    ast_node_shared_ptr else_node(token_t &token);
+    ast_node_shared_ptr else_node(const token_t &token);
 
-    ast_node_shared_ptr else_if_node(token_t& token);
+    ast_node_shared_ptr else_if_node(const token_t& token);
 
-    ast_node_shared_ptr return_node(token_t &token);
+    ast_node_shared_ptr return_node(const token_t &token);
 
-    ast_node_shared_ptr for_in_node(token_t &token);
+    ast_node_shared_ptr for_in_node(const token_t &token);
 
-	ast_node_shared_ptr proc_expression_node(token_t &token);
+	ast_node_shared_ptr proc_expression_node(const token_t &token);
 
     ast_node_shared_ptr assignment_source_list_node();
 
@@ -294,9 +296,9 @@ public:
 
 	ast_node_shared_ptr with_node(const token_t& token);
 
-	ast_node_shared_ptr alias_node(token_t& token);
+	ast_node_shared_ptr alias_node(const token_t& token);
 
-	ast_node_shared_ptr cast_node(token_t& token);
+	ast_node_shared_ptr cast_node(const token_t& token);
 
 	ast_node_shared_ptr defer_node(const token_t& token);
 
@@ -307,6 +309,8 @@ public:
 	ast_node_shared_ptr namespace_node(const token_t& token);
 
 	ast_node_shared_ptr struct_node(const token_t& token);
+
+	ast_node_shared_ptr constant_assignment_node();
 
 	ast_node_shared_ptr union_node(const token_t& token);
 
@@ -347,7 +351,7 @@ public:
 
 	ast_node_shared_ptr label_list_node();
 
-	ast_node_shared_ptr label_node(token_t& token);
+	ast_node_shared_ptr label_node(const token_t& token);
 
 private:
 	void configure_node(const ast_node_shared_ptr& node, const token_t& token, ast_node_types_t type);

@@ -173,6 +173,11 @@ static inline token_t s_period_literal = {
 	.value = "."
 };
 
+static inline token_t s_constant_assignment_literal = {
+    .type = token_types_t::constant_assignment,
+    .value = "::="
+};
+
 static inline token_t s_struct_literal = {
 	.type = token_types_t::struct_literal,
 	.value = "struct"
@@ -381,6 +386,7 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	// assignment, scope operator, colon
 	{':', std::bind(&lexer::assignment, std::placeholders::_1, std::placeholders::_2)},
 	{':', std::bind(&lexer::scope_operator, std::placeholders::_1, std::placeholders::_2)},
+    {':', std::bind(&lexer::constant_assignment, std::placeholders::_1, std::placeholders::_2)},
 	{':', std::bind(&lexer::colon, std::placeholders::_1, std::placeholders::_2)},
 
 	// percent/number literal
@@ -1674,6 +1680,15 @@ bool lexer::transmute_literal(token_t &token)
             token = s_transmute_literal;
             return true;
         }
+    }
+    return false;
+}
+
+bool lexer::constant_assignment(token_t &token)
+{
+    if (match_literal("::=")) {
+        token = s_constant_assignment_literal;
+        return true;
     }
     return false;
 }

@@ -5,6 +5,30 @@
 #include "infix_parser.h"
 #include "parser.h"
 namespace gfx {
+
+static ast_node_shared_ptr create_assignment_node(result& r, ast_node_types_t type, parser* parser,
+    const ast_node_shared_ptr& lhs, token_t& token)
+{
+    ast_node_shared_ptr assignment_node;
+    if (type == ast_node_types_t::assignment) {
+        assignment_node = parser->ast_builder()->assignment_node();
+    } else if (type == ast_node_types_t::constant_assignment) {
+        assignment_node = parser->ast_builder()->constant_assignment_node();
+    }
+
+    pairs_to_list(assignment_node->lhs, lhs);
+    auto rhs = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::assignment));
+    if (rhs == nullptr) {
+        parser->error(r, "P019", "assignment expects right-hand-side expression", token.location);
+        return nullptr;
+    }
+    pairs_to_list(assignment_node->rhs, rhs);
+
+    assignment_node->location.start(lhs->location.start());
+    assignment_node->location.end(assignment_node->rhs->location.end());
+
+    return assignment_node;
+}
 ast_node_shared_ptr create_module_expression_node(result& r, parser* parser,
      const ast_node_shared_ptr& lhs, token_t& token) {
     auto module_expression_node = parser->ast_builder()->module_expression_node(token);
@@ -275,17 +299,7 @@ precedence_t binary_operator_infix_parser::precedence() const
 ast_node_shared_ptr assignment_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
 	token_t& token)
 {
-	auto assignment_node = parser->ast_builder()->assignment_node();
-	pairs_to_list(assignment_node->lhs, lhs);
-	auto rhs = parser->parse_expression(r, static_cast<uint8_t>(precedence_t::assignment));
-    if (rhs == nullptr) {
-        parser->error(r, "P019", "assignment expects right-hand-side expression", token.location);
-        return nullptr;
-    }
-    pairs_to_list(assignment_node->rhs, rhs);
-    assignment_node->location.start(lhs->location.start());
-    assignment_node->location.end(assignment_node->rhs->location.end());
-	return assignment_node;
+    return create_assignment_node(r, ast_node_types_t::assignment, parser, lhs, token);
 }
 
 precedence_t assignment_infix_parser::precedence() const
@@ -330,5 +344,16 @@ ast_node_shared_ptr comma_infix_parser::parse(result& r, parser* parser, const a
 precedence_t comma_infix_parser::precedence() const
 {
 	return precedence_t::comma;
+}
+ast_node_shared_ptr constant_assignment_infix_parser::parse(result &r, parser *parser,
+     const ast_node_shared_ptr &lhs, token_t &token)
+{
+    return create_assignment_node(r, ast_node_types_t::constant_assignment,
+        parser, lhs, token);
+}
+
+precedence_t constant_assignment_infix_parser::precedence() const
+{
+    return precedence_t::assignment;
 }
 }

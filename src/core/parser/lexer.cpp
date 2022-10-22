@@ -935,14 +935,14 @@ bool lexer::left_paren(token_t& token)
 
 bool lexer::in_literal(token_t& token)
 {
-	auto ch = read();
-	if (ch == 'i') {
-		ch = read();
-		if (ch == 'n') {
-			token = s_in_literal;
-			return true;
-		}
-	}
+    if (match_literal("in")) {
+        auto ch = read(false);
+        if (!isalnum(ch)) {
+            rewind_one_char();
+            token = s_in_literal;
+            return true;
+        }
+    }
 	return false;
 }
 

@@ -3,7 +3,6 @@
 //
 #include <fmt/format.h>
 #include "common/bytes.h"
-#include "common/defer.h"
 #include "ast_evaluator.h"
 #include "elements/program.h"
 #include "elements/module.h"
@@ -77,6 +76,7 @@ std::unordered_map<ast_node_types_t, node_evaluator_callable> ast_evaluator::s_n
     {ast_node_types_t::unary_operator,          std::bind(&ast_evaluator::unary_operator, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::cast_expression,         std::bind(&ast_evaluator::cast_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::from_expression,         std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
+    {ast_node_types_t::constant_assignment,     std::bind(&ast_evaluator::assignment, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::proc_expression,         std::bind(&ast_evaluator::proc_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::enum_expression,         std::bind(&ast_evaluator::enum_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::binary_operator,         std::bind(&ast_evaluator::binary_operator, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
@@ -139,7 +139,7 @@ element* ast_evaluator::evaluate(const ast_node_t *node, element_type_t default_
         return nullptr;
     }
 
-    compiler::evaluator_context_t context(session_);
+    compiler::evaluator_context_t context;
     context.node = node;
     context.scope = session_.scope_manager().current_scope();
     context.default_block_type = default_block_type;
@@ -245,6 +245,15 @@ identifier* ast_evaluator::add_identifier_to_scope(const evaluator_context_t con
         return nullptr;
     } else {
         if (init == nullptr && init_expr != nullptr) {
+            // XXX: revisit after type-widening in binary/unary operators is fixed
+            //if (symbol->is_constant()) {
+            //    session_.error(
+            //        "P028",
+            //        "constant variables require constant expressions.",
+            //        symbol->location());
+            //    return nullptr;
+            //}
+
             auto assign_bin_op = builder_.make_binary_operator(scope, operator_type_t::assignment, new_identifier, init_expr);
             auto statement = builder_.make_statement(scope, label_list_t{}, assign_bin_op);
             add_expression_to_scope(scope, statement);
@@ -432,8 +441,8 @@ bool ast_evaluator::directive(evaluator_context_t& context, evaluator_result_t& 
     auto directive_element = session_.builder().make_directive(session_.scope_manager().current_scope(),
                    context.node->token.value, expression);
     directive_element->location(context.node->location);
-    apply_attributes(context.session, directive_element, context.node);
-    directive_element->evaluate(context.session);
+    apply_attributes(context, directive_element, context.node);
+    directive_element->evaluate(session_);
     result.element = directive_element;
     return true;
 }
@@ -445,7 +454,7 @@ bool ast_evaluator::module(evaluator_context_t& context, evaluator_result_t& res
     auto &top_level_stack = session_.scope_manager().top_level_stack();
     auto module_block = builder_.make_block(program_.block(), element_type_t::module_block);
     auto module = builder_.make_module(program_.block(), module_block);
-    module->source_file(context.session.current_source_file());
+    module->source_file(session_.current_source_file());
     program_.block()->blocks().push_back(module_block);
 
     session_.scope_manager().push_scope(module_block);
@@ -479,21 +488,21 @@ bool ast_evaluator::module_expression(evaluator_context_t& context, evaluator_re
     std::string path;
     if (expr->is_constant() && expr->as_string(path)) {
         std::filesystem::path source_path(path);
-        auto current_source_file = context.session.current_source_file();
+        auto current_source_file = session_.current_source_file();
         if (current_source_file != nullptr &&  source_path.is_relative()) {
             auto absolutePath = current_source_file->path().parent_path() / source_path;
             source_path = absolutePath;
         }
-        auto source_file = context.session.add_source_file(source_path);
+        auto source_file = session_.add_source_file(source_path);
         auto module = session_.compile_module(source_file);
         if (module == nullptr) {
-            context.session.error("C021", "unable to load module.",context.node->rhs->location);
+            session_.error("C021", "unable to load module.",context.node->rhs->location);
             return false;
         }
         reference->module(module);
         result.element = reference;
     } else {
-        context.session.error("C021", "expected string literal or constant string variable.",
+        session_.error("C021", "expected string literal or constant string variable.",
             context.node->rhs->location);
         return false;
     }
@@ -538,19 +547,18 @@ bool ast_evaluator::number_literal(evaluator_context_t& context, evaluator_resul
                 result.element->location(context.node->location);
                 return true;
             } else {
-                context.session.error("P041", "invalid integer literal", context.node->location);
+                session_.error("P041", "invalid integer literal", context.node->location);
             }
             break;
         }
         case number_types_t::floating_point: {
             double value;
             if (context.node->token.parse(value) == conversion_result_t::success) {
-                result.element = builder_.make_float(session_.scope_manager().current_scope(),
-                    value);
+                result.element = builder_.make_float(session_.scope_manager().current_scope(), value);
                 result.element->location(context.node->location);
                 return true;
             } else {
-                context.session.error("P041", "invalid float literal", context.node->location);
+                session_.error("P041", "invalid float literal", context.node->location);
             }
             break;
         }
@@ -627,7 +635,7 @@ bool ast_evaluator::cast_expression(evaluator_context_t& context, evaluator_resu
     auto type_name = context.node->lhs->lhs->children[0]->token.value;
     auto type = session_.scope_manager().find_type(qualified_symbol_t {.name = type_name});
     if (type == nullptr) {
-        context.session.error("P002", fmt::format("unknown type '{}'.", type_name),
+        session_.error("P002", fmt::format("unknown type '{}'.", type_name),
             context.node->lhs->lhs->location);
         return false;
     }
@@ -662,7 +670,7 @@ bool ast_evaluator::return_statement(evaluator_context_t& context, evaluator_res
 
 bool ast_evaluator::import_expression(evaluator_context_t& context, evaluator_result_t& result)
 {
-    auto &builder_ =session_.builder();
+    auto &builder_ = session_.builder();
     qualified_symbol_t qualified_symbol {};
     compiler::element_builder::make_qualified_symbol(qualified_symbol, context.node->lhs.get());
 
@@ -696,7 +704,7 @@ bool ast_evaluator::basic_block(evaluator_context_t& context, evaluator_result_t
         const auto& current_node = *it;
         auto expr = evaluate(current_node.get(), context.default_block_type);
         if (expr == nullptr) {
-            context.session.error("C024", "invalid statement", current_node->location);
+            session_.error("C024", "invalid statement", current_node->location);
             return false;
         }
         add_expression_to_scope(active_scope, expr);
@@ -749,7 +757,7 @@ bool ast_evaluator::statement(evaluator_context_t& context, evaluator_result_t& 
         type_find_result_t find_type_result {};
         session_.scope_manager().find_identifier_type(find_type_result, context.node->rhs->rhs);
         expr = add_identifier_to_scope(
-            context.session,
+            context,
             dynamic_cast<compiler::symbol_element*>(expr),
             find_type_result,
             nullptr,
@@ -769,8 +777,8 @@ bool ast_evaluator::enum_expression(evaluator_context_t& context, evaluator_resu
     auto enum_type = builder_.make_enum_type(active_scope,
         builder_.make_block(active_scope, element_type_t::block));
     active_scope->types().add(enum_type);
-    add_composite_type_fields(context.session, enum_type, context.node->rhs.get());
-    if (!enum_type->initialize(context.session)) {
+    add_composite_type_fields(context, enum_type, context.node->rhs.get());
+    if (!enum_type->initialize(session_)) {
         return false;
     }
     result.element = enum_type;
@@ -784,8 +792,8 @@ bool ast_evaluator::struct_expression(evaluator_context_t& context, evaluator_re
     auto struct_type = builder_.make_struct_type(active_scope,
        builder_.make_block(active_scope, element_type_t::block));
     active_scope->types().add(struct_type);
-    add_composite_type_fields(context.session, struct_type, context.node->rhs.get());
-    if (!struct_type->initialize(context.session)) {
+    add_composite_type_fields(context, struct_type, context.node->rhs.get());
+    if (!struct_type->initialize(session_)) {
         return false;
     }
     result.element = struct_type;
@@ -799,8 +807,8 @@ bool ast_evaluator::union_expression(evaluator_context_t& context, evaluator_res
     auto union_type = builder_.make_union_type(active_scope,
         builder_.make_block(active_scope, element_type_t::block));
     active_scope->types().add(union_type);
-    add_composite_type_fields(context.session, union_type,context.node->rhs.get());
-    if (!union_type->initialize(context.session)) {
+    add_composite_type_fields(context, union_type,context.node->rhs.get());
+    if (!union_type->initialize(session_)) {
         return false;
     }
     result.element = union_type;
@@ -893,7 +901,9 @@ bool ast_evaluator::assignment(evaluator_context_t& context, evaluator_result_t&
 {
     element_list_t list {};
     auto success = add_assignments_to_scope(context, context.node, list, nullptr);
-    result.element = list.front();
+    if (success) {
+        result.element = list.front();
+    }
     return success;
 }
 
@@ -918,39 +928,37 @@ bool ast_evaluator::add_assignments_to_scope(const evaluator_context_t &context,
 {
     auto& builder = session_.builder();
     auto& scope_manager = session_.scope_manager();
-
     const auto& target_list = node->lhs;
     const auto& source_list = node->rhs;
-
+    const bool is_constant_assignment = node->type == ast_node_types_t::constant_assignment;
     if (target_list->children.size() != source_list->children.size()) {
-        context.session.error(
-            "P027",
-            "the number of left-hand-side targets must match"
-            " the number of right-hand-side expressions.",
-            source_list->location);
+        session_.error("P027", "the number of left-hand-side targets must match"
+            " the number of right-hand-side expressions.", source_list->location);
         return false;
     }
 
     for (size_t i = 0; i < target_list->children.size(); i++) {
         const auto& target_symbol = target_list->children[i];
-
         qualified_symbol_t qualified_symbol {};
         builder.make_qualified_symbol(qualified_symbol, target_symbol.get());
         auto existing_identifier = scope_manager.find_identifier(qualified_symbol, scope);
         if (existing_identifier != nullptr) {
+            if (existing_identifier->symbol()->is_constant()) {
+                session_.error("P028", "constant variables cannot be modified.", target_symbol->location);
+                return false;
+            }
             auto rhs = evaluate_in_scope(context, source_list->children[i].get(), scope);
             if (rhs == nullptr) {
                 return false;
             }
             auto binary_op = builder.make_binary_operator(scope_manager.current_scope(),
-                operator_type_t::assignment,
-                existing_identifier,
-                rhs);
+                operator_type_t::assignment, existing_identifier, rhs);
             apply_attributes(context, binary_op, node);
             identifiers.emplace_back(binary_op);
         } else {
             auto lhs = evaluate_in_scope(context, target_symbol.get(), scope);
             auto symbol = dynamic_cast<compiler::symbol_element*>(lhs);
+            symbol->constant(is_constant_assignment);
             type_find_result_t find_type_result {};
             scope_manager.find_identifier_type(find_type_result, target_symbol->rhs, scope);
             auto new_identifier = add_identifier_to_scope(context, symbol, find_type_result, node, i, scope);

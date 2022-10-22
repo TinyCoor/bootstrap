@@ -12,12 +12,6 @@
 namespace gfx::compiler {
 class ast_evaluator;
 struct evaluator_context_t {
-    evaluator_context_t(compiler::session& session)
-        : session(session)
-    {
-    }
-
-    compiler::session& session;
     compiler::block* scope = nullptr;
     const ast_node_t* node = nullptr;
     element_type_t default_block_type = element_type_t::block;

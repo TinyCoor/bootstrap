@@ -156,6 +156,10 @@ public:
 
     void move_reg_to_reg(const register_t& dest_reg, const register_t& src_reg);
 
+    void moves_reg_to_reg(const register_t& dest_reg, const register_t& src_reg);
+
+    void movez_reg_to_reg(const register_t& dest_reg, const register_t& src_reg);
+
     // cmp variations
     void cmp(const register_t& lhs_reg, const register_t& rhs_reg);
 
@@ -288,7 +292,7 @@ private:
 
     void make_move_instruction(op_sizes size, const register_t& dest_reg, double value);
 
-    void make_move_instruction(op_sizes size, const register_t& dest_reg, const register_t& src_reg);
+    void make_move_instruction(op_sizes size, op_codes code, const register_t& dest_reg, const register_t& src_reg);
 
     void make_add_instruction(op_sizes size, const register_t& dest_reg, const register_t& augend_reg,
         const register_t& addend_reg);

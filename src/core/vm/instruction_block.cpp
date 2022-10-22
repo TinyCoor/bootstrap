@@ -303,10 +303,10 @@ void instruction_block::make_move_instruction(op_sizes size, const register_t& d
     make_block_entry(move_op);
 }
 
-void instruction_block::make_move_instruction(op_sizes size, const register_t& dest_reg, const register_t& src_reg)
+void instruction_block::make_move_instruction(op_sizes size, op_codes code, const register_t& dest_reg, const register_t& src_reg)
 {
     instruction_t move_op;
-    move_op.op = op_codes::move;
+    move_op.op = code;
     move_op.size = size;
     move_op.operands_count = 2;
     move_op.operands[0].type = operand_encoding_t::flags::integer
@@ -607,7 +607,7 @@ void instruction_block::make_sub_instruction(op_sizes size, const register_t& de
 
 void instruction_block::move_reg_to_reg(const register_t& dest_reg, const register_t& src_reg)
 {
-    make_move_instruction(op_sizes::qword, dest_reg, src_reg);
+    make_move_instruction(op_sizes::qword, op_codes::move, dest_reg, src_reg);
 }
 
 void instruction_block::make_cmp_instruction(op_sizes size, const register_t& lhs_reg, const register_t& rhs_reg)
@@ -1301,5 +1301,15 @@ void instruction_block::sub_reg_by_reg(const register_t& dest_reg, const registe
 {
     make_sub_instruction(dest_reg.size, dest_reg, augend_reg, addened_reg);
 }
+
+void instruction_block::moves_reg_to_reg(const register_t &dest_reg, const register_t &src_reg)
+{
+    make_move_instruction(dest_reg.size, op_codes::moves, dest_reg, src_reg);
+}
+void instruction_block::movez_reg_to_reg(const register_t &dest_reg, const register_t &src_reg)
+{
+    make_move_instruction(dest_reg.size, op_codes::movez, dest_reg, src_reg);
+}
+
 
 }

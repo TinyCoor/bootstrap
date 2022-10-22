@@ -384,6 +384,85 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::zero, source_value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(source_value, inst.size));
 		}break;
+        case op_codes::moves: {
+            operand_value_t source_value;
+            operand_value_t offset;
+
+            if (inst.operands_count > 2) {
+                if (!get_operand_value(r, inst, 2, offset)) {
+                    return false;
+                }
+            }
+
+            if (!get_operand_value(r, inst, 1, source_value)) {
+                return false;
+            }
+
+            auto previous_size = static_cast<op_sizes>(static_cast<uint8_t>(inst.size) - 1);
+            source_value.alias.u = sign_extend(source_value.alias.u,
+                static_cast<uint32_t>(op_size_in_bytes(previous_size) * 8));
+
+            operand_value_t address;
+            address.alias.u = source_value.alias.u + offset.alias.u;
+            if (!set_target_operand_value(r, inst, 0, address)) {
+                return false;
+            }
+
+            registers_.flags(register_file_t::flags_t::carry, false);
+            registers_.flags(register_file_t::flags_t::overflow, false);
+            registers_.flags(register_file_t::flags_t::subtract, false);
+            registers_.flags(register_file_t::flags_t::zero, source_value.alias.u == 0);
+            registers_.flags(register_file_t::flags_t::negative, is_negative(source_value, inst.size));
+
+            break;
+        }
+        case op_codes::movez: {
+            operand_value_t source_value;
+            operand_value_t offset;
+
+            if (inst.operands_count > 2) {
+                if (!get_operand_value(r, inst, 2, offset)) {
+                    return false;
+                }
+            }
+
+            if (!get_operand_value(r, inst, 1, source_value)) {
+                return false;
+            }
+
+            switch (inst.size) {
+                case op_sizes::none:
+                case op_sizes::byte: {
+                    break;
+                }
+                case op_sizes::word: {
+                    source_value.alias.u &= 0b0000000000000000000000000000000000000000000000000000000011111111;
+                    break;
+                }
+                case op_sizes::dword: {
+                    source_value.alias.u &= 0b0000000000000000000000000000000000000000000000001111111111111111;
+                    break;
+                }
+                case op_sizes::qword: {
+                    source_value.alias.u &= 0b0000000000000000000000000000000011111111111111111111111111111111;
+                    break;
+                }
+            }
+
+            operand_value_t address;
+            address.alias.u = source_value.alias.u + offset.alias.u;
+            if (!set_target_operand_value(r, inst, 0, address)) {
+                return false;
+            }
+
+            registers_.flags(register_file_t::flags_t::carry, false);
+            registers_.flags(register_file_t::flags_t::overflow, false);
+            registers_.flags(register_file_t::flags_t::subtract, false);
+            registers_.flags(register_file_t::flags_t::zero, source_value.alias.u == 0);
+            registers_.flags(register_file_t::flags_t::negative, is_negative(source_value, inst.size));
+
+            break;
+        }
 		case op_codes::push: {
 			operand_value_t source_value;
 			if (!get_operand_value(r, inst, 0, source_value)) {
@@ -395,7 +474,8 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::zero, source_value.alias.u == 0);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(source_value, inst.size));
-		}break;
+            break;
+		}
 		case op_codes::pop:{
             operand_value_t value;
             value.alias.u = pop();
@@ -407,7 +487,8 @@ bool terp::step(result &r)
 			registers_.flags(register_file_t::flags_t::carry, false);
 			registers_.flags(register_file_t::flags_t::subtract, false);
 			registers_.flags(register_file_t::flags_t::negative, is_negative(value, inst.size));
-		}break;
+            break;
+		}
 		case op_codes::dup: {
 			operand_value_t value;
             value.alias.u = peek();

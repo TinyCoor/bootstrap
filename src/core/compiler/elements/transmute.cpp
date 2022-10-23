@@ -18,9 +18,10 @@ bool transmute::on_emit(compiler::session &session)
     if (expression_ == nullptr) {
         return true;
     }
-    auto source_type = expression_->infer_type(session);
-    if (source_type->number_class() == type_number_class_t::none) {
-        session.error(this, "C073", fmt::format("cannot transmute from type: {}", source_type->symbol()->name()),
+    type_inference_result_t source_type;
+    expression_->infer_type(session, source_type);
+    if (source_type.type->number_class() == type_number_class_t::none) {
+        session.error(this, "C073", fmt::format("cannot transmute from type: {}", source_type.name()),
             expression_->location());
         return false;
     } else if (type_->number_class() == type_number_class_t::none) {
@@ -43,8 +44,7 @@ bool transmute::on_emit(compiler::session &session)
     assembler.pop_target_register();
 
     instruction_block->move_reg_to_reg(*target_reg, temp_reg.reg);
-    instruction_block->current_entry()->comment(
-        fmt::format("transmute<{}>", type_->symbol()->name()),
+    instruction_block->current_entry()->comment(fmt::format("transmute<{}>", type_->symbol()->name()),
         session.emit_context().indent);
 
     return true;
@@ -67,9 +67,10 @@ void transmute::on_owned_elements(element_list_t& list)
     }
 }
 
-compiler::type* transmute::on_infer_type(const compiler::session& session)
+bool transmute::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-    return type_;
+    result.type = type_;
+    return true;
 }
 
 void transmute::type_location(const source_location &loc)

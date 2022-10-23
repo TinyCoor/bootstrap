@@ -8,6 +8,7 @@
 #include "symbol_element.h"
 #include "core/compiler/session.h"
 #include "fmt/format.h"
+#include "common/defer.h"
 namespace gfx::compiler {
 enum class cast_mode_t : uint8_t {
     noop,
@@ -37,9 +38,10 @@ compiler::type* cast::type()
 	return type_;
 }
 
-compiler::type *cast::on_infer_type(const compiler::session& session)
+bool cast::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-	return type_;
+    result.type = type_;
+	return result.type != nullptr;
 }
 //
 // numeric casts
@@ -62,15 +64,19 @@ bool cast::on_emit(compiler::session& session)
     if (expression_ == nullptr) {
        return true;
     }
-
-    auto source_type = expression_->infer_type(session);
+    session.emit_context().indent = 4;
+    defer({
+        session.emit_context().indent = 0;
+    });
     auto mode = cast_mode_t::noop;
-    auto source_number_class = source_type->number_class();
-    auto source_size = source_type->size_in_bytes();
+    type_inference_result_t source_type;
+    expression_->infer_type(session, source_type);
+    auto source_number_class = source_type.type->number_class();
+    auto source_size = source_type.type->size_in_bytes();
     auto target_number_class = type_->number_class();
     auto target_size = type_->size_in_bytes();
     if (source_number_class == type_number_class_t::none) {
-        session.error(this, "C073", fmt::format("cannot cast from type: {}", source_type->symbol()->name()),
+        session.error(this, "C073", fmt::format("cannot cast from type: {}", source_type.name()),
             expression_->location());
         return false;
     } else if (target_number_class == type_number_class_t::none) {
@@ -91,7 +97,7 @@ bool cast::on_emit(compiler::session& session)
         } else if (source_size > target_size) {
             mode = cast_mode_t::integer_truncate;
         } else {
-            auto source_numeric_type = dynamic_cast<compiler::numeric_type*>(source_type);
+            auto source_numeric_type = dynamic_cast<compiler::numeric_type*>(source_type.type);
             if (source_numeric_type->is_signed()) {
                 mode = cast_mode_t::integer_sign_extend;
             } else {
@@ -136,18 +142,9 @@ bool cast::on_emit(compiler::session& session)
             instruction_block->movez_reg_to_reg(*target_reg, temp_reg.reg);
             break;
         }
-        case cast_mode_t::float_extend: {
-            instruction_block->convert(*target_reg, temp_reg.reg);
-            break;
-        }
-        case cast_mode_t::float_truncate: {
-            instruction_block->convert(*target_reg, temp_reg.reg);
-            break;
-        }
-        case cast_mode_t::float_to_integer: {
-            instruction_block->convert(*target_reg, temp_reg.reg);
-            break;
-        }
+        case cast_mode_t::float_extend:
+        case cast_mode_t::float_truncate:
+        case cast_mode_t::float_to_integer:
         case cast_mode_t::integer_to_float: {
             instruction_block->convert(*target_reg, temp_reg.reg);
             break;
@@ -158,7 +155,7 @@ bool cast::on_emit(compiler::session& session)
     }
 
     instruction_block->current_entry()->comment(
-        fmt::format("cast<{}> from type {}", type_->symbol()->name(), source_type->symbol()->name()),
+        fmt::format("cast<{}> from type {}", type_->symbol()->name(), source_type.name()),
         session.emit_context().indent);
     return true;
 }

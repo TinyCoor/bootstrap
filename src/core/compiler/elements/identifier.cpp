@@ -123,8 +123,19 @@ void identifier::on_owned_elements(element_list_t &list)
     }
 }
 
-compiler::type *identifier::on_infer_type(const compiler::session& session)
+bool identifier::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-    return type_;
+    result.type = type_;
+    return result.type !=nullptr;
+}
+
+bool identifier::type_alias() const
+{
+    return type_alias_;
+}
+
+void identifier::type_alias(bool value)
+{
+    type_alias_ = value;
 }
 }

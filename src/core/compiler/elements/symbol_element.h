@@ -32,7 +32,7 @@ public:
 protected:
     bool on_is_constant() const override;
 
-    type *on_infer_type(const compiler::session& session) override;
+    bool on_infer_type(const compiler::session& session, type_inference_result_t& result) override;
 
 private:
     std::string name_;

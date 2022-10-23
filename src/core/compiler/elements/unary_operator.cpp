@@ -15,18 +15,20 @@ element* unary_operator::rhs()
 	return rhs_;
 }
 
-compiler::type *unary_operator::on_infer_type(const compiler::session& session)
+bool unary_operator::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
 	switch (operator_type()) {
 		case operator_type_t::negate:
 		case operator_type_t::binary_not: {
-			return  session.scope_manager().find_type(qualified_symbol_t{.name= "u64"});
-		}
+			result.type = session.scope_manager().find_type(qualified_symbol_t{.name= "u64"});
+            return result.type !=nullptr;
+        }
 		case operator_type_t::logical_not: {
-			return session.scope_manager().find_type(qualified_symbol_t{.name = "bool"});
-		}
+			result.type = session.scope_manager().find_type(qualified_symbol_t{.name = "bool"});
+            return result.type !=nullptr;
+        }
 		default:
-			return nullptr;
+			return false;
 	}
 }
 

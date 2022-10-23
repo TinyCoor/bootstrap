@@ -18,9 +18,10 @@ uint64_t integer_literal::value() const
 	return value_;
 }
 
-compiler::type *integer_literal::on_infer_type(const compiler::session& session)
+bool integer_literal::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-	return session.scope_manager().find_type(qualified_symbol_t{.name = numeric_type::narrow_to_value(value_)});
+	result.type =  session.scope_manager().find_type(qualified_symbol_t{.name = numeric_type::narrow_to_value(value_)});
+    return result.type != nullptr;
 }
 
 bool integer_literal::on_as_integer(uint64_t &value) const

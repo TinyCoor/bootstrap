@@ -71,7 +71,7 @@ public:
 
     attribute* find_attribute(const std::string& name);
 
-    compiler::type* infer_type(const compiler::session& session);
+    bool infer_type(const compiler::session& session, type_inference_result_t& result);
 
 protected:
     virtual bool on_is_constant() const;
@@ -90,7 +90,7 @@ protected:
 
     virtual element *on_fold(compiler::session& session);
 
-	virtual compiler::type* on_infer_type(const compiler::session& session);
+	virtual bool on_infer_type(const compiler::session& session, type_inference_result_t& result);
 
     static element_register_t register_for(compiler::session& session, element* e);
 

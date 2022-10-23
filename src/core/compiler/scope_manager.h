@@ -20,7 +20,6 @@ using element_visitor_callable = std::function<compiler::element* (compiler::ele
 using namespace_visitor_callable = std::function<compiler::element* (compiler::block*)>;
 using interned_string_literal_list_t = std::unordered_map<std::string, string_literal_list_t>;
 
-
 class scope_manager {
 public:
     explicit scope_manager(compiler::session &session);
@@ -46,10 +45,10 @@ public:
     static element* walk_parent_elements(compiler::element* element, const element_visitor_callable& callable) ;
 
     element* walk_qualified_symbol(const qualified_symbol_t& symbol, compiler::block* scope,
-                                   const namespace_visitor_callable& callable) const;
+        const namespace_visitor_callable& callable) const;
 
-    bool find_identifier_type(type_find_result_t& result,
-        const ast_node_shared_ptr& type_node, compiler::block* parent_scope = nullptr);
+    bool find_identifier_type(type_find_result_t& result, const ast_node_shared_ptr& type_node,
+                              compiler::block* parent_scope = nullptr);
 
     compiler::identifier* find_identifier(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
 
@@ -74,7 +73,9 @@ public:
        type_find_result_t& result);
 
     identifier_list_t &identifiers_with_unknown_types();
+
     identifier_reference_list_t &unresolved_identifier_references();
+
     interned_string_literal_list_t &interned_string_literals();
 private:
     compiler::session& session_;

@@ -13,6 +13,8 @@ namespace gfx::compiler{
 namespace fs = std::filesystem;
 using path_list_t = std::vector<fs::path>;
 class session;
+class type;
+class identifier;
 
 enum class type_access_model_t {
     none,
@@ -48,6 +50,13 @@ struct session_options_t {
     fs::path dom_graph_file;
     session_compile_callback compile_callback;
     std::unordered_map<std::string, std::string> definitions {};
+};
+
+struct type_inference_result_t {
+    std::string name() const;
+
+    compiler::type* type = nullptr;
+    compiler::identifier* identifier = nullptr;
 };
 
 }

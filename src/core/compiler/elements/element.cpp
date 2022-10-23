@@ -51,27 +51,18 @@ element_type_t element::element_type() const
     return element_type_;
 }
 
-compiler::type *element::infer_type(const compiler::session& session)
+bool element::infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-    switch (element_type_) {
-        case element_type_t::any_type:
-        case element_type_t::proc_type:
-        case element_type_t::bool_type:
-        case element_type_t::alias_type:
-        case element_type_t::array_type:
-        case element_type_t::module_type:
-        case element_type_t::string_type:
-        case element_type_t::numeric_type:
-        case element_type_t::pointer_type:
-        case element_type_t::composite_type:
-        case element_type_t::namespace_type: return dynamic_cast<compiler::type *>(this);
-        default: return on_infer_type(session);
+    if (is_type()) {
+        result.type = dynamic_cast<compiler::type*>(this);
+        return true;
     }
+    return on_infer_type(session, result);
 }
 
-compiler::type *element::on_infer_type(const compiler::session& session)
+bool element::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-    return nullptr;
+    return false;
 }
 
 bool element::as_bool(bool &value)
@@ -226,10 +217,11 @@ element_register_t element::register_for(compiler::session& session, element *e)
             result.reg = result.var->value_reg.reg;
         }
     } else {
-        auto type = e->infer_type(session);
+        type_inference_result_t inference_result;
+        e->infer_type(session, inference_result);
         register_t reg;
-        reg.size = op_size_for_byte_size(type->size_in_bytes());
-        if (e->element_type() == element_type_t::float_literal) {
+        reg.size = op_size_for_byte_size(inference_result.type->size_in_bytes());
+        if (inference_result.type->number_class() == type_number_class_t::floating_point) {
             reg.type = register_type_t::floating_point;
         } else {
             reg.type = register_type_t::integer;

@@ -26,10 +26,11 @@ class import;
 class module;
 class element;
 class program;
-class transmute;
 class comment;
 class any_type;
+class transmute;
 class directive;
+class intrinsic;
 class attribute;
 class identifier;
 class expression;
@@ -114,6 +115,7 @@ enum class element_type_t {
 	field,
 	if_e,
 	comment,
+    intrinsic,
     transmute,
 	program,
     module,

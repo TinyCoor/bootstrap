@@ -23,9 +23,10 @@ void module_reference::on_owned_elements(element_list_t &list)
     }
 }
 
-compiler::type *module_reference::on_infer_type(const compiler::session& session)
+bool module_reference::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-    return session.scope_manager().find_type({.name = "module"});
+    result.type =  session.scope_manager().find_type({.name = "module"});
+    return result.type !=nullptr;
 }
 
 compiler::module *module_reference::reference()

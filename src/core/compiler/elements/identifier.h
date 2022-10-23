@@ -20,6 +20,10 @@ public:
 
 	bool inferred_type() const;
 
+    bool type_alias() const;
+
+    void type_alias(bool value);
+
     identifier_usage_t usage() const;
 
     void usage(identifier_usage_t value);
@@ -46,10 +50,11 @@ protected:
 
     void on_owned_elements(element_list_t& list) override;
 
-    compiler::type* on_infer_type(const compiler::session& session) override;
+    bool on_infer_type(const compiler::session& session, type_inference_result_t& result) override;
 
 private:
 	bool inferred_type_ = false;
+    bool type_alias_ = false;
 	compiler::type* type_ = nullptr;
     compiler::symbol_element* symbol_;
 	compiler::initializer* initializer_;

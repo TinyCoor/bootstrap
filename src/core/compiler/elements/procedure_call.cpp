@@ -23,12 +23,16 @@ argument_list* procedure_call::arguments()
 	return arguments_;
 }
 
-compiler::type *procedure_call::on_infer_type(const compiler::session& session)
+bool procedure_call::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
     auto identifier = reference_->identifier();
-	auto proc_type = dynamic_cast<procedure_type*>(identifier->type());
-	auto returns_list = proc_type->returns().as_list();
-	return returns_list.front()->identifier()->type();
+    if (identifier != nullptr) {
+        auto proc_type = dynamic_cast<procedure_type*>(identifier->type());
+        auto returns_list = proc_type->returns().as_list();
+        result.type = returns_list.front()->identifier()->type();
+        return result.type != nullptr;
+    }
+    return false;
 }
 
 bool procedure_call::on_emit(compiler::session &session)

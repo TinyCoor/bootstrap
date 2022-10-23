@@ -14,12 +14,12 @@ element *expression::root()
 	return root_;
 }
 
-compiler::type *expression::on_infer_type(const compiler::session& session)
+bool expression::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
 	if (root_ == nullptr) {
-		return nullptr;
+		return false;
 	}
-	return root_->infer_type(session);
+	return root_->infer_type(session, result);
 }
 
 bool expression::on_is_constant() const

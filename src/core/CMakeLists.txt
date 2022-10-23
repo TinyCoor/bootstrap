@@ -119,6 +119,7 @@ set(ELEMENT_SRC
         compiler/ast_evaluator.h        compiler/ast_evaluator.cpp
         compiler/element_builder.h      compiler/element_builder.cpp
         compiler/scope_manager.h        compiler/scope_manager.cpp
+        compiler/compiler_types.h       compiler/compiler_types.cpp
 
         # operator
         compiler/elements/operator_base.h           compiler/elements/operator_base.cpp
@@ -147,6 +148,7 @@ set(ELEMENT_SRC
         compiler/elements/types/procedure_type.h    compiler/elements/types/procedure_type.cpp
         compiler/elements/types/namespace_type.h    compiler/elements/types/namespace_type.cpp
 # elements
+
         compiler/elements/cast.h                    compiler/elements/cast.cpp
         compiler/elements/label.h                   compiler/elements/label.cpp
         compiler/elements/alias.h                   compiler/elements/alias.cpp
@@ -157,6 +159,7 @@ set(ELEMENT_SRC
         compiler/elements/element.h                 compiler/elements/element.cpp
         compiler/elements/program.h                 compiler/elements/program.cpp
         compiler/elements/comment.h                 compiler/elements/comment.cpp
+        compiler/elements/intrinsic.h               compiler/elements/intrinsic.cpp
         compiler/elements/transmute.h               compiler/elements/transmute.cpp
         compiler/elements/statement.h               compiler/elements/statement.cpp
         compiler/elements/directive.h               compiler/elements/directive.cpp

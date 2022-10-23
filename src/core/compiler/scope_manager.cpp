@@ -113,9 +113,13 @@ compiler::identifier *scope_manager::find_identifier(const qualified_symbol_t& s
     }
 }
 
-void scope_manager::add_type_to_scope(compiler::type *value) const
+void scope_manager::add_type_to_scope(compiler::type *type) const
 {
-    current_scope()->types().add(value);
+    auto scope = current_scope();
+    scope->types().add(type);
+    auto identifier = session_.builder().make_identifier(scope, type->symbol(), nullptr);
+    identifier->type(type);
+    scope->identifiers().add(identifier);
 }
 
 bool scope_manager::find_identifier_type(type_find_result_t &result,

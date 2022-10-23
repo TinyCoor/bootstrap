@@ -209,10 +209,11 @@ bool session::type_check()
         if (init == nullptr) {
             continue;
         }
-        auto rhs_type = init->infer_type(*this);
-        if (!var->type()->type_check(rhs_type)) {
+        type_inference_result_t rhs_type;
+        init->infer_type(*this, rhs_type);
+        if (!var->type()->type_check(rhs_type.type)) {
             error(init, "C051", fmt::format("type mismatch: cannot assign {} to {}.",
-                 rhs_type->symbol()->name(),var->type()->symbol()->name()), var->location());
+                 rhs_type.name(), var->type()->symbol()->name()), var->location());
         }
     }
 
@@ -224,10 +225,11 @@ bool session::type_check()
         }
         // XXX: revisit this for destructuring/multiple assignment
         auto var = dynamic_cast<compiler::identifier*>(binary_op->lhs());
-        auto rhs_type = binary_op->rhs()->infer_type(*this);
-        if (!var->type()->type_check(rhs_type)) {
+        type_inference_result_t rhs_type;
+        binary_op->rhs()->infer_type(*this, rhs_type);
+        if (!var->type()->type_check(rhs_type.type)) {
             error(binary_op, "C051", fmt::format( "type mismatch: cannot assign {} to {}.",
-                rhs_type->symbol()->name(), var->type()->symbol()->name()), binary_op->rhs()->location());
+                rhs_type.name(), var->type()->symbol()->name()), binary_op->rhs()->location());
         }
     }
     return !r.is_failed();
@@ -236,11 +238,11 @@ bool session::type_check()
 bool session::compile()
 {
     auto& top_level_stack = scope_manager_.top_level_stack();
-
     program_.block(scope_manager_.push_new_block());
     program_.block()->parent_element(&program_);
     top_level_stack.push(program_.block());
     initialize_core_types();
+    initialize_built_in_procedures();
     for (const auto &source_file : source_files()) {
         auto module = compile_module(source_file);
         if (module == nullptr) {
@@ -351,11 +353,13 @@ void session::error(const std::string &code, const std::string &message, const s
     source_file->error(r, code, message, location);
 
 }
+
 void session::error(compiler::element *element, const std::string &code, const std::string &message,
-                    const source_location &location)
+    const source_location &location)
 {
     element->module()->source_file() ->error(r, code, message, location);
 }
+
 emit_context_t &session::emit_context()
 {
     return context_;
@@ -461,10 +465,12 @@ bool session::resolve_unknown_types()
         }
 
         compiler::type *identifier_type = nullptr;
+        type_inference_result_t inference_result;
         if (var->is_parent_element(element_type_t::binary_operator)) {
             auto binary_operator = dynamic_cast<compiler::binary_operator *>(var->parent_element());
-            if (binary_operator->operator_type()==operator_type_t::assignment) {
-                identifier_type = binary_operator->rhs()->infer_type(*this);
+            if (binary_operator->operator_type() == operator_type_t::assignment) {
+                binary_operator->rhs()->infer_type(*this, inference_result);
+                identifier_type = inference_result.type;
                 var->type(identifier_type);
             }
         } else {
@@ -483,7 +489,8 @@ bool session::resolve_unknown_types()
                     elements().remove(unknown_type->id());
                 }
             } else {
-                identifier_type = var->initializer()->expression()->infer_type(*this);
+                var->initializer()->expression()->infer_type(*this, inference_result);
+                identifier_type = inference_result.type;
                 var->type(identifier_type);
             }
         }
@@ -497,5 +504,11 @@ bool session::resolve_unknown_types()
         }
     }
     return identifiers.empty();
+}
+
+void session::initialize_built_in_procedures()
+{
+    auto parent_scope = scope_manager_.current_scope();
+
 }
 }

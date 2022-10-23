@@ -20,7 +20,7 @@ protected:
 
     bool on_emit(compiler::session &session) override;
 
-	compiler::type* on_infer_type(const compiler::session& session) override;
+    bool on_infer_type(const compiler::session& session, type_inference_result_t& result) override;
 
 private:
 	bool value_ = false;

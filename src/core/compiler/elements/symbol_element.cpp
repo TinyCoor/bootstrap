@@ -71,14 +71,15 @@ qualified_symbol_t symbol_element::qualified_symbol() const
     return symbol;
 }
 
-type *symbol_element::on_infer_type(const compiler::session& session)
+bool symbol_element::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
     auto identifier = session.scope_manager().find_identifier(qualified_symbol());
-    if (identifier != nullptr) {
-        return identifier->type();
+    if (identifier == nullptr) {
+        return false;
     }
-
-    return nullptr;
+    result.identifier = identifier;
+    result.type = identifier->type();
+    return result.type != nullptr;
 }
 
 }

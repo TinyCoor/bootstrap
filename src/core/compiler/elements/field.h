@@ -17,6 +17,7 @@ public:
 protected:
     void on_owned_elements(element_list_t& list) override;
 
+    bool on_infer_type(const compiler::session& session, type_inference_result_t& result) override;
 private:
 	compiler::identifier* identifier_;
 };

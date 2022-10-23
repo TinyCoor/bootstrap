@@ -18,9 +18,10 @@ element *namespace_element::expression()
 	return expression_;
 }
 
-compiler::type *namespace_element::on_infer_type(const compiler::session& session)
+bool namespace_element::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-	return session.scope_manager().find_type(qualified_symbol_t{.name = "namespace"});
+	result.type = session.scope_manager().find_type(qualified_symbol_t{.name = "namespace"});
+    return result.type !=nullptr;
 }
 
 bool compiler::namespace_element::on_is_constant() const

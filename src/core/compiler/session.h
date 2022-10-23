@@ -18,7 +18,6 @@
 #include "element_builder.h"
 #include "scope_manager.h"
 namespace gfx::compiler {
-
 class session {
 public:
     session(const session_options_t& options, const path_list_t& source_files);
@@ -33,31 +32,31 @@ public:
 
     bool initialize();
 
-    assembler& assembler();
-
-    compiler::program& program();
-
-    const compiler::program& program() const;
-
     class terp &terp();
 
     gfx::result& result();
 
-    element_builder& builder();
-
     element_map& elements();
 
-    const element_map& elements() const;
+    assembler& assembler();
+
+    compiler::program& program();
+
+    element_builder& builder();
 
     ast_evaluator& evaluator();
+
+    emit_context_t& emit_context();
 
     void disassemble(FILE *file);
 
     compiler::scope_manager& scope_manager();
 
-    const compiler::scope_manager& scope_manager() const;
+    const element_map& elements() const;
 
-    emit_context_t& emit_context();
+    const compiler::program& program() const;
+
+    const compiler::scope_manager& scope_manager() const;
 
     source_file *add_source_file(const fs::path &path);
 
@@ -80,7 +79,7 @@ public:
     void error(const std::string& code, const std::string& message, const source_location& location);
 
     void error(compiler::element* element, const std::string& code, const std::string& message,
-               const source_location& location);
+        const source_location& location);
 
     compiler::module *compile_module(source_file *source);
 
@@ -89,13 +88,15 @@ private:
 
     void initialize_core_types();
 
+    void initialize_built_in_procedures();
+
     bool resolve_unknown_types();
 
     bool resolve_unknown_identifiers();
 
-    void raise_phase(session_compile_phase_t phase, const fs::path& source_file) const;
-
     void write_code_dom_graph(const fs::path& path);
+
+    void raise_phase(session_compile_phase_t phase, const fs::path& source_file) const;
 
 private:
     class terp terp_;

@@ -31,7 +31,7 @@ protected:
 
     bool on_as_string(std::string &value) const override;
 
-    compiler::type* on_infer_type(const compiler::session& session) override;
+    bool on_infer_type(const compiler::session& session, type_inference_result_t& result) override;
 
 private:
     qualified_symbol_t symbol_;

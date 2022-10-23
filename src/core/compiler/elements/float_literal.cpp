@@ -17,9 +17,10 @@ double float_literal::value() const
 	return value_;
 }
 
-compiler::type *float_literal::on_infer_type(const compiler::session& session)
+bool float_literal::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-    return session.scope_manager().find_type({.name = numeric_type::narrow_to_value(value_)});
+    result.type = session.scope_manager().find_type({.name = numeric_type::narrow_to_value(value_)});
+    return result.type !=nullptr;
 }
 
 bool float_literal::on_as_float(double &value) const

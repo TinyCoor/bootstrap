@@ -178,7 +178,7 @@ identifier* ast_evaluator::add_identifier_to_scope(const evaluator_context_t con
                                              const ast_node_t *node, size_t source_index, compiler::block* parent_scope)
 {
     auto &builder_ = session_.builder();
-
+    auto& scope_manager = session_.scope_manager();
     auto scope = symbol->is_qualified() ? session_.scope_manager().current_top_level()
         : (parent_scope != nullptr ? parent_scope : session_.scope_manager().current_scope());
 
@@ -188,17 +188,32 @@ identifier* ast_evaluator::add_identifier_to_scope(const evaluator_context_t con
     if (node != nullptr) {
         source_node = node->rhs->children[source_index];
     }
-
+    auto is_type_alias = false;
     compiler::element* init_expr = nullptr;
     compiler::initializer * init = nullptr;
     if (node != nullptr) {
         init_expr = evaluate_in_scope(context, source_node.get(), scope);
         if (init_expr != nullptr) {
-            // XXX: need to revisit this!!!
             if (init_expr->element_type() == element_type_t::symbol) {
-                auto init_symbol = dynamic_cast<compiler::symbol_element*>(init_expr);
-                init_expr = builder_.make_identifier_reference(scope,
-                     init_symbol->qualified_symbol(), nullptr);
+                auto init_symbol = dynamic_cast<compiler::symbol_element *>(init_expr);
+                auto identifier = scope_manager.find_identifier(init_symbol->qualified_symbol());
+                if (identifier!=nullptr) {
+                    auto type = identifier->type();
+                    if (type!=nullptr && type->is_type()) {
+                        if (symbol->is_constant()) {
+                            init_expr = identifier->type();
+                            is_type_alias = true;
+                        } else {
+                            session_.error("P029", "only constant assignment (::=) may alias types", node->location);
+                            return nullptr;
+                        }
+                    }
+                } else {
+                    init_expr = builder_.make_identifier_reference(
+                        scope,
+                        init_symbol->qualified_symbol(),
+                        nullptr);
+                }
             }
             if (init_expr->is_constant()) {
                 init = builder_.make_initializer(scope, init_expr);
@@ -207,6 +222,8 @@ identifier* ast_evaluator::add_identifier_to_scope(const evaluator_context_t con
     }
 
     auto new_identifier =  builder_.make_identifier(scope, symbol, init);
+    new_identifier->type_alias(is_type_alias);
+
     apply_attributes(context, new_identifier, node);
     if (init_expr != nullptr) {
         if (init ==nullptr) {
@@ -223,7 +240,9 @@ identifier* ast_evaluator::add_identifier_to_scope(const evaluator_context_t con
     }
     if (type_find_result.type == nullptr) {
         if (init_expr != nullptr) {
-            type_find_result.type = init_expr->infer_type(session_);
+            type_inference_result_t inference_result;
+            init_expr->infer_type(session_, inference_result);
+            type_find_result.type = inference_result.type;
             new_identifier->type(type_find_result.type);
             new_identifier->inferred_type(type_find_result.type != nullptr);
         }

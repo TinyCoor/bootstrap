@@ -21,7 +21,8 @@ protected:
 
     void on_owned_elements(gfx::compiler::element_list_t &list) override;
 
-    compiler::type* on_infer_type(const compiler::session& session) override;
+    bool on_infer_type(const compiler::session& session, type_inference_result_t& result) override;
+
 private:
     compiler::module* module_ = nullptr;
     compiler::element* expression_ = nullptr;

@@ -23,4 +23,12 @@ void field::on_owned_elements(element_list_t &list)
     }
 }
 
+bool field::on_infer_type(const session &session, type_inference_result_t &result)
+{
+    if (identifier_ == nullptr) {
+        return false;
+    }
+    return identifier_->infer_type(session, result);
+}
+
 }

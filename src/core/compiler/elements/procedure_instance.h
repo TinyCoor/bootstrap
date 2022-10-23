@@ -8,7 +8,8 @@
 namespace gfx::compiler {
 class procedure_instance : public element {
 public:
-	procedure_instance(compiler::module* module, block *parent_scope, compiler::type *procedure_type, block *scope);
+	procedure_instance(compiler::module* module, block *parent_scope,
+        compiler::type *procedure_type, block *scope);
 
 	block *scope();
 

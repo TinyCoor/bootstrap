@@ -13,8 +13,12 @@
 namespace gfx {
 enum class symbol_type_t {
     unknown,
-    u8, u16, u32, u64,
-    f32, f64,
+    u8,
+    u16,
+    u32,
+    u64,
+    f32,
+    f64,
     bytes,
 };
 

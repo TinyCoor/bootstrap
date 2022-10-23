@@ -9,7 +9,6 @@
 #include "elements/transmute.h"
 #include "elements/cast.h"
 #include "elements/label.h"
-#include "elements/alias.h"
 #include "elements/import.h"
 #include "elements/comment.h"
 #include "elements/directive.h"
@@ -81,18 +80,15 @@ std::unordered_map<ast_node_types_t, node_evaluator_callable> ast_evaluator::s_n
     {ast_node_types_t::enum_expression,         std::bind(&ast_evaluator::enum_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::binary_operator,         std::bind(&ast_evaluator::binary_operator, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::boolean_literal,         std::bind(&ast_evaluator::boolean_literal, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-    {ast_node_types_t::map_constructor,         std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::else_expression,         std::bind(&ast_evaluator::else_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::while_statement,         std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::break_statement,         std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::with_expression,         std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::type_identifier,         std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-    {ast_node_types_t::alias_expression,        std::bind(&ast_evaluator::alias_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::defer_expression,        std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::union_expression,        std::bind(&ast_evaluator::union_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::return_statement,        std::bind(&ast_evaluator::return_statement, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::symbol_reference,        std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-    {ast_node_types_t::extend_statement,        std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::for_in_statement,        std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::switch_expression,       std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::import_expression,       std::bind(&ast_evaluator::import_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
@@ -102,7 +98,6 @@ std::unordered_map<ast_node_types_t, node_evaluator_callable> ast_evaluator::s_n
     {ast_node_types_t::module_expression,       std::bind(&ast_evaluator::module_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::elseif_expression,       std::bind(&ast_evaluator::if_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::continue_statement,      std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-    {ast_node_types_t::constant_expression,     std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::namespace_expression,    std::bind(&ast_evaluator::namespace_expression, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::subscript_expression,    std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::return_argument_list,    std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
@@ -663,14 +658,6 @@ bool ast_evaluator::cast_expression(evaluator_context_t& context, evaluator_resu
     cast_element->location(context.node->location);
     cast_element->type_location(context.node->lhs->lhs->location);
     result.element = cast_element;
-    return true;
-}
-
-bool ast_evaluator::alias_expression(evaluator_context_t& context, evaluator_result_t& result)
-{
-    result.element =session_.builder().make_alias(session_.scope_manager().current_scope(),
-        resolve_symbol_or_evaluate(context, context.node->lhs.get()));
-    result.element->location(context.node->location);
     return true;
 }
 

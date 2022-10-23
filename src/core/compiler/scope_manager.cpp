@@ -9,7 +9,6 @@
 #include "elements/module.h"
 #include "elements/cast.h"
 #include "elements/label.h"
-#include "elements/alias.h"
 #include "elements/import.h"
 #include "elements/comment.h"
 #include "elements/directive.h"

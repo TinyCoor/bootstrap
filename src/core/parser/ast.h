@@ -44,7 +44,6 @@ enum class ast_node_types_t : uint32_t {
 	unary_operator,
 	binary_operator,
 	boolean_literal,
-	map_constructor,
 	else_expression,
 	cast_expression,
 	while_statement,
@@ -56,7 +55,6 @@ enum class ast_node_types_t : uint32_t {
     from_expression,
 	symbol_reference,
 	return_statement,
-	extend_statement,
 	alias_expression,
 	for_in_statement,
 	character_literal,
@@ -67,7 +65,6 @@ enum class ast_node_types_t : uint32_t {
 	switch_expression,
 	struct_expression,
 	continue_statement,
-	constant_expression,
     transmute_expression,
 	namespace_expression,
 	subscript_expression,
@@ -108,7 +105,6 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
     {ast_node_types_t::from_expression, 			"from_expression"},
 	{ast_node_types_t::binary_operator, 			"binary_operator"},
 	{ast_node_types_t::boolean_literal, 			"boolean_literal"},
-	{ast_node_types_t::map_constructor, 			"map_constructor"},
 	{ast_node_types_t::else_expression, 			"else_expression"},
 	{ast_node_types_t::while_statement, 			"while_statement"},
 	{ast_node_types_t::alias_expression, 			"alias_expression"},
@@ -119,7 +115,6 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
 	{ast_node_types_t::union_expression, 			"union_expression"},
 	{ast_node_types_t::return_statement, 			"return_statement"},
 	{ast_node_types_t::symbol_reference, 			"symbol_reference"},
-	{ast_node_types_t::extend_statement, 			"extend_statement"},
 	{ast_node_types_t::for_in_statement, 			"for_in_statement"},
 	{ast_node_types_t::switch_expression, 			"switch_statement"},
 	{ast_node_types_t::cast_expression,   			"cast_expression"},
@@ -129,7 +124,6 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
 	{ast_node_types_t::array_constructor, 			"array_constructor"},
 	{ast_node_types_t::elseif_expression, 			"elseif_expression"},
 	{ast_node_types_t::continue_statement, 			"continue_statement"},
-	{ast_node_types_t::constant_expression, 		"constant_expression"},
 	{ast_node_types_t::namespace_expression, 		"namespace_statement"},
 	{ast_node_types_t::subscript_expression, 		"subscript_expression"},
     {ast_node_types_t::transmute_expression, 		"transmute_expression"},
@@ -196,11 +190,6 @@ struct ast_node_t {
 	[[nodiscard]] bool has_type_identifier() const
 	{
 		return rhs != nullptr && rhs->type == ast_node_types_t::type_identifier;
-	}
-
-	[[nodiscard]] bool is_constant_expression() const
-	{
-		return lhs != nullptr && lhs->type == ast_node_types_t::constant_expression;
 	}
 
 	[[nodiscard]] std::string_view name() const
@@ -296,8 +285,6 @@ public:
 
 	ast_node_shared_ptr with_node(const token_t& token);
 
-	ast_node_shared_ptr alias_node(const token_t& token);
-
 	ast_node_shared_ptr cast_node(const token_t& token);
 
 	ast_node_shared_ptr defer_node(const token_t& token);
@@ -315,8 +302,6 @@ public:
 	ast_node_shared_ptr union_node(const token_t& token);
 
 	ast_node_shared_ptr symbol_part_node(const token_t& token);
-
-	ast_node_shared_ptr constant_node(const token_t& token);
 
 	ast_node_shared_ptr import_node(const token_t& token);
 

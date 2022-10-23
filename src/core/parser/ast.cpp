@@ -329,14 +329,6 @@ void ast_builder::configure_node(const ast_node_shared_ptr &node, const token_t 
     node->location = token.location;
 }
 
-ast_node_shared_ptr ast_builder::constant_node(const token_t &token)
-{
-	auto node = std::make_shared<ast_node_t>();
-	configure_node(node, token, ast_node_types_t::constant_expression);
-	node->lhs = argument_list_node();
-	return node;
-}
-
 ast_node_shared_ptr ast_builder::with_node(const token_t& token)
 {
 	auto node = std::make_shared<ast_node_t>();
@@ -363,13 +355,6 @@ ast_node_shared_ptr ast_builder::label_node(const token_t &token)
 {
 	auto node = std::make_shared<ast_node_t>();
 	configure_node(node, token, ast_node_types_t::label);
-	return node;
-}
-
-ast_node_shared_ptr ast_builder::alias_node(const token_t &token)
-{
-	auto node = std::make_shared<ast_node_t>();
-	configure_node(node, token, ast_node_types_t::alias_expression);
 	return node;
 }
 

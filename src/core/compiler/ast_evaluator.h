@@ -93,8 +93,6 @@ private:
 
     bool cast_expression(evaluator_context_t& context, evaluator_result_t& result);
 
-    bool alias_expression(evaluator_context_t& context, evaluator_result_t& result);
-
     bool return_statement(evaluator_context_t& context, evaluator_result_t& result);
 
     bool import_expression(evaluator_context_t& context, evaluator_result_t& result);

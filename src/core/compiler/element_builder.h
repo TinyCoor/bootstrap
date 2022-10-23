@@ -17,8 +17,6 @@ public:
 
     compiler::cast* make_cast(compiler::block* parent_scope, compiler::type* type, element* expr);
 
-    compiler::alias* make_alias(compiler::block* parent_scope, element* expr);
-
     compiler::import* make_import(compiler::block* parent_scope, element* expr,
          element* from_expr, compiler::module* imported_module);
 

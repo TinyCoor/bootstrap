@@ -8,7 +8,6 @@
 #include "elements/cast.h"
 #include "elements/module.h"
 #include "elements/label.h"
-#include "elements/alias.h"
 #include "elements/import.h"
 #include "elements/program.h"
 #include "elements/comment.h"
@@ -280,13 +279,6 @@ std::string code_dom_formatter::format_node(element* node)
 			add_primary_edge(element, element->arguments());
 			add_primary_edge(element, element->reference());
 			return fmt::format("{}[shape=record,label=\"proc_call\"{}];", node_vertex_name, style);
-		}
-		case element_type_t::alias_type: {
-			auto element = dynamic_cast<alias*>(node);
-			auto style = ", fillcolor=gainsboro, style=\"filled\"";
-			add_primary_edge(element, element->expression());
-//            add_primary_edge(element, element->symbol());
-			return fmt::format("{}[shape=record,label=\"alias_type\"{}];", node_vertex_name, style);
 		}
 		case element_type_t::array_type: {
 			auto element = dynamic_cast<array_type*>(node);

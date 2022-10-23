@@ -59,7 +59,6 @@ enum class token_types_t {
 	cast_literal,				/// 'cast'
 	block_comment,				/// '/* */'
 	false_literal,				/// 'false'
-	alias_literal,				/// 'alias'
 	break_literal,				/// 'break'
 	while_literal,				/// 'while'
 	defer_literal,				/// 'defer'
@@ -76,7 +75,6 @@ enum class token_types_t {
 	else_if_literal,			/// ’else if‘
 	left_curly_brace,			/// '{'
 	continue_literal,			/// 'continue'
-	constant_literal,			/// 'constant'
     module_literal,			    /// 'module'
 	right_curly_brace,			/// '}'
 	character_literal,			/// '''
@@ -128,7 +126,6 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::identifier,             "identifier"},
 	{token_types_t::attribute,              "attribute"},
 	{token_types_t::string_literal,         "string_literal"},
-	{token_types_t::alias_literal, 			"alias_literal"},
 	{token_types_t::true_literal,           "true_literal"},
 	{token_types_t::false_literal,          "false_literal"},
 	{token_types_t::import_literal,         "import_literal"},
@@ -155,7 +152,6 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::with_literal, 			"with_literal"},
     {token_types_t::else_if_literal,        "else_if_literal"},
     {token_types_t::continue_literal,       "continue_literal"},
-    {token_types_t::constant_literal, 		"constant_literal"},
     {token_types_t::character_literal,      "character_literal"},
     {token_types_t::namespace_literal,      "namespace_literal"},
     {token_types_t::transmute_literal, 		"transmute_literal"},

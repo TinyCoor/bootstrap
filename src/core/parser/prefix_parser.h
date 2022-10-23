@@ -34,13 +34,6 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-class constant_prefix_parser : public prefix_parser {
-public:
-	constant_prefix_parser() = default;
-
-	ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
-};
-
 class from_prefix_parser : public prefix_parser {
 public:
     from_prefix_parser() = default;

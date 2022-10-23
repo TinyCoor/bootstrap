@@ -12,7 +12,6 @@
 #include "code_dom_formatter.h"
 #include "elements/cast.h"
 #include "elements/label.h"
-#include "elements/alias.h"
 #include "elements/transmute.h"
 #include "elements/types/type.h"
 #include "elements/import.h"

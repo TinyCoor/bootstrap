@@ -147,11 +147,9 @@ set(ELEMENT_SRC
         compiler/elements/types/composite_type.h    compiler/elements/types/composite_type.cpp
         compiler/elements/types/procedure_type.h    compiler/elements/types/procedure_type.cpp
         compiler/elements/types/namespace_type.h    compiler/elements/types/namespace_type.cpp
-# elements
-
+        # elements
         compiler/elements/cast.h                    compiler/elements/cast.cpp
         compiler/elements/label.h                   compiler/elements/label.cpp
-        compiler/elements/alias.h                   compiler/elements/alias.cpp
         compiler/elements/field.h                   compiler/elements/field.cpp
         compiler/elements/block.h                   compiler/elements/block.cpp
         compiler/elements/import.h                  compiler/elements/import.cpp

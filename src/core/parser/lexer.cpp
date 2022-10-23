@@ -148,11 +148,6 @@ static inline token_t s_while_literal = {
 	.value = "while"
 };
 
-static inline token_t s_alias_literal = {
-	.type = token_types_t::alias_literal,
-	.value = "alias"
-};
-
 static inline token_t s_union_literal = {
 	.type = token_types_t::union_literal,
 	.value = "union"
@@ -196,11 +191,6 @@ static inline token_t s_else_if_literal = {
 static inline token_t s_percent_literal = {
 	.type = token_types_t::percent,
 	.value = "%"
-};
-
-static inline token_t s_constant_literal = {
-	.type = token_types_t::constant_literal,
-	.value = "constant"
 };
 
 static inline token_t s_continue_literal = {
@@ -481,11 +471,7 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 
 	// continue literal read_only literal cast literal
 	{'c', std::bind(&lexer::continue_literal, std::placeholders::_1, std::placeholders::_2)},
-	{'c', std::bind(&lexer::constant_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'c', std::bind(&lexer::cast_literal, std::placeholders::_1, std::placeholders::_2)},
-
-	// alias literal
-	{'a', std::bind(&lexer::alias_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// proc literal
 	{'p', std::bind(&lexer::proc_literal, std::placeholders::_1, std::placeholders::_2)},
@@ -668,19 +654,6 @@ std::string lexer::read_identifier()
 		}
 		return stream.str();
 	}
-}
-
-bool lexer::alias_literal(token_t& token)
-{
-	if (match_literal("alias")) {
-		auto ch = read(false);
-		if (!isalnum(ch)) {
-			rewind_one_char();
-			token = s_alias_literal;
-			return true;
-		}
-	}
-	return false;
 }
 
 bool lexer::break_literal(token_t& token)
@@ -1440,18 +1413,6 @@ bool lexer::return_literal(token_t &token)
 	return false;
 }
 
-bool lexer::constant_literal(token_t &token)
-{
-	if (match_literal("constant")) {
-		auto ch = read(false);
-		if (!isalnum(ch)) {
-			rewind_one_char();
-			token = s_constant_literal;
-			return true;
-		}
-	}
-	return false;
-}
 
 bool lexer::else_if_literal(token_t& token)
 {

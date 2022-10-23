@@ -68,7 +68,6 @@ private:
 	static inline return_prefix_parser s_return_prefix_parser {};
 	static inline symbol_prefix_parser s_symbol_prefix_parser {};
     static inline module_prefix_parser s_module_prefix_parser {};
-	static inline constant_prefix_parser s_constant_prefix_parser {};
     static inline transmute_prefix_parser s_transmute_prefix_parser {};
 	static inline defer_prefix_parser s_defer_literal_prefix_parser {};
 	static inline namespace_prefix_parser s_namespace_prefix_parser {};
@@ -98,7 +97,6 @@ private:
 		{token_types_t::left_paren,          &s_group_prefix_parser},
 		{token_types_t::union_literal,       &s_union_prefix_parser},
 		{token_types_t::struct_literal,      &s_struct_prefix_parser},
-		{token_types_t::constant_literal,    &s_constant_prefix_parser},
         {token_types_t::transmute_literal,   &s_transmute_prefix_parser},
         {token_types_t::for_literal,         &s_for_in_prefix_parser},
         {token_types_t::from_literal,        &s_from_prefix_parser},
@@ -117,7 +115,6 @@ private:
 		{token_types_t::block_comment,       &s_block_comment_prefix_parser},
 		{token_types_t::string_literal,      &s_string_literal_prefix_parser},
 		{token_types_t::number_literal,      &s_number_literal_prefix_parser},
-		{token_types_t::alias_literal,       &s_keyword_literal_prefix_parser},
 		{token_types_t::null_literal,        &s_keyword_literal_prefix_parser},
 		{token_types_t::break_literal,       &s_keyword_literal_prefix_parser},
 		{token_types_t::continue_literal,    &s_keyword_literal_prefix_parser},

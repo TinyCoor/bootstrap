@@ -114,8 +114,6 @@ private:
 
 	bool while_literal(token_t& token);
 
-	bool alias_literal(token_t& token);
-
 	bool number_literal(token_t& token);
 
     bool module_literal(token_t& token);
@@ -135,8 +133,6 @@ private:
 	bool left_curly_brace(token_t& token);
 
 	bool continue_literal(token_t& token);
-
-	bool constant_literal(token_t& token);
 
 	bool with_literal(token_t& token);
 

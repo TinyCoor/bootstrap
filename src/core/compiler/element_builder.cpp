@@ -7,7 +7,6 @@
 #include "elements/cast.h"
 #include "elements/label.h"
 #include "elements/module.h"
-#include "elements/alias.h"
 #include "elements/transmute.h"
 #include "elements/types/type.h"
 #include "elements/import.h"
@@ -424,16 +423,6 @@ expression* element_builder::make_expression(compiler::block* parent_scope, elem
     return expression;
 }
 
-alias *element_builder::make_alias(compiler::block* parent_scope, element *expr)
-{
-    auto alias_type = new compiler::alias(session_.scope_manager().current_module(), parent_scope, expr);
-    if (expr != nullptr) {
-        expr->parent_element(alias_type);
-    }
-    session_.elements().add(alias_type);
-    return alias_type;
-}
-
 procedure_type* element_builder::make_procedure_type(compiler::block* parent_scope, compiler::block* block_scope)
 {
     // XXX: the name of the proc isn't correct here, but it works temporarily.
@@ -535,7 +524,7 @@ compiler::symbol_element* element_builder::make_symbol_from_node(const ast_node_
     make_qualified_symbol(qualified_symbol, node);
     auto symbol = make_symbol(session_.scope_manager().current_scope(), qualified_symbol.name, qualified_symbol.namespaces);
     symbol->location(node->location);
-    symbol->constant(node->is_constant_expression());
+    // symbol->constant(node->is_constant_expression());
     return symbol;
 }
 

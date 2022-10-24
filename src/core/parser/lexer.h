@@ -136,6 +136,8 @@ private:
 
 	bool with_literal(token_t& token);
 
+    bool raw_block(token_t& token);
+
     bool from_literal(token_t& token);
 
 	bool right_curly_brace(token_t& token);

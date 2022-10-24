@@ -288,6 +288,13 @@ public:
     ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
 };
 
+class raw_block_prefix_parser : public prefix_parser {
+public:
+    raw_block_prefix_parser() = default;
+
+    ast_node_shared_ptr parse(result& r, parser* parser, token_t& token) override;
+};
+
 
 }
 

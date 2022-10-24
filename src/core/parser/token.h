@@ -25,7 +25,8 @@ enum class token_types_t {
 	equals,						/// '='
 	period,						/// '.'
 	percent,					/// ''
-	question,					/// '?'
+    raw_block,
+    question,					/// '?'
 	asterisk,					/// '*'
 	ampersand,					/// ''
 	attribute,					/// '@'
@@ -95,6 +96,7 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::percent,  				"percent"},
     {token_types_t::line_comment,           "comment"},
     {token_types_t::block_comment,          "comment"},
+    {token_types_t::raw_block,              "raw_block"},
 	{token_types_t::ampersand, 				"ampersand"},
 	{token_types_t::assignment,             "assignment"},
 	{token_types_t::not_equals,             "not_equals"},

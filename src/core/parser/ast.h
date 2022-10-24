@@ -21,6 +21,7 @@ enum class ast_node_types_t : uint32_t {
 	label,
 	symbol,
 	module,
+    raw_block,
 	proc_call,
 	statement,
 	attribute,
@@ -80,6 +81,7 @@ static inline std::unordered_map<ast_node_types_t, std::string_view> s_node_type
 	{ast_node_types_t::label, 						"label"},
 	{ast_node_types_t::symbol, 						"symbol"},
 	{ast_node_types_t::module, 					    "module"},
+    {ast_node_types_t::raw_block, 					"raw_block"},
 	{ast_node_types_t::block_comment, 				"comment"},
 	{ast_node_types_t::type_list, 					"type_list"},
 	{ast_node_types_t::symbol_part, 				"symbol_part"},
@@ -306,6 +308,8 @@ public:
 	ast_node_shared_ptr import_node(const token_t& token);
 
     ast_node_shared_ptr from_node(const token_t& token);
+
+    ast_node_shared_ptr raw_block_node(const token_t& token);
 
     ast_node_shared_ptr module_expression_node(const token_t& token);
 

@@ -6,9 +6,10 @@
 #include "program.h"
 #include "string_literal.h"
 #include "attribute.h"
+#include "raw_block.h"
 #include "types/procedure_type.h"
 #include "symbol_element.h"
-#include "fmt/format.h"
+#include <fmt/format.h>
 #include <configure.h>
 
 namespace gfx::compiler {
@@ -16,11 +17,13 @@ namespace gfx::compiler {
 std::unordered_map<std::string, directive::directive_callable> directive::s_evaluate_handlers = {
     {"run",     std::bind(&directive::on_evaluate_run,     std::placeholders::_1, std::placeholders::_2)},
     {"foreign", std::bind(&directive::on_evaluate_foreign, std::placeholders::_1, std::placeholders::_2)},
+    {"assembly", std::bind(&directive::on_evaluate_assembly, std::placeholders::_1, std::placeholders::_2)},
 };
 
 std::unordered_map<std::string, directive::directive_callable> directive::s_execute_handlers = {
     {"run",     std::bind(&directive::on_execute_run,     std::placeholders::_1, std::placeholders::_2)},
     {"foreign", std::bind(&directive::on_execute_foreign, std::placeholders::_1, std::placeholders::_2)},
+    {"assembly", std::bind(&directive::on_execute_assembly, std::placeholders::_1, std::placeholders::_2)},
 };
 
 directive::directive(compiler::module* module, block* parent, const std::string& name, element* expression)
@@ -42,7 +45,8 @@ bool directive::evaluate(compiler::session& session)
 {
 	auto it = s_evaluate_handlers.find(name_);
 	if (it == s_evaluate_handlers.end()) {
-		return true;
+        session.error("P044", fmt::format("unknown directive: {}", name_), location());
+        return false;
 	}
 	return it->second(this, session);
 }
@@ -51,7 +55,8 @@ bool directive::execute(compiler::session& session)
 {
 	auto it = s_execute_handlers.find(name_);
 	if (it == s_execute_handlers.end()) {
-		return true;
+        session.error("P044", fmt::format("unknown directive: {}", name_), location());
+        return false;
 	}
 	return it->second(this, session);
 }
@@ -170,5 +175,27 @@ void directive::on_owned_elements(element_list_t& list)
     if (expression_ != nullptr) {
         list.emplace_back(expression_);
     }
+}
+bool directive::on_execute_assembly(session &session)
+{
+    auto raw_block = dynamic_cast<compiler::raw_block*>(expression_);
+    if (raw_block == nullptr) {
+        return false;
+    }
+    source_file source;
+    if (!source.load(session.result(), raw_block->value()))  {
+        return false;
+    }
+    return session.assembler().assemble_from_source(session.result(), source);
+}
+
+bool directive::on_evaluate_assembly(session &session)
+{
+    auto is_valid = expression_ != nullptr && expression_->element_type() == element_type_t::raw_block;
+    if (!is_valid) {
+        session.error(this, "P004", "#assembly expects a valid raw block expression.",
+            location());
+    }
+    return is_valid;
 }
 }

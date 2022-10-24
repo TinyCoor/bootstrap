@@ -10,6 +10,7 @@
 #include "elements/transmute.h"
 #include "elements/types/type.h"
 #include "elements/import.h"
+#include "elements/raw_block.h"
 #include "elements/comment.h"
 #include "elements/types/any_type.h"
 #include "elements/types/bool_type.h"
@@ -576,6 +577,14 @@ compiler::type* element_builder::make_complete_type(type_find_result_t &result, 
         }
     }
     return result.type;
+}
+
+raw_block *element_builder::make_raw_block(compiler::block *parent_scope, const std::string &value)
+{
+    auto raw_block = new compiler::raw_block(session_.scope_manager().current_module(),
+        parent_scope, value);
+    session_.elements().add(raw_block);
+    return raw_block;
 }
 
 }

@@ -13,6 +13,11 @@ static inline token_t s_invalid = {
     .value = ""
 };
 
+static inline token_t s_raw_block = {
+    .type = token_types_t::raw_block,
+    .value = "{{"
+};
+
 static inline token_t s_proc_literal = {
 	.type = token_types_t::proc_literal,
 	.value = "proc"
@@ -406,7 +411,8 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	{'|', std::bind(&lexer::pipe_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// braces
-	{'{', std::bind(&lexer::left_curly_brace, std::placeholders::_1, std::placeholders::_2)},
+    {'{', std::bind(&lexer::raw_block, std::placeholders::_1, std::placeholders::_2)},
+    {'{', std::bind(&lexer::left_curly_brace, std::placeholders::_1, std::placeholders::_2)},
 	{'}', std::bind(&lexer::right_curly_brace, std::placeholders::_1, std::placeholders::_2)},
 
 	// return literal
@@ -1649,6 +1655,52 @@ bool lexer::constant_assignment(token_t &token)
 {
     if (match_literal("::=")) {
         token = s_constant_assignment_literal;
+        return true;
+    }
+    return false;
+}
+
+bool lexer::raw_block(token_t &token)
+{
+    if (match_literal("{{")) {
+        auto block_count = 1;
+        token = s_raw_block;
+
+        std::stringstream stream;
+        while (true) {
+            auto ch = read(false);
+            if (ch == rune_eof) {
+                token = s_end_of_file;
+                set_token_location(token);
+                return true;
+            }
+
+            if (ch == '{') {
+                ch = read(false);
+                if (ch == '{') {
+                    block_count++;
+                    continue;
+                } else {
+                    rewind_one_char();
+                    ch = read(false);
+                }
+            } else if (ch == '}') {
+                ch = read(false);
+                if (ch == '}') {
+                    block_count--;
+                    if (block_count == 0)
+                        break;
+                    continue;
+                } else {
+                    rewind_one_char();
+                    ch = read(false);
+                }
+            }
+            // XXX: requires utf8 fix
+            stream << static_cast<char>(ch);
+        }
+
+        token.value = stream.str();
         return true;
     }
     return false;

@@ -12,7 +12,8 @@
 
 namespace gfx {
 enum class section_t : uint8_t {
-    bss = 1,
+    unknown,
+    bss,
     ro_data,
     data,
     text
@@ -29,19 +30,28 @@ inline static std::string_view section_name(section_t type)
     }
 }
 
+inline static section_t section_type(const std::string& name) {
+    if (name == "bss")      return section_t::bss;
+    if (name == "ro_data")  return section_t::ro_data;
+    if (name == "data")     return section_t::data;
+    if (name == "text")     return section_t::text;
+    return section_t::unknown;
+}
+
 struct align_t {
     uint8_t size = 0;
 };
 
 enum data_definition_type_t : uint8_t {
-    initialized = 1,
+    none,
+    initialized,
     uninitialized
 };
 
 struct data_definition_t {
     op_sizes size = op_sizes::byte;
     std::vector<uint64_t> values;
-    data_definition_type_t type = data_definition_type_t::uninitialized;
+    data_definition_type_t type = data_definition_type_t::none;
 };
 
 struct comment_t {

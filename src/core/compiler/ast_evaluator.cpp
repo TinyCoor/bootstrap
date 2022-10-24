@@ -11,6 +11,7 @@
 #include "elements/label.h"
 #include "elements/import.h"
 #include "elements/comment.h"
+#include "elements/raw_block.h"
 #include "elements/directive.h"
 #include "elements/attribute.h"
 #include "elements/if_element.h"
@@ -65,6 +66,7 @@ std::unordered_map<ast_node_types_t, node_evaluator_callable> ast_evaluator::s_n
     {ast_node_types_t::basic_block,             std::bind(&ast_evaluator::basic_block, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::symbol_part,             std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::line_comment,            std::bind(&ast_evaluator::line_comment, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
+    {ast_node_types_t::raw_block,               std::bind(&ast_evaluator::raw_block, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::null_literal,            std::bind(&ast_evaluator::noop, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::block_comment,           std::bind(&ast_evaluator::block_comment, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
     {ast_node_types_t::argument_list,           std::bind(&ast_evaluator::argument_list, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
@@ -990,6 +992,13 @@ compiler::identifier *ast_evaluator::declare_identifier(const evaluator_context_
     scope_manager.find_identifier_type(type_find_result, node->rhs, scope);
 
     return add_identifier_to_scope(context, symbol, type_find_result, nullptr, 0, scope);
+}
+bool ast_evaluator::raw_block(evaluator_context_t &context, evaluator_result_t &result)
+{
+    result.element = session_.builder().make_raw_block(
+        session_.scope_manager().current_scope(),
+        context.node->token.value);
+    return true;
 }
 
 }

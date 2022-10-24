@@ -74,6 +74,14 @@ public:
 
     label_ref_t* find_unresolved_label_up(id_t id);
 
+    void make_block_entry(const align_t &data);
+
+    void make_block_entry(const section_t &data);
+
+    void make_block_entry(const instruction_t& inst);
+
+    void make_block_entry(const data_definition_t& data);
+
     template <typename T>
     T* find_in_blocks(const std::function<T* (instruction_block*)>& callable)
     {
@@ -307,14 +315,6 @@ private:
         uint64_t subtrahend_immediate);
 
     void make_integer_constant_push_instruction(op_sizes size, uint64_t value);
-
-    void make_block_entry(const align_t &data);
-
-    void make_block_entry(const section_t &data);
-
-    void make_block_entry(const instruction_t& inst);
-
-    void make_block_entry(const data_definition_t& data);
 
     label* find_label_up(const std::string& label_name);
 

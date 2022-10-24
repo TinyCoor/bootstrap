@@ -35,6 +35,7 @@ class attribute;
 class identifier;
 class expression;
 class initializer;
+class raw_block;
 class statement;
 class type_info;
 class bool_type;
@@ -115,6 +116,7 @@ enum class element_type_t {
 	field,
 	if_e,
 	comment,
+    raw_block,
     intrinsic,
     transmute,
 	program,
@@ -168,6 +170,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::field, 				"field"},
 	{element_type_t::return_e, 				"return"},
 	{element_type_t::import_e, 				"import"},
+    {element_type_t::raw_block, 			"raw_block"},
     {element_type_t::bool_type,             "bool_type"},
     {element_type_t::module, 				"module"},
     {element_type_t::symbol,                "symbol"},

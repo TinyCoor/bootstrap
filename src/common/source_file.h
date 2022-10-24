@@ -33,9 +33,12 @@ struct source_file_line_t {
 
 class source_file {
 public:
+    source_file() = default;
     explicit source_file(const fs::path &path);
 
     ~source_file();
+
+    bool load(result& r, const std::string& buffer);
 
     rune_t next(gfx::result &r);
 
@@ -74,6 +77,8 @@ public:
     void error(result& r, const std::string& code, const std::string& message, const source_location& location);
 
 private:
+    void dump_lines();
+
     void build_lines(result& r);
 
 private:

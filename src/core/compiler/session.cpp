@@ -189,7 +189,7 @@ bool session::resolve_unknown_identifiers()
         if (identifier == nullptr) {
             ++it;
             error(unresolved_reference, "P004",  fmt::format("unable to resolve identifier: {}", unresolved_reference->symbol().name),
-                          unresolved_reference->symbol().location);
+                 unresolved_reference->symbol().location);
             continue;
         }
         unresolved_reference->identifier(identifier);
@@ -253,6 +253,9 @@ bool session::compile()
     for (auto directive : directives) {
         auto directive_element = dynamic_cast<compiler::directive*>(directive);
         if (!directive_element->execute(*this)) {
+            error(directive_element, "P044",
+                fmt::format("directive failed to execute: {}", directive_element->name()),
+                directive->location());
             return false;
         }
     }
@@ -481,8 +484,6 @@ bool session::resolve_unknown_types()
                 find_result.is_pointer = unknown_type->is_pointer();
                 find_result.array_size = unknown_type->array_size();
                 identifier_type = scope_manager().make_complete_type(*this, find_result, var->parent_scope());
-                auto type_name = unknown_type->symbol()->name();
-                identifier_type = scope_manager().find_type(qualified_symbol_t{.name = type_name});
                 if (identifier_type != nullptr) {
                     var->type(identifier_type);
                     elements().remove(unknown_type->id());
@@ -507,7 +508,6 @@ bool session::resolve_unknown_types()
 
 void session::initialize_built_in_procedures()
 {
-    auto parent_scope = scope_manager_.current_scope();
-
+   // auto parent_scope = scope_manager_.current_scope();
 }
 }

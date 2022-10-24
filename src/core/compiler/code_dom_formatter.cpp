@@ -4,7 +4,6 @@
 #include "fmt/format.h"
 #include "code_dom_formatter.h"
 #include "common/graphviz_formatter.h"
-#include "elements/symbol_element.h"
 #include "elements/cast.h"
 #include "elements/module.h"
 #include "elements/label.h"
@@ -13,6 +12,7 @@
 #include "elements/comment.h"
 #include "elements/transmute.h"
 #include "elements/attribute.h"
+#include "elements/raw_block.h"
 #include "elements/directive.h"
 #include "elements/statement.h"
 #include "elements/expression.h"
@@ -28,6 +28,7 @@
 #include "elements/integer_literal.h"
 #include "elements/boolean_literal.h"
 #include "elements/binary_operator.h"
+#include "elements/symbol_element.h"
 #include "elements/namespace_element.h"
 #include "elements/procedure_instance.h"
 #include "elements/types/bool_type.h"
@@ -102,6 +103,12 @@ std::string code_dom_formatter::format_node(element* node)
             add_primary_edge(element, element->module());
             return fmt::format("{}[shape=record,label=\"module_reference\"{}];",
                 node_vertex_name, style);
+        }
+        case element_type_t::raw_block: {
+            auto element = dynamic_cast<raw_block*>(node);
+            auto style = ", fillcolor=grey, style=\"filled\"";
+            return fmt::format("{}[shape=record,label=\"raw_block|{}\"{}];",
+                node_vertex_name, element->value(), style);
         }
         case element_type_t::symbol: {
             auto element = dynamic_cast<symbol_element*>(node);

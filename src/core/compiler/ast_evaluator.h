@@ -99,6 +99,8 @@ private:
 
     bool basic_block(evaluator_context_t& context, evaluator_result_t& result);
 
+    bool raw_block(evaluator_context_t& context, evaluator_result_t& result);
+
     bool proc_call(evaluator_context_t& context, evaluator_result_t& result);
 
     bool statement(evaluator_context_t& context, evaluator_result_t& result);

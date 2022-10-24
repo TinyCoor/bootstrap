@@ -22,6 +22,8 @@ public:
 
     compiler::label* make_label(compiler::block* parent_scope, const std::string& name);
 
+    raw_block* make_raw_block(compiler::block* parent_scope, const std::string& value);
+
     compiler::field* make_field(compiler::type* type, compiler::block* parent_scope, compiler::identifier* identifier);
 
     compiler::module* make_module(compiler::block* parent_scope, compiler::block* scope);

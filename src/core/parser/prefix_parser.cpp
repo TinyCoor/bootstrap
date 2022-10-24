@@ -399,4 +399,8 @@ ast_node_shared_ptr transmute_prefix_parser::parse(result &r, parser *parser, to
 {
     return create_transmute_node(r, parser, token);
 }
+ast_node_shared_ptr raw_block_prefix_parser::parse(result &r, parser *parser, token_t &token)
+{
+    return parser->ast_builder()->raw_block_node(token);
+}
 }

@@ -24,6 +24,13 @@ protected:
     void on_owned_elements(element_list_t& list) override;
 
 private:
+    // --------------------
+    // assembly directive
+    // --------------------
+    bool on_execute_assembly(compiler::session& session);
+
+    bool on_evaluate_assembly(compiler::session& session);
+
 	bool on_execute_run(compiler::session &session);
 
 	bool on_evaluate_run(compiler::session &session);

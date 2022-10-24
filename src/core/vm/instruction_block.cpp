@@ -374,6 +374,9 @@ void instruction_block::disassemble(instruction_block *block)
                 std::stringstream directive;
                 std::string format_spec;
                 switch (definition->type) {
+                    case data_definition_type_t::none: {
+                        break;
+                    }
                     case data_definition_type_t::initialized : {
                         switch (definition->size) {
                             case op_sizes::byte:

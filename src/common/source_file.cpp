@@ -236,4 +236,31 @@ void source_file::error(result &r, const std::string &code, const std::string &m
         location.start().line + 1, location.start().column + 1, message), stream.str(), true);
 }
 
+bool source_file::load(result &r, const std::string &buffer)
+{
+    buffer_.clear();
+    lines_by_number_.clear();
+    lines_by_index_range_.clear();
+
+    std::stringstream stream;
+    stream.unsetf(std::ios::skipws);
+    stream << buffer;
+    stream.seekg(0, std::ios::beg);
+
+    buffer_.reserve(static_cast<size_t>(buffer.length()));
+    buffer_.insert(buffer_.begin(), std::istream_iterator<uint8_t>(stream),
+                   std::istream_iterator<uint8_t>());
+    build_lines(r);
+
+    return true;
+}
+
+void source_file::dump_lines()
+{
+    for (size_t i = 0; i < number_of_lines(); i++) {
+        auto line = line_by_number(i);
+        fmt::print("{}\n", substring(line->begin, line->end));
+    }
+}
+
 }

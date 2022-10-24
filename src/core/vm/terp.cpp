@@ -311,10 +311,10 @@ bool terp::step(result &r)
 		}
 		case op_codes::copy: {
 			operand_value_t source_address, target_address;
-			if (!get_operand_value(r, inst, 0, source_address)) {
+			if (!get_operand_value(r, inst, 0, target_address)) {
 				return false;
 			}
-			if (!get_operand_value(r, inst, 0, target_address)) {
+			if (!get_operand_value(r, inst, 0, source_address)) {
 				return false;
 			}
 
@@ -412,13 +412,13 @@ bool terp::step(result &r)
             break;
         }
 		case op_codes::fill: {
-			operand_value_t value;
-			if (!get_operand_value(r, inst, 0, value)) {
+			operand_value_t address;
+			if (!get_operand_value(r, inst, 0, address)) {
 				return false;
 			}
 
-			operand_value_t address;
-			if (!get_operand_value(r, inst, 1, address)) {
+			operand_value_t value;
+			if (!get_operand_value(r, inst, 1, value)) {
 				return false;
 			}
 

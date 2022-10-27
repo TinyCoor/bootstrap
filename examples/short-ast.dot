@@ -1,0 +1,361 @@
+digraph {
+graph [ fontsize=22 ];
+labelloc="t";
+label="AST Graph: D:\Coding\Cpp\bootstrap\examples\short-ast.dot";
+	module1[shape=record,label="<f1> module", fillcolor=cadetblue, style="filled"];
+	statement28[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	directive4[shape=record,label="<f0> lhs|<f1> directive|{ token: 'foreign' }"];
+	assignment7[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list8[shape=record,label="<f1> assignment_target_list"];
+	symbol5[shape=record,label="<f1> symbol"];
+	symbol_part6[shape=record,label="<f1> symbol_part|{ token: 'print' }"];
+symbol5:f1 -> symbol_part6:f1 [label="[00]"];
+
+assignment_target_list8:f1 -> symbol5:f1 [label="[00]"];
+
+assignment7:f0 -> assignment_target_list8:f1;
+	assignment_source_list9[shape=record,label="<f1> assignment_source_list"];
+	proc_expression10[shape=record,label="<f0> lhs|<f1> proc_expression|<f2> rhs", fillcolor=cyan, style="filled"];
+	type_list11[shape=record,label="<f1> type_list"];
+proc_expression10:f0 -> type_list11:f1;
+	parameter_list12[shape=record,label="<f1> parameter_list"];
+	symbol13[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier18[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol16[shape=record,label="<f1> symbol"];
+	symbol_part17[shape=record,label="<f1> symbol_part|{ token: 'string' }"];
+symbol16:f1 -> symbol_part17:f1 [label="[00]"];
+
+type_identifier18:f0 -> symbol16:f1;
+	array_subscript_list15[shape=record,label="<f1> array_subscript_list"];
+type_identifier18:f2 -> array_subscript_list15:f1;
+symbol13:f2 -> type_identifier18:f1;
+	symbol_part14[shape=record,label="<f1> symbol_part|{ token: 'format' }"];
+symbol13:f1 -> symbol_part14:f1 [label="[00]"];
+
+	symbol20[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier25[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol23[shape=record,label="<f1> symbol"];
+	symbol_part24[shape=record,label="<f1> symbol_part|{ token: 'any' }"];
+symbol23:f1 -> symbol_part24:f1 [label="[00]"];
+
+type_identifier25:f0 -> symbol23:f1;
+	array_subscript_list22[shape=record,label="<f1> array_subscript_list"];
+type_identifier25:f2 -> array_subscript_list22:f1;
+symbol20:f2 -> type_identifier25:f1;
+	symbol_part21[shape=record,label="<f1> symbol_part|{ token: 'values' }"];
+symbol20:f1 -> symbol_part21:f1 [label="[00]"];
+
+parameter_list12:f1 -> symbol13:f1 [label="[00]"];
+parameter_list12:f1 -> symbol20:f1 [label="[01]"];
+
+proc_expression10:f2 -> parameter_list12:f1;
+	attribute26[shape=record,label="<f0> lhs|<f1> attribute|{ token: 'alias' }", fillcolor=darkseagreen, style="filled"];
+	string_literal27[shape=record,label="<f1> string_literal|{ token: 'print' }"];
+attribute26:f0 -> string_literal27:f1;
+proc_expression10:f1 -> attribute26:f1 [label="[00]"];
+
+assignment_source_list9:f1 -> proc_expression10:f1 [label="[00]"];
+
+assignment7:f2 -> assignment_source_list9:f1;
+directive4:f0 -> assignment7:f1;
+	attribute2[shape=record,label="<f0> lhs|<f1> attribute|{ token: 'library' }", fillcolor=darkseagreen, style="filled"];
+	string_literal3[shape=record,label="<f1> string_literal|{ token: 'libcompiler-rt' }"];
+attribute2:f0 -> string_literal3:f1;
+directive4:f1 -> attribute2:f1 [label="[00]"];
+
+statement28:f2 -> directive4:f1;
+	statement35[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol29[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier34[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol32[shape=record,label="<f1> symbol"];
+	symbol_part33[shape=record,label="<f1> symbol_part|{ token: 'u8' }"];
+symbol32:f1 -> symbol_part33:f1 [label="[00]"];
+
+type_identifier34:f0 -> symbol32:f1;
+	array_subscript_list31[shape=record,label="<f1> array_subscript_list"];
+type_identifier34:f2 -> array_subscript_list31:f1;
+symbol29:f2 -> type_identifier34:f1;
+	symbol_part30[shape=record,label="<f1> symbol_part|{ token: 'temp' }"];
+symbol29:f1 -> symbol_part30:f1 [label="[00]"];
+
+statement35:f2 -> symbol29:f1;
+	statement42[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment38[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list39[shape=record,label="<f1> assignment_target_list"];
+	symbol36[shape=record,label="<f1> symbol"];
+	symbol_part37[shape=record,label="<f1> symbol_part|{ token: 'temp' }"];
+symbol36:f1 -> symbol_part37:f1 [label="[00]"];
+
+assignment_target_list39:f1 -> symbol36:f1 [label="[00]"];
+
+assignment38:f0 -> assignment_target_list39:f1;
+	assignment_source_list40[shape=record,label="<f1> assignment_source_list"];
+	number_literal41[shape=record,label="<f1> number_literal|{ token: '2' | radix: 10}"];
+assignment_source_list40:f1 -> number_literal41:f1 [label="[00]"];
+
+assignment38:f2 -> assignment_source_list40:f1;
+statement42:f2 -> assignment38:f1;
+	statement62[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment49[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list50[shape=record,label="<f1> assignment_target_list"];
+	symbol43[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier48[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol46[shape=record,label="<f1> symbol"];
+	symbol_part47[shape=record,label="<f1> symbol_part|{ token: 'u16' }"];
+symbol46:f1 -> symbol_part47:f1 [label="[00]"];
+
+type_identifier48:f0 -> symbol46:f1;
+	array_subscript_list45[shape=record,label="<f1> array_subscript_list"];
+type_identifier48:f2 -> array_subscript_list45:f1;
+symbol43:f2 -> type_identifier48:f1;
+	symbol_part44[shape=record,label="<f1> symbol_part|{ token: 'foo' }"];
+symbol43:f1 -> symbol_part44:f1 [label="[00]"];
+
+assignment_target_list50:f1 -> symbol43:f1 [label="[00]"];
+
+assignment49:f0 -> assignment_target_list50:f1;
+	assignment_source_list51[shape=record,label="<f1> assignment_source_list"];
+	binary_operator61[shape=record,label="<f0> lhs|<f1> binary_operator|{ token: '+' }|<f2> rhs", fillcolor=goldenrod1, style="filled"];
+	expression52[shape=record,label="<f0> lhs|<f1> expression"];
+	binary_operator59[shape=record,label="<f0> lhs|<f1> binary_operator|{ token: '/' }|<f2> rhs", fillcolor=goldenrod1, style="filled"];
+	expression53[shape=record,label="<f0> lhs|<f1> expression"];
+	binary_operator57[shape=record,label="<f0> lhs|<f1> binary_operator|{ token: '*' }|<f2> rhs", fillcolor=goldenrod1, style="filled"];
+	symbol54[shape=record,label="<f1> symbol"];
+	symbol_part55[shape=record,label="<f1> symbol_part|{ token: 'temp' }"];
+symbol54:f1 -> symbol_part55:f1 [label="[00]"];
+
+binary_operator57:f0 -> symbol54:f1;
+	number_literal56[shape=record,label="<f1> number_literal|{ token: '6' | radix: 10}"];
+binary_operator57:f2 -> number_literal56:f1;
+expression53:f0 -> binary_operator57:f1;
+binary_operator59:f0 -> expression53:f1;
+	number_literal58[shape=record,label="<f1> number_literal|{ token: '2' | radix: 10}"];
+binary_operator59:f2 -> number_literal58:f1;
+expression52:f0 -> binary_operator59:f1;
+binary_operator61:f0 -> expression52:f1;
+	number_literal60[shape=record,label="<f1> number_literal|{ token: '4' | radix: 10}"];
+binary_operator61:f2 -> number_literal60:f1;
+assignment_source_list51:f1 -> binary_operator61:f1 [label="[00]"];
+
+assignment49:f2 -> assignment_source_list51:f1;
+statement62:f2 -> assignment49:f1;
+	statement69[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol63[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier68[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol66[shape=record,label="<f1> symbol"];
+	symbol_part67[shape=record,label="<f1> symbol_part|{ token: 'u16' }"];
+symbol66:f1 -> symbol_part67:f1 [label="[00]"];
+
+type_identifier68:f0 -> symbol66:f1;
+	array_subscript_list65[shape=record,label="<f1> array_subscript_list"];
+type_identifier68:f2 -> array_subscript_list65:f1;
+symbol63:f2 -> type_identifier68:f1;
+	symbol_part64[shape=record,label="<f1> symbol_part|{ token: 'bar' }"];
+symbol63:f1 -> symbol_part64:f1 [label="[00]"];
+
+statement69:f2 -> symbol63:f1;
+	statement76[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment72[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list73[shape=record,label="<f1> assignment_target_list"];
+	symbol70[shape=record,label="<f1> symbol"];
+	symbol_part71[shape=record,label="<f1> symbol_part|{ token: 'bar' }"];
+symbol70:f1 -> symbol_part71:f1 [label="[00]"];
+
+assignment_target_list73:f1 -> symbol70:f1 [label="[00]"];
+
+assignment72:f0 -> assignment_target_list73:f1;
+	assignment_source_list74[shape=record,label="<f1> assignment_source_list"];
+	number_literal75[shape=record,label="<f1> number_literal|{ token: '32768' | radix: 10}"];
+assignment_source_list74:f1 -> number_literal75:f1 [label="[00]"];
+
+assignment72:f2 -> assignment_source_list74:f1;
+statement76:f2 -> assignment72:f1;
+	statement83[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol77[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier82[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol80[shape=record,label="<f1> symbol"];
+	symbol_part81[shape=record,label="<f1> symbol_part|{ token: 'u32' }"];
+symbol80:f1 -> symbol_part81:f1 [label="[00]"];
+
+type_identifier82:f0 -> symbol80:f1;
+	array_subscript_list79[shape=record,label="<f1> array_subscript_list"];
+type_identifier82:f2 -> array_subscript_list79:f1;
+symbol77:f2 -> type_identifier82:f1;
+	symbol_part78[shape=record,label="<f1> symbol_part|{ token: 'bing' }"];
+symbol77:f1 -> symbol_part78:f1 [label="[00]"];
+
+statement83:f2 -> symbol77:f1;
+	statement90[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment86[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list87[shape=record,label="<f1> assignment_target_list"];
+	symbol84[shape=record,label="<f1> symbol"];
+	symbol_part85[shape=record,label="<f1> symbol_part|{ token: 'bing' }"];
+symbol84:f1 -> symbol_part85:f1 [label="[00]"];
+
+assignment_target_list87:f1 -> symbol84:f1 [label="[00]"];
+
+assignment86:f0 -> assignment_target_list87:f1;
+	assignment_source_list88[shape=record,label="<f1> assignment_source_list"];
+	number_literal89[shape=record,label="<f1> number_literal|{ token: '1000' | radix: 10}"];
+assignment_source_list88:f1 -> number_literal89:f1 [label="[00]"];
+
+assignment86:f2 -> assignment_source_list88:f1;
+statement90:f2 -> assignment86:f1;
+	statement101[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment97[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list98[shape=record,label="<f1> assignment_target_list"];
+	symbol91[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier96[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol94[shape=record,label="<f1> symbol"];
+	symbol_part95[shape=record,label="<f1> symbol_part|{ token: 'f64' }"];
+symbol94:f1 -> symbol_part95:f1 [label="[00]"];
+
+type_identifier96:f0 -> symbol94:f1;
+	array_subscript_list93[shape=record,label="<f1> array_subscript_list"];
+type_identifier96:f2 -> array_subscript_list93:f1;
+symbol91:f2 -> type_identifier96:f1;
+	symbol_part92[shape=record,label="<f1> symbol_part|{ token: 'E' }"];
+symbol91:f1 -> symbol_part92:f1 [label="[00]"];
+
+assignment_target_list98:f1 -> symbol91:f1 [label="[00]"];
+
+assignment97:f0 -> assignment_target_list98:f1;
+	assignment_source_list99[shape=record,label="<f1> assignment_source_list"];
+	number_literal100[shape=record,label="<f1> number_literal|{ token: '2.7182818284' | radix: 10}"];
+assignment_source_list99:f1 -> number_literal100:f1 [label="[00]"];
+
+assignment97:f2 -> assignment_source_list99:f1;
+statement101:f2 -> assignment97:f1;
+	line_comment102[shape=record,label="<f1> line_comment|{ token: ' e' }", fillcolor=green, style="filled"];
+	statement109[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	symbol103[shape=record,label="<f1> symbol|<f2> rhs"];
+	type_identifier108[shape=record,label="<f0> lhs|<f1> type_identifier|<f2> rhs", fillcolor=gainsboro, style="filled"];
+	symbol106[shape=record,label="<f1> symbol"];
+	symbol_part107[shape=record,label="<f1> symbol_part|{ token: 'f64' }"];
+symbol106:f1 -> symbol_part107:f1 [label="[00]"];
+
+type_identifier108:f0 -> symbol106:f1;
+	array_subscript_list105[shape=record,label="<f1> array_subscript_list"];
+type_identifier108:f2 -> array_subscript_list105:f1;
+symbol103:f2 -> type_identifier108:f1;
+	symbol_part104[shape=record,label="<f1> symbol_part|{ token: 'PI' }"];
+symbol103:f1 -> symbol_part104:f1 [label="[00]"];
+
+statement109:f2 -> symbol103:f1;
+	statement116[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment112[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list113[shape=record,label="<f1> assignment_target_list"];
+	symbol110[shape=record,label="<f1> symbol"];
+	symbol_part111[shape=record,label="<f1> symbol_part|{ token: 'PI' }"];
+symbol110:f1 -> symbol_part111:f1 [label="[00]"];
+
+assignment_target_list113:f1 -> symbol110:f1 [label="[00]"];
+
+assignment112:f0 -> assignment_target_list113:f1;
+	assignment_source_list114[shape=record,label="<f1> assignment_source_list"];
+	number_literal115[shape=record,label="<f1> number_literal|{ token: '3.1415926535' | radix: 10}"];
+assignment_source_list114:f1 -> number_literal115:f1 [label="[00]"];
+
+assignment112:f2 -> assignment_source_list114:f1;
+statement116:f2 -> assignment112:f1;
+	line_comment117[shape=record,label="<f1> line_comment|{ token: ' pi' }", fillcolor=green, style="filled"];
+	statement127[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	assignment120[shape=record,label="<f0> lhs|<f1> assignment|<f2> rhs", fillcolor=pink, style="filled"];
+	assignment_target_list121[shape=record,label="<f1> assignment_target_list"];
+	symbol118[shape=record,label="<f1> symbol"];
+	symbol_part119[shape=record,label="<f1> symbol_part|{ token: 'temp2' }"];
+symbol118:f1 -> symbol_part119:f1 [label="[00]"];
+
+assignment_target_list121:f1 -> symbol118:f1 [label="[00]"];
+
+assignment120:f0 -> assignment_target_list121:f1;
+	assignment_source_list122[shape=record,label="<f1> assignment_source_list"];
+	binary_operator126[shape=record,label="<f0> lhs|<f1> binary_operator|{ token: '*' }|<f2> rhs", fillcolor=goldenrod1, style="filled"];
+	symbol123[shape=record,label="<f1> symbol"];
+	symbol_part124[shape=record,label="<f1> symbol_part|{ token: 'PI' }"];
+symbol123:f1 -> symbol_part124:f1 [label="[00]"];
+
+binary_operator126:f0 -> symbol123:f1;
+	number_literal125[shape=record,label="<f1> number_literal|{ token: '2.0' | radix: 10}"];
+binary_operator126:f2 -> number_literal125:f1;
+assignment_source_list122:f1 -> binary_operator126:f1 [label="[00]"];
+
+assignment120:f2 -> assignment_source_list122:f1;
+statement127:f2 -> assignment120:f1;
+	line_comment128[shape=record,label="<f1> line_comment|{ token: ' XXX: this only works if i hard code the dcArgDouble right now' }", fillcolor=green, style="filled"];
+	line_comment129[shape=record,label="<f1> line_comment|{ token: '      need to get type information + any working' }", fillcolor=green, style="filled"];
+	statement138[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	proc_call132[shape=record,label="<f0> lhs|<f1> proc_call|<f2> rhs", fillcolor=darkorchid1, style="filled"];
+	symbol130[shape=record,label="<f1> symbol"];
+	symbol_part131[shape=record,label="<f1> symbol_part|{ token: 'print' }"];
+symbol130:f1 -> symbol_part131:f1 [label="[00]"];
+
+proc_call132:f0 -> symbol130:f1;
+	argument_list133[shape=record,label="<f1> argument_list"];
+	string_literal134[shape=record,label="<f1> string_literal|{ token: 'PI := %f\n' }"];
+	symbol136[shape=record,label="<f1> symbol"];
+	symbol_part137[shape=record,label="<f1> symbol_part|{ token: 'PI' }"];
+symbol136:f1 -> symbol_part137:f1 [label="[00]"];
+
+argument_list133:f1 -> string_literal134:f1 [label="[00]"];
+argument_list133:f1 -> symbol136:f1 [label="[01]"];
+
+proc_call132:f2 -> argument_list133:f1;
+statement138:f2 -> proc_call132:f1;
+	statement147[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	proc_call141[shape=record,label="<f0> lhs|<f1> proc_call|<f2> rhs", fillcolor=darkorchid1, style="filled"];
+	symbol139[shape=record,label="<f1> symbol"];
+	symbol_part140[shape=record,label="<f1> symbol_part|{ token: 'print' }"];
+symbol139:f1 -> symbol_part140:f1 [label="[00]"];
+
+proc_call141:f0 -> symbol139:f1;
+	argument_list142[shape=record,label="<f1> argument_list"];
+	string_literal143[shape=record,label="<f1> string_literal|{ token: 'E  := %f\n' }"];
+	symbol145[shape=record,label="<f1> symbol"];
+	symbol_part146[shape=record,label="<f1> symbol_part|{ token: 'E' }"];
+symbol145:f1 -> symbol_part146:f1 [label="[00]"];
+
+argument_list142:f1 -> string_literal143:f1 [label="[00]"];
+argument_list142:f1 -> symbol145:f1 [label="[01]"];
+
+proc_call141:f2 -> argument_list142:f1;
+statement147:f2 -> proc_call141:f1;
+	statement156[shape=record,label="<f1> statement|<f2> rhs", fillcolor=cornflowerblue, style="filled"];
+	proc_call150[shape=record,label="<f0> lhs|<f1> proc_call|<f2> rhs", fillcolor=darkorchid1, style="filled"];
+	symbol148[shape=record,label="<f1> symbol"];
+	symbol_part149[shape=record,label="<f1> symbol_part|{ token: 'print' }"];
+symbol148:f1 -> symbol_part149:f1 [label="[00]"];
+
+proc_call150:f0 -> symbol148:f1;
+	argument_list151[shape=record,label="<f1> argument_list"];
+	string_literal152[shape=record,label="<f1> string_literal|{ token: 'bar  := %d\n' }"];
+	symbol154[shape=record,label="<f1> symbol"];
+	symbol_part155[shape=record,label="<f1> symbol_part|{ token: 'bar' }"];
+symbol154:f1 -> symbol_part155:f1 [label="[00]"];
+
+argument_list151:f1 -> string_literal152:f1 [label="[00]"];
+argument_list151:f1 -> symbol154:f1 [label="[01]"];
+
+proc_call150:f2 -> argument_list151:f1;
+statement156:f2 -> proc_call150:f1;
+module1:f1 -> line_comment102:f1 [label="[00]"];
+module1:f1 -> line_comment117:f1 [label="[01]"];
+module1:f1 -> line_comment128:f1 [label="[02]"];
+module1:f1 -> line_comment129:f1 [label="[03]"];
+module1:f1 -> statement101:f1 [label="[04]"];
+module1:f1 -> statement109:f1 [label="[05]"];
+module1:f1 -> statement116:f1 [label="[06]"];
+module1:f1 -> statement127:f1 [label="[07]"];
+module1:f1 -> statement138:f1 [label="[08]"];
+module1:f1 -> statement147:f1 [label="[09]"];
+module1:f1 -> statement156:f1 [label="[10]"];
+module1:f1 -> statement28:f1 [label="[11]"];
+module1:f1 -> statement35:f1 [label="[12]"];
+module1:f1 -> statement42:f1 [label="[13]"];
+module1:f1 -> statement62:f1 [label="[14]"];
+module1:f1 -> statement69:f1 [label="[15]"];
+module1:f1 -> statement76:f1 [label="[16]"];
+module1:f1 -> statement83:f1 [label="[17]"];
+module1:f1 -> statement90:f1 [label="[18]"];
+
+}

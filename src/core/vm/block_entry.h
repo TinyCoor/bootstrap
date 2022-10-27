@@ -83,7 +83,7 @@ struct block_entry_t {
     explicit block_entry_t(const instruction_t& instruction);
 
     template<typename T>
-    const T *data() const
+    T *data()
     {
         if (!data_.has_value()) {
             return nullptr;

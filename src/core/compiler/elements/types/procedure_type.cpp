@@ -7,7 +7,8 @@
 #include "../symbol_element.h"
 #include "fmt/core.h"
 namespace gfx::compiler {
-procedure_type::procedure_type(compiler::module* module, block* parent_scope, compiler::block* scope, symbol_element* symbol)
+procedure_type::procedure_type(compiler::module* module, block* parent_scope,
+                               compiler::block* scope, symbol_element* symbol)
 	: type(module, parent_scope, element_type_t::proc_type, symbol), scope_(scope)
 {
 
@@ -55,6 +56,7 @@ bool procedure_type::on_initialize(compiler::session& session)
 
 bool procedure_type::on_emit(compiler::session &session)
 {
+    auto &assembler = session.assembler();
     auto procedure_label = symbol()->name();
     auto parent_init = parent_element_as<compiler::initializer>();
     if (parent_init != nullptr) {
@@ -68,15 +70,16 @@ bool procedure_type::on_emit(compiler::session &session)
         return true;
     }
 
-    auto instruction_block = session.assembler().make_procedure_block();
+    auto stack_frame = session.stack_frame();
+
+    auto instruction_block = assembler.make_procedure_block();
     instruction_block->align(instruction_t::alignment);
     instruction_block->current_entry()->blank_lines(1);
     instruction_block->memo();
 
-    auto proc_label = instruction_block->make_label(procedure_label);
+    auto proc_label = assembler.make_label(procedure_label);
     instruction_block->current_entry()->label(proc_label);
 
-    auto stack_frame = instruction_block->stack_frame();
     int32_t offset = -8;
     for (auto param : parameters_.as_list()) {
         stack_frame->add(stack_frame_entry_type_t::parameter, param->identifier()->symbol()->name(), offset);

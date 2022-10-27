@@ -53,7 +53,8 @@
 namespace gfx::compiler {
 session::session(const session_options_t& options, const path_list_t& source_files)
     : terp_(options.heap_size, options.stack_size), builder_(*this),
-      ast_evaluator_(*this),  assembler_(&terp_), scope_manager_(*this), options_(options)
+      ast_evaluator_(*this), assembler_(&terp_), stack_frame_(nullptr),
+      scope_manager_(*this), options_(options)
 {
     for (const auto &path : source_files) {
         if (path.is_relative()) {
@@ -275,9 +276,8 @@ bool session::compile()
     if (!type_check()) {
         return false;
     }
-
     if (!r.is_failed()) {
-        program_. emit(*this);
+        program_.emit(*this);
         assembler().apply_addresses(r);
         assembler().resolve_labels(r);
         if (assembler().assemble(r)) {
@@ -402,11 +402,7 @@ const compiler::scope_manager &session::scope_manager() const
 
 void session::disassemble(FILE * file)
 {
-    auto root_block = assembler_.root_block();
-    if (root_block == nullptr) {
-        return;
-    }
-    root_block->disassemble();
+    assembler_.disassemble();
     if (file != nullptr) {
         assembler_.listing().write(file);
     }
@@ -509,5 +505,10 @@ bool session::resolve_unknown_types()
 void session::initialize_built_in_procedures()
 {
    // auto parent_scope = scope_manager_.current_scope();
+}
+
+stack_frame_t *session::stack_frame()
+{
+    return &stack_frame_;
 }
 }

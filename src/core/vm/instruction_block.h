@@ -30,7 +30,7 @@ class instruction_block {
 public:
     using block_predicate_visitor_callable = std::function<bool (instruction_block*)>;
 
-    explicit instruction_block(instruction_block* parent, instruction_block_type_t type);
+    explicit instruction_block(instruction_block_type_t type);
 
     virtual ~instruction_block();
 
@@ -38,45 +38,21 @@ public:
 public:
     void memo();
 
-    void clear_blocks();
+    id_t id() const;
 
     void clear_entries();
-
-    instruction_block* parent();
-
-    stack_frame_t* stack_frame();
 
     block_entry_t* current_entry();
 
     instruction_block_type_t type() const;
 
-    void add_block(instruction_block* block);
-
-    void disassemble();
-
     void add_entry(const block_entry_t& entry);
-
-    void parent(instruction_block* parent_block);
-
-    void remove_block(instruction_block* block);
-
-    label* make_label(const std::string& name);
 
     listing_source_file_t* source_file();
 
     void source_file(listing_source_file_t* value);
 
-    std::vector<label_ref_t*> label_references();
-
     std::vector<block_entry_t>& entries();
-
-    label* find_label(const std::string& name);
-
-    const std::vector<instruction_block*>& blocks() const;
-
-    bool walk_blocks(const block_predicate_visitor_callable& callable);
-
-    label_ref_t* find_unresolved_label_up(id_t id);
 
     void make_block_entry(const align_t &data);
 
@@ -86,24 +62,6 @@ public:
 
     void make_block_entry(const data_definition_t& data);
 
-    template <typename T>
-    T* find_in_blocks(const std::function<T* (instruction_block*)>& callable)
-    {
-        std::stack<instruction_block*> block_stack {};
-        block_stack.push(this);
-        while (!block_stack.empty()) {
-            auto block = block_stack.top();
-            auto found = callable(block);
-            if (found != nullptr)  {
-                return found;
-            }
-            block_stack.pop();
-            for (auto child_block : block->blocks()) {
-                block_stack.push(child_block);
-            }
-        }
-        return nullptr;
-    }
 // data definitions
 public:
     void align(uint8_t size);
@@ -148,9 +106,9 @@ public:
     void setnz(const register_t& dest_reg);
 
     // branches
-    void bne(const std::string& label_name);
+    void bne(const label_ref_t *label_ref);
 
-    void beq(const std::string& label_name);
+    void beq(const label_ref_t *label_ref);
 
     void jump_indirect(const register_t& reg);
 
@@ -167,7 +125,7 @@ public:
 
     void pop(const register_t &reg);
 
-    void call(const std::string& proc_name);
+    void call(const label_ref_t *label_ref);
 
     void move_reg_to_reg(const register_t& dest_reg, const register_t& src_reg);
 
@@ -255,11 +213,11 @@ public:
 
     void call_foreign(uint64_t proc_address);
 
-    void jump_direct(const std::string& label_name);
+    void jump_direct(const label_ref_t *label_ref);
 
-    void move_label_to_reg(const register_t& dest_reg, const std::string& label_name);
+    void move_label_to_reg(const register_t& dest_reg, const label_ref_t *label_ref);
 
-    void move_label_to_reg_with_offset(const register_t& dest_reg, const std::string& label_name,
+    void move_label_to_reg_with_offset(const register_t& dest_reg, const label_ref_t *label_ref,
         uint64_t offset);
 
 private:
@@ -320,21 +278,11 @@ private:
 
     void make_integer_constant_push_instruction(op_sizes size, uint64_t value);
 
-    label* find_label_up(const std::string& label_name);
-
-    label_ref_t* make_unresolved_label_ref(const std::string& label_name);
-
-    void disassemble(instruction_block* block);
 private:
-    stack_frame_t stack_frame_;
-    instruction_block* parent_ = nullptr;
+    id_t id_;
     instruction_block_type_t type_;
     std::vector<block_entry_t> entries_ {};
-    std::vector<instruction_block*> blocks_ {};
     listing_source_file_t* source_file_ = nullptr;
-    std::unordered_map<std::string, label*> labels_ {};
-    std::unordered_map<id_t, label_ref_t> unresolved_labels_ {};
-    std::unordered_map<std::string, id_t> label_to_unresolved_ids_ {};
 };
 }
 

@@ -187,7 +187,7 @@ bool directive::on_execute_assembly(session &session)
         return false;
     }
     auto& assembler = session.assembler();
-    auto success = assembler.assemble_from_source(session.result(),source);
+    auto success = assembler.assemble_from_source(session.result(), source, session.stack_frame());
     if (success) {
         // XXX:  this is so evil
         instruction_block_ = assembler.blocks().back();

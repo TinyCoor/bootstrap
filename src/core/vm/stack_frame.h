@@ -10,8 +10,6 @@
 #include <string_view>
 #include <cstdint>
 namespace gfx{
-class instruction_block;
-
 enum class stack_frame_entry_type_t : uint8_t {
     local = 1,
     parameter,
@@ -35,9 +33,9 @@ struct stack_frame_entry_t {
     std::string name;
     stack_frame_entry_type_t type;
 };
-
+struct stack_frame_t;
 struct stack_frame_t {
-    explicit stack_frame_t(instruction_block* parent_block);
+    explicit stack_frame_t(stack_frame_t* parent);
 
     stack_frame_entry_t* add(stack_frame_entry_type_t type, const std::string& name, int32_t offset);
 
@@ -45,7 +43,7 @@ struct stack_frame_t {
 
     stack_frame_entry_t* find_up(const std::string& name);
 
-    instruction_block* parent_block_ = nullptr;
+    stack_frame_t* parent_ = nullptr;
     std::map<std::string, stack_frame_entry_t> entries {};
 };
 }

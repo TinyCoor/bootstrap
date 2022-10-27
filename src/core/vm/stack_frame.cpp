@@ -5,8 +5,8 @@
 #include "stack_frame.h"
 #include "instruction_block.h"
 namespace gfx {
-stack_frame_t::stack_frame_t(instruction_block *parent_block)
-    : parent_block_(parent_block)
+stack_frame_t::stack_frame_t(stack_frame_t* parent)
+    : parent_(parent)
 {
 }
 
@@ -38,10 +38,10 @@ stack_frame_entry_t *stack_frame_t::find_up(const std::string &name)
         if (entry != nullptr) {
             return entry;
         }
-        if (current_frame->parent_block_ == nullptr) {
+        if (current_frame->parent_ == nullptr) {
             break;
         }
-        current_frame = current_frame->parent_block_->stack_frame();
+        current_frame = current_frame->parent_;
     }
     return nullptr;
 }

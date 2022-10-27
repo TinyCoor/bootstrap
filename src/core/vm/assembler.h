@@ -179,11 +179,17 @@ inline static directive_t* directive(const std::string& code) {
 
 class assembler {
 public:
-	explicit assembler(terp* terp);
+    using block_predicate_visitor_callable = std::function<bool (instruction_block*)>;
+
+    explicit assembler(terp* terp);
 
     assembler(const assembler& other) = delete;
 
 	virtual ~assembler();
+
+    bool assemble(result& r);
+
+    void disassemble();
 
     bool initialize(result& r);
 
@@ -194,8 +200,6 @@ public:
     void free_reg(const register_t &reg);
 
     instruction_block* pop_block();
-
-    instruction_block* root_block();
 
     segment_list_t segments() const;
 
@@ -209,6 +213,14 @@ public:
 
     void pop_target_register();
 
+    label* make_label(const std::string& name);
+
+    label* find_label(const std::string& name);
+
+    label_ref_t* make_label_ref(const std::string& label_name);
+
+    label_ref_t* find_label_ref(id_t id);
+
     void push_block(instruction_block* block);
 
     register_t* current_target_register();
@@ -219,9 +231,7 @@ public:
 
     std::vector<instruction_block*>& blocks();
 
-    bool assemble(result& r, instruction_block* block = nullptr);
-
-    bool assemble_from_source(result& r, source_file& source);
+    bool assemble_from_source(result& r, source_file& source, stack_frame_t* stack_frame);
 
 	gfx::segment* segment(const std::string &name, segment_type_t type);
 
@@ -229,7 +239,23 @@ public:
 
     instruction_block* make_procedure_block(instruction_block* parent = nullptr);
 
+    template <typename T>
+    T* find_in_blocks(const std::function<T* (instruction_block*)>& callable)
+    {
+        for (auto block : blocks_) {
+            auto found = callable(block);
+            if (found != nullptr) {
+                return found;
+            }
+        }
+        return nullptr;
+    }
+
 private:
+    void disassemble(instruction_block* block);
+
+    std::vector<label_ref_t*> label_references();
+
     void add_new_block(instruction_block* block);
 
     block_entry_t* current_entry(instruction_block* block);
@@ -241,9 +267,12 @@ private:
     uint32_t procedure_block_count_ = 0;
     std::vector<instruction_block*> blocks_ {};
     std::stack<instruction_block*> block_stack_{};
+    std::unordered_map<std::string, label*> labels_ {};
     std::stack<register_t> target_registers_ {};
     register_allocator_t register_allocator_ {};
 	std::unordered_map<std::string, gfx::segment> segments_{};
+    std::unordered_map<id_t, label_ref_t> unresolved_labels_ {};
+    std::unordered_map<std::string, id_t> label_to_unresolved_ids_ {};
 };
 }
 #endif // ASSEMBLER_H_

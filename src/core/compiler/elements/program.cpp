@@ -24,15 +24,16 @@ program::~program() = default;
 
 bool program::on_emit(compiler::session &session)
 {
+    auto& assembler = session.assembler();
     auto& scope_manager = session.scope_manager();
     auto instruction_block = session.assembler().make_basic_block();
-    instruction_block->jump_direct("_initializer");
+    instruction_block->jump_direct(assembler.make_label_ref("_initializer"));
 
     std::map<section_t, element_list_t> vars_by_section {};
-    vars_by_section.insert(std::make_pair(section_t::bss,     element_list_t()));
+    vars_by_section.insert(std::make_pair(section_t::bss,  element_list_t()));
     auto ro   = vars_by_section.insert(std::make_pair(section_t::ro_data, element_list_t()));
     auto data = vars_by_section.insert(std::make_pair(section_t::data,    element_list_t()));
-    vars_by_section.insert(std::make_pair(section_t::text,    element_list_t()));
+    vars_by_section.insert(std::make_pair(section_t::text, element_list_t()));
 
     auto identifiers = session.elements().find_by_type(element_type_t::identifier);
     for (auto identifier : identifiers) {
@@ -107,13 +108,13 @@ bool program::on_emit(compiler::session &session)
                         auto current_entry = instruction_block->current_entry();
                         string_literal_list_t& str_list = it->second;
                         for (auto str : str_list) {
-                            auto var_label = instruction_block->make_label(str->label_name());
+                            auto var_label = assembler.make_label(str->label_name());
                             current_entry->label(var_label);
                             auto var = session.emit_context().allocate_variable(var_label->name(),
-                                session.scope_manager().find_type({.name = "string"}), identifier_usage_t::heap);
+                                session.scope_manager().find_type({.name = "string"}), identifier_usage_t::heap,
+                                                                                nullptr);
                             if (var != nullptr) {
                                 var->address_offset = 4;
-                                literals.emplace_back(var);
                             }
                         }
                         current_entry->blank_lines(1);
@@ -133,7 +134,7 @@ bool program::on_emit(compiler::session &session)
                         instruction_block->align(type_alignment);
                     }
 
-                    auto var_label = instruction_block->make_label(var->symbol()->name());
+                    auto var_label = assembler.make_label(var->symbol()->name());
                     instruction_block->current_entry()->label(var_label);
                     session.emit_context().allocate_variable(var_label->name(), var->type(),
                         identifier_usage_t::heap, nullptr);
@@ -245,10 +246,7 @@ bool program::on_emit(compiler::session &session)
     top_level_block->align(instruction_t::alignment);
     top_level_block->current_entry()->blank_lines(1);
     top_level_block->memo();
-    top_level_block->current_entry()->label(top_level_block->make_label("_initializer"));
-//    for (auto var : literals) {
-//        var->init(context.assembler, top_level_block);
-//    }
+    top_level_block->current_entry()->label(assembler.make_label("_initializer"));
 
     block_list_t implicit_blocks {};
     auto module_blocks = session.elements().find_by_type(element_type_t::module_block);
@@ -265,7 +263,7 @@ bool program::on_emit(compiler::session &session)
     finalizer_block->align(instruction_t::alignment);
     finalizer_block->current_entry()->blank_lines(1);
     finalizer_block->exit();
-    finalizer_block->current_entry()->label(finalizer_block->make_label("_finalizer"));
+    finalizer_block->current_entry()->label(assembler.make_label("_finalizer"));
 
     session.assembler().pop_block();
     session.assembler().pop_block();

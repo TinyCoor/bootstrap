@@ -36,11 +36,11 @@ bool variable_t::init(compiler::session& session, instruction_block *block)
         if (!address_reg.reserve(session)) {
             return false;
         }
-
+        auto label_ref = session.assembler().make_label_ref(name);
         if (address_offset != 0) {
-            block->move_label_to_reg_with_offset(address_reg.reg, name, address_offset);
+            block->move_label_to_reg_with_offset(address_reg.reg, label_ref, address_offset);
         } else {
-            block->move_label_to_reg(address_reg.reg, name);
+            block->move_label_to_reg(address_reg.reg, label_ref);
         }
         block->current_entry()->blank_lines(1)->comment(fmt::format("identifier '{}' address (global)", name),
                                                         session.emit_context().indent);

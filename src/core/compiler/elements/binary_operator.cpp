@@ -157,9 +157,9 @@ void binary_operator::emit_relational_operator(compiler::session& session, instr
             if (if_data != nullptr) {
                 auto parent_op = parent_element_as<compiler::binary_operator>();
                 if (parent_op !=nullptr && parent_op->operator_type() == operator_type_t::logical_and) {
-                    instruction_block->bne(if_data->false_branch_label);
+                    instruction_block->bne(assembler.make_label_ref(if_data->false_branch_label));
                 } else {
-                    instruction_block->beq(if_data->true_branch_label);
+                    instruction_block->beq(assembler.make_label_ref(if_data->true_branch_label));
                 }
             } else {
                 auto target_reg = assembler.current_target_register();
@@ -176,7 +176,7 @@ void binary_operator::emit_relational_operator(compiler::session& session, instr
         }
         case operator_type_t::logical_or: {
             if (if_data != nullptr) {
-                instruction_block->jump_direct(if_data->false_branch_label);
+                instruction_block->jump_direct(assembler.make_label_ref(if_data->false_branch_label));
             } else {
                 auto lhs_target_reg = session.emit_context().pop_scratch_register();
                 auto rhs_target_reg = session.emit_context().pop_scratch_register();
@@ -187,7 +187,7 @@ void binary_operator::emit_relational_operator(compiler::session& session, instr
         }
         case operator_type_t::logical_and: {
             if (if_data != nullptr) {
-                instruction_block->jump_direct(if_data->true_branch_label);
+                instruction_block->jump_direct(assembler.make_label_ref(if_data->true_branch_label));
             } else {
                 auto rhs_target_reg = session.emit_context().pop_scratch_register();
                 auto lhs_target_reg =session.emit_context().pop_scratch_register();

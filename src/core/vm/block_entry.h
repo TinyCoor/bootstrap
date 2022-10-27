@@ -94,6 +94,19 @@ struct block_entry_t {
             return nullptr;
         }
     }
+
+    template<typename T>
+    const T *data() const
+    {
+        if (!data_.has_value()) {
+            return nullptr;
+        }
+        try {
+            return std::any_cast<T>(&data_);
+        } catch (const std::bad_any_cast &e) {
+            return nullptr;
+        }
+    }
     [[nodiscard]] uint64_t address() const
     {
         return address_;
@@ -131,11 +144,11 @@ struct block_entry_t {
 
 private:
     std::any data_;
-    block_entry_type_t type_;
     uint64_t address_ = 0;
+    block_entry_type_t type_;
     uint16_t blank_lines_ = 0;
-    std::vector<class label *> labels_{};
     comment_list_t comments_ {};
+    std::vector<class label *> labels_{};
 };
 }
 #endif // VM_BLOCK_ENTRY_H_

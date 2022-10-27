@@ -38,11 +38,11 @@ bool procedure_call::on_infer_type(const compiler::session& session, type_infere
 bool procedure_call::on_emit(compiler::session &session)
 {
     auto &context = session.emit_context();
-    session.emit_context().indent = 4;
+    auto& assembler = session.assembler();
+    context.indent = 4;
     defer({
           context.indent = 0;
     });
-    auto &assembler = session.assembler();
     auto instruction_block = assembler.current_block();
     auto identifier = reference_->identifier();
     auto init = identifier->initializer();
@@ -60,7 +60,7 @@ bool procedure_call::on_emit(compiler::session &session)
         instruction_block->current_entry()->comment(fmt::format("foreign call: {}", identifier->symbol()->name()),
             context.indent);
     } else {
-        instruction_block->call(identifier->symbol()->name());
+        instruction_block->call(assembler.make_label_ref(identifier->symbol()->name()));
     }
     auto target_reg = assembler.current_target_register();
     if (target_reg != nullptr) {

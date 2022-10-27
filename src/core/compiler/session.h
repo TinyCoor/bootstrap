@@ -40,6 +40,8 @@ public:
 
     assembler& assembler();
 
+    stack_frame_t* stack_frame();
+
     compiler::program& program();
 
     element_builder& builder();
@@ -106,6 +108,7 @@ private:
     ast_evaluator ast_evaluator_;
     class assembler assembler_;
     compiler::program program_;
+    stack_frame_t stack_frame_;
     compiler::scope_manager scope_manager_;
     emit_context_t context_;
     session_options_t options_ {};

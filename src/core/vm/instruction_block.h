@@ -28,21 +28,19 @@ struct label_ref_t {
 
 class instruction_block {
 public:
-    using block_predicate_visitor_callable = std::function<bool (instruction_block*)>;
-
     explicit instruction_block(instruction_block_type_t type);
 
     virtual ~instruction_block();
 
 /// block support
 public:
-    void memo();
+    void blank_line();
 
     id_t id() const;
 
     void clear_entries();
 
-    block_entry_t* current_entry();
+    void label(label* value);
 
     instruction_block_type_t type() const;
 
@@ -54,13 +52,19 @@ public:
 
     std::vector<block_entry_t>& entries();
 
+    void make_block_entry(const label_t& label);
+
     void make_block_entry(const align_t &data);
+
+    void make_block_entry(const comment_t& comment);
 
     void make_block_entry(const section_t &data);
 
     void make_block_entry(const instruction_t& inst);
 
     void make_block_entry(const data_definition_t& data);
+
+    void comment(const std::string& value, uint8_t indent);
 
 // data definitions
 public:

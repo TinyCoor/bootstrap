@@ -790,14 +790,44 @@ void instruction_block::string(const std::string &value)
     bytes(str_bytes);
 }
 
+void instruction_block::blank_line()
+{
+    entries_.emplace_back(block_entry_t());
+}
+
+void instruction_block::label(gfx::label* value)
+{
+    make_block_entry(label_t {
+        .instance = value
+    });
+}
+
 void instruction_block::make_block_entry(const instruction_t &inst)
 {
     entries_.emplace_back(block_entry_t(inst));
 }
 
+void instruction_block::make_block_entry(const label_t& label)
+{
+    entries_.emplace_back(label);
+}
+
 void instruction_block::make_block_entry(const section_t &section)
 {
     entries_.emplace_back(block_entry_t(section));
+}
+
+void instruction_block::make_block_entry(const comment_t& comment)
+{
+    entries_.emplace_back(comment);
+}
+
+void instruction_block::comment(const std::string& value, uint8_t indent)
+{
+    make_block_entry(comment_t {
+        .indent = indent,
+        .value = value,
+    });
 }
 
 void instruction_block::make_block_entry(const align_t &align)
@@ -813,19 +843,6 @@ void instruction_block::make_block_entry(const data_definition_t &data)
 void instruction_block::clear_entries()
 {
     entries_.clear();
-}
-
-block_entry_t *instruction_block::current_entry()
-{
-    if (entries_.empty()) {
-        return nullptr;
-    }
-    return &entries_.back();
-}
-
-void instruction_block::memo()
-{
-    entries_.emplace_back(block_entry_t());
 }
 
 void instruction_block::align(uint8_t size)

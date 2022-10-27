@@ -6,7 +6,7 @@
 namespace gfx {
 
 block_entry_t::block_entry_t()
-    : data_({}), type_(block_entry_type_t::memo)
+    : data_({}), type_(block_entry_type_t::blank_line)
 {
 }
 
@@ -15,6 +15,19 @@ block_entry_t::block_entry_t(const align_t& align)
 {
 
 }
+
+block_entry_t::block_entry_t(const label_t& label)
+    : data_(std::any(label)), type_(block_entry_type_t::label)
+{
+
+}
+
+block_entry_t::block_entry_t(const comment_t& comment)
+    : data_(std::any(comment)), type_(block_entry_type_t::comment)
+{
+
+}
+
 
 block_entry_t::block_entry_t(const section_t& section)
     : data_(std::any(section)), type_(block_entry_type_t::section)
@@ -32,14 +45,17 @@ block_entry_t::block_entry_t(const instruction_t& instruction)
 }
 
 block_entry_t::block_entry_t(const block_entry_t& other)
-    : data_(other.data_), address_(other.address_), type_(other.type_),
-      blank_lines_(other.blank_lines_), comments_(other.comments_), labels_(other.labels_)
+    : data_(other.data_), address_(other.address_), type_(other.type_)
 {
 }
 
-block_entry_t *block_entry_t::label(class label *label)
+block_entry_t *block_entry_t::address(uint64_t value)
 {
-    labels_.emplace_back(label);
+    address_ = value;
+    if (type_ == block_entry_type_t::label) {
+        auto label = data<label_t>();
+        label->instance->address(value);
+    }
     return this;
 }
 
@@ -48,22 +64,4 @@ block_entry_type_t block_entry_t::type() const
     return type_;
 }
 
-const std::vector<class label *> &block_entry_t::labels() const
-{
-    return labels_;
-}
-
-block_entry_t *block_entry_t::comment(const std::string& value, uint8_t indent)
-{
-    comments_.push_back(comment_t {
-        .indent = indent,
-        .value = value
-    });
-    return this;
-}
-
-comment_list_t block_entry_t::comments()
-{
-    return comments_;
-}
 }

@@ -236,7 +236,7 @@ bool assembler::assemble_from_source(result &r, source_file &source_file, stack_
                     if (rune == '\n')
                         break;
                 }
-                current_entry(block)->comment(stream.str(), 4);
+                block->comment(stream.str(), 4);
 
                 if (wip.is_valid) {
                     if (wip.type == wip_type_t::mnemonic) {
@@ -259,7 +259,7 @@ bool assembler::assemble_from_source(result &r, source_file &source_file, stack_
                     }
                 }
                 auto label = make_label(stream.str());
-                current_entry(block)->label(label);
+                block->label(label);
                 state = assembly_parser_state_t::whitespace;
                 break;
             }
@@ -706,7 +706,9 @@ bool assembler::apply_addresses(result &r)
             auto address = location_counter_ + offset;
             entry.address(address);
             switch (entry.type()) {
-                case block_entry_type_t::memo: {
+                case block_entry_type_t::blank_line:
+                case block_entry_type_t::comment:
+                case block_entry_type_t::label: {
                     break;
                 }
                 case block_entry_type_t::align: {
@@ -774,15 +776,6 @@ void assembler::push_target_register(const register_t &reg)
     target_registers_.push(reg);
 }
 
-block_entry_t *assembler::current_entry(instruction_block *block)
-{
-    auto entry = block->current_entry();
-    if (entry == nullptr) {
-        block->memo();
-        entry = block->current_entry();
-    }
-    return entry;
-}
 std::vector<instruction_block *> &assembler::blocks()
 {
     return blocks_;
@@ -797,38 +790,44 @@ void assembler::disassemble(instruction_block *block)
 
     size_t index = 0;
     for (auto& entry : block->entries()) {
-        source_file->add_blank_lines(entry.address(), entry.blank_lines());
-        for (const auto& comment : entry.comments()) {
-            std::string indent;
-            if (comment.indent > 0) {
-                indent = std::string(comment.indent, ' ');
-            }
-            source_file->add_source_line(entry.address(), fmt::format("{}; {}", indent, comment.value));
-        }
-
-        if (entry.type() == block_entry_type_t::align) {
-            auto align = entry.data<align_t>();
-            source_file->add_source_line(entry.address(), fmt::format(".align {}", align->size));
-        } else if (entry.type() == block_entry_type_t::section) {
-            auto section = entry.data<section_t>();
-            source_file->add_source_line(entry.address(), fmt::format(".section '{}'", section_name(*section)));
-        }
-
-        for (auto label : entry.labels()) {
-            source_file->add_source_line(entry.address(), fmt::format("{}:", label->name()));
-        }
         switch (entry.type()) {
-            case block_entry_type_t::memo:
-            case block_entry_type_t::align:
-            case block_entry_type_t::section: {
+            case block_entry_type_t::section:{
+                auto section = entry.data<section_t>();
+                source_file->add_source_line(entry.address(),
+                    fmt::format(".section '{}'", section_name(*section)));
                 break;
             }
-            case block_entry_type_t::instruction: {
+            case block_entry_type_t::comment:{
+                auto comment = entry.data<comment_t>();
+                std::string indent;
+                if (comment->indent > 0) {
+                    indent = std::string(comment->indent, ' ');
+                }
+                source_file->add_source_line(entry.address(),
+                    fmt::format("{}; {}", indent, comment->value));
+                break;
+            }
+            case block_entry_type_t::label: {
+                auto label = entry.data<label_t>();
+                source_file->add_source_line(entry.address(), fmt::format("{}:", label->instance->name()));
+                break;
+            }
+            case block_entry_type_t::blank_line:{
+                source_file->add_blank_lines(entry.address(), 1);
+                break;
+            }
+            case block_entry_type_t::align: {
+                auto align = entry.data<align_t>();
+                source_file->add_source_line(entry.address(),
+                    fmt::format(".align {}", align->size));
+                break;
+            }
+            case block_entry_type_t::instruction:{
                 auto inst = entry.data<instruction_t>();
                 auto stream = inst->disassemble([&](uint64_t id) -> std::string {
                   auto label_ref = find_label_ref(static_cast<id_t>(id));
                   if (label_ref != nullptr) {
-                      if (label_ref->resolved !=nullptr) {
+                      if (label_ref->resolved != nullptr) {
                           return fmt::format("{} (${:08x})", label_ref->name, label_ref->resolved->address());
                       } else {
                           return label_ref->name;
@@ -836,10 +835,12 @@ void assembler::disassemble(instruction_block *block)
                   }
                   return fmt::format("unresolved_ref_id({})", id);
                 });
-                source_file->add_source_line(entry.address(), fmt::format("\t{}", stream));
+                source_file->add_source_line(
+                    entry.address(),
+                    fmt::format("\t{}", stream));
                 break;
             }
-            case block_entry_type_t::data_definition: {
+            case block_entry_type_t::data_definition:{
                 auto definition = entry.data<data_definition_t>();
                 std::stringstream directive;
                 std::string format_spec;

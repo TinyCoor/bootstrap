@@ -258,7 +258,6 @@ private:
 
     void add_new_block(instruction_block* block);
 
-    block_entry_t* current_entry(instruction_block* block);
 
 private:
 	terp* terp_ = nullptr;

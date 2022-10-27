@@ -74,11 +74,9 @@ bool procedure_type::on_emit(compiler::session &session)
 
     auto instruction_block = assembler.make_procedure_block();
     instruction_block->align(instruction_t::alignment);
-    instruction_block->current_entry()->blank_lines(1);
-    instruction_block->memo();
+    instruction_block->blank_line();
 
-    auto proc_label = assembler.make_label(procedure_label);
-    instruction_block->current_entry()->label(proc_label);
+    instruction_block->label(assembler.make_label(procedure_label));
 
     int32_t offset = -8;
     for (auto param : parameters_.as_list()) {
@@ -119,9 +117,9 @@ bool procedure_type::on_emit(compiler::session &session)
         instruction_block->sub_reg_by_immediate(register_t::sp(), register_t::sp(), size);
     }
 
-    session.assembler().push_block(instruction_block);
+    assembler.push_block(instruction_block);
     scope_->emit(session);
-    session.assembler().pop_block();
+    assembler.pop_block();
 
     return true;
 }

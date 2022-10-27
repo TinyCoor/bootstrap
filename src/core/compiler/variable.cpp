@@ -42,8 +42,7 @@ bool variable_t::init(compiler::session& session, instruction_block *block)
         } else {
             block->move_label_to_reg(address_reg.reg, label_ref);
         }
-        block->current_entry()->blank_lines(1)->comment(fmt::format("identifier '{}' address (global)", name),
-                                                        session.emit_context().indent);
+        block->comment(fmt::format("identifier '{}' address (global)", name), session.emit_context().indent);
     }
 
     value_reg.reg.type = register_type_t::integer;
@@ -78,8 +77,8 @@ bool variable_t::read(compiler::session& session, instruction_block* block)
             block->load_to_reg(value_reg.reg, register_t::fp(), frame_entry->offset);
         } else {
             block->load_to_reg(value_reg.reg, address_reg.reg);
-            block->current_entry() ->blank_lines(1)->comment(fmt::format("load identifier '{}' value ({})", name, type_name),
-                                                            session.emit_context().indent);
+            block->comment(fmt::format("load identifier '{}' value ({})", name, type_name),
+                           session.emit_context().indent);
         }
         requires_read = false;
     }

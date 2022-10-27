@@ -21,8 +21,6 @@ enum class cast_mode_t : uint8_t {
     integer_to_float,
 };
 
-
-
 cast::cast(compiler::module* module, block* parent, compiler::type* type, element* expr)
 	: element(module, parent, element_type_t::cast), expression_(expr), type_(type)
 {
@@ -154,7 +152,7 @@ bool cast::on_emit(compiler::session& session)
         }
     }
 
-    instruction_block->current_entry()->comment(
+    instruction_block->comment(
         fmt::format("cast<{}> from type {}", type_->symbol()->name(), source_type.name()),
         session.emit_context().indent);
     return true;

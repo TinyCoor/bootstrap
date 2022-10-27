@@ -95,21 +95,21 @@ bool program::on_emit(compiler::session &session)
     }
     std::vector<variable_t*> literals {};
     for (const auto& section : vars_by_section) {
+        instruction_block->blank_line();
         instruction_block->section(section.first);
-        instruction_block->current_entry()->blank_lines(1);
         for (auto e : section.second) {
             switch (e->element_type()) {
                 case element_type_t::string_literal: {
                     auto string_literal = dynamic_cast<compiler::string_literal*>(e);
-                    instruction_block->memo();
+                    instruction_block->blank_line();
                     instruction_block->align(4);
+
                     auto it = interned_strings.find(string_literal->value());
                     if (it != interned_strings.end()) {
-                        auto current_entry = instruction_block->current_entry();
                         string_literal_list_t& str_list = it->second;
                         for (auto str : str_list) {
                             auto var_label = assembler.make_label(str->label_name());
-                            current_entry->label(var_label);
+                            instruction_block->label(var_label);
                             auto var = session.emit_context().allocate_variable(var_label->name(),
                                 session.scope_manager().find_type({.name = "string"}), identifier_usage_t::heap,
                                                                                 nullptr);
@@ -117,9 +117,8 @@ bool program::on_emit(compiler::session &session)
                                 var->address_offset = 4;
                             }
                         }
-                        current_entry->blank_lines(1);
                     }
-                    instruction_block->current_entry()->comment(fmt::format("\"{}\"", string_literal->value()),
+                    instruction_block->comment(fmt::format("\"{}\"", string_literal->value()),
                         session.emit_context().indent);
                     instruction_block->string(string_literal->escaped_value());
                     break;
@@ -127,17 +126,16 @@ bool program::on_emit(compiler::session &session)
                 case element_type_t::identifier: {
                     auto var = dynamic_cast<compiler::identifier*>(e);
                     auto init = var->initializer();
-                    instruction_block->memo();
-                    instruction_block->current_entry()->blank_lines(1);
+                    instruction_block->blank_line();
                     auto type_alignment = static_cast<uint8_t>(var->type()->alignment());
                     if (type_alignment > 1) {
                         instruction_block->align(type_alignment);
                     }
 
                     auto var_label = assembler.make_label(var->symbol()->name());
-                    instruction_block->current_entry()->label(var_label);
+                    instruction_block->label(var_label);
                     session.emit_context().allocate_variable(var_label->name(), var->type(),
-                        identifier_usage_t::heap, nullptr);
+                        identifier_usage_t::heap);
                     switch (var->type()->element_type()) {
                         case element_type_t::bool_type: {
                             bool value = false;
@@ -202,7 +200,7 @@ bool program::on_emit(compiler::session &session)
                         case element_type_t::string_type: {
                             if (init != nullptr) {
                                 auto string_literal = dynamic_cast<compiler::string_literal*>(init->expression());
-                                instruction_block->current_entry()->comment(fmt::format("\"{}\"", string_literal->value()),
+                                instruction_block->comment(fmt::format("\"{}\"", string_literal->value()),
                                     session.emit_context().indent);
                                 instruction_block->string(string_literal->value());
                             }
@@ -243,10 +241,9 @@ bool program::on_emit(compiler::session &session)
     }
 
     auto top_level_block = session.assembler().make_basic_block();
+    top_level_block->blank_line();
     top_level_block->align(instruction_t::alignment);
-    top_level_block->current_entry()->blank_lines(1);
-    top_level_block->memo();
-    top_level_block->current_entry()->label(assembler.make_label("_initializer"));
+    top_level_block->label(assembler.make_label("_initializer"));
 
     block_list_t implicit_blocks {};
     auto module_blocks = session.elements().find_by_type(element_type_t::module_block);
@@ -259,11 +256,11 @@ bool program::on_emit(compiler::session &session)
         block->emit(session);
     }
 
-    auto finalizer_block =session.assembler().make_basic_block();
+    auto finalizer_block = session.assembler().make_basic_block();
+    finalizer_block->blank_line();
     finalizer_block->align(instruction_t::alignment);
-    finalizer_block->current_entry()->blank_lines(1);
+    finalizer_block->label(assembler.make_label("_finalizer"));
     finalizer_block->exit();
-    finalizer_block->current_entry()->label(assembler.make_label("_finalizer"));
 
     session.assembler().pop_block();
     session.assembler().pop_block();

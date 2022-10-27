@@ -54,6 +54,10 @@ public:
 
     void disassemble();
 
+    void add_entry(const block_entry_t& entry);
+
+    void parent(instruction_block* parent_block);
+
     void remove_block(instruction_block* block);
 
     label* make_label(const std::string& name);

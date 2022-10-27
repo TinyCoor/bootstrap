@@ -1337,4 +1337,14 @@ void instruction_block::convert(const register_t &dest_reg, const register_t &sr
     make_block_entry(convert_op);
 }
 
+void instruction_block::add_entry(const block_entry_t &entry)
+{
+    entries_.emplace_back(entry);
+}
+
+void instruction_block::parent(instruction_block *parent_block)
+{
+    parent_ = parent_block;
+}
+
 }

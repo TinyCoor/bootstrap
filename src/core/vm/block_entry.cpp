@@ -31,6 +31,15 @@ block_entry_t::block_entry_t(const instruction_t& instruction)
 {
 }
 
+block_entry_t::block_entry_t(const block_entry_t& other) : data_(other.data_),
+                                            address_(other.address_),
+                                            type_(other.type_),
+                                            blank_lines_(other.blank_lines_),
+                                            comments_(other.comments_),
+                                            labels_(other.labels_) {
+}
+
+
 block_entry_t *block_entry_t::label(class label *label)
 {
     labels_.emplace_back(label);

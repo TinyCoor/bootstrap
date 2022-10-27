@@ -5,6 +5,7 @@
 #ifndef COMPILER_ELEMENTS_DIRECTIVE_H_
 #define COMPILER_ELEMENTS_DIRECTIVE_H_
 #include "block.h"
+#include "vm/instruction_block.h"
 #include "../session.h"
 namespace gfx::compiler {
 class directive : public element {
@@ -21,6 +22,8 @@ public:
 
 	bool execute(compiler::session &session);
 protected:
+    bool on_emit(compiler::session& session) override;
+
     void on_owned_elements(element_list_t& list) override;
 
 private:
@@ -42,6 +45,7 @@ private:
 private:
 	std::string name_;
 	element* expression_ = nullptr;
+    instruction_block* instruction_block_ = nullptr;
     static std::unordered_map<std::string, directive_callable> s_evaluate_handlers;
     static std::unordered_map<std::string, directive_callable> s_execute_handlers;
 };

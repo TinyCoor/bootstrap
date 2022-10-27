@@ -183,10 +183,16 @@ bool directive::on_execute_assembly(session &session)
         return false;
     }
     source_file source;
-    if (!source.load(session.result(), raw_block->value()))  {
+    if (!source.load(session.result(), raw_block->value()+ "\n"))  {
         return false;
     }
-    return session.assembler().assemble_from_source(session.result(), source);
+    auto& assembler = session.assembler();
+    auto success = assembler.assemble_from_source(session.result(),source);
+    if (success) {
+        // XXX:  this is so evil
+        instruction_block_ = assembler.blocks().back();
+    }
+    return success;
 }
 
 bool directive::on_evaluate_assembly(session &session)
@@ -197,5 +203,15 @@ bool directive::on_evaluate_assembly(session &session)
             location());
     }
     return is_valid;
+}
+
+bool directive::on_emit(session &session)
+{
+    if (instruction_block_ != nullptr) {
+        auto current_block = session.assembler().current_block();
+        for (const auto& entry : instruction_block_->entries())
+            current_block->add_entry(entry);
+    }
+    return true;
 }
 }

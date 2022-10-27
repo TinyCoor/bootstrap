@@ -72,6 +72,8 @@ enum class block_entry_type_t : uint8_t {
 struct block_entry_t {
     block_entry_t();
 
+    block_entry_t(const block_entry_t& other);
+
     explicit block_entry_t(const align_t& align);
 
     explicit block_entry_t(const section_t& section);
@@ -81,7 +83,7 @@ struct block_entry_t {
     explicit block_entry_t(const instruction_t& instruction);
 
     template<typename T>
-    T *data()
+    const T *data() const
     {
         if (!data_.has_value()) {
             return nullptr;

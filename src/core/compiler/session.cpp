@@ -237,6 +237,10 @@ bool session::type_check()
 bool session::compile()
 {
     auto& top_level_stack = scope_manager_.top_level_stack();
+    auto& listing = assembler().listing();
+    listing.add_source_file("top_level.basm");
+    listing.select_source_file("top_level.basm");
+
     program_.block(scope_manager_.push_new_block());
     program_.block()->parent_element(&program_);
     top_level_stack.push(program_.block());
@@ -273,10 +277,6 @@ bool session::compile()
     }
 
     if (!r.is_failed()) {
-        auto& listing = assembler().listing();
-        listing.add_source_file("top_level.basm");
-        listing.select_source_file("top_level.basm");
-
         program_. emit(*this);
         assembler().apply_addresses(r);
         assembler().resolve_labels(r);

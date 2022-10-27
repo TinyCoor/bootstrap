@@ -217,6 +217,8 @@ public:
 
     gfx::segment* segment(const std::string& name);
 
+    std::vector<instruction_block*>& blocks();
+
     bool assemble(result& r, instruction_block* block = nullptr);
 
     bool assemble_from_source(result& r, source_file& source);

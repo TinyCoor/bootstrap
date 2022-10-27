@@ -677,7 +677,7 @@ instruction_block *assembler::root_block()
     if (blocks_.empty()) {
         return nullptr;
     }
-    return blocks_.front();
+    return blocks_[1];
 }
 
 bool assembler::in_procedure_scope() const
@@ -808,6 +808,10 @@ block_entry_t *assembler::current_entry(instruction_block *block)
         entry = block->current_entry();
     }
     return entry;
+}
+std::vector<instruction_block *> &assembler::blocks()
+{
+    return blocks_;
 }
 
 }

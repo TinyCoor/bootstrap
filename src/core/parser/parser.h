@@ -62,7 +62,6 @@ private:
 	static inline union_prefix_parser s_union_prefix_parser {};
 	static inline group_prefix_parser s_group_prefix_parser {};
 	static inline label_prefix_parser s_label_prefix_parser {};
-
     static inline struct_prefix_parser s_struct_prefix_parser {};
 	static inline for_in_prefix_parser s_for_in_prefix_parser {};
 	static inline return_prefix_parser s_return_prefix_parser {};

@@ -11,7 +11,7 @@ class intrinsic : public element {
 public:
     static intrinsic* intrinsic_for_call(compiler::session& session,
         compiler::block* parent_scope, compiler::argument_list* args,
-        const std::string& name);
+        const qualified_symbol_t& symbol);
 
     intrinsic(compiler::module* module, compiler::block* parent_scope, compiler::argument_list* args);
 

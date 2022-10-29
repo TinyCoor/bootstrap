@@ -18,9 +18,17 @@ bool free_intrinsic::on_emit(session &session)
     auto instruction_block = assembler.current_block();
 
     auto args = arguments()->elements();
-    // XXX: needs error handling
+    if (args.empty() || args.size() > 1) {
+        session.error(this, "P091", "free expects a single integer argument.", location());
+        return false;
+    }
     auto arg = args[0];
-
+    type_inference_result_t result;
+    arg->infer_type(session, result);
+    if (result.type == nullptr ||  result.type->number_class() != type_number_class_t::integer) {
+        session.error(this, "P091", "free expects a single integer argument.", location());
+        return false;
+    }
     auto arg_reg = register_for(session, arg);
     if (arg_reg.var != nullptr) {
         arg_reg.clean_up = true;

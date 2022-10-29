@@ -126,6 +126,11 @@ set(ELEMENT_SRC
         compiler/elements/unary_operator.h          compiler/elements/unary_operator.cpp
         compiler/elements/binary_operator.h         compiler/elements/binary_operator.cpp
 
+        #instrinics
+        compiler/elements/instrinics/intrinsic.h               compiler/elements/instrinics/intrinsic.cpp
+        compiler/elements/instrinics/alloc_intrinsic.h         compiler/elements/instrinics/alloc_intrinsic.cpp
+        compiler/elements/instrinics/free_intrinsic.h          compiler/elements/instrinics/free_intrinsic.cpp
+        compiler/elements/instrinics/size_of_intrinsic.h       compiler/elements/instrinics/size_of_intrinsic.cpp
         # literal
         compiler/elements/float_literal.h           compiler/elements/float_literal.cpp
         compiler/elements/integer_literal.h         compiler/elements/integer_literal.cpp
@@ -158,7 +163,7 @@ set(ELEMENT_SRC
         compiler/elements/program.h                 compiler/elements/program.cpp
         compiler/elements/comment.h                 compiler/elements/comment.cpp
         compiler/elements/raw_block.h               compiler/elements/raw_block.cpp
-        compiler/elements/intrinsic.h               compiler/elements/intrinsic.cpp
+
         compiler/elements/transmute.h               compiler/elements/transmute.cpp
         compiler/elements/statement.h               compiler/elements/statement.cpp
         compiler/elements/directive.h               compiler/elements/directive.cpp

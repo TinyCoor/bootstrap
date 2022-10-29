@@ -364,7 +364,7 @@ struct field_map_t {
 
 	field_list_t as_list();
 
-	size_t size() const;
+	[[nodiscard]] size_t size() const;
 
 	bool remove(id_t id);
 

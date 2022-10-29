@@ -228,6 +228,11 @@ identifier* ast_evaluator::add_identifier_to_scope(const evaluator_context_t con
             init_expr->parent_element(new_identifier);
         } else {
             auto folded_expr = init_expr->fold(session_);
+            // XXX: need to refactor fold/on_fold's prototype
+            if (session_.result().is_failed()) {
+                return nullptr;
+            }
+
             if (folded_expr != nullptr) {
                 init_expr = folded_expr;
                 auto old_expr = init->expression();
@@ -737,7 +742,7 @@ bool ast_evaluator::proc_call(evaluator_context_t& context, evaluator_result_t& 
         args = dynamic_cast<compiler::argument_list*>(expr);
     }
     auto intrinsic = compiler::intrinsic::intrinsic_for_call(session_,
-        scope_manager.current_scope(), args, qualified_symbol.name);
+        scope_manager.current_scope(), args, qualified_symbol);
     if (intrinsic != nullptr) {
         result.element = intrinsic;
         return true;

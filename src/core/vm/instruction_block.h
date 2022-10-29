@@ -46,7 +46,7 @@ public:
 
     void should_emit(bool value);
 
-    instruction_block_type_t type() const;
+    [[nodiscard]] instruction_block_type_t type() const;
 
     void add_entry(const block_entry_t& entry);
 
@@ -107,6 +107,10 @@ public:
     void swi(uint8_t index);
 
     void trap(uint8_t index);
+    // alloc/free
+    void alloc(op_sizes size, const register_t& dest_reg, const register_t& size_reg);
+
+    void free(const register_t& addr_reg);
 
     // setxx
     void setz(const register_t& dest_reg);

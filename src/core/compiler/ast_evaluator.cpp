@@ -47,6 +47,7 @@
 #include "elements/types/procedure_type.h"
 #include "elements/types/namespace_type.h"
 #include "elements/types/composite_type.h"
+#include "elements/instrinics/size_of_intrinsic.h"
 #include "core/compiler/session.h"
 
 namespace gfx::compiler {
@@ -726,15 +727,24 @@ bool ast_evaluator::basic_block(evaluator_context_t& context, evaluator_result_t
 bool ast_evaluator::proc_call(evaluator_context_t& context, evaluator_result_t& result)
 {
     auto &builder_ = session_.builder();
+    auto &scope_manager = session_.scope_manager();
     qualified_symbol_t qualified_symbol {};
     compiler::element_builder::make_qualified_symbol(qualified_symbol, context.node->lhs.get());
-    auto proc_identifier = session_.scope_manager().find_identifier(qualified_symbol);
 
     compiler::argument_list* args = nullptr;
     auto expr = evaluate(context.node->rhs.get());
     if (expr != nullptr) {
         args = dynamic_cast<compiler::argument_list*>(expr);
     }
+    auto intrinsic = compiler::intrinsic::intrinsic_for_call(session_,
+        scope_manager.current_scope(), args, qualified_symbol.name);
+    if (intrinsic != nullptr) {
+        result.element = intrinsic;
+        return true;
+    }
+
+    auto proc_identifier = scope_manager.find_identifier(qualified_symbol);
+
     result.element = builder_.make_procedure_call(session_.scope_manager().current_scope(),
         builder_.make_identifier_reference(session_.scope_manager().current_scope(),
             qualified_symbol,

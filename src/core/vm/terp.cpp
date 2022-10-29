@@ -119,7 +119,7 @@ bool terp::step(result &r)
                 execute_trap(trap_out_of_memory);
                 return false;
             }
-			if (!set_target_operand_value(r, inst, 0, address)) {
+			if (!set_target_operand_value(r, inst.operands[0], op_sizes::qword, address)) {
 				return false;
 			}
 
@@ -151,7 +151,7 @@ bool terp::step(result &r)
 			}
             operand_value_t block_size;
 			block_size.alias.u = size(address.alias.u);
-			if (!set_target_operand_value(r, inst, 0, block_size)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, block_size)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
@@ -177,7 +177,7 @@ bool terp::step(result &r)
 
             operand_value_t loaded_data;
 			loaded_data.alias.u = read(inst.size, address.alias.u);
-			if (!set_target_operand_value(r, inst, 0, loaded_data)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, loaded_data)) {
 				return false;
 			}
 
@@ -216,7 +216,7 @@ bool terp::step(result &r)
 					break;
 			}
 
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
                 return false;
             }
 
@@ -270,7 +270,7 @@ bool terp::step(result &r)
                 result.alias.u = reg_value.alias.u + 1;
                 result.type = register_type_t::integer;
             }
-			if (set_target_operand_value(r, inst, 0, reg_value)) {
+			if (set_target_operand_value(r, inst.operands[0], inst.size, reg_value)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
@@ -298,7 +298,7 @@ bool terp::step(result &r)
                 result.alias.u = reg_value.alias.u + 1;
                 result.type = register_type_t::integer;
             }
-			if (set_target_operand_value(r, inst, 0, reg_value)) {
+			if (set_target_operand_value(r, inst.operands[0], inst.size, reg_value)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
@@ -406,7 +406,7 @@ bool terp::step(result &r)
                 }
             }
 
-            if (!set_target_operand_value(r, inst, 0, casted_value))
+            if (!set_target_operand_value(r, inst.operands[0], inst.size, casted_value))
                 return false;
 
             break;
@@ -468,7 +468,7 @@ bool terp::step(result &r)
 			}
             operand_value_t result;
             result.alias.u = source_value.alias.u + offset.alias.u;
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 
@@ -498,7 +498,7 @@ bool terp::step(result &r)
 
             operand_value_t address;
             address.alias.u = source_value.alias.u + offset.alias.u;
-            if (!set_target_operand_value(r, inst, 0, address)) {
+            if (!set_target_operand_value(r, inst.operands[0], inst.size, address)) {
                 return false;
             }
 
@@ -545,7 +545,7 @@ bool terp::step(result &r)
 
             operand_value_t address;
             address.alias.u = source_value.alias.u + offset.alias.u;
-            if (!set_target_operand_value(r, inst, 0, address)) {
+            if (!set_target_operand_value(r, inst.operands[0], inst.size, address)) {
                 return false;
             }
 
@@ -573,7 +573,7 @@ bool terp::step(result &r)
 		case op_codes::pop:{
             operand_value_t value;
             value.alias.u = pop();
-			if (!set_target_operand_value(r, inst, 0, value)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, value)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::zero, value.alias.u == 0);
@@ -615,7 +615,7 @@ bool terp::step(result &r)
                 result.alias.u = lhs_value.alias.u + rhs_value.alias.u;
                 result.type = register_type_t::integer;
             }
-			if (!set_target_operand_value(r, inst, 0, result)){
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)){
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
@@ -646,7 +646,7 @@ bool terp::step(result &r)
                 result.alias.u = lhs_value.alias.u - rhs_value.alias.u;
                 result.type = register_type_t::integer;
             }
-			if (!set_target_operand_value(r, inst, 0, result)){
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)){
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
@@ -677,7 +677,7 @@ bool terp::step(result &r)
                 product_res.type = register_type_t::integer;
                 product_res.alias.u = lhs_value.alias.u * rhs_value.alias.u;
             }
-			if (!set_target_operand_value(r, inst, 0,product_res)){
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, product_res)){
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
@@ -716,7 +716,7 @@ bool terp::step(result &r)
                     result.alias.u = lhs_value.alias.u / rhs_value.alias.u;
                 }
             }
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
@@ -737,7 +737,7 @@ bool terp::step(result &r)
 			}
             operand_value_t result;
 			result.alias.u = lhs_value.alias.u % rhs_value.alias.u;
-			if (!set_target_operand_value(r, inst, 0,  result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::overflow,
@@ -765,7 +765,7 @@ bool terp::step(result &r)
                 result.alias.u = static_cast<uint64_t>(negated_result);
                 result.type = register_type_t::integer;
             }
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
@@ -785,7 +785,7 @@ bool terp::step(result &r)
 			}
             operand_value_t result;
             result.alias.u = lhs_value.alias.u << rhs_value.alias.u;
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 
@@ -806,7 +806,7 @@ bool terp::step(result &r)
 			}
             operand_value_t result;
 			result.alias.u = lhs_value.alias.u >> rhs_value.alias.u;
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
@@ -826,7 +826,7 @@ bool terp::step(result &r)
 			}
             operand_value_t left_rotated_value;
 			left_rotated_value.alias.u = rotl(lhs_value.alias.u, static_cast<uint8_t>(rhs_value.alias.u));
-			if (!set_target_operand_value(r, inst, 0, left_rotated_value)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, left_rotated_value)) {
 				return false;
 			}
 
@@ -847,7 +847,7 @@ bool terp::step(result &r)
 			}
             operand_value_t right_rotated_value;
 			right_rotated_value.alias.u = rotr(lhs_value.alias.u, static_cast<uint8_t>(rhs_value.alias.u));
-			if (!set_target_operand_value(r, inst, 0, right_rotated_value)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, right_rotated_value)) {
 				return false;
 			}
 
@@ -868,7 +868,7 @@ bool terp::step(result &r)
 			}
             operand_value_t result;
             result.alias.u = lhs_value.alias.u & rhs_value.alias.u;
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 
@@ -890,7 +890,7 @@ bool terp::step(result &r)
 			}
             operand_value_t result;
             result.alias.u = lhs_value.alias.u | rhs_value.alias.u;
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
@@ -911,7 +911,7 @@ bool terp::step(result &r)
 			}
             operand_value_t result;
             result.alias.u = lhs_value.alias.u ^ rhs_value.alias.u;
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::carry, false);
@@ -927,7 +927,7 @@ bool terp::step(result &r)
 			}
             operand_value_t not_res;
 			not_res.alias.u = ~value.alias.u;
-			if (!set_target_operand_value(r, inst, 0, not_res)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, not_res)) {
 				return false;
 			}
 
@@ -949,7 +949,7 @@ bool terp::step(result &r)
             operand_value_t result;
 			uint64_t masked_value =static_cast<uint64_t > (1 << bit_number.alias.u);
             result.alias.u = value.alias.u | masked_value;
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 			registers_.flags(register_file_t::flags_t::zero, false);
@@ -969,7 +969,7 @@ bool terp::step(result &r)
             operand_value_t result;
 			uint64_t masked_value = static_cast<uint64_t>(~(1 << bit_number.alias.u));
             result.alias.u =value.alias.u & masked_value;
-			if (!set_target_operand_value(r, inst, 0, result)) {
+			if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
 				return false;
 			}
 
@@ -1273,7 +1273,7 @@ bool terp::step(result &r)
         case op_codes::setz: {
             operand_value_t result;
             result.alias.u = registers_.flags(register_file_t::flags_t::zero) ? 1 : 0;
-            if (!set_target_operand_value(r, inst, 0, result)) {
+            if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
                 return false;
             }
 
@@ -1282,7 +1282,7 @@ bool terp::step(result &r)
         case op_codes::setnz: {
             operand_value_t result;
             result.alias.u = !registers_.flags(register_file_t::flags_t::zero) ? 1 : 0;
-            if (!set_target_operand_value(r, inst, 0, result)) {
+            if (!set_target_operand_value(r, inst.operands[0], inst.size, result)) {
                 return false;
             }
             break;
@@ -1327,14 +1327,13 @@ bool terp::get_operand_value(result& r, const instruction_t& instruction, uint8_
 	return true;
 }
 
-bool terp::set_target_operand_value(result &r, const instruction_t &inst, uint8_t operand_index,
-                                    const operand_value_t& value)
+bool terp::set_target_operand_value(result &r, const operand_encoding_t& operand, op_sizes size,
+    const operand_value_t& value)
 {
-	auto& operand = inst.operands[operand_index];
     auto type = operand.is_integer() ? register_type_t::integer : register_type_t::floating_point;
     if (operand.is_reg()) {
         auto reg_index = register_index(static_cast<registers_t>(operand.value.r), type);
-        set_zoned_value(type, registers_.r[reg_index], value.alias.u, inst.size);
+        set_zoned_value(type, registers_.r[reg_index], value.alias.u, size);
     } else {
         r.add_message("B006", "constant cannot be a target operand type.", true);
         return false;

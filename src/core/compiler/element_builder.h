@@ -41,6 +41,12 @@ public:
 
     compiler::boolean_literal* make_bool(compiler::block* parent_scope, bool value);
 
+    intrinsic* make_size_of_intrinsic(compiler::block* parent_scope, compiler::argument_list* args);
+
+    intrinsic* make_free_intrinsic(compiler::block* parent_scope, compiler::argument_list* args);
+
+    intrinsic* make_alloc_intrinsic(compiler::block* parent_scope, compiler::argument_list* args);
+
     compiler::float_literal* make_float(compiler::block* parent_scope, double value);
 
     compiler::integer_literal* make_integer(compiler::block* parent_scope, uint64_t value);

@@ -34,12 +34,14 @@ bool assembler::initialize(result &r)
 
 bool assembler::assemble(result &r)
 {
+    uint64_t highest_address = 0;
     for (auto block : blocks_) {
         if (!block->should_emit()) {
             continue;
         }
         for (auto &entry: block->entries()) {
             switch (entry.type()) {
+                highest_address = entry.address();
                 case block_entry_type_t::instruction: {
                     auto inst = entry.data<instruction_t>();
                     auto inst_size = inst->encode(r, terp_->heap(), entry.address());
@@ -65,6 +67,8 @@ bool assembler::assemble(result &r)
             }
         }
     }
+    terp_->heap_free_space_begin(align(highest_address, 8));
+
     return !r.is_failed();
 }
 
@@ -395,10 +399,8 @@ bool assembler::assemble_from_source(result &r, source_file &source_file, stack_
                     }
                     wip.operands.push_back(encoding);
                 }
-
-
                 wip.is_valid = wip.operands.size() == required_operand_count;
-                break;
+                goto retry;
             }
             case assembly_parser_state_t::encode_instruction: {
                 if (!wip.is_valid) {
@@ -1007,7 +1009,7 @@ bool assembler::is_float_register(const std::string &value) const
         return false;
     }
     if (value.length() == 2) {
-        return isdigit(value[1]);
+        return static_cast<bool>(isdigit(value[1]));
     } else {
         return isdigit(value[1]) && isdigit(value[2]);
     }
@@ -1023,7 +1025,7 @@ bool assembler::is_integer_register(const std::string &value) const
     }
 
     if (value.length() == 2) {
-        return isdigit(value[1]);
+        return static_cast<bool>(isdigit(value[1]));
     } else {
         return isdigit(value[1]) && isdigit(value[2]);
     }

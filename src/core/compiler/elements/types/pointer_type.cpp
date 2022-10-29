@@ -22,6 +22,7 @@ bool pointer_type::on_initialize(compiler::session& session)
     auto type_symbol = session.builder().make_symbol(parent_scope(), name_for_pointer(base_type_));
     symbol(type_symbol);
     type_symbol->parent_element(this);
+    size_in_bytes(sizeof(uint64_t));
     return true;
 }
 

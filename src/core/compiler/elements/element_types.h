@@ -61,9 +61,12 @@ class composite_type;
 class pointer_type;
 class string_literal;
 class binary_operator;
-class namespace_element;
-class procedure_instance;
 class module_reference;
+class namespace_element;
+class size_of_intrinsic;
+class alloc_intrinsic;
+class free_intrinsic;
+class procedure_instance;
 class identifier_reference;
 
 using string_set_t = std::set<std::string>;

@@ -179,8 +179,6 @@ inline static directive_t* directive(const std::string& code) {
 
 class assembler {
 public:
-    using block_predicate_visitor_callable = std::function<bool (instruction_block*)>;
-
     explicit assembler(terp* terp);
 
     assembler(const assembler& other) = delete;

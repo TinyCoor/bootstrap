@@ -50,6 +50,14 @@ bool argument_list::on_emit(compiler::session& session)
     auto instruction_block = assembler.current_block();
     for (auto it = elements_.rbegin(); it != elements_.rend(); ++it) {
         element* arg = *it;
+        if (arg->element_type() == element_type_t::intrinsic) {
+            auto folded_expr = arg->fold(session);
+            if (folded_expr != nullptr) {
+                instruction_block->blank_line();
+                instruction_block->comment("intrinsic constant fold", 4);
+                arg = folded_expr;
+            }
+        }
         switch (arg->element_type()) {
             case element_type_t::proc_call:
             case element_type_t::expression:
@@ -62,7 +70,6 @@ bool argument_list::on_emit(compiler::session& session)
             case element_type_t::identifier_reference:{
                 auto arg_reg = register_for(session, arg);
                 if (arg_reg.var != nullptr) {
-                    // push_size = op_size_for_byte_size(arg_reg.var->type->size_in_bytes());
                     arg_reg.clean_up = true;
                 }
                 assembler.push_target_register(arg_reg.reg);

@@ -137,8 +137,8 @@ namespace gfx {
 
 		void execute_trap(uint8_t index);
 
-		bool set_target_operand_value(result& r, const instruction_t& inst, uint8_t operand_index,
-            const operand_value_t& value);
+		bool set_target_operand_value(result& r, const operand_encoding_t& operand,
+            op_sizes size, const operand_value_t& value);
 
 		bool get_operand_value(result& r, const instruction_t& inst, uint8_t operand_index,
             operand_value_t& value) const;

@@ -45,6 +45,9 @@
 #include "elements/procedure_instance.h"
 #include "elements/identifier_reference.h"
 #include "elements/module_reference.h"
+#include "compiler/elements/instrinics/size_of_intrinsic.h"
+#include "compiler/elements/instrinics/alloc_intrinsic.h"
+#include "compiler/elements/instrinics/free_intrinsic.h"
 #include <fmt/format.h>
 namespace gfx::compiler {
 element_builder::element_builder(compiler::session& session)
@@ -585,6 +588,36 @@ raw_block *element_builder::make_raw_block(compiler::block *parent_scope, const 
         parent_scope, value);
     session_.elements().add(raw_block);
     return raw_block;
+}
+
+intrinsic *element_builder::make_size_of_intrinsic(compiler::block *parent_scope, compiler::argument_list *args)
+{
+    auto intrinsic = new compiler::size_of_intrinsic(
+        session_.scope_manager().current_module(),
+        parent_scope,
+        args);
+    session_.elements().add(intrinsic);
+    args->parent_element(intrinsic);
+    return intrinsic;
+}
+
+intrinsic *element_builder::make_free_intrinsic(compiler::block *parent_scope, compiler::argument_list *args)
+{
+    auto intrinsic = new compiler::free_intrinsic(session_.scope_manager().current_module(),
+        parent_scope, args);
+    session_.elements().add(intrinsic);
+    args->parent_element(intrinsic);
+    return intrinsic;
+}
+
+intrinsic *element_builder::make_alloc_intrinsic(compiler::block *parent_scope, compiler::argument_list *args)
+{
+    auto intrinsic = new compiler::alloc_intrinsic(session_.scope_manager().current_module(),
+        parent_scope,
+        args);
+    session_.elements().add(intrinsic);
+    args->parent_element(intrinsic);
+    return intrinsic;
 }
 
 }

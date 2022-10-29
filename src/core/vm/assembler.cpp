@@ -323,7 +323,7 @@ bool assembler::assemble_from_source(result &r, source_file &source_file, stack_
                     return false;
                 }
 
-                if (wip.instance.m->operands.size() == 0) {
+                if (wip.instance.m->operands.empty()) {
                     state = assembly_parser_state_t::whitespace;
                 } else {
                     state = assembly_parser_state_t::operand_list;
@@ -518,7 +518,7 @@ bool assembler::assemble_from_source(result &r, source_file &source_file, stack_
                     return false;
                 }
 
-                if (wip.instance.d->params.size() == 0)
+                if (wip.instance.d->params.empty())
                     state = assembly_parser_state_t::whitespace;
                 else
                     state = assembly_parser_state_t::directive_param_list;
@@ -645,14 +645,14 @@ instruction_block *assembler::pop_block()
     return top;
 }
 
-instruction_block *assembler::make_basic_block(instruction_block* parent)
+instruction_block *assembler::make_basic_block()
 {
     auto block = new instruction_block(instruction_block_type_t::basic);
     add_new_block(block);
     return block;
 }
 
-instruction_block *assembler::make_procedure_block(instruction_block* parent)
+instruction_block *assembler::make_procedure_block()
 {
     auto block = new instruction_block(instruction_block_type_t::procedure);
     add_new_block(block);

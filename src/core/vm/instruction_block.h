@@ -112,6 +112,11 @@ public:
 
     void free(const register_t& addr_reg);
 
+    // clr
+    void clr(op_sizes size, const register_t& dest_reg);
+
+    void clr(const register_t& dest_reg);
+
     // setxx
     void setz(const register_t& dest_reg);
 
@@ -233,6 +238,8 @@ public:
         uint64_t offset);
 
 private:
+    void make_clr_instruction(op_sizes size, const register_t& dest_reg);
+
     void make_pop_instruction(const register_t& dest_reg);
 
     void make_push_instruction(const register_t& reg);

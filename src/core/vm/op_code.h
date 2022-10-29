@@ -24,6 +24,7 @@ enum class op_codes : uint8_t {
 	copy,
     convert,
     fill,
+    clr,
     push,
     pop,
 	dup,
@@ -78,6 +79,7 @@ inline static std::map<op_codes, std::string_view> s_op_code_names  = {
     {op_codes::size, "SIZE"},
 	{op_codes::copy,   "COPY"},
     {op_codes::fill,   "FILL"},
+    {op_codes::clr,   "CLR"},
     {op_codes::move,  "MOVE"},
     {op_codes::moves,  "MOVES"},
     {op_codes::movez,  "MOVEZ"},
@@ -248,6 +250,15 @@ inline static std::map<std::string, mnemonic_t> s_mnemonics = {
                 {mnemonic_operand_t::flags::integer_register, true},
                 {mnemonic_operand_t::flags::integer_register | mnemonic_operand_t::flags::immediate, true},
                 {mnemonic_operand_t::flags::integer_register | mnemonic_operand_t::flags::immediate, false},
+            }
+        }
+    },
+    {
+        "CLR",
+        mnemonic_t{
+            op_codes::clr,
+            {
+                {mnemonic_operand_t::flags::integer_register | mnemonic_operand_t::flags::float_register, true},
             }
         }
     },

@@ -1104,5 +1104,28 @@ void instruction_block::free(const register_t &addr_reg)
     free_op.operands[0].type = operand_encoding_t::flags::reg | operand_encoding_t::flags::integer;
     make_block_entry(free_op);
 }
+void instruction_block::clr(op_sizes size, const register_t &dest_reg)
+{
+    make_clr_instruction(size, dest_reg);
+}
+
+void instruction_block::clr(const register_t &dest_reg)
+{
+    make_clr_instruction(dest_reg.size, dest_reg);
+}
+
+void instruction_block::make_clr_instruction(op_sizes size, const register_t &dest_reg)
+{
+    instruction_t clr_op;
+    clr_op.op = op_codes::clr;
+    clr_op.size = size;
+    clr_op.operands_count = 1;
+    clr_op.operands[0].value.r = dest_reg.number;
+    clr_op.operands[0].type = operand_encoding_t::flags::reg;
+    if (dest_reg.type == register_type_t::integer) {
+        clr_op.operands[0].type |= operand_encoding_t::flags::integer;
+    }
+    make_block_entry(clr_op);
+}
 
 }

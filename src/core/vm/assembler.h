@@ -237,9 +237,9 @@ public:
 
 	gfx::segment* segment(const std::string &name, segment_type_t type);
 
-    instruction_block* make_basic_block(instruction_block* parent = nullptr);
+    instruction_block* make_basic_block();
 
-    instruction_block* make_procedure_block(instruction_block* parent = nullptr);
+    instruction_block* make_procedure_block();
 
     template <typename T>
     T* find_in_blocks(const std::function<T* (instruction_block*)>& callable)

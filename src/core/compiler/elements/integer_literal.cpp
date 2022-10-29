@@ -20,7 +20,8 @@ uint64_t integer_literal::value() const
 
 bool integer_literal::on_infer_type(const compiler::session& session, type_inference_result_t& result)
 {
-	result.type =  session.scope_manager().find_type(qualified_symbol_t{.name = numeric_type::narrow_to_value(value_)});
+	result.type =  session.scope_manager().find_type(qualified_symbol_t{
+        .name = numeric_type::narrow_to_value(value_)});
     return result.type != nullptr;
 }
 
@@ -35,6 +36,7 @@ bool compiler::integer_literal::on_emit(compiler::session &session)
     auto &assembler = session.assembler();
     auto instruction_block = assembler.current_block();
     auto target_reg = assembler.current_target_register();
+    instruction_block->clr(op_sizes::qword, *target_reg);
     instruction_block->move_constant_to_reg(*target_reg, value_);
     return true;
 }

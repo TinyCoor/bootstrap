@@ -1073,4 +1073,14 @@ void instruction_block::add_entry(const block_entry_t &entry)
     entries_.emplace_back(entry);
 }
 
+bool instruction_block::should_emit() const
+{
+    return shoudle_emitted_;
+}
+
+void instruction_block::should_emit(bool value)
+{
+    shoudle_emitted_ = value;
+}
+
 }

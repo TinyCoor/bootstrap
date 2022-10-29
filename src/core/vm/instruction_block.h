@@ -42,6 +42,10 @@ public:
 
     void label(label* value);
 
+    bool should_emit() const;
+
+    void should_emit(bool value);
+
     instruction_block_type_t type() const;
 
     void add_entry(const block_entry_t& entry);
@@ -284,6 +288,7 @@ private:
 
 private:
     id_t id_;
+    bool shoudle_emitted_ = true;
     instruction_block_type_t type_;
     std::vector<block_entry_t> entries_ {};
     listing_source_file_t* source_file_ = nullptr;

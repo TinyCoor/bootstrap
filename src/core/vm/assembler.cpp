@@ -35,6 +35,9 @@ bool assembler::initialize(result &r)
 bool assembler::assemble(result &r)
 {
     for (auto block : blocks_) {
+        if (!block->should_emit()) {
+            continue;
+        }
         for (auto &entry: block->entries()) {
             switch (entry.type()) {
                 case block_entry_type_t::instruction: {
@@ -352,8 +355,7 @@ bool assembler::assemble_from_source(result &r, source_file &source_file, stack_
                 for (const auto& operand : operands) {
                     operand_encoding_t encoding;
 
-                    auto first_char = toupper(operand[0]);
-                    if (first_char == '#') {
+                    if (operand[0] == '#') {
                         uint64_t value;
                         if (!parse_immediate_number(operand, value)) {
                             return false;
@@ -362,13 +364,13 @@ bool assembler::assemble_from_source(result &r, source_file &source_file, stack_
                         encoding.type = operand_encoding_t::flags::integer
                             | operand_encoding_t::flags::constant;
                         encoding.value.u = value;
-                    } else if (first_char == 'I') {
+                    } else if (is_integer_register(operand)) {
                         auto number = std::atoi(operand.substr(1).c_str());
                         encoding.type = operand_encoding_t::flags::integer
                             | operand_encoding_t::flags::reg;
                         encoding.value.r = static_cast<uint8_t>(number);
-                    } else if (first_char == 'F') {
-                        if (operand[1] == 'P') {
+                    } else if (is_float_register(operand)) {
+                        if (operand[1] == 'P' || operand[1] == 'p') {
                             encoding.type = operand_encoding_t::flags::reg;
                             encoding.value.r = static_cast<uint8_t>(registers_t::fp);
                         } else {
@@ -376,16 +378,24 @@ bool assembler::assemble_from_source(result &r, source_file &source_file, stack_
                             encoding.type = operand_encoding_t::flags::reg;
                             encoding.value.r = static_cast<uint8_t>(number);
                         }
-                    } else if (first_char == 'S' && operand[1] == 'P') {
+                    } else if ((operand[0] == 'S' || operand[0] == 's') &&
+                                (operand[1] == 'P' || operand[1] == 'p')) {
                         encoding.type = operand_encoding_t::flags::reg;
                         encoding.value.r = static_cast<uint8_t>(registers_t::sp);
-                    } else if (first_char == 'P' && operand[1] == 'C') {
+                    } else if ((operand[0] == 'P' || operand[0] == 'p') &&
+                            (operand[1] == 'C' || operand[1] == 'c')) {
                         encoding.type = operand_encoding_t::flags::reg;
                         encoding.value.r = static_cast<uint8_t>(registers_t::pc);
+                    } else {
+                        encoding.type = operand_encoding_t::flags::integer
+                            | operand_encoding_t::flags::constant
+                            | operand_encoding_t::flags::unresolved;
+                        auto label_ref = make_label_ref(operand);
+                        encoding.value.u = label_ref->id;
                     }
-
                     wip.operands.push_back(encoding);
                 }
+
 
                 wip.is_valid = wip.operands.size() == required_operand_count;
                 break;
@@ -702,6 +712,9 @@ bool assembler::apply_addresses(result &r)
 {
     size_t offset = 0;
     for (auto block : blocks_) {
+        if (!block->should_emit()) {
+            continue;
+        }
         for (auto& entry : block->entries()) {
             auto address = location_counter_ + offset;
             entry.address(address);
@@ -790,6 +803,9 @@ void assembler::disassemble(instruction_block *block)
 
     size_t index = 0;
     for (auto& entry : block->entries()) {
+        if (!block->should_emit()) {
+            return;
+        }
         switch (entry.type()) {
             case block_entry_type_t::section:{
                 auto section = entry.data<section_t>();
@@ -981,6 +997,36 @@ label *assembler::find_label(const std::string &name)
         return nullptr;
     }
     return it->second;
+}
+bool assembler::is_float_register(const std::string &value) const
+{
+    if (value.length() > 3) {
+        return false;
+    }
+    if (value[0] != 'f' && value[0] != 'F') {
+        return false;
+    }
+    if (value.length() == 2) {
+        return isdigit(value[1]);
+    } else {
+        return isdigit(value[1]) && isdigit(value[2]);
+    }
+}
+bool assembler::is_integer_register(const std::string &value) const
+{
+    if (value.length() > 3) {
+        return false;
+    }
+
+    if (value[0] != 'i' && value[0] != 'I') {
+        return false;
+    }
+
+    if (value.length() == 2) {
+        return isdigit(value[1]);
+    } else {
+        return isdigit(value[1]) && isdigit(value[2]);
+    }
 }
 
 }

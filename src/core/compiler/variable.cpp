@@ -32,6 +32,9 @@ bool variable_t::init(compiler::session& session, instruction_block *block)
         return true;
     }
 
+    block->blank_line();
+    block->comment(fmt::format("identifier '{}' address (global)", name),
+        session.emit_context().indent);
     if (usage == identifier_usage_t::heap) {
         if (!address_reg.reserve(session)) {
             return false;
@@ -42,7 +45,6 @@ bool variable_t::init(compiler::session& session, instruction_block *block)
         } else {
             block->move_label_to_reg(address_reg.reg, label_ref);
         }
-        block->comment(fmt::format("identifier '{}' address (global)", name), session.emit_context().indent);
     }
 
     value_reg.reg.type = register_type_t::integer;
@@ -76,9 +78,10 @@ bool variable_t::read(compiler::session& session, instruction_block* block)
             type_name = stack_frame_entry_type_name(frame_entry->type);
             block->load_to_reg(value_reg.reg, register_t::fp(), frame_entry->offset);
         } else {
-            block->load_to_reg(value_reg.reg, address_reg.reg);
+            block->blank_line();
             block->comment(fmt::format("load identifier '{}' value ({})", name, type_name),
                            session.emit_context().indent);
+            block->load_to_reg(value_reg.reg, address_reg.reg);
         }
         requires_read = false;
     }

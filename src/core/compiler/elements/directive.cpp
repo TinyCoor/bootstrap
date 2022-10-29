@@ -191,6 +191,7 @@ bool directive::on_execute_assembly(session &session)
     if (success) {
         // XXX:  this is so evil
         instruction_block_ = assembler.blocks().back();
+        instruction_block_->should_emit(false);
     }
     return success;
 }
@@ -209,8 +210,12 @@ bool directive::on_emit(session &session)
 {
     if (instruction_block_ != nullptr) {
         auto current_block = session.assembler().current_block();
-        for (const auto& entry : instruction_block_->entries())
+        current_block->blank_line();
+        current_block->comment("*** begin: inline assembly block", 4);
+        for (const auto& entry : instruction_block_->entries()) {
             current_block->add_entry(entry);
+        }
+        current_block->comment("*** end: inline assembly block", 4);
     }
     return true;
 }

@@ -231,6 +231,10 @@ public:
 
     std::vector<instruction_block*>& blocks();
 
+    bool is_float_register(const std::string& value) const;
+
+    bool is_integer_register(const std::string& value) const;
+
     bool assemble_from_source(result& r, source_file& source, stack_frame_t* stack_frame);
 
 	gfx::segment* segment(const std::string &name, segment_type_t type);
@@ -257,8 +261,6 @@ private:
     std::vector<label_ref_t*> label_references();
 
     void add_new_block(instruction_block* block);
-
-
 private:
 	terp* terp_ = nullptr;
     uint64_t location_counter_ = 0;

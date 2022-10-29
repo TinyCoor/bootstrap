@@ -87,7 +87,6 @@ bool cast::on_emit(compiler::session& session)
     auto target_reg = assembler.current_target_register();
     auto instruction_block = assembler.current_block();
 
-
     if (source_number_class == type_number_class_t::integer
         &&  target_number_class == type_number_class_t::integer) {
         if (source_size == target_size) {

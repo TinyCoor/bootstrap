@@ -44,5 +44,9 @@ intrinsic *intrinsic::intrinsic_for_call(session &session, compiler::block *pare
     }
     return element;
 }
+std::string_view intrinsic::name() const
+{
+    return "intrinsic";
+}
 
 }

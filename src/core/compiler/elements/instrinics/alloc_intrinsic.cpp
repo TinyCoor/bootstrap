@@ -51,4 +51,9 @@ bool alloc_intrinsic::on_infer_type(const session &session, type_inference_resul
     });
     return result.type != nullptr;
 }
+
+std::string_view alloc_intrinsic::name() const
+{
+    return "alloc";
+}
 }

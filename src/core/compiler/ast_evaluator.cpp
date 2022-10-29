@@ -226,19 +226,6 @@ identifier* ast_evaluator::add_identifier_to_scope(const evaluator_context_t con
     if (init_expr != nullptr) {
         if (init ==nullptr) {
             init_expr->parent_element(new_identifier);
-        } else {
-            auto folded_expr = init_expr->fold(session_);
-            // XXX: need to refactor fold/on_fold's prototype
-            if (session_.result().is_failed()) {
-                return nullptr;
-            }
-
-            if (folded_expr != nullptr) {
-                init_expr = folded_expr;
-                auto old_expr = init->expression();
-                init->expression(init_expr);
-                session_.elements().remove(old_expr->id());
-            }
         }
     }
     if (type_find_result.type == nullptr) {

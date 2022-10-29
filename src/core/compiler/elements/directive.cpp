@@ -74,6 +74,10 @@ bool directive::on_evaluate_run(compiler::session& session)
 bool directive::on_evaluate_foreign(compiler::session& session)
 {
 	auto proc_identifier = dynamic_cast<compiler::identifier*>(expression_);
+    if (proc_identifier == nullptr) {
+        return false;
+    }
+
 	auto proc_type = proc_identifier->initializer()->procedure_type();
 	if (proc_type != nullptr) {
 		auto attrs = proc_type->attributes().as_list();

@@ -14,6 +14,8 @@ public:
 
 	element* rhs();
 
+    void rhs(compiler::element* element);
+
 protected:
     bool on_is_constant() const override;
 
@@ -21,7 +23,7 @@ protected:
 
     void on_owned_elements(element_list_t& list) override;
 
-    element* on_fold(compiler::session& session) override;
+    bool on_fold(compiler::session& session, fold_result_t& result) override;
 
     bool on_infer_type(const compiler::session& session, type_inference_result_t& result) override;
 

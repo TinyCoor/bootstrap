@@ -300,7 +300,7 @@ void binary_operator::emit_arithmetic_operator(compiler::session& session, instr
     }
 }
 
-element *binary_operator::on_fold(compiler::session& session)
+bool binary_operator::on_fold(compiler::session& session, fold_result_t& result)
 {
     switch (operator_type()) {
         case operator_type_t::add: {
@@ -370,7 +370,7 @@ element *binary_operator::on_fold(compiler::session& session)
             break;
     }
 
-    return nullptr;
+    return true;
 }
 
 void binary_operator::on_owned_elements(element_list_t &list)
@@ -382,5 +382,13 @@ void binary_operator::on_owned_elements(element_list_t &list)
     if (rhs_ != nullptr) {
         list.emplace_back(rhs_);
     }
+}
+void binary_operator::lhs(compiler::element *element)
+{
+    lhs_ = element;
+}
+void binary_operator::rhs(compiler::element *element)
+{
+    rhs_ = element;
 }
 }

@@ -441,5 +441,10 @@ struct type_find_result_t {
     compiler::type* type = nullptr;
 };
 
+struct fold_result_t {
+    bool allow_no_fold_attribute = true;
+    compiler::element* element = nullptr;
+};
+
 }
 #endif // COMPILER_ELEMENTS_ELEMENT_TYPES_H_

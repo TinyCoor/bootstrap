@@ -76,7 +76,7 @@ void unary_operator::on_owned_elements(element_list_t &list)
     }
 }
 
-element *unary_operator::on_fold(compiler::session& session)
+bool unary_operator::on_fold(compiler::session& session, fold_result_t& result)
 {
     switch (operator_type()) {
         case operator_type_t::negate: {
@@ -92,6 +92,10 @@ element *unary_operator::on_fold(compiler::session& session)
             break;
     }
 
-    return nullptr;
+    return true;
+}
+void unary_operator::rhs(compiler::element *element)
+{
+    rhs_ = element;
 }
 }

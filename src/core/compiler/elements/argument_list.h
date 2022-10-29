@@ -18,6 +18,10 @@ public:
 
 	element* find(id_t id);
 
+    int32_t find_index(id_t id);
+
+    element* replace(size_t index, element* item);
+
 	const element_list_t& elements() const;
 protected:
     bool on_emit(compiler::session& session) override;

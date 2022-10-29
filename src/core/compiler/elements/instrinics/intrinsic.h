@@ -15,8 +15,9 @@ public:
 
     intrinsic(compiler::module* module, compiler::block* parent_scope, compiler::argument_list* args);
 
-    compiler::argument_list* arguments();
+    virtual std::string_view name() const;
 
+    compiler::argument_list* arguments();
 protected:
     void on_owned_elements(element_list_t& list) override;
 

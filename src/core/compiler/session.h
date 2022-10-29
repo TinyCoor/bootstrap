@@ -94,6 +94,8 @@ private:
 
     bool resolve_unknown_types();
 
+    bool fold_constant_intrinsics();
+
     bool resolve_unknown_identifiers();
 
     void write_code_dom_graph(const fs::path& path);

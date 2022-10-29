@@ -690,7 +690,7 @@ bool assembler::resolve_labels(result &r)
     }
     for (auto& block : blocks_) {
         for (auto &entry: block->entries()) {
-            if (entry.type()!=block_entry_type_t::instruction) {
+            if (entry.type() != block_entry_type_t::instruction) {
                 continue;
             }
 
@@ -853,9 +853,7 @@ void assembler::disassemble(instruction_block *block)
                   }
                   return fmt::format("unresolved_ref_id({})", id);
                 });
-                source_file->add_source_line(
-                    entry.address(),
-                    fmt::format("\t{}", stream));
+                source_file->add_source_line(entry.address(), fmt::format("\t{}", stream));
                 break;
             }
             case block_entry_type_t::data_definition:{

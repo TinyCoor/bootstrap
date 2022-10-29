@@ -10,6 +10,7 @@ class alloc_intrinsic : public  compiler::intrinsic {
 public:
     alloc_intrinsic(compiler::module* module, compiler::block* parent_scope,
         compiler::argument_list* args);
+    std::string_view name() const override;
 
 protected:
     bool on_emit(compiler::session& session) override;

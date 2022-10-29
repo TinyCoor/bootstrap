@@ -49,6 +49,7 @@
 #include "elements/procedure_instance.h"
 #include "elements/identifier_reference.h"
 #include "elements/module_reference.h"
+#include "elements/instrinics/size_of_intrinsic.h"
 
 namespace gfx::compiler {
 session::session(const session_options_t& options, const path_list_t& source_files)
@@ -258,9 +259,8 @@ bool session::compile()
     for (auto directive : directives) {
         auto directive_element = dynamic_cast<compiler::directive*>(directive);
         if (!directive_element->execute(*this)) {
-            error(directive_element, "P044",
-                fmt::format("directive failed to execute: {}", directive_element->name()),
-                directive->location());
+            error(directive_element, "P044", fmt::format("directive failed to execute: {}",
+                directive_element->name()), directive->location());
             return false;
         }
     }
@@ -276,6 +276,12 @@ bool session::compile()
     if (!type_check()) {
         return false;
     }
+
+    if (!fold_constant_intrinsics()) {
+        return false;
+    }
+
+
     if (!r.is_failed()) {
         program_.emit(*this);
         assembler().apply_addresses(r);
@@ -510,5 +516,70 @@ void session::initialize_built_in_procedures()
 stack_frame_t *session::stack_frame()
 {
     return &stack_frame_;
+}
+
+bool session::fold_constant_intrinsics()
+{
+    auto intrinsics = elements_.find_by_type(element_type_t::intrinsic);
+    for (auto e : intrinsics) {
+        if (!e->is_constant()) {
+            continue;
+        }
+
+        fold_result_t fold_result {};
+        if (!e->fold(*this, fold_result)) {
+            return false;
+
+        }
+
+        if (fold_result.element != nullptr) {
+            auto intrinsic = dynamic_cast<compiler::intrinsic*>(e);
+            auto parent = intrinsic->parent_element();
+            if (parent != nullptr) {
+                fold_result.element->attributes().add(builder_.make_attribute(
+                    scope_manager_.current_scope(),
+                    "intrinsic_substitution",
+                    builder_.make_string(scope_manager_.current_scope(),
+                        std::string(intrinsic->name()))));
+                switch (parent->element_type()) {
+                    case element_type_t::initializer: {
+                        auto initializer = dynamic_cast<compiler::initializer*>(parent);
+                        initializer->expression(fold_result.element);
+                        break;
+                    }
+                    case element_type_t::argument_list: {
+                        auto arg_list = dynamic_cast<compiler::argument_list*>(parent);
+                        auto index = arg_list->find_index(intrinsic->id());
+                        if (index == -1) {
+                            return false;
+                        }
+                        arg_list->replace(static_cast<size_t>(index), fold_result.element);
+                        break;
+                    }
+                    case element_type_t::unary_operator: {
+                        auto unary_op = dynamic_cast<compiler::unary_operator*>(parent);
+                        unary_op->rhs(fold_result.element);
+                        break;
+                    }
+                    case element_type_t::binary_operator: {
+                        auto binary_op = dynamic_cast<compiler::binary_operator*>(parent);
+                        if (binary_op->lhs() == intrinsic) {
+                            binary_op->lhs(fold_result.element);
+                        } else if (binary_op->rhs() == intrinsic) {
+                            binary_op->rhs(fold_result.element);
+                        } else {
+                            // XXX: error
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+                fold_result.element->parent_element(parent);
+                elements_.remove(intrinsic->id());
+            }
+        }
+    }
+    return true;
 }
 }

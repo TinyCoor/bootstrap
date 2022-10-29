@@ -42,4 +42,8 @@ bool free_intrinsic::on_emit(session &session)
 
     return true;
 }
+std::string_view free_intrinsic::name() const
+{
+    return "free";
+}
 }

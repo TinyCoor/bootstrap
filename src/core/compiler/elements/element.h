@@ -24,7 +24,7 @@ public:
 
     void module(compiler::module* module);
 
-	element* fold(compiler::session& session);
+	bool fold(compiler::session& session, fold_result_t& result);
 
 	block* parent_scope();
 
@@ -88,7 +88,7 @@ protected:
 
     virtual void on_owned_elements(element_list_t& list);
 
-    virtual element *on_fold(compiler::session& session);
+    virtual bool on_fold(compiler::session& session, fold_result_t& result);
 
 	virtual bool on_infer_type(const compiler::session& session, type_inference_result_t& result);
 

@@ -22,18 +22,20 @@ id_t element::id() const
     return id_;
 }
 
-element *element::fold(compiler::session& session)
+bool element::fold(compiler::session& session, fold_result_t& result)
 {
-    auto no_fold_attribute = find_attribute("no_fold");
-    if (no_fold_attribute!=nullptr) {
-        return nullptr;
+    if (result.allow_no_fold_attribute) {
+        auto no_fold_attribute = find_attribute("no_fold");
+        if (no_fold_attribute != nullptr) {
+            return true;
+        }
     }
-    return on_fold(session);
+    return on_fold(session, result);
 }
 
-element *element::on_fold(compiler::session& session)
+bool element::on_fold(compiler::session& session, fold_result_t& result)
 {
-    return nullptr;
+    return true;
 }
 
 block *element::parent_scope()

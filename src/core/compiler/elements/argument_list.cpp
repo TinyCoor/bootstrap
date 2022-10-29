@@ -50,14 +50,6 @@ bool argument_list::on_emit(compiler::session& session)
     auto instruction_block = assembler.current_block();
     for (auto it = elements_.rbegin(); it != elements_.rend(); ++it) {
         element* arg = *it;
-        if (arg->element_type() == element_type_t::intrinsic) {
-            auto folded_expr = arg->fold(session);
-            if (folded_expr != nullptr) {
-                instruction_block->blank_line();
-                instruction_block->comment("intrinsic constant fold", 4);
-                arg = folded_expr;
-            }
-        }
         switch (arg->element_type()) {
             case element_type_t::proc_call:
             case element_type_t::expression:
@@ -89,6 +81,21 @@ void argument_list::on_owned_elements(element_list_t &list)
     for (auto element : elements_) {
         list.emplace_back(element);
     }
+}
+int32_t argument_list::find_index(id_t id)
+{
+    for (size_t i = 0; i < elements_.size(); i++) {
+        if (elements_[i]->id() == id) {
+            return static_cast<int32_t>(i);
+        }
+    }
+    return -1;
+}
+element *argument_list::replace(size_t index, element *item)
+{
+    auto old = elements_[index];
+    elements_[index] = item;
+    return old;
 }
 
 }

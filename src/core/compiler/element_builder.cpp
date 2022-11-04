@@ -45,9 +45,12 @@
 #include "elements/procedure_instance.h"
 #include "elements/identifier_reference.h"
 #include "elements/module_reference.h"
-#include "compiler/elements/instrinics/size_of_intrinsic.h"
-#include "compiler/elements/instrinics/alloc_intrinsic.h"
-#include "compiler/elements/instrinics/free_intrinsic.h"
+#include "compiler/elements/intrinics/size_of_intrinsic.h"
+#include "compiler/elements/intrinics/alloc_intrinsic.h"
+#include "compiler/elements/intrinics/free_intrinsic.h"
+#include "compiler/elements/intrinics/align_of_intrinsic.h"
+#include "compiler/elements/intrinics/type_of_intrinsic.h"
+#include "compiler/elements/intrinics/address_of_intrinsic.h"
 #include <fmt/format.h>
 namespace gfx::compiler {
 element_builder::element_builder(compiler::session& session)
@@ -613,8 +616,31 @@ intrinsic *element_builder::make_free_intrinsic(compiler::block *parent_scope, c
 intrinsic *element_builder::make_alloc_intrinsic(compiler::block *parent_scope, compiler::argument_list *args)
 {
     auto intrinsic = new compiler::alloc_intrinsic(session_.scope_manager().current_module(),
-        parent_scope,
-        args);
+        parent_scope, args);
+    session_.elements().add(intrinsic);
+    args->parent_element(intrinsic);
+    return intrinsic;
+}
+intrinsic *element_builder::make_align_of_intrinsic(compiler::block *parent_scope, compiler::argument_list *args)
+{
+    auto intrinsic = new compiler::align_of_intrinsic(session_.scope_manager().current_module(),
+                                                     parent_scope, args);
+    session_.elements().add(intrinsic);
+    args->parent_element(intrinsic);
+    return intrinsic;
+}
+intrinsic *element_builder::make_type_of_intrinsic(compiler::block *parent_scope, compiler::argument_list *args)
+{
+    auto intrinsic = new compiler::type_of_intrinsic(session_.scope_manager().current_module(),
+                                                        parent_scope, args);
+    session_.elements().add(intrinsic);
+    args->parent_element(intrinsic);
+    return intrinsic;
+}
+intrinsic *element_builder::make_address_of_intrinsic(compiler::block *parent_scope, compiler::argument_list *args)
+{
+    auto intrinsic = new compiler::address_of_intrinsic(session_.scope_manager().current_module(),
+                                                        parent_scope, args);
     session_.elements().add(intrinsic);
     args->parent_element(intrinsic);
     return intrinsic;

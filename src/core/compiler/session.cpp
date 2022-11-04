@@ -49,7 +49,7 @@
 #include "elements/procedure_instance.h"
 #include "elements/identifier_reference.h"
 #include "elements/module_reference.h"
-#include "elements/instrinics/size_of_intrinsic.h"
+#include "elements/intrinics/size_of_intrinsic.h"
 
 namespace gfx::compiler {
 session::session(const session_options_t& options, const path_list_t& source_files)

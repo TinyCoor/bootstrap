@@ -36,6 +36,7 @@ bool composite_type::on_initialize(compiler::session& session)
         size += filed->identifier()->type()->size_in_bytes();
     }
     size_in_bytes(size);
+    alignment(sizeof(uint64_t));
 	return true;
 }
 block *composite_type::scope()

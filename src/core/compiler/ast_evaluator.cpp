@@ -47,7 +47,7 @@
 #include "elements/types/procedure_type.h"
 #include "elements/types/namespace_type.h"
 #include "elements/types/composite_type.h"
-#include "elements/instrinics/size_of_intrinsic.h"
+#include "elements/intrinics/size_of_intrinsic.h"
 #include "core/compiler/session.h"
 
 namespace gfx::compiler {

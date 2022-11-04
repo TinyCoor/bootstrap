@@ -35,4 +35,13 @@ type_access_model_t pointer_type::on_access_model() const
 {
     return type_access_model_t::pointer;
 }
+bool pointer_type::on_type_check(compiler::type *other)
+{
+    if (other == nullptr || other->element_type() != element_type_t::pointer_type) {
+        return false;
+    }
+    auto other_pointer_type = dynamic_cast<compiler::pointer_type*>(other);
+    return base_type()->id() == other_pointer_type->base_type()->id();
+
+}
 }

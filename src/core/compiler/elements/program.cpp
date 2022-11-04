@@ -52,35 +52,12 @@ bool program::on_emit(compiler::session &session)
             continue;
         }
 
-        switch (var->type()->element_type()) {
-            case element_type_t::bool_type:
-            case element_type_t::numeric_type: {
-                if (var->is_constant()) {
-                    auto& list = ro.first->second;
-                    list.emplace_back(var);
-                } else {
-                    auto& list = data.first->second;
-                    list.emplace_back(var);
-                }
-                break;
-            }
-            case element_type_t::any_type:
-            case element_type_t::array_type:
-            case element_type_t::tuple_type:
-            case element_type_t::string_type:
-            case element_type_t::composite_type: {
-                if (var->is_constant()) {
-                    auto& list = ro.first->second;
-                    list.emplace_back(var);
-                } else {
-                    auto& list = data.first->second;
-                    list.emplace_back(var);
-                }
-                break;
-            }
-            default: {
-                break;
-            }
+        if (var->is_constant()) {
+            auto& list = ro.first->second;
+            list.emplace_back(var);
+        } else {
+            auto& list = data.first->second;
+            list.emplace_back(var);
         }
     }
 
@@ -145,6 +122,10 @@ bool program::on_emit(compiler::session &session)
                             } else {
                                 instruction_block->bytes({static_cast<uint8_t>(value ? 1 : 0)});
                             }
+                            break;
+                        }
+                        case element_type_t::pointer_type: {
+                            instruction_block->reserve_qword(1);
                             break;
                         }
                         case element_type_t::numeric_type: {

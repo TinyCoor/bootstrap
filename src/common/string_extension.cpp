@@ -6,7 +6,7 @@
 #include <sstream>
 #include <fmt/format.h>
 namespace gfx {
-std::string word_wrap(std::string text, size_t width, size_t right_pad, const char &fill)
+[[maybe_unused]] std::string word_wrap(std::string text, size_t width, size_t right_pad, const char &fill)
 {
     size_t line_begin = 0;
     while (line_begin < text.size()) {
@@ -44,7 +44,36 @@ std::string word_wrap(std::string text, size_t width, size_t right_pad, const ch
     return text;
 }
 
-std::pair<std::string, std::string> size_to_units(size_t size)
+std::string escaped_string(const std::string& value)
+{
+    std::stringstream stream;
+    bool escaped = false;
+    for (auto& ch : value) {
+        if (ch == '\\') {
+            escaped = true;
+        } else {
+            if (escaped) {
+                if (ch == 'n') {
+                    stream << "\n";
+                } else if (ch == 'r') {
+                    stream << "\r";
+                } else if (ch == 't') {
+                    stream << "\t";
+                } else if (ch == '\\') {
+                    stream << "\\";
+                } else if (ch == '0') {
+                    stream << '\0';
+                }
+                escaped = false;
+            } else {
+                stream << ch;
+            }
+        }
+    }
+    return stream.str();
+}
+
+[[maybe_unused]] std::pair<std::string, std::string> size_to_units(size_t size)
 {
     auto i = 0;
     const char *units[] = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};

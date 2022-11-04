@@ -47,6 +47,12 @@ public:
 
     intrinsic* make_alloc_intrinsic(compiler::block* parent_scope, compiler::argument_list* args);
 
+    intrinsic* make_align_of_intrinsic(compiler::block* parent_scope, compiler::argument_list* args);
+
+    intrinsic* make_type_of_intrinsic(compiler::block* parent_scope, compiler::argument_list* args);
+
+    intrinsic* make_address_of_intrinsic(compiler::block* parent_scope, compiler::argument_list* args);
+
     compiler::float_literal* make_float(compiler::block* parent_scope, double value);
 
     compiler::integer_literal* make_integer(compiler::block* parent_scope, uint64_t value);

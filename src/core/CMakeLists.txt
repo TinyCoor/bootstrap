@@ -122,15 +122,18 @@ set(ELEMENT_SRC
         compiler/compiler_types.h       compiler/compiler_types.cpp
 
         # operator
-        compiler/elements/operator_base.h           compiler/elements/operator_base.cpp
-        compiler/elements/unary_operator.h          compiler/elements/unary_operator.cpp
-        compiler/elements/binary_operator.h         compiler/elements/binary_operator.cpp
+        compiler/elements/operator_base.h                   compiler/elements/operator_base.cpp
+        compiler/elements/unary_operator.h                  compiler/elements/unary_operator.cpp
+        compiler/elements/binary_operator.h                 compiler/elements/binary_operator.cpp
 
-        #instrinics
-        compiler/elements/instrinics/intrinsic.h               compiler/elements/instrinics/intrinsic.cpp
-        compiler/elements/instrinics/alloc_intrinsic.h         compiler/elements/instrinics/alloc_intrinsic.cpp
-        compiler/elements/instrinics/free_intrinsic.h          compiler/elements/instrinics/free_intrinsic.cpp
-        compiler/elements/instrinics/size_of_intrinsic.h       compiler/elements/instrinics/size_of_intrinsic.cpp
+        #intrinics
+        compiler/elements/intrinics/intrinsic.h             compiler/elements/intrinics/intrinsic.cpp
+        compiler/elements/intrinics/free_intrinsic.h        compiler/elements/intrinics/free_intrinsic.cpp
+        compiler/elements/intrinics/alloc_intrinsic.h       compiler/elements/intrinics/alloc_intrinsic.cpp
+        compiler/elements/intrinics/type_of_intrinsic.h     compiler/elements/intrinics/type_of_intrinsic.cpp
+        compiler/elements/intrinics/size_of_intrinsic.h     compiler/elements/intrinics/size_of_intrinsic.cpp
+        compiler/elements/intrinics/align_of_intrinsic.h     compiler/elements/intrinics/align_of_intrinsic.cpp
+        compiler/elements/intrinics/address_of_intrinsic.h     compiler/elements/intrinics/address_of_intrinsic.cpp
         # literal
         compiler/elements/float_literal.h           compiler/elements/float_literal.cpp
         compiler/elements/integer_literal.h         compiler/elements/integer_literal.cpp
@@ -204,6 +207,7 @@ add_library(compiler-rt SHARED
         ${PARSER_SRC}
         ${COMPILER_SRC}
         )
+
 target_link_directories(compiler-rt PUBLIC ../../lib)
 target_link_libraries(compiler-rt PUBLIC
         fmt

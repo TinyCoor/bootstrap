@@ -48,12 +48,17 @@ bool variable_t::init(compiler::session& session, instruction_block *block)
     }
 
     value_reg.reg.type = register_type_t::integer;
-    if (type != nullptr &&  type->access_model() == type_access_model_t::value) {
-        value_reg.reg.size = op_size_for_byte_size(type->size_in_bytes());
-        if (type->number_class() == type_number_class_t::floating_point) {
-            value_reg.reg.type = register_type_t::floating_point;
+    if (type != nullptr) {
+        if(type->access_model() == type_access_model_t::value) {
+            value_reg.reg.size = op_size_for_byte_size(type->size_in_bytes());
+            if (type->number_class()==type_number_class_t::floating_point) {
+                value_reg.reg.type = register_type_t::floating_point;
+            }
+        } else {
+            value_reg.reg.size = op_sizes::qword;
         }
     }
+
     address_loaded = true;
 
     return true;
@@ -111,7 +116,7 @@ void variable_t::make_live(compiler::session& session)
     }
     live = true;
     address_loaded = false;
-    requires_read = type->access_model() != type_access_model_t::pointer;
+    requires_read = true;
 }
 
 void variable_t::make_dormat(compiler::session& session)

@@ -67,10 +67,6 @@ bool binary_operator::on_is_constant() const
 
 bool compiler::binary_operator::on_emit(compiler::session& session)
 {
-    session.emit_context().indent = 4;
-    defer({
-        session.emit_context().indent = 0;
-    });
     auto &assembler= session.assembler();
     auto instruction_block = assembler.current_block();
     switch (operator_type()) {

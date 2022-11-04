@@ -32,9 +32,7 @@ bool variable_t::init(compiler::session& session, instruction_block *block)
         return true;
     }
 
-    block->blank_line();
-    block->comment(fmt::format("identifier '{}' address (global)", name),
-        session.emit_context().indent);
+    block->comment(fmt::format("identifier '{}' address (global)", name), 4u);
     if (usage == identifier_usage_t::heap) {
         if (!address_reg.reserve(session)) {
             return false;
@@ -78,9 +76,7 @@ bool variable_t::read(compiler::session& session, instruction_block* block)
         if (!value_reg.reserve(session)) {
             return false;
         }
-        block->blank_line();
-        block->comment(fmt::format("load identifier '{}' value ({})", name, type_name),
-            session.emit_context().indent);
+        block->comment(fmt::format("load identifier '{}' value ({})", name, type_name), 4u);
         if (value_reg.reg.size != op_sizes::qword) {
             block->clr(op_sizes::qword, value_reg.reg);
         }
@@ -116,7 +112,7 @@ void variable_t::make_live(compiler::session& session)
     }
     live = true;
     address_loaded = false;
-    requires_read = true;
+    requires_read = address_offset == 0;
 }
 
 void variable_t::make_dormat(compiler::session& session)

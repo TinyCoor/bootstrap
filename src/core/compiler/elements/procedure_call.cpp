@@ -37,12 +37,7 @@ bool procedure_call::on_infer_type(const compiler::session& session, type_infere
 
 bool procedure_call::on_emit(compiler::session &session)
 {
-    auto &context = session.emit_context();
     auto& assembler = session.assembler();
-    context.indent = 4;
-    defer({
-          context.indent = 0;
-    });
     auto instruction_block = assembler.current_block();
     auto identifier = reference_->identifier();
     auto init = identifier->initializer();
@@ -55,8 +50,7 @@ bool procedure_call::on_emit(compiler::session &session)
         arguments_->emit(session);
     }
     if (procedure_type->is_foreign()) {
-        instruction_block->comment(fmt::format("foreign call: {}", identifier->symbol()->name()),
-                                   context.indent);
+        instruction_block->comment(fmt::format("foreign call: {}", identifier->symbol()->name()), 4);
         instruction_block->push_constant<uint16_t>(arguments_->elements().size());
         instruction_block->call_foreign(procedure_type->foreign_address());
 

@@ -20,13 +20,14 @@ label_list_t& statement::labels()
 
 bool statement::on_emit(compiler::session &session)
 {
+    for (auto label : labels_) {
+        label->emit(session);
+    }
+
     if (expression_ == nullptr) {
         return true;
     }
 
-    //
-    // need to loop over labels and add them to the assembler here
-    //
     return expression_->emit(session);
 }
 

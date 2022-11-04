@@ -44,8 +44,7 @@ bool transmute::on_emit(compiler::session &session)
     assembler.pop_target_register();
 
     instruction_block->move_reg_to_reg(*target_reg, temp_reg.reg);
-    instruction_block->comment(fmt::format("transmute<{}>", type_->symbol()->name()),
-        session.emit_context().indent);
+    instruction_block->comment(fmt::format("transmute<{}>", type_->symbol()->name()), 4u);
 
     return true;
 }

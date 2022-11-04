@@ -69,8 +69,7 @@ bool block::on_emit(compiler::session& session)
             instruction_block->blank_line();
             auto parent_ns = parent_element_as<compiler::namespace_element>();
             if (parent_ns != nullptr) {
-                instruction_block->comment(fmt::format("namespace: {}", parent_ns->name()),
-                    session.emit_context().indent);
+                instruction_block->comment(fmt::format("namespace: {}", parent_ns->name()), 0);
             }
             auto block_label = assembler.make_label(label_name());
             instruction_block->label(block_label);
@@ -85,8 +84,7 @@ bool block::on_emit(compiler::session& session)
             auto parent_module = parent_element_as<compiler::module>();
             if (parent_module != nullptr) {
                 instruction_block->comment(
-                    fmt::format("module: {}", parent_module->source_file()->path().string()),
-                    session.emit_context().indent);
+                    fmt::format("module: {}", parent_module->source_file()->path().string()), 0u);
                 clean_up = !parent_module->is_root();
             }
             auto block_label = assembler.make_label(label_name());

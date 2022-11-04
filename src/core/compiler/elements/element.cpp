@@ -221,6 +221,10 @@ element_register_t element::register_for(compiler::session& session, element *e)
     } else {
         type_inference_result_t inference_result;
         e->infer_type(session, inference_result);
+        if (inference_result.type == nullptr) {
+            session.error(e, "P052", "unable to infer type.", e->location());
+            return result;
+        }
         register_t reg;
         reg.size = op_size_for_byte_size(inference_result.type->size_in_bytes());
         if (inference_result.type->number_class() == type_number_class_t::floating_point) {

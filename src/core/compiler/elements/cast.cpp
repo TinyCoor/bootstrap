@@ -62,10 +62,6 @@ bool cast::on_emit(compiler::session& session)
     if (expression_ == nullptr) {
        return true;
     }
-    session.emit_context().indent = 4;
-    defer({
-        session.emit_context().indent = 0;
-    });
     auto mode = cast_mode_t::noop;
     type_inference_result_t source_type;
     expression_->infer_type(session, source_type);
@@ -151,9 +147,8 @@ bool cast::on_emit(compiler::session& session)
         }
     }
 
-    instruction_block->comment(
-        fmt::format("cast<{}> from type {}", type_->symbol()->name(), source_type.name()),
-        session.emit_context().indent);
+    instruction_block->comment(fmt::format("cast<{}> from type {}",
+                                           type_->symbol()->name(), source_type.name()), 4u);
     return true;
 }
 

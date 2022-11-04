@@ -95,8 +95,7 @@ bool program::on_emit(compiler::session &session)
                             }
                         }
                     }
-                    instruction_block->comment(fmt::format("\"{}\"", string_literal->value()),
-                        session.emit_context().indent);
+                    instruction_block->comment(fmt::format("\"{}\"", string_literal->value()), 4u);
                     instruction_block->string(string_literal->escaped_value());
                     break;
                 }
@@ -181,8 +180,7 @@ bool program::on_emit(compiler::session &session)
                         case element_type_t::string_type: {
                             if (init != nullptr) {
                                 auto string_literal = dynamic_cast<compiler::string_literal*>(init->expression());
-                                instruction_block->comment(fmt::format("\"{}\"", string_literal->value()),
-                                    session.emit_context().indent);
+                                instruction_block->comment(fmt::format("\"{}\"", string_literal->value()), 4u);
                                 instruction_block->string(string_literal->value());
                             }
                             break;
@@ -221,10 +219,10 @@ bool program::on_emit(compiler::session &session)
         procedure_type->emit(session);
     }
 
-    auto top_level_block = session.assembler().make_basic_block();
-    top_level_block->blank_line();
-    top_level_block->align(instruction_t::alignment);
-    top_level_block->label(assembler.make_label("_initializer"));
+    auto initialize_block = session.assembler().make_basic_block();
+    initialize_block->blank_line();
+    initialize_block->align(instruction_t::alignment);
+    initialize_block->label(assembler.make_label("_initializer"));
 
     block_list_t implicit_blocks {};
     auto module_blocks = session.elements().find_by_type(element_type_t::module_block);
@@ -232,7 +230,7 @@ bool program::on_emit(compiler::session &session)
         implicit_blocks.emplace_back(dynamic_cast<compiler::block*>(block));
     }
 
-    session.assembler().push_block(top_level_block);
+    session.assembler().push_block(initialize_block);
     for (auto block : implicit_blocks) {
         block->emit(session);
     }

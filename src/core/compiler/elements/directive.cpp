@@ -214,7 +214,6 @@ bool directive::on_emit(session &session)
 {
     if (instruction_block_ != nullptr) {
         auto current_block = session.assembler().current_block();
-        current_block->blank_line();
         current_block->comment("*** begin: inline assembly block", 4);
         for (const auto& entry : instruction_block_->entries()) {
             current_block->add_entry(entry);

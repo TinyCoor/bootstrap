@@ -11,6 +11,10 @@ public:
 	label(compiler::module* module, block* parent_scope, const std::string& name);
 
 	std::string name() const;
+protected:
+    bool on_is_constant() const override;
+
+    bool on_emit(compiler::session& session) override;
 private:
 	std::string name_;
 };

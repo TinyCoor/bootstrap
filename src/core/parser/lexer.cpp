@@ -1815,6 +1815,7 @@ bool lexer::binary_or_equal_operator(token_t &token)
     }
     return false;
 }
+
 bool lexer::binary_not_equal_operator(token_t &token)
 {
     if (match_literal("~:=")) {

@@ -30,3 +30,4 @@
 #include "procedure_instance.h"
 #include "identifier_reference.h"
 #include "module_reference.h"
+#include "type_reference.h"

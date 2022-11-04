@@ -608,5 +608,15 @@ assembly_label *element_builder::make_assembly_label(compiler::block *parent_sco
     session_.elements().add(label);
     return label;
 }
+type_reference *element_builder::make_type_reference(compiler::block *parent_scope, const qualified_symbol_t &symbol,
+                                                     compiler::type *type)
+{
+    auto& scope_manager = session_.scope_manager();
+    auto reference = new compiler::type_reference(scope_manager.current_module(),
+        parent_scope, symbol, type);
+    session_.elements().add(reference);
+    reference->location(symbol.location);
+    return reference;
+}
 
 }

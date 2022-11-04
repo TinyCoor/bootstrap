@@ -24,11 +24,11 @@ struct variable_register_t {
 struct emit_context_t;
 
 struct variable_t {
-    bool init(compiler::session& session, instruction_block* block);
+    bool init(compiler::session& session);
 
-    bool read(compiler::session& session, instruction_block* block);
+    bool read(compiler::session& session);
 
-    bool write(compiler::session& session, instruction_block* block);
+    bool write(compiler::session& session);
 
     void make_live(compiler::session& session);
 

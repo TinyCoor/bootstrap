@@ -196,11 +196,11 @@ identifier* ast_evaluator::add_identifier_to_scope(const evaluator_context_t con
                 auto init_symbol = dynamic_cast<compiler::symbol_element *>(init_expr);
                 auto identifier = scope_manager.find_identifier(init_symbol->qualified_symbol());
                 if (identifier!=nullptr) {
-                    auto type = identifier->type();
-                    if (type!=nullptr && type->is_type()) {
+                    auto type_initializer = identifier->initializer();
+                    if (type_initializer != nullptr &&
+                        type_initializer->expression()->element_type() == element_type_t::type_reference) {
                         if (symbol->is_constant()) {
-                            init_expr = identifier->type();
-                            is_type_alias = true;
+                            init_expr = type_initializer->expression();
                         } else {
                             session_.error("P029", "only constant assignment (::=) may alias types", node->location);
                             return nullptr;

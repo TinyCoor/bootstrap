@@ -5,6 +5,7 @@
 #include "pointer_type.h"
 #include "fmt/format.h"
 #include "core/compiler/session.h"
+#include "numeric_type.h"
 #include "../symbol_element.h"
 namespace gfx::compiler {
 std::string pointer_type::name_for_pointer(compiler::type* base_type)
@@ -35,13 +36,28 @@ type_access_model_t pointer_type::on_access_model() const
 {
     return type_access_model_t::pointer;
 }
+type_number_class_t pointer_type::on_number_class() const
+{
+    return type_number_class_t::integer;
+}
+
 bool pointer_type::on_type_check(compiler::type *other)
 {
-    if (other == nullptr || other->element_type() != element_type_t::pointer_type) {
+    if (other == nullptr) {
         return false;
     }
-    auto other_pointer_type = dynamic_cast<compiler::pointer_type*>(other);
-    return base_type()->id() == other_pointer_type->base_type()->id();
-
+    switch (other->element_type()) {
+        case element_type_t::numeric_type: {
+            auto numeric_type = dynamic_cast<compiler::numeric_type*>(other);
+            return numeric_type->size_in_bytes() == 8;
+        }
+        case element_type_t::pointer_type: {
+            auto other_pointer_type = dynamic_cast<compiler::pointer_type*>(other);
+            return base_type()->id() == other_pointer_type->base_type()->id();
+        }
+        default:
+            return false;
+    }
 }
+
 }

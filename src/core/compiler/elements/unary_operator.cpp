@@ -3,6 +3,8 @@
 //
 
 #include "unary_operator.h"
+#include "compiler/elements/identifier_reference.h"
+#include "compiler/elements/types/pointer_type.h"
 #include "core/compiler/session.h"
 namespace gfx::compiler {
 unary_operator::unary_operator(compiler::module* module, block* parent, operator_type_t type,element* rhs)
@@ -26,6 +28,11 @@ bool unary_operator::on_infer_type(const compiler::session& session, type_infere
 		case operator_type_t::logical_not: {
 			result.type = session.scope_manager().find_type(qualified_symbol_t{.name = "bool"});
             return result.type !=nullptr;
+        }
+        case operator_type_t::pointer_dereference: {
+            auto identifier_ref = dynamic_cast<compiler::identifier_reference*>(rhs_);
+            auto type = dynamic_cast<compiler::pointer_type*>(identifier_ref->identifier()->type());
+            return type->base_type();
         }
 		default:
 			return false;
@@ -61,6 +68,11 @@ bool compiler::unary_operator::on_emit(compiler::session &session)
         }
         case operator_type_t::logical_not: {
             instruction_block->xor_reg_by_reg(*target_reg, rhs_reg.reg, rhs_reg.reg);
+            break;
+        }
+        case operator_type_t::pointer_dereference: {
+            instruction_block->comment("XXX: implement pointer dereference", 4);
+            instruction_block->nop();
             break;
         }
         default:

@@ -17,6 +17,8 @@ public:
 protected:
     bool on_type_check(compiler::type* other) override;
 
+    type_number_class_t on_number_class() const override;
+
     type_access_model_t on_access_model() const override;
 
     bool on_initialize(compiler::session& session) override;

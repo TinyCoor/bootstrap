@@ -37,7 +37,7 @@ bool address_of_intrinsic::on_fold(session &session, fold_result_t &result)
     }
 
     auto arg = args[0];
-    if (arg->element_type() != element_type_t::identifier_reference) {
+    if (arg==nullptr || arg->element_type() != element_type_t::identifier_reference) {
         session.error(this, "P091", "address_of expects an identifier reference parameter.", location());
         return false;
     }

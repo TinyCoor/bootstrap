@@ -210,10 +210,10 @@ element_register_t element::register_for(compiler::session& session, element *e)
     if (var != nullptr) {
         var->make_live(session);
         result.var = var;
-        result.var->read(session, session.assembler().current_block());
+        result.var->read(session);
         result.valid = true;
         result.reg = var->value_reg.reg;
-        if (var->address_reg.allocated && var->type->access_model() == type_access_model_t::pointer) {
+        if (var->address_reg.allocated && var->address_offset != 0) {
             result.reg = var->address_reg.reg;
         } else {
             result.reg = result.var->value_reg.reg;

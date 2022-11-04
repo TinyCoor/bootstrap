@@ -1128,4 +1128,13 @@ void instruction_block::make_clr_instruction(op_sizes size, const register_t &de
     make_block_entry(clr_op);
 }
 
+void instruction_block::pow_reg_by_reg(const register_t &dest_reg, const register_t &base_reg,
+                                       const register_t &exponent_reg)
+{
+    make_block_entry(comment_t {
+        .indent = 4,
+        .value = "XXX: implement a POW instruction in terp"
+    });
+}
+
 }

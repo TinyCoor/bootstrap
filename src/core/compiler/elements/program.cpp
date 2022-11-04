@@ -52,6 +52,12 @@ bool program::on_emit(compiler::session &session)
             continue;
         }
 
+        if (var->initializer() != nullptr
+            &&  var->initializer()->expression()->element_type() == element_type_t::type_reference) {
+            continue;
+        }
+
+
         if (var->is_constant()) {
             auto& list = ro.first->second;
             list.emplace_back(var);

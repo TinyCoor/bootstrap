@@ -54,6 +54,7 @@ class procedure_call;
 class operator_base;
 class procedure_type;
 class unary_operator;
+class type_reference;
 class integer_literal;
 class boolean_literal;
 class namespace_type;
@@ -152,7 +153,8 @@ enum class element_type_t {
 	namespace_e,
 	initializer,
 	numeric_type,
-	unknown_type,
+    type_reference,
+    unknown_type,
 	argument_list,
 	proc_instance,
 	float_literal,
@@ -204,6 +206,7 @@ static inline std::unordered_map<element_type_t, std::string_view> s_element_typ
 	{element_type_t::expression, 			"expression"},
 	{element_type_t::string_type, 			"string_type"},
     {element_type_t::struct_type, 			"struct_type"},
+    {element_type_t::type_reference, 	    "type_reference"},
 	{element_type_t::initializer, 			"initializer"},
 	{element_type_t::unknown_type, 			"unknown_type"},
     {element_type_t::pointer_type, 			"pointer_type"},
@@ -252,7 +255,7 @@ enum class operator_type_t {
 	negate,
 	binary_not,
 	logical_not,
-
+    pointer_dereference,
 	// binary
 	add,
 	subtract,
@@ -275,7 +278,8 @@ enum class operator_type_t {
 	rotate_right,
 	rotate_left,
 	exponent,
-	assignment
+	assignment,
+    dereference,
 };
 
 static inline std::unordered_map<operator_type_t, std::string_view> s_operator_type_names = {
@@ -284,6 +288,8 @@ static inline std::unordered_map<operator_type_t, std::string_view> s_operator_t
 	{operator_type_t::binary_not,            "binary_not"},
 	{operator_type_t::logical_not,           "logical_not"},
 	{operator_type_t::add,                   "add"},
+    {operator_type_t::pointer_dereference,   "pointer_deference"},
+    {operator_type_t::dereference,           "dereference"},
 	{operator_type_t::subtract,              "subtract"},
 	{operator_type_t::multiply,              "multiply"},
 	{operator_type_t::divide,                "divide"},
@@ -318,7 +324,8 @@ static inline std::string_view operator_type_name(operator_type_t type)
 static inline std::unordered_map<token_types_t, operator_type_t> s_unary_operators = {
 	{token_types_t::minus, operator_type_t::negate},
 	{token_types_t::tilde, operator_type_t::binary_not},
-	{token_types_t::bang,  operator_type_t::logical_not}
+	{token_types_t::bang,  operator_type_t::logical_not},
+    {token_types_t::caret, operator_type_t::pointer_dereference},
 };
 
 static inline std::unordered_map<token_types_t, operator_type_t> s_binary_operators = {
@@ -343,8 +350,10 @@ static inline std::unordered_map<token_types_t, operator_type_t> s_binary_operat
     {token_types_t::shr_literal,        operator_type_t::shift_right},
     {token_types_t::rol_literal,        operator_type_t::rotate_left},
     {token_types_t::ror_literal,        operator_type_t::rotate_right},
-    {token_types_t::caret,              operator_type_t::exponent},
+    {token_types_t::exponent,           operator_type_t::exponent},
     {token_types_t::assignment,         operator_type_t::assignment},
+    {token_types_t::caret,              operator_type_t::dereference},
+
 };
 
 struct attribute_map_t {

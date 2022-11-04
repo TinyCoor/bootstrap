@@ -33,7 +33,7 @@ bool type_of_intrinsic::on_fold(session &session, fold_result_t &result)
     }
     type_inference_result_t type_result;
     args[0]->infer_type(session, type_result);
-    auto arg_type = type_result.type;
+//    auto arg_type = type_result.type;
     result.element = session.builder().make_integer(parent_scope(), 0xdeadbeef);
     return true;
 }

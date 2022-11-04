@@ -6,45 +6,8 @@
 #include <fmt/format.h>
 #include "common/bytes.h"
 #include "common/defer.h"
-#include "elements/module.h"
-#include "elements/cast.h"
-#include "elements/label.h"
-#include "elements/import.h"
-#include "elements/comment.h"
-#include "elements/directive.h"
-#include "elements/attribute.h"
-#include "elements/if_element.h"
-#include "elements/expression.h"
-#include "elements/identifier.h"
-#include "elements/statement.h"
-#include "elements/element_types.h"
-#include "elements/argument_list.h"
-#include "elements/boolean_literal.h"
-#include "elements/string_literal.h"
-#include "elements/float_literal.h"
-#include "elements/integer_literal.h"
-#include "elements/return_element.h"
-#include "elements/unary_operator.h"
-#include "elements/symbol_element.h"
-#include "elements/procedure_call.h"
-#include "elements/binary_operator.h"
-#include "elements/namespace_element.h"
-#include "elements/procedure_instance.h"
-#include "elements/identifier_reference.h"
-#include "elements/module_reference.h"
-#include "elements/types/type.h"
-#include "elements/types/any_type.h"
-#include "elements/types/bool_type.h"
-#include "elements/types/tuple_type.h"
-#include "elements/types/type_info.h"
-#include "elements/types/string_type.h"
-#include "elements/types/numeric_type.h"
-#include "elements/types/unknown_type.h"
-#include "elements/types/pointer_type.h"
-#include "elements/types/module_type.h"
-#include "elements/types/array_type.h"
-#include "elements/types/procedure_type.h"
-#include "elements/types/namespace_type.h"
+#include "compiler/elements/element"
+#include "compiler/elements/types/type"
 
 namespace gfx::compiler {
 scope_manager::scope_manager(compiler::session &session)
@@ -114,9 +77,12 @@ compiler::identifier *scope_manager::find_identifier(const qualified_symbol_t& s
 
 void scope_manager::add_type_to_scope(compiler::type *type) const
 {
+    auto& builder = session_.builder();
     auto scope = current_scope();
     scope->types().add(type);
-    auto identifier = session_.builder().make_identifier(scope, type->symbol(), nullptr);
+    auto identifier = session_.builder().make_identifier(scope, type->symbol(),
+        builder.make_initializer(scope, builder.make_type_reference(
+            scope, type->symbol()->qualified_symbol(), type)));
     identifier->type(type);
     scope->identifiers().add(identifier);
 }
@@ -298,7 +264,7 @@ compiler::type *scope_manager::find_type(const qualified_symbol_t &symbol, compi
 }
 
 
-compiler::type *scope_manager::make_complete_type(compiler::session& session, type_find_result_t &result, compiler::block *parent_scope)
+compiler::type *scope_manager::make_complete_type(compiler::session& session, type_find_result_t &result, compiler::block *parent_scope) const
 {
     auto &builder_ = session.builder();
     result.type = find_type(result.type_name, parent_scope);

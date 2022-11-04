@@ -40,8 +40,8 @@ bool assembler::assemble(result &r)
             continue;
         }
         for (auto &entry: block->entries()) {
+            highest_address = entry.address();
             switch (entry.type()) {
-                highest_address = entry.address();
                 case block_entry_type_t::instruction: {
                     auto inst = entry.data<instruction_t>();
                     auto inst_size = inst->encode(r, terp_->heap(), entry.address());
@@ -67,6 +67,7 @@ bool assembler::assemble(result &r)
             }
         }
     }
+    highest_address += 8;
     terp_->heap_free_space_begin(align(highest_address, 8));
 
     return !r.is_failed();

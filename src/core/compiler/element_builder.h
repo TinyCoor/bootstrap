@@ -72,8 +72,11 @@ public:
 
     compiler::transmute* make_transmute(compiler::block* parent_scope, compiler::type* type, element* expr);
 
-    compiler::symbol_element* make_symbol(compiler::block* parent_scope,
-        const std::string& name, const string_list_t& namespaces = {});
+    compiler::symbol_element* make_symbol(compiler::block* parent_scope, const std::string& name,
+                                          const string_list_t& namespaces = {});
+
+    type_reference* make_type_reference(compiler::block* parent_scope, const qualified_symbol_t& symbol,
+        compiler::type* type);
 
     class compiler::block* make_block(compiler::block* parent_scope, element_type_t type);
 

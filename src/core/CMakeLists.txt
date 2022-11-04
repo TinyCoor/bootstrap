@@ -139,7 +139,7 @@ set(ELEMENT_SRC
         compiler/elements/integer_literal.h         compiler/elements/integer_literal.cpp
         compiler/elements/boolean_literal.h         compiler/elements/boolean_literal.cpp
         compiler/elements/string_literal.h          compiler/elements/string_literal.cpp
-# types
+        # types
         compiler/elements/types/type.h              compiler/elements/types/type.cpp
         compiler/elements/types/any_type.h          compiler/elements/types/any_type.cpp
         compiler/elements/types/type_info.h         compiler/elements/types/type_info.cpp
@@ -176,6 +176,7 @@ set(ELEMENT_SRC
         compiler/elements/initializer.h             compiler/elements/initializer.cpp
         compiler/elements/argument_list.h           compiler/elements/argument_list.cpp
         compiler/elements/element_types.h           compiler/elements/element_types.cpp
+        compiler/elements/type_reference.h          compiler/elements/type_reference.cpp
         compiler/elements/return_element.h          compiler/elements/return_element.cpp
         compiler/elements/symbol_element.h          compiler/elements/symbol_element.cpp
         compiler/elements/procedure_call.h          compiler/elements/procedure_call.cpp

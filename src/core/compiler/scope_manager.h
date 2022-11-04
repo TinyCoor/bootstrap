@@ -53,7 +53,7 @@ public:
     compiler::identifier* find_identifier(const qualified_symbol_t& symbol, compiler::block* scope = nullptr) const;
 
     compiler::type *make_complete_type(compiler::session& session, type_find_result_t &result,
-        compiler::block *parent_scope);
+        compiler::block *parent_scope) const;
 
     compiler::block* pop_scope();
 

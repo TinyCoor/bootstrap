@@ -43,6 +43,9 @@ bool binary_operator::on_infer_type(const compiler::session& session, type_infer
 		case operator_type_t::rotate_right: {
             return lhs_->infer_type(session, result);
 		}
+        case operator_type_t::dereference: {
+            return rhs_->infer_type(session, result);
+        }
 		case operator_type_t::equals:
 		case operator_type_t::less_than:
 		case operator_type_t::not_equals:
@@ -97,6 +100,11 @@ bool compiler::binary_operator::on_emit(compiler::session& session)
             emit_relational_operator(session, instruction_block);
             break;
         }
+        case operator_type_t::dereference: {
+            instruction_block->comment("XXX: implement . dereference", 4);
+            instruction_block->nop();
+            break;
+        }
         case operator_type_t::assignment: {
             auto var = session.emit_context().variable_for_element(lhs_);
             if (var == nullptr) {
@@ -106,7 +114,7 @@ bool compiler::binary_operator::on_emit(compiler::session& session)
             }
             var->make_live(session);
             lhs_->emit(session);
-            var->init(session, instruction_block);
+            var->init(session);
 
             register_t rhs_reg;
             rhs_reg.size = var->value_reg.reg.size;
@@ -117,7 +125,7 @@ bool compiler::binary_operator::on_emit(compiler::session& session)
 
             assembler.push_target_register(rhs_reg);
             rhs_->emit(session);
-            var->write(session, instruction_block);
+            var->write(session);
             assembler.pop_target_register();
             assembler.free_reg(rhs_reg);
             var->make_dormat(session);
@@ -256,7 +264,7 @@ void binary_operator::emit_arithmetic_operator(compiler::session& session, instr
             break;
         }
         case operator_type_t::exponent: {
-//          instruction_block->pow_reg_by_reg(result_reg->reg.reg, lhs_reg, rhs_reg);
+            instruction_block->pow_reg_by_reg(*result_reg, lhs_reg.reg, rhs_reg.reg);
             break;
         }
         case operator_type_t::subtract: {
@@ -303,6 +311,9 @@ bool binary_operator::on_fold(compiler::session& session, fold_result_t& result)
             break;
         }
         case operator_type_t::divide: {
+            break;
+        }
+        case operator_type_t::dereference: {
             break;
         }
         case operator_type_t::modulo: {

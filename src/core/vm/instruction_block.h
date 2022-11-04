@@ -164,6 +164,8 @@ public:
 
     void move_constant_to_reg(const register_t& dest_reg, double immediate);
 
+    // pow variations
+    void pow_reg_by_reg(const register_t& dest_reg, const register_t& base_reg, const register_t& exponent_reg);
     /// load variations
     void load_to_reg(const register_t& dest_reg, const register_t& address_reg, int64_t offset = 0);
 

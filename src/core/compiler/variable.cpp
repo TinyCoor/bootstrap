@@ -22,7 +22,7 @@ void variable_register_t::release(compiler::session& session)
 }
 
 
-bool variable_t::init(compiler::session& session, instruction_block *block)
+bool variable_t::init(compiler::session& session)
 {
     if (!live) {
         return false;
@@ -31,7 +31,8 @@ bool variable_t::init(compiler::session& session, instruction_block *block)
     if (address_loaded) {
         return true;
     }
-
+    auto& assembler = session.assembler();
+    auto block = assembler.current_block();
     block->comment(fmt::format("identifier '{}' address (global)", name), 4u);
     if (usage == identifier_usage_t::heap) {
         if (!address_reg.reserve(session)) {
@@ -62,15 +63,16 @@ bool variable_t::init(compiler::session& session, instruction_block *block)
     return true;
 }
 
-bool variable_t::read(compiler::session& session, instruction_block* block)
+bool variable_t::read(compiler::session& session)
 {
+    auto& assembler = session.assembler();
+    auto block = assembler.current_block();
     if (!live) {
         return false;
     }
-    if (!init(session, block)) {
+    if (!init(session)) {
         return false;
     }
-
     std::string type_name = "global";
     if (requires_read) {
         if (!value_reg.reserve(session)) {
@@ -93,8 +95,10 @@ bool variable_t::read(compiler::session& session, instruction_block* block)
     return true;
 }
 
-bool variable_t::write(compiler::session& session, instruction_block* block)
+bool variable_t::write(compiler::session& session)
 {
+    auto& assembler = session.assembler();
+    auto block = assembler.current_block();
     auto target_reg = session.assembler().current_target_register();
     if (target_reg == nullptr) {
         return false;

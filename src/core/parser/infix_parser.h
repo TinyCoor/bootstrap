@@ -19,6 +19,8 @@ enum class precedence_t : uint8_t {
 	relational,
 	bitwise,
 	exponent,
+    dereference,
+    pointer_dereference,
 	block_comment,
 	prefix,
 	postfix,
@@ -51,14 +53,15 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-//class symbol_infix_parser : public infix_parser {
-//public:
-//	symbol_infix_parser() = default;
-//
-//	ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs, token_t& token) override;
-//
-//	[[nodiscard]] precedence_t precedence() const override;
-//};
+class pointer_dereference_infix_parser : public infix_parser {
+public:
+    pointer_dereference_infix_parser() = default;
+
+    ast_node_shared_ptr parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+        token_t& token) override;
+
+    precedence_t precedence() const override;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 

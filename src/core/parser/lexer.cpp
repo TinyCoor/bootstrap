@@ -13,6 +13,51 @@ static inline token_t s_invalid = {
     .value = ""
 };
 
+static inline token_t s_exponent_literal = {
+    .type = token_types_t::exponent,
+    .value = "**"
+};
+
+static inline token_t s_plus_equal_literal = {
+    .type = token_types_t::plus_equal_literal,
+    .value = "+:="
+};
+
+static inline token_t s_minus_equal_literal = {
+    .type = token_types_t::minus_equal_literal,
+    .value = "-:="
+};
+
+static inline token_t s_divide_equal_literal = {
+    .type = token_types_t::divide_equal_literal,
+    .value = "/:="
+};
+
+static inline token_t s_modulus_equal_literal = {
+    .type = token_types_t::modulus_equal_literal,
+    .value = "%:="
+};
+
+static inline token_t s_multiply_equal_literal = {
+    .type = token_types_t::multiply_equal_literal,
+    .value = "*:="
+};
+
+static inline token_t s_binary_or_equal_literal = {
+    .type = token_types_t::binary_or_equal_literal,
+    .value = "|:="
+};
+
+static inline token_t s_binary_and_equal_literal = {
+    .type = token_types_t::binary_and_equal_literal,
+    .value = "&:="
+};
+
+static inline token_t s_binary_not_equal_literal = {
+    .type = token_types_t::binary_not_equal_literal,
+    .value = "~:="
+};
+
 static inline token_t s_raw_block = {
     .type = token_types_t::raw_block,
     .value = "{{"
@@ -344,13 +389,15 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	{'@', std::bind(&lexer::attribute, std::placeholders::_1, std::placeholders::_2)},
 
 	// add
+    {'+', std::bind(&lexer::plus_equal_operator, std::placeholders::_1, std::placeholders::_2)},
 	{'+', std::bind(&lexer::plus, std::placeholders::_1, std::placeholders::_2)},
 
 	// directive
 	{'#', std::bind(&lexer::directive, std::placeholders::_1, std::placeholders::_2)},
 
 	// block comment line comment, slash
-	{'/', std::bind(&lexer::block_comment, std::placeholders::_1, std::placeholders::_2)},
+    {'/', std::bind(&lexer::divide_equal_operator, std::placeholders::_1, std::placeholders::_2)},
+    {'/', std::bind(&lexer::block_comment, std::placeholders::_1, std::placeholders::_2)},
 	{'/', std::bind(&lexer::line_comment, std::placeholders::_1, std::placeholders::_2)},
 	{'/', std::bind(&lexer::slash, std::placeholders::_1, std::placeholders::_2)},
 
@@ -376,6 +423,7 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	{'.', std::bind(&lexer::spread, std::placeholders::_1, std::placeholders::_2)},
 
 	// tilde
+    {'~', std::bind(&lexer::binary_not_equal_operator, std::placeholders::_1, std::placeholders::_2)},
 	{'~', std::bind(&lexer::tilde, std::placeholders::_1, std::placeholders::_2)},
 
 	// assignment, scope operator, colon
@@ -385,10 +433,13 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	{':', std::bind(&lexer::colon, std::placeholders::_1, std::placeholders::_2)},
 
 	// percent/number literal
-	{'%', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
+    {'%', std::bind(&lexer::modulus_equal_operator, std::placeholders::_1, std::placeholders::_2)},
+    {'%', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 	{'%', std::bind(&lexer::percent, std::placeholders::_1, std::placeholders::_2)},
 
-	// asterisk
+	//exponent/asterisk
+    {'*', std::bind(&lexer::multiply_equal_operator, std::placeholders::_1, std::placeholders::_2)},
+    {'*', std::bind(&lexer::exponent, std::placeholders::_1, std::placeholders::_2)},
 	{'*', std::bind(&lexer::asterisk, std::placeholders::_1, std::placeholders::_2)},
 
 	// equals, not equals
@@ -403,11 +454,13 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	{'>', std::bind(&lexer::greater_than_operator, std::placeholders::_1, std::placeholders::_2)},
 
 	// logical and, bitwise and, ampersand
-	{'&', std::bind(&lexer::logical_and_operator, std::placeholders::_1, std::placeholders::_2)},
+    {'&', std::bind(&lexer::binary_and_equal_operator, std::placeholders::_1, std::placeholders::_2)},
+    {'&', std::bind(&lexer::logical_and_operator, std::placeholders::_1, std::placeholders::_2)},
 	{'&', std::bind(&lexer::ampersand_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// logical or, bitwise or, pipe
-	{'|', std::bind(&lexer::logical_or_operator, std::placeholders::_1, std::placeholders::_2)},
+    {'|', std::bind(&lexer::binary_or_equal_operator, std::placeholders::_1, std::placeholders::_2)},
+    {'|', std::bind(&lexer::logical_or_operator, std::placeholders::_1, std::placeholders::_2)},
 	{'|', std::bind(&lexer::pipe_literal, std::placeholders::_1, std::placeholders::_2)},
 
 	// braces
@@ -551,6 +604,7 @@ std::multimap<rune_t, lexer::lexer_case_callable> lexer::s_cases = {
 	{'f', std::bind(&lexer::number_literal, std::placeholders::_1, std::placeholders::_2)},
 
     // minus, negate
+    {'-', std::bind(&lexer::minus_equal_operator, std::placeholders::_1, std::placeholders::_2)},
     {'-', std::bind(&lexer::minus, std::placeholders::_1, std::placeholders::_2)},
 };
 
@@ -1701,6 +1755,79 @@ bool lexer::raw_block(token_t &token)
         }
 
         token.value = stream.str();
+        return true;
+    }
+    return false;
+}
+bool lexer::exponent(token_t &token)
+{
+    if (match_literal("**")) {
+        token = s_exponent_literal;
+        return true;
+    }
+    return false;
+}
+bool lexer::plus_equal_operator(token_t &token)
+{
+    if (match_literal("+:=")) {
+        token = s_plus_equal_literal;
+        return true;
+    }
+    return false;
+}
+bool lexer::minus_equal_operator(token_t &token)
+{
+    if (match_literal("-:=")) {
+        token = s_minus_equal_literal;
+        return true;
+    }
+    return false;
+}
+bool lexer::divide_equal_operator(token_t &token)
+{
+    if (match_literal("/:=")) {
+        token = s_divide_equal_literal;
+        return true;
+    }
+    return false;
+}
+bool lexer::modulus_equal_operator(token_t &token)
+{
+    if (match_literal("%:=")) {
+        token = s_modulus_equal_literal;
+        return true;
+    }
+    return false;
+}
+bool lexer::multiply_equal_operator(token_t &token)
+{
+    if (match_literal("*:=")) {
+        token = s_multiply_equal_literal;
+        return true;
+    }
+    return false;
+}
+bool lexer::binary_or_equal_operator(token_t &token)
+{
+    if (match_literal("|:=")) {
+        token = s_binary_or_equal_literal;
+        return true;
+    }
+    return false;
+}
+bool lexer::binary_not_equal_operator(token_t &token)
+{
+    if (match_literal("~:=")) {
+        token = s_binary_not_equal_literal;
+        return true;
+    }
+    return false;
+}
+
+bool lexer::binary_and_equal_operator(token_t &token)
+{
+    if (match_literal("&:=")) {
+        token = s_binary_and_equal_literal;
         return true;
     }
     return false;

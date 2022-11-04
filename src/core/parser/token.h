@@ -25,7 +25,8 @@ enum class token_types_t {
 	equals,						/// '='
 	period,						/// '.'
 	percent,					/// ''
-    raw_block,
+    raw_block,                  /// '{{'
+    exponent,                   /// '*'
     question,					/// '?'
 	asterisk,					/// '*'
 	ampersand,					/// ''
@@ -85,6 +86,14 @@ enum class token_types_t {
 	left_square_bracket,		/// '['
 	right_square_bracket,		/// ']'
 	constant_assignment,
+    plus_equal_literal,         /// '+:='
+    minus_equal_literal,        /// '-:='
+    divide_equal_literal,       /// '/:='
+    modulus_equal_literal,      /// '%:='
+    multiply_equal_literal,     /// '*:='
+    binary_or_equal_literal,    /// '|:='
+    binary_not_equal_literal,   /// '~:='
+    binary_and_equal_literal,   /// '&:='
 };
 
 static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name = {
@@ -119,6 +128,7 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
 	{token_types_t::caret,                  "caret"},
 	{token_types_t::tilde,                  "tilde"},
 	{token_types_t::bang,                   "bang"},
+    {token_types_t::exponent,               "exponent"},
 	{token_types_t::question,               "question"},
 	{token_types_t::colon,                  "colon"},
 	{token_types_t::semi_colon,             "semi_colon"},
@@ -161,6 +171,13 @@ static inline std::unordered_map<token_types_t, std::string_view> s_type_to_name
     {token_types_t::left_square_bracket,    "left_square_bracket"},
     {token_types_t::right_square_bracket,   "right_square_bracket"},
     {token_types_t::constant_assignment,    "constant_assignment"},
+    {token_types_t::plus_equal_literal,     "plus_equal_literal"},
+    {token_types_t::minus_equal_literal,     "minus_equal_literal"},
+    {token_types_t::multiply_equal_literal,     "multiply_equal_literal"},
+    {token_types_t::divide_equal_literal,     "divide_equal_literal"},
+    {token_types_t::binary_and_equal_literal, "binary_and_equal_literal"},
+    {token_types_t::binary_not_equal_literal,  "binary_not_equal_literal"},
+    {token_types_t::binary_or_equal_literal,  "binary_or_equal_literal"},
 };
 
 enum class conversion_result_t {

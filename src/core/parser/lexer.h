@@ -36,6 +36,8 @@ private:
 
 	bool comma(token_t& token);
 
+    bool exponent(token_t& token);
+
 	bool label(token_t& token);
 
 	bool slash(token_t& token);
@@ -169,6 +171,22 @@ private:
 	bool less_than_equal_operator(token_t& token);
 
 	bool greater_than_equal_operator(token_t& token);
+
+    bool plus_equal_operator(token_t& token);
+
+    bool minus_equal_operator(token_t& token);
+
+    bool divide_equal_operator(token_t& token);
+
+    bool modulus_equal_operator(token_t& token);
+
+    bool multiply_equal_operator(token_t& token);
+
+    bool binary_or_equal_operator(token_t& token);
+
+    bool binary_not_equal_operator(token_t& token);
+
+    bool binary_and_equal_operator(token_t& token);
 
 private:
     void set_token_location(token_t &token);

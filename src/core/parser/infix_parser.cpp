@@ -244,16 +244,18 @@ precedence_t proc_call_infix_parser::precedence() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//ast_node_shared_ptr symbol_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
-//	token_t& token)
-//{
-//	return create_symbol_node(r, parser, lhs, token);
-//}
-//
-//precedence_t symbol_infix_parser::precedence() const
-//{
-//	return precedence_t::variable;
-//}
+ast_node_shared_ptr pointer_dereference_infix_parser::parse(result& r, parser* parser, const ast_node_shared_ptr& lhs,
+	token_t& token)
+{
+    auto node = parser->ast_builder()->unary_operator_node(token);
+    node->rhs = lhs;
+    return node;
+}
+
+precedence_t pointer_dereference_infix_parser::precedence() const
+{
+	return precedence_t::pointer_dereference;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 

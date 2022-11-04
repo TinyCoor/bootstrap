@@ -206,12 +206,13 @@ void source_file::error(result &r, const std::string &code, const std::string &m
 {
     std::stringstream stream;
     auto number_lines = static_cast<int32_t>(number_of_lines());
+    auto target_line = static_cast<int32_t>(location.start().line);
+    auto message_indicator = colorizer::colorize("^ " + message, term_colors_t::red);
     auto start_line = static_cast<int32_t>(location.start().line - 4);
     start_line = start_line < 0 ? 0 : start_line;
     auto stop_line = static_cast<int32_t>(location.end().line + 4);
-    stop_line = stop_line >= static_cast<int32_t>(lines_by_number_.size()) ? number_lines - 1 : stop_line;
-    auto message_indicator = colorizer::colorize("^ " + message, term_colors_t::red);
-    auto target_line = static_cast<int32_t>(location.start().line);
+    stop_line = stop_line >= number_lines ? number_lines : stop_line;
+
     for (int32_t i = start_line; i < stop_line; i++) {
         auto source_line = line_by_number(i);
         if (source_line == nullptr) {

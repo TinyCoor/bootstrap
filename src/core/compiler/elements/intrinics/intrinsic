@@ -1,0 +1,6 @@
+#include "size_of_intrinsic.h"
+#include "alloc_intrinsic.h"
+#include "free_intrinsic.h"
+#include "align_of_intrinsic.h"
+#include "type_of_intrinsic.h"
+#include "address_of_intrinsic.h"

@@ -3,55 +3,11 @@
 //
 
 #include "element_builder.h"
-#include "elements/program.h"
-#include "elements/cast.h"
-#include "elements/label.h"
-#include "elements/module.h"
-#include "elements/transmute.h"
-#include "elements/types/type.h"
-#include "elements/import.h"
-#include "elements/raw_block.h"
-#include "elements/comment.h"
-#include "elements/types/any_type.h"
-#include "elements/types/bool_type.h"
-#include "elements/types/tuple_type.h"
-#include "elements/types/array_type.h"
-#include "elements/if_element.h"
-#include "elements/expression.h"
-#include "elements/attribute.h"
-#include "elements/identifier.h"
-#include "elements/directive.h"
-#include "elements/statement.h"
-#include "elements/types/type_info.h"
-#include "elements/types/string_type.h"
-#include "elements/types/numeric_type.h"
-#include "elements/types/procedure_type.h"
-#include "elements/types/unknown_type.h"
-#include "elements/types/pointer_type.h"
-#include "elements/types/module_type.h"
-#include "elements/argument_list.h"
-#include "elements/boolean_literal.h"
-#include "elements/string_literal.h"
-#include "elements/float_literal.h"
-#include "elements/integer_literal.h"
-#include "elements/return_element.h"
-#include "elements/unary_operator.h"
-#include "elements/symbol_element.h"
-#include "elements/types/composite_type.h"
-#include "elements/procedure_call.h"
-#include "elements/binary_operator.h"
-#include "elements/namespace_element.h"
-#include "elements/types/namespace_type.h"
-#include "elements/procedure_instance.h"
-#include "elements/identifier_reference.h"
-#include "elements/module_reference.h"
-#include "compiler/elements/intrinics/size_of_intrinsic.h"
-#include "compiler/elements/intrinics/alloc_intrinsic.h"
-#include "compiler/elements/intrinics/free_intrinsic.h"
-#include "compiler/elements/intrinics/align_of_intrinsic.h"
-#include "compiler/elements/intrinics/type_of_intrinsic.h"
-#include "compiler/elements/intrinics/address_of_intrinsic.h"
 #include <fmt/format.h>
+#include "compiler/elements/element"
+#include "compiler/elements/types/type"
+#include "compiler/elements/intrinics/intrinsic"
+
 namespace gfx::compiler {
 element_builder::element_builder(compiler::session& session)
     : session_(session)
@@ -644,6 +600,13 @@ intrinsic *element_builder::make_address_of_intrinsic(compiler::block *parent_sc
     session_.elements().add(intrinsic);
     args->parent_element(intrinsic);
     return intrinsic;
+}
+assembly_label *element_builder::make_assembly_label(compiler::block *parent_scope, const std::string &name)
+{
+    auto label = new compiler::assembly_label(session_.scope_manager().current_module(),
+        parent_scope, name);
+    session_.elements().add(label);
+    return label;
 }
 
 }

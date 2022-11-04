@@ -4,6 +4,10 @@
 
 #include "address_of_intrinsic.h"
 #include "compiler/session.h"
+#include "compiler/elements/symbol_element.h"
+#include "compiler/elements/assembly_label.h"
+#include "compiler/elements/identifier.h"
+#include "compiler/elements/identifier_reference.h"
 #include "compiler/elements/integer_literal.h"
 #include "compiler/elements/argument_list.h"
 namespace gfx::compiler {
@@ -37,8 +41,9 @@ bool address_of_intrinsic::on_fold(session &session, fold_result_t &result)
         session.error(this, "P091", "address_of expects an identifier reference parameter.", location());
         return false;
     }
-
-    result.element = session.builder().make_integer(parent_scope(), 0u);
+    auto ref = dynamic_cast<compiler::identifier_reference*>(arg);
+    result.element = session.builder().make_assembly_label(parent_scope(),
+        ref->identifier()->symbol()->name());
     return true;
 }
 bool address_of_intrinsic::on_infer_type(const session &session, type_inference_result_t &result)

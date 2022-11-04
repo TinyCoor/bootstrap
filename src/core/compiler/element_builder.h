@@ -41,6 +41,8 @@ public:
 
     compiler::boolean_literal* make_bool(compiler::block* parent_scope, bool value);
 
+    assembly_label* make_assembly_label(compiler::block* parent_scope, const std::string& name);
+
     intrinsic* make_size_of_intrinsic(compiler::block* parent_scope, compiler::argument_list* args);
 
     intrinsic* make_free_intrinsic(compiler::block* parent_scope, compiler::argument_list* args);

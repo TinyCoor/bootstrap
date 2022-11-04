@@ -166,7 +166,6 @@ set(ELEMENT_SRC
         compiler/elements/program.h                 compiler/elements/program.cpp
         compiler/elements/comment.h                 compiler/elements/comment.cpp
         compiler/elements/raw_block.h               compiler/elements/raw_block.cpp
-
         compiler/elements/transmute.h               compiler/elements/transmute.cpp
         compiler/elements/statement.h               compiler/elements/statement.cpp
         compiler/elements/directive.h               compiler/elements/directive.cpp
@@ -180,6 +179,7 @@ set(ELEMENT_SRC
         compiler/elements/return_element.h          compiler/elements/return_element.cpp
         compiler/elements/symbol_element.h          compiler/elements/symbol_element.cpp
         compiler/elements/procedure_call.h          compiler/elements/procedure_call.cpp
+        compiler/elements/assembly_label.h          compiler/elements/assembly_label.cpp
         compiler/elements/module_reference.h        compiler/elements/module_reference.cpp
         compiler/elements/namespace_element.h       compiler/elements/namespace_element.cpp
         compiler/elements/procedure_instance.h      compiler/elements/procedure_instance.cpp

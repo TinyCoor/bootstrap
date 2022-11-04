@@ -59,6 +59,7 @@ class boolean_literal;
 class namespace_type;
 class composite_type;
 class pointer_type;
+class assembly_label;
 class string_literal;
 class binary_operator;
 class module_reference;
@@ -144,6 +145,7 @@ enum class element_type_t {
 	identifier,
 	expression,
     module_block,
+    assembly_label,
 	string_type,
     struct_type,
     module_type,

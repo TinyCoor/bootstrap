@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 3.21)
-project(bootstrap CXX C ASM)
+project(bootstrap CXX C )
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+#include_directories(extern/dyncall/dyncall/dyncall.h)
 add_subdirectory(extern/fmt)
 add_subdirectory(extern/gtest)
+add_subdirectory(extern/dyncall-1.4)
 add_subdirectory(extern/utf8proc-2.7.0)
 include_directories(extern/fmt/include)
-include_directories(extern/dyncall)
+include_directories(extern/dyncall-1.4)
 include_directories(extern/boost-1.79)
 include_directories(extern/utf8proc-2.7.0)
 

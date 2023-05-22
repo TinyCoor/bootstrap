@@ -21,7 +21,7 @@ public:
 
 	bool consume();
 
-    ast_builder* ast_builder();
+    gfx::ast_builder* ast_builder();
 
 	bool consume(token_t& token);
 

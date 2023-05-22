@@ -100,7 +100,7 @@ namespace gfx {
 
 		void heap_vector(heap_vectors_t vector, uint64_t address);
 
-		shared_library* shared_library(const std::filesystem::path& path);
+		gfx::shared_library* shared_library(const std::filesystem::path& path);
 
 		class shared_library* load_shared_library(result& r, const std::filesystem::path& path);
 

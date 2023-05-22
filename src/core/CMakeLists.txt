@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(compiler-rt CXX C ASM)
+project(compiler-rt CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -71,7 +71,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}
         ${FMT_INCLUDE_DIRS}
         extern/fmt/include
-        extern/dyncall
+        extern/dyncall-1.4
         extern/boost-1.79
 )
 

@@ -7,7 +7,7 @@
 #include "dyncall/dyncall.h"
 #include "dynload/dynload.h"
 #include "dyncall/dyncall_signature.h"
-#include "dyncall/dyncall_struct.h"
+#include "dyncall/dyncall_aggregate.h"
 #include "instruction.h"
 #include <cstdint>
 #include <string>
@@ -31,7 +31,8 @@ enum class ffi_types_t : uint16_t {
 	float_type,
 	double_type,
 	pointer_type,
-	struct_type,
+    aggreate_type,
+//	struct_type,
 };
 
 struct function_value_t {
@@ -42,13 +43,13 @@ struct function_value_t {
 		}
 	}
 
-	DCstruct *struct_meta_info() {
+    DCaggr_ *struct_meta_info() {
 		if (struct_meta_data_ !=nullptr) {
 			return struct_meta_data_;
 		}
-		struct_meta_data_ = dcNewStruct(fields.size(), DEFAULT_ALIGNMENT);
+		struct_meta_data_ = dcNewAggr(fields.size(), 1);
 		add_struct_fields(struct_meta_data_);
-		dcCloseStruct(struct_meta_data_);
+		dcCloseAggr(struct_meta_data_);
 		return struct_meta_data_;
 	}
 
@@ -82,9 +83,9 @@ struct function_value_t {
 			case ffi_types_t::pointer_type:
 				dcArgPointer(vm, reinterpret_cast<DCpointer>(value));
 				break;
-			case ffi_types_t::struct_type: {
+			case ffi_types_t::aggreate_type: {
 				auto dc_struct = struct_meta_info();
-				dcArgStruct(vm, dc_struct, reinterpret_cast<DCpointer>(value));
+				dcArgAggr(vm, dc_struct, reinterpret_cast<DCpointer>(value));
 				break;
 			}
             default:
@@ -99,53 +100,63 @@ struct function_value_t {
 	std::vector<function_value_t> fields;
 
 private:
-	void add_struct_fields(DCstruct* dc_struct) {
+	void add_struct_fields(DCaggr_* dc_struct) {
+        int offset = 0;
 		for (auto& value : fields) {
 			switch (value.type) {
 				case ffi_types_t::void_type: {
 					break;
 				}
 				case ffi_types_t::bool_type: {
-					dcStructField(dc_struct, DC_SIGCHAR_BOOL, DEFAULT_ALIGNMENT, 1);
+                    offset += 1;
+                    dcAggrField(dc_struct, DC_SIGCHAR_BOOL, offset, 1);
 					break;
 				}
 				case ffi_types_t::char_type: {
-					dcStructField(dc_struct, DC_SIGCHAR_CHAR, DEFAULT_ALIGNMENT, 1);
+                    offset += sizeof(char);
+                    dcAggrField(dc_struct, DC_SIGCHAR_CHAR, offset, 1);
 					break;
 				}
 				case ffi_types_t::short_type: {
-					dcStructField(dc_struct, DC_SIGCHAR_SHORT, DEFAULT_ALIGNMENT, 1);
+                    offset += sizeof(short);
+                    dcAggrField(dc_struct, DC_SIGCHAR_SHORT, offset, 1);
 					break;
 				}
 				case ffi_types_t::int_type: {
-					dcStructField(dc_struct, DC_SIGCHAR_INT, DEFAULT_ALIGNMENT, 1);
+                    offset += sizeof(int);
+                    dcAggrField(dc_struct, DC_SIGCHAR_INT, offset, 1);
 					break;
 				}
 				case ffi_types_t::long_type:{
-					dcStructField(dc_struct, DC_SIGCHAR_LONG, DEFAULT_ALIGNMENT, 1);
+                    offset += sizeof(long);
+                    dcAggrField(dc_struct, DC_SIGCHAR_LONG, offset, 1);
 					break;
 				}
 				case ffi_types_t::long_long_type: {
-					dcStructField(dc_struct, DC_SIGCHAR_LONGLONG, DEFAULT_ALIGNMENT, 1);
+                    offset += sizeof(long long);
+                    dcAggrField(dc_struct, DC_SIGCHAR_LONGLONG, offset, 1);
 					break;
 				}
 				case ffi_types_t::float_type:{
-					dcStructField(dc_struct, DC_SIGCHAR_FLOAT, DEFAULT_ALIGNMENT, 1);
+                    offset += sizeof(float);
+                    dcAggrField(dc_struct, DC_SIGCHAR_FLOAT, offset, 1);
 					break;
 				}
 				case ffi_types_t::double_type: {
-					dcStructField(dc_struct, DC_SIGCHAR_DOUBLE, DEFAULT_ALIGNMENT, 1);
+                    offset += sizeof(double);
+                    dcAggrField(dc_struct, DC_SIGCHAR_DOUBLE, offset, 1);
 					break;
 				}
 				case ffi_types_t::pointer_type: {
-					dcStructField(dc_struct, DC_SIGCHAR_POINTER, DEFAULT_ALIGNMENT, 1);
+                    offset += sizeof(void*);
+                    dcAggrField(dc_struct, DC_SIGCHAR_POINTER, offset, 1);
 					break;
 				}
-				case ffi_types_t::struct_type: {
-					dcStructField(dc_struct, DC_SIGCHAR_STRUCT, DEFAULT_ALIGNMENT, 1);
-					dcSubStruct(dc_struct, value.fields.size(), DEFAULT_ALIGNMENT,  1);
+				case ffi_types_t::aggreate_type: {
+                    dcAggrField(dc_struct, DC_SIGCHAR_AGGREGATE, offset, 1);
+					// dcS(dc_struct, value.fields.size(), DEFAULT_ALIGNMENT,  1);
 					value.add_struct_fields(dc_struct);
-					dcCloseStruct(dc_struct);
+                    dcCloseAggr(dc_struct);
 					break;
 				}
 			}
@@ -153,7 +164,7 @@ private:
 	}
 
 private:
-	DCstruct *struct_meta_data_ = nullptr;
+    DCaggr_ *struct_meta_data_ = nullptr;
 };
 
 class shared_library;
@@ -225,11 +236,10 @@ struct function_signature_t {
 					vm, reinterpret_cast<DCpointer>(address)));
 				return value;
 			}
-			case ffi_types_t::struct_type: {
+			case ffi_types_t::aggreate_type: {
 				auto dc_struct = return_value.struct_meta_info();
-
 				DCpointer output_value;
-				dcCallStruct(vm, reinterpret_cast<DCpointer>(address),
+				dcCallAggr(vm, reinterpret_cast<DCpointer>(address),
 					dc_struct, &output_value);
 
 				return reinterpret_cast<uint64_t>(output_value);

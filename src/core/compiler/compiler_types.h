@@ -6,6 +6,7 @@
 #define CORE_COMPILER_COMPILER_TYPES_H_
 #include <vector>
 #include <string>
+#include <functional>
 #include <filesystem>
 #include <unordered_map>
 

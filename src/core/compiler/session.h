@@ -38,7 +38,7 @@ public:
 
     element_map& elements();
 
-    assembler& assembler();
+    gfx::assembler& assembler();
 
     stack_frame_t* stack_frame();
 

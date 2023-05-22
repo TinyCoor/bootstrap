@@ -5,6 +5,7 @@
 #ifndef BYTES_H_
 #define BYTES_H_
 #include <cstdint>
+#include <climits>
 namespace gfx {
 template <typename T>
 inline T twos_complement(T value) {
